@@ -30,7 +30,5 @@ jobs:
           set -e
           set -x
           export PYPI_MOMENTO_WIRE_TYPE_VERSION=0.0.devBuild
-          pushd python
-            python -m build
-          popd
+          python -m build
         shell: bash
