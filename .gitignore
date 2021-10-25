@@ -1,0 +1,11 @@
+# Compiled python modules.
+src/*.pyc
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+src/*.egg-info
+
+# Don't checkin the virtual environemnt
+client_sdk_python_env

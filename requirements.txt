@@ -1,0 +1,10 @@
+# requirements.txt is required to debug/run sdk locally. Pip needs requirements
+# that must be installed to proceed.
+#
+# Since, SDK will be distributed via PyPi it is needed to provide installation
+# requirements in setup.cfg.
+#
+# Instead of maintaining two different requirements, use setup.cfg as the
+# primary source. Hence a '.' is provided here which signals pip to use
+# dependencies from setup.cfg
+.
