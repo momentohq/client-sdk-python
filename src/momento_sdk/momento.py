@@ -2,8 +2,8 @@ import momento_wire_types.controlclient_pb2 as control_client
 
 class Momento:
     def __init__(self, auth_token, endpoint_override=None):
-        self.__auth_token__ = auth_token
-        self.__endpoint_override = endpoint_override
+        self._auth_token__ = auth_token
+        self._endpoint_override = endpoint_override
 
     def create_cache(self, cache_name):
         print("hello")
