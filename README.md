@@ -6,8 +6,8 @@ Python SDK for Momento
 * [Virual environment setup](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#installing-virtualenv)
 
 # Setup pre-requisites
-`./prepare_env.sh`
-The script creates a python virtual environment and install dependencies
+`./prepare_local_dev_env.sh`
+The script creates a python virtual environment and installs dependencies
 
 ## Setting up IDE
 ### Visual Studio Code
