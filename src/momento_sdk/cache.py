@@ -56,9 +56,9 @@ class Cache:
             self._validate_ttl(item_ttl_seconds)
             set_request = cache_client_types.SetRequest()
             set_request.cache_key = self._asBytes(
-                key, "Unsupported type for key: ")
+                key, 'Unsupported type for key: ')
             set_request.cache_body = self._asBytes(
-                value, "Unsupported type for value: ")
+                value, 'Unsupported type for value: ')
             set_request.ttl_milliseconds = item_ttl_seconds * 1000
             response = self._client.Set(set_request)
             return cache_sdk_resp.CacheSetResponse(response,
@@ -70,7 +70,7 @@ class Cache:
         try:
             get_request = cache_client_types.GetRequest()
             get_request.cache_key = self._asBytes(
-                key, "Unsupported type for key: ")
+                key, 'Unsupported type for key: ')
             response = self._client.Get(get_request)
             return cache_sdk_resp.CacheGetResponse(response)
         except Exception as e:

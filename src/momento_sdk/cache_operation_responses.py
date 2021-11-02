@@ -16,7 +16,7 @@ class CacheSetResponse:
                 grpc_set_response.result, grpc_set_response.message)
 
     def str_utf8(self):
-        return self._value.decode("utf-8")
+        return self._value.decode('utf-8')
 
     def bytes(self):
         return self._value
@@ -38,7 +38,7 @@ class CacheGetResponse:
 
     def str_utf8(self):
         if (self._result == CacheResult.HIT):
-            return self._value.decode("utf-8")
+            return self._value.decode('utf-8')
         return None
 
     def bytes(self):
