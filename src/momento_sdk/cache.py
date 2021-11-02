@@ -9,10 +9,10 @@ class Cache:
     def __init__(self, auth_token, cache_name, endpoint, default_ttlSeconds):
         self._default_ttlSeconds = default_ttlSeconds
         self._secure_channel = grpc.secure_channel(endpoint, grpc.ssl_channel_credentials())
-        auth_interceptor = authorization_interceptor.get_authorization_interceptor(auth_token=auth_token)
-        cache_interceptor = cache_name_interceptor.get_cache_name_interceptor(cache_name=cache_name)
+        auth_interceptor = authorization_interceptor.get_authorization_interceptor(auth_token)
+        cache_interceptor = cache_name_interceptor.get_cache_name_interceptor(cache_name)
         intercept_channel = grpc.intercept_channel(self._secure_channel, auth_interceptor, cache_interceptor)
-        self._client = cache_client.ScsStub(channel=intercept_channel)
+        self._client = cache_client.ScsStub(intercept_channel)
         # self._wait_till_ready()
 
     # Temporary hack
@@ -52,4 +52,5 @@ class Cache:
             return data.encode('utf-8')
         if (isinstance(data, bytes)):
             return data
+        # TODO: Add conversions
         raise TypeError(errorMessage + str(type(data)))
