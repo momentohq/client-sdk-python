@@ -1,7 +1,7 @@
 import collections
 import grpc
 
-from momento_sdk import generic_client_interceptor
+from momento_sdk import _generic_client_interceptor
 
 
 class _ClientCallDetails(
@@ -27,4 +27,4 @@ def header_adder_interceptor(header, value):
             client_call_details.credentials)
         return client_call_details, request_iterator, None
 
-    return generic_client_interceptor.create(intercept_call)
+    return _generic_client_interceptor.create(intercept_call)

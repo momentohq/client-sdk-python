@@ -3,17 +3,18 @@ import momento_wire_types.controlclient_pb2_grpc as control_client
 
 from momento_wire_types.controlclient_pb2 import CreateCacheRequest
 from momento_wire_types.controlclient_pb2 import DeleteCacheRequest
-from . import cache_service_errors_converter
+from . import _cache_service_errors_converter
 from . import errors
 from .cache import Cache
-from . import authorization_interceptor, momento_endpoint_resolver
+from . import _authorization_interceptor
+from . import _momento_endpoint_resolver
 from .cache_operation_responses import CreateCacheResponse
 from .cache_operation_responses import DeleteCacheResponse
 
 
 class Momento:
     def __init__(self, auth_token, endpoint_override=None):
-        endpoints = momento_endpoint_resolver._resolve(auth_token,
+        endpoints = _momento_endpoint_resolver.resolve(auth_token,
                                                        endpoint_override)
         self._auth_token = auth_token
         self._control_endpoint = endpoints.control_endpoint
@@ -22,7 +23,7 @@ class Momento:
             self._control_endpoint, grpc.ssl_channel_credentials())
         intercept_channel = grpc.intercept_channel(
             self._secure_channel,
-            authorization_interceptor.get_authorization_interceptor(
+            _authorization_interceptor.get_authorization_interceptor(
                 auth_token))
         self._client = control_client.ScsControlStub(intercept_channel)
 
@@ -38,7 +39,7 @@ class Momento:
             request.cache_name = cache_name
             return CreateCacheResponse(self._client.CreateCache(request))
         except Exception as e:
-            raise cache_service_errors_converter._convert(e) from None
+            raise _cache_service_errors_converter.convert(e) from None
 
     def delete_cache(self, cache_name):
         try:
@@ -46,7 +47,7 @@ class Momento:
             request.cache_name = cache_name
             return DeleteCacheResponse(self._client.DeleteCache(request))
         except Exception as e:
-            raise cache_service_errors_converter._convert(e) from None
+            raise _cache_service_errors_converter.convert(e) from None
 
     def get_cache(self, cache_name, ttl_seconds, create_if_absent=False):
         if (create_if_absent):

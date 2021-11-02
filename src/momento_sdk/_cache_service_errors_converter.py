@@ -18,7 +18,7 @@ __ecache_result_to_error = {
 }
 
 
-def _convert(exception):
+def convert(exception):
     if (isinstance(exception, errors.SdkError)):
         return exception
 
@@ -33,7 +33,7 @@ def _convert(exception):
                                  str(exception))
 
 
-def _convert_ecache_result(ecache_result, message):
+def convert_ecache_result(ecache_result, message):
     if (ecache_result in __ecache_result_to_error):
         return __ecache_result_to_error[ecache_result](message)
     return errors.InternalServerError(

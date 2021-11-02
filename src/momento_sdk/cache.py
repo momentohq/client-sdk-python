@@ -4,9 +4,9 @@ import uuid
 import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.cacheclient_pb2 as cache_client_types
 
-from . import cache_service_errors_converter
-from . import authorization_interceptor
-from . import cache_name_interceptor
+from . import _cache_service_errors_converter
+from . import _authorization_interceptor
+from . import _cache_name_interceptor
 from . import errors
 from . import cache_operation_responses as cache_sdk_resp
 
@@ -17,9 +17,9 @@ class Cache:
         self._default_ttlSeconds = default_ttlSeconds
         self._secure_channel = grpc.secure_channel(
             endpoint, grpc.ssl_channel_credentials())
-        auth_interceptor = authorization_interceptor.get_authorization_interceptor(
+        auth_interceptor = _authorization_interceptor.get_authorization_interceptor(
             auth_token)
-        cache_interceptor = cache_name_interceptor.get_cache_name_interceptor(
+        cache_interceptor = _cache_name_interceptor.get_cache_name_interceptor(
             cache_name)
         intercept_channel = grpc.intercept_channel(self._secure_channel,
                                                    auth_interceptor,
@@ -42,7 +42,7 @@ class Cache:
                 last_exception = e
                 time.sleep(back_off_millis / 1000.0)
 
-        raise cache_service_errors_converter._convert(last_exception)
+        raise _cache_service_errors_converter.convert(last_exception)
 
     def __enter__(self):
         return self
@@ -64,7 +64,7 @@ class Cache:
             return cache_sdk_resp.CacheSetResponse(response,
                                                    set_request.cache_body)
         except Exception as e:
-            raise cache_service_errors_converter._convert(e)
+            raise _cache_service_errors_converter.convert(e)
 
     def get(self, key):
         try:
@@ -74,7 +74,7 @@ class Cache:
             response = self._client.Get(get_request)
             return cache_sdk_resp.CacheGetResponse(response)
         except Exception as e:
-            raise cache_service_errors_converter._convert(e)
+            raise _cache_service_errors_converter.convert(e)
 
     def _asBytes(self, data, errorMessage):
         if (isinstance(data, str)):

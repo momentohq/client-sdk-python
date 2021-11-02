@@ -15,7 +15,7 @@ class _Endpoints:
         self.cache_endpoint = cache_endpoint
 
 
-def _resolve(auth_token, endpoint_override=None):
+def resolve(auth_token, endpoint_override=None):
     if (endpoint_override is not None):
         return _Endpoints(_MOMENTO_CONTROL_ENDPOINT_PREFIX + endpoint_override,
                           _MOMENTO_CACHE_ENDPOINT_PREFIX + endpoint_override)
