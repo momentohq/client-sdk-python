@@ -1,12 +1,19 @@
 import grpc
-from . import authorization_interceptor
-from . import cache_name_interceptor
+import time
+import uuid
 import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.cacheclient_pb2 as cache_client_types
+
+from . import cache_service_errors_converter
+from . import authorization_interceptor
+from . import cache_name_interceptor
+from . import errors
+from . import cache_operation_responses as cache_sdk_resp
 
 
 class Cache:
     def __init__(self, auth_token, cache_name, endpoint, default_ttlSeconds):
+        self._validate_ttl(default_ttlSeconds)
         self._default_ttlSeconds = default_ttlSeconds
         self._secure_channel = grpc.secure_channel(
             endpoint, grpc.ssl_channel_credentials())
@@ -18,17 +25,24 @@ class Cache:
                                                    auth_interceptor,
                                                    cache_interceptor)
         self._client = cache_client.ScsStub(intercept_channel)
-        # self._wait_till_ready()
+        self._wait_till_ready()
 
-    # Temporary hack
-    # TODO: Make this time bound
+    # Temporary measure
     def _wait_till_ready(self):
-        while (True):
+        start_time = time.time()
+        max_wait_seconds = 5
+        back_off_millis = 50
+        last_exception = None
+
+        while (time.time() - start_time < max_wait_seconds):
             try:
-                self._client.Get('b\0x01')
-                break
-            except:
-                True
+                self.get(uuid.uuid1().bytes)
+                return
+            except Exception as e:
+                last_exception = e
+                time.sleep(back_off_millis / 1000.0)
+
+        raise cache_service_errors_converter._convert(last_exception)
 
     def __enter__(self):
         return self
@@ -37,26 +51,39 @@ class Cache:
         self._secure_channel.close()
 
     def set(self, key, value, ttl_seconds=None):
-        item_ttl_seconds = self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
-        set_request = cache_client_types.SetRequest()
-        set_request.cache_key = self._asBytes(key,
-                                              "Unsupported type for key: ")
-        set_request.cache_body = self._asBytes(value,
-                                               "Unsupported type for value: ")
-        set_request.ttl_milliseconds = item_ttl_seconds * 1000
-        self._client.Set(set_request)
+        try:
+            item_ttl_seconds = self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
+            self._validate_ttl(item_ttl_seconds)
+            set_request = cache_client_types.SetRequest()
+            set_request.cache_key = self._asBytes(
+                key, "Unsupported type for key: ")
+            set_request.cache_body = self._asBytes(
+                value, "Unsupported type for value: ")
+            set_request.ttl_milliseconds = item_ttl_seconds * 1000
+            response = self._client.Set(set_request)
+            return cache_sdk_resp.CacheSetResponse(response,
+                                                   set_request.cache_body)
+        except Exception as e:
+            raise cache_service_errors_converter._convert(e)
 
     def get(self, key):
-        get_request = cache_client_types.GetRequest()
-        get_request.cache_key = self._asBytes(key,
-                                              "Unsupported type for key: ")
-        response = self._client.Get(get_request)
-        print(response)
+        try:
+            get_request = cache_client_types.GetRequest()
+            get_request.cache_key = self._asBytes(
+                key, "Unsupported type for key: ")
+            response = self._client.Get(get_request)
+            return cache_sdk_resp.CacheGetResponse(response)
+        except Exception as e:
+            raise cache_service_errors_converter._convert(e)
 
     def _asBytes(self, data, errorMessage):
         if (isinstance(data, str)):
             return data.encode('utf-8')
         if (isinstance(data, bytes)):
             return data
-        # TODO: Add conversions
-        raise TypeError(errorMessage + str(type(data)))
+        raise errors.InvalidInputError(errorMessage + str(type(data)))
+
+    def _validate_ttl(self, ttl_seconds):
+        if (not isinstance(ttl_seconds, int) or ttl_seconds <= 0):
+            raise errors.InvalidInputError(
+                'TTL Seconds must be a non-zero positive integer.')

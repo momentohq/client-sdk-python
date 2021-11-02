@@ -1,7 +1,7 @@
 import collections
+import grpc
 
 from momento_sdk import generic_client_interceptor
-import grpc
 
 
 class _ClientCallDetails(

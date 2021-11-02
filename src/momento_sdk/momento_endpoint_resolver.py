@@ -1,6 +1,8 @@
 import jwt
 from jwt.exceptions import DecodeError
 
+from . import errors
+
 _MOMENTO_CONTROL_ENDPOINT_PREFIX = 'control.'
 _MOMENTO_CACHE_ENDPOINT_PREFIX = 'cache.'
 _CONTROL_ENDPOINT_CLAIM_ID = 'cp'
@@ -25,8 +27,5 @@ def _getEndpointFromToken(auth_token):
         claims = jwt.decode(auth_token, options={"verify_signature": False})
         return _Endpoints(claims[_CONTROL_ENDPOINT_CLAIM_ID],
                           claims[_CACHE_ENDPOINT_CLAIM_ID])
-    # TODO: Add exception converters
-    except DecodeError:
-        raise Exception
-    except KeyError:
-        raise Exception
+    except (DecodeError, KeyError):
+        raise errors.InvalidInputError('Invalid Auth token.') from None

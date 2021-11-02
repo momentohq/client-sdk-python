@@ -1,10 +1,14 @@
+import grpc
+import momento_wire_types.controlclient_pb2_grpc as control_client
+
 from momento_wire_types.controlclient_pb2 import CreateCacheRequest
 from momento_wire_types.controlclient_pb2 import DeleteCacheRequest
-import momento_wire_types.controlclient_pb2_grpc as control_client
-import grpc
-
-from momento_sdk.cache import Cache
+from . import cache_service_errors_converter
+from . import errors
+from .cache import Cache
 from . import authorization_interceptor, momento_endpoint_resolver
+from .cache_operation_responses import CreateCacheResponse
+from .cache_operation_responses import DeleteCacheResponse
 
 
 class Momento:
@@ -29,21 +33,27 @@ class Momento:
         self._secure_channel.close()
 
     def create_cache(self, cache_name):
-        request = CreateCacheRequest()
-        request.cache_name = cache_name
-        self._client.CreateCache(request)
+        try:
+            request = CreateCacheRequest()
+            request.cache_name = cache_name
+            return CreateCacheResponse(self._client.CreateCache(request))
+        except Exception as e:
+            raise cache_service_errors_converter._convert(e) from None
 
     def delete_cache(self, cache_name):
-        request = DeleteCacheRequest()
-        request.cache_name = cache_name
-        self._client.DeleteCache(request)
+        try:
+            request = DeleteCacheRequest()
+            request.cache_name = cache_name
+            return DeleteCacheResponse(self._client.DeleteCache(request))
+        except Exception as e:
+            raise cache_service_errors_converter._convert(e) from None
 
     def get_cache(self, cache_name, ttl_seconds, create_if_absent=False):
         if (create_if_absent):
             try:
                 self.create_cache(cache_name)
-            except ValueError:
-                # Cache is already present, so continue
+            except errors.CacheExistsError:
+                # Cache already exists so nothing to do
                 pass
         return Cache(self._auth_token, cache_name, self._cache_endpoint,
                      ttl_seconds)
