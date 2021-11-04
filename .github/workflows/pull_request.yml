@@ -29,6 +29,6 @@ jobs:
         run: |
           set -e
           set -x
-          export PYPI_MOMENTO_WIRE_TYPE_VERSION=0.0.devBuild
+          export MOMENTO_SDK_VERSION=0.0.devBuild
           python -m build
         shell: bash
