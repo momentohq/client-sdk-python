@@ -1,11 +1,10 @@
 import setuptools
 import os
-import time
 
 version = os.getenv("MOMENTO_SDK_VERSION")
 
-if [version == None]:
-    version = '0.0.dev'
+if(version is None):
+    version = '0.0.localdev0'
 
 # version is the only dynamic configuration
 setuptools.setup(
