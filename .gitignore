@@ -1,5 +1,7 @@
 # Compiled python modules.
 src/*.pyc
+src/momento/*.pyc
+src/momento/__pycache__
 
 # Setuptools distribution folder.
 /dist/
