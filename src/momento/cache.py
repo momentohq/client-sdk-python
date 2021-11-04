@@ -25,10 +25,10 @@ class Cache:
                                                    auth_interceptor,
                                                    cache_interceptor)
         self._client = cache_client.ScsStub(intercept_channel)
-        self._wait_till_ready()
+        self._wait_until_ready()
 
     # Temporary measure
-    def _wait_till_ready(self):
+    def _wait_until_ready(self):
         start_time = time.time()
         max_wait_seconds = 5
         back_off_millis = 50
