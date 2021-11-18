@@ -25,24 +25,13 @@ class Cache:
                                                    auth_interceptor,
                                                    cache_interceptor)
         self._client = cache_client.ScsStub(intercept_channel)
-        self._wait_until_ready()
 
-    # Temporary measure
-    def _wait_until_ready(self):
-        start_time = time.time()
-        max_wait_seconds = 5
-        back_off_millis = 50
-        last_exception = None
-
-        while (time.time() - start_time < max_wait_seconds):
-            try:
-                self.get(uuid.uuid1().bytes)
-                return
-            except Exception as e:
-                last_exception = e
-                time.sleep(back_off_millis / 1000.0)
-
-        raise _cache_service_errors_converter.convert(last_exception)
+    def _connect(self) :
+        try:
+            self.get(uuid.uuid1().bytes)
+            return self
+        except Exception as e:
+            raise _cache_service_errors_converter.convert(e) from None
 
     def __enter__(self):
         return self
