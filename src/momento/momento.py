@@ -50,14 +50,16 @@ class Momento:
             raise _cache_service_errors_converter.convert(e) from None
 
     def get_cache(self, cache_name, ttl_seconds, create_if_absent=False):
-        if (create_if_absent):
-            try:
-                self.create_cache(cache_name)
-            except errors.CacheExistsError:
-                # Cache already exists so nothing to do
-                pass
-        return Cache(self._auth_token, cache_name, self._cache_endpoint,
+        cache = Cache(self._auth_token, cache_name, self._cache_endpoint,
                      ttl_seconds)
+        try:
+            return cache._connect()
+        except errors.CacheNotFoundError as e:
+            if (not create_if_absent):
+                raise e
+
+        self.create_cache(cache_name)
+        return cache._connect()
 
 
 def init(auth_token):
