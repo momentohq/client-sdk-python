@@ -26,6 +26,10 @@ class Cache:
                                                    cache_interceptor)
         self._client = cache_client.ScsStub(intercept_channel)
 
+    # While the constructor opens the grpc channel. Connect allows the channel
+    # to test the connection with provided cache name and auth token.
+    # Separating the _connect from the constructor, allows better latency and
+    # resource management for calls that need get or create functionality.
     def _connect(self) :
         try:
             self.get(uuid.uuid1().bytes)
