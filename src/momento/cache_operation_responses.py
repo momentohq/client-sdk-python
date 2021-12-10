@@ -58,3 +58,25 @@ class CreateCacheResponse:
 class DeleteCacheResponse:
     def __init__(self, grpc_delete_cache_response):
         pass
+
+
+class ListCachesResponse:
+    def __init__(self, grpc_list_cache_response):
+        self._next_token = grpc_list_cache_response.next_token
+        self._caches = []
+        for cache in grpc_list_cache_response.cache:
+            self._caches.append(CacheInfo(cache))
+
+    def next_token(self):
+        return self._next_token
+
+    def caches(self):
+        return self._caches
+
+
+class CacheInfo:
+    def __init__(self, grpc_listed_caches):
+        self._name = grpc_listed_caches.cache_name
+
+    def name(self):
+        return self._name

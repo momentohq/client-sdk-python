@@ -1,7 +1,7 @@
 import grpc
 import momento_wire_types.controlclient_pb2_grpc as control_client
 
-from momento_wire_types.controlclient_pb2 import CreateCacheRequest
+from momento_wire_types.controlclient_pb2 import CreateCacheRequest, ListCachesRequest
 from momento_wire_types.controlclient_pb2 import DeleteCacheRequest
 from . import _cache_service_errors_converter
 from . import errors
@@ -10,6 +10,7 @@ from . import _authorization_interceptor
 from . import _momento_endpoint_resolver
 from .cache_operation_responses import CreateCacheResponse
 from .cache_operation_responses import DeleteCacheResponse
+from .cache_operation_responses import ListCachesResponse
 
 
 class Momento:
@@ -60,6 +61,14 @@ class Momento:
 
         self.create_cache(cache_name)
         return cache._connect()
+
+    def list_caches(self, next_token=None):
+        try:
+            list_caches_request = ListCachesRequest()
+            list_caches_request.next_token = next_token
+            return ListCachesResponse(self._client.ListCaches(list_caches_request))
+        except Exception as e:
+            raise _cache_service_errors_converter.convert(e)
 
 
 def init(auth_token):
