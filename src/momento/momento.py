@@ -65,7 +65,7 @@ class Momento:
     def list_caches(self, next_token=None):
         try:
             list_caches_request = ListCachesRequest()
-            list_caches_request.next_token = next_token
+            list_caches_request.next_token = next_token if next_token is not None else ''
             return ListCachesResponse(self._client.ListCaches(list_caches_request))
         except Exception as e:
             raise _cache_service_errors_converter.convert(e)

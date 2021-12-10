@@ -62,7 +62,7 @@ class DeleteCacheResponse:
 
 class ListCachesResponse:
     def __init__(self, grpc_list_cache_response):
-        self._next_token = grpc_list_cache_response.next_token
+        self._next_token = grpc_list_cache_response.next_token if grpc_list_cache_response.next_token != '' else None
         self._caches = []
         for cache in grpc_list_cache_response.cache:
             self._caches.append(CacheInfo(cache))
