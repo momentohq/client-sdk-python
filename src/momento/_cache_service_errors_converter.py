@@ -9,12 +9,8 @@ __rpc_to_error = {
     grpc.StatusCode.PERMISSION_DENIED: errors.PermissionError,
 }
 
-# Till the time MR2 stops returning errors in Enums
 __ecache_result_to_error = {
-    cache_client_types.Bad_Request: errors.CacheValueError,
-    cache_client_types.Internal_Server_Error: errors.InternalServerError,
-    cache_client_types.Service_Unavailable: errors.InternalServerError,
-    cache_client_types.Unauthorized: errors.PermissionError,
+    cache_client_types.Invalid: errors.InternalServerError,
 }
 
 
