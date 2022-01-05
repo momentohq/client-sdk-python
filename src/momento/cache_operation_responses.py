@@ -1,6 +1,7 @@
 from enum import Enum
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 from . import _cache_service_errors_converter as error_converter
+from . import _momento_logger
 
 
 class CacheResult(Enum):
@@ -12,6 +13,7 @@ class CacheSetResponse:
     def __init__(self, grpc_set_response, value):
         self._value = value
         if (grpc_set_response.result is not cache_client_types.Ok):
+            _momento_logger.debug(f'Set received unsupported ECacheResult {grpc_set_response.result}')
             raise error_converter.convert_ecache_result(
                 grpc_set_response.result, grpc_set_response.message)
 
@@ -28,6 +30,7 @@ class CacheGetResponse:
 
         if (grpc_get_response.result is not cache_client_types.Hit
                 and grpc_get_response.result is not cache_client_types.Miss):
+            _momento_logger.debug(f'Get received unsupported ECacheResult: {grpc_get_response.result}')
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message)
 

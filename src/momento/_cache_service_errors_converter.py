@@ -1,5 +1,6 @@
 import grpc
 from . import errors
+from . import _momento_logger
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 
 __rpc_to_error = {
@@ -30,6 +31,7 @@ def convert(exception):
 
 
 def convert_ecache_result(ecache_result, message):
+    _momento_logger.debug(f'Converting ECacheResult: {ecache_result} to error.')
     if (ecache_result in __ecache_result_to_error):
         return __ecache_result_to_error[ecache_result](message)
     return errors.InternalServerError(
