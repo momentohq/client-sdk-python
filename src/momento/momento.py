@@ -11,7 +11,6 @@ from . import _momento_endpoint_resolver
 from .cache_operation_responses import CreateCacheResponse
 from .cache_operation_responses import DeleteCacheResponse
 from .cache_operation_responses import ListCachesResponse
-from . import _momento_logger
 
 
 class Momento:
@@ -37,22 +36,18 @@ class Momento:
 
     def create_cache(self, cache_name):
         try:
-            _momento_logger.debug(f'Creating cache with name: {cache_name}')
             request = CreateCacheRequest()
             request.cache_name = cache_name
             return CreateCacheResponse(self._client.CreateCache(request))
         except Exception as e:
-            _momento_logger.debug(f'Failed to create cache: {cache_name} with exception:{e}')
             raise _cache_service_errors_converter.convert(e) from None
 
     def delete_cache(self, cache_name):
         try:
-            _momento_logger.debug(f'Deleting cache with name: {cache_name}')
             request = DeleteCacheRequest()
             request.cache_name = cache_name
             return DeleteCacheResponse(self._client.DeleteCache(request))
         except Exception as e:
-            _momento_logger.debug(f'Failed to delete cache: {cache_name} with exception:{e}')
             raise _cache_service_errors_converter.convert(e) from None
 
     def get_cache(self, cache_name, ttl_seconds, create_if_absent=False):
@@ -64,7 +59,6 @@ class Momento:
             if (not create_if_absent):
                 raise e
 
-        _momento_logger.debug(f'create_if_absent={create_if_absent}')
         self.create_cache(cache_name)
         return cache._connect()
 

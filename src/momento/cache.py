@@ -9,7 +9,6 @@ from . import _authorization_interceptor
 from . import _cache_name_interceptor
 from . import errors
 from . import cache_operation_responses as cache_sdk_resp
-from . import _momento_logger
 
 
 class Cache:
@@ -33,12 +32,9 @@ class Cache:
     # resource management for calls that need get or create functionality.
     def _connect(self) :
         try:
-            _momento_logger.debug('Initializing connection with Cache Service')
             self.get(uuid.uuid1().bytes)
-            _momento_logger.debug('Success: Connection Initialized with Cache Service')
             return self
         except Exception as e:
-            _momento_logger.debug(f'Cache Service Connect Failed with: {e}')
             raise _cache_service_errors_converter.convert(e) from None
 
     def __enter__(self):
@@ -49,7 +45,6 @@ class Cache:
 
     def set(self, key, value, ttl_seconds=None):
         try:
-            _momento_logger.debug(f'Issuing a set request with key {key}')
             item_ttl_seconds = self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
             self._validate_ttl(item_ttl_seconds)
             set_request = cache_client_types.SetRequest()
@@ -59,24 +54,19 @@ class Cache:
                 value, 'Unsupported type for value: ')
             set_request.ttl_milliseconds = item_ttl_seconds * 1000
             response = self._client.Set(set_request)
-            _momento_logger.debug(f'Set succeeded for key: {key}')
             return cache_sdk_resp.CacheSetResponse(response,
                                                    set_request.cache_body)
         except Exception as e:
-            _momento_logger.debug(f'Set failed for {key} with response: {e}')
             raise _cache_service_errors_converter.convert(e)
 
     def get(self, key):
         try:
-            _momento_logger.debug(f'Issuing a get request with key {key}')
             get_request = cache_client_types.GetRequest()
             get_request.cache_key = self._asBytes(
                 key, 'Unsupported type for key: ')
             response = self._client.Get(get_request)
-            _momento_logger.debug(f'Received a get response for {key}')
             return cache_sdk_resp.CacheGetResponse(response)
         except Exception as e:
-            _momento_logger.debug(f'Get failed for {key} with response: {e}')
             raise _cache_service_errors_converter.convert(e)
 
     def _asBytes(self, data, errorMessage):
