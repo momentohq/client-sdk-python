@@ -15,7 +15,7 @@ class CacheSetResponse:
         if (grpc_set_response.result is not cache_client_types.Ok):
             _momento_logger.debug(f'Set received unsupported ECacheResult {grpc_set_response.result}')
             raise error_converter.convert_ecache_result(
-                grpc_set_response.result, grpc_set_response.message)
+                grpc_set_response.result, grpc_set_response.message, 'SET')
 
     def str_utf8(self):
         return self._value.decode('utf-8')
@@ -32,7 +32,7 @@ class CacheGetResponse:
                 and grpc_get_response.result is not cache_client_types.Miss):
             _momento_logger.debug(f'Get received unsupported ECacheResult: {grpc_get_response.result}')
             raise error_converter.convert_ecache_result(
-                grpc_get_response.result, grpc_get_response.message)
+                grpc_get_response.result, grpc_get_response.message, 'GET')
 
         if (grpc_get_response.result == cache_client_types.Hit):
             self._result = CacheResult.HIT
