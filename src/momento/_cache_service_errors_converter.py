@@ -1,17 +1,13 @@
 import grpc
 from . import errors
 from . import _momento_logger
-from momento_wire_types import cacheclient_pb2 as cache_client_types
+
 
 __rpc_to_error = {
     grpc.StatusCode.ALREADY_EXISTS: errors.CacheExistsError,
     grpc.StatusCode.INVALID_ARGUMENT: errors.CacheValueError,
     grpc.StatusCode.NOT_FOUND: errors.CacheNotFoundError,
     grpc.StatusCode.PERMISSION_DENIED: errors.PermissionError,
-}
-
-__ecache_result_to_error = {
-    cache_client_types.Invalid: errors.InternalServerError,
 }
 
 
@@ -30,9 +26,8 @@ def convert(exception):
                                  str(exception))
 
 
-def convert_ecache_result(ecache_result, message):
+def convert_ecache_result(ecache_result, message, operation_name):
     _momento_logger.debug(f'Converting ECacheResult: {ecache_result} to error.')
-    if (ecache_result in __ecache_result_to_error):
-        return __ecache_result_to_error[ecache_result](message)
     return errors.InternalServerError(
-        'CacheService failed with an internal error')
+        f'CacheService returned an unexpected result: {ecache_result}' +
+        f' for operation: {operation_name} with message: {message}')
