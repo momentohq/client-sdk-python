@@ -12,7 +12,7 @@ class CacheResult(Enum):
 class CacheSetResponse:
     def __init__(self, grpc_set_response, value):
         self._value = value
-        if (grpc_set_response.result is not cache_client_types.Ok):
+        if (grpc_set_response.result != cache_client_types.Ok):
             _momento_logger.debug(f'Set received unsupported ECacheResult {grpc_set_response.result}')
             raise error_converter.convert_ecache_result(
                 grpc_set_response.result, grpc_set_response.message, 'SET')
@@ -28,16 +28,15 @@ class CacheGetResponse:
     def __init__(self, grpc_get_response):
         self._value = grpc_get_response.cache_body
 
-        if (grpc_get_response.result is not cache_client_types.Hit
-                and grpc_get_response.result is not cache_client_types.Miss):
+        if (grpc_get_response.result == cache_client_types.Hit):
+            self._result = CacheResult.HIT
+        elif (grpc_get_response.result == cache_client_types.Miss):
+            self._result = CacheResult.MISS
+        else:
             _momento_logger.debug(f'Get received unsupported ECacheResult: {grpc_get_response.result}')
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, 'GET')
 
-        if (grpc_get_response.result == cache_client_types.Hit):
-            self._result = CacheResult.HIT
-        if (grpc_get_response.result == cache_client_types.Miss):
-            self._result = CacheResult.MISS
 
     def str_utf8(self):
         if (self._result == CacheResult.HIT):
