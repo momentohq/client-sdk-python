@@ -11,6 +11,15 @@ class CacheResult(Enum):
 
 class CacheSetResponse:
     def __init__(self, grpc_set_response, value):
+        """Inits CacheSetResponse to handle gRPC set response.
+
+        Args: 
+            grpc_set_response: Response returned from set operation.
+            value: String value set in chache.
+
+        Raises:
+            Error to notify either sdk, grpc, or operation error.
+        """
         self._value = value
         if (grpc_set_response.result != cache_client_types.Ok):
             _momento_logger.debug(f'Set received unsupported ECacheResult {grpc_set_response.result}')
@@ -18,14 +27,24 @@ class CacheSetResponse:
                 grpc_set_response.result, grpc_set_response.message, 'SET')
 
     def str_utf8(self):
+        """Decodes string value set in cache to a utf-8 string."""
         return self._value.decode('utf-8')
 
     def bytes(self):
+        """Returns byte value set in cache."""
         return self._value
 
 
 class CacheGetResponse:
     def __init__(self, grpc_get_response):
+        """Initis CacheGetResponse to handle gRPC get response.
+
+        Args:
+            grpc_get_response: Response returned from get operation.
+
+        Raises:
+                Error to notify either sdk, grpc, or operation error.
+        """
         self._value = grpc_get_response.cache_body
 
         if (grpc_get_response.result == cache_client_types.Hit):
@@ -39,16 +58,19 @@ class CacheGetResponse:
 
 
     def str_utf8(self):
+        """Decodes string value got from cache to a utf-8 string."""
         if (self._result == CacheResult.HIT):
             return self._value.decode('utf-8')
         return None
 
     def bytes(self):
+        """Returns byte value got from cache."""
         if (self._result == CacheResult.HIT):
             return self._value
         return None
 
     def result(self):
+        """Returns get operation result such as HIT or MISS."""
         return self._result
 
 
@@ -64,21 +86,34 @@ class DeleteCacheResponse:
 
 class ListCachesResponse:
     def __init__(self, grpc_list_cache_response):
+        """Inits ListCacheResponse to handle list cache response.
+
+        Args:
+            gprc_list_cache_response: Response returned from list operation.
+        """
         self._next_token = grpc_list_cache_response.next_token if grpc_list_cache_response.next_token != '' else None
         self._caches = []
         for cache in grpc_list_cache_response.cache:
             self._caches.append(CacheInfo(cache))
 
     def next_token(self):
+        """Returns next token."""
         return self._next_token
 
     def caches(self):
+        """Returns all caches."""
         return self._caches
 
 
 class CacheInfo:
     def __init__(self, grpc_listed_caches):
+        """Inits CacheInfo to handle caches returned from list cache operation.
+
+        Args:
+            grpc_listed_caches: All caches' information returned from list cache.
+        """
         self._name = grpc_listed_caches.cache_name
 
     def name(self):
+        """Returns all caches' names."""
         return self._name
