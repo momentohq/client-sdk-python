@@ -51,7 +51,7 @@ class Momento:
             CreateCacheResponse
 
         Raises:
-            Exception to notify cache creation failure.
+            Exception to notify either sdk, grpc, or operation error.
         """
         try:
             _momento_logger.debug(f'Creating cache with name: {cache_name}')
@@ -72,7 +72,7 @@ class Momento:
             DeleteCacheResponse
 
         Raises:
-            Exception to notify cache deletion failure.
+            Exception to notify either sdk, grpc, or operation error.
         """
         try:
             _momento_logger.debug(f'Deleting cache with name: {cache_name}')
