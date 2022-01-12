@@ -11,14 +11,20 @@ class CacheResult(Enum):
 
 class CacheSetResponse:
     def __init__(self, grpc_set_response, value):
-        """Inits CacheSetResponse to handle gRPC set response.
+        """Initializes CacheSetResponse to handle gRPC set response.
 
         Args: 
-            grpc_set_response: Response returned from set operation.
-            value: String value set in chache.
+            grpc_set_response: Protobuf based response returned by Scs.
+            value (string or bytes): The value to be used to store item in the cache
 
         Raises:
-            Error to notify either sdk, grpc, or operation error.
+            CacheValueError: If service validation fails for provided values.
+            CacheNotFoundError: If an attempt is made to store an item in a cache that doesn't exist.
+            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
+            ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
+                            The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
+            InternalServerError: If server encountered an unknown error while trying to store the item.
+            SdkError: Base exception for all errors raised by Sdk.
         """
         self._value = value
         if (grpc_set_response.result != cache_client_types.Ok):
@@ -37,13 +43,19 @@ class CacheSetResponse:
 
 class CacheGetResponse:
     def __init__(self, grpc_get_response):
-        """Initis CacheGetResponse to handle gRPC get response.
+        """Initializes CacheGetResponse to handle gRPC get response.
 
         Args:
-            grpc_get_response: Response returned from get operation.
+            grpc_get_response: Protobuf based response returned by Scs.
 
         Raises:
-                Error to notify either sdk, grpc, or operation error.
+            CacheValueError: If service validation fails for provided values.
+            CacheNotFoundError: If an attempt is made to retrieve an item in a cache that doesn't exist.
+            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
+            ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
+                            The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+            SdkError: Base exception for all errors raised by Sdk.
         """
         self._value = grpc_get_response.cache_body
 
@@ -58,13 +70,13 @@ class CacheGetResponse:
 
 
     def str_utf8(self):
-        """Decodes string value got from cache to a utf-8 string."""
+        """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
         if (self._result == CacheResult.HIT):
             return self._value.decode('utf-8')
         return None
 
     def bytes(self):
-        """Returns byte value got from cache."""
+        """Returns value stored in cache as bytes if there was Hit. Returns None otherwise."""
         if (self._result == CacheResult.HIT):
             return self._value
         return None
@@ -86,10 +98,10 @@ class DeleteCacheResponse:
 
 class ListCachesResponse:
     def __init__(self, grpc_list_cache_response):
-        """Inits ListCacheResponse to handle list cache response.
+        """Initializes ListCacheResponse to handle list cache response.
 
         Args:
-            gprc_list_cache_response: Response returned from list operation.
+            grpc_list_cache_response: Protobuf based response returned by Scs.
         """
         self._next_token = grpc_list_cache_response.next_token if grpc_list_cache_response.next_token != '' else None
         self._caches = []
@@ -106,13 +118,13 @@ class ListCachesResponse:
 
 
 class CacheInfo:
-    def __init__(self, grpc_listed_caches):
-        """Inits CacheInfo to handle caches returned from list cache operation.
+    def __init__(self, grpc_listed_cache):
+        """Initializes CacheInfo to handle caches returned from list cache operation.
 
         Args:
-            grpc_listed_caches: All caches' information returned from list cache.
+            grpc_listed_cache: Protobuf based response returned by Scs.
         """
-        self._name = grpc_listed_caches.cache_name
+        self._name = grpc_listed_cache.cache_name
 
     def name(self):
         """Returns all caches' names."""

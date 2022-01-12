@@ -16,11 +16,11 @@ from . import _momento_logger
 
 class Momento:
     def __init__(self, auth_token, endpoint_override=None):
-        """Inits Momento to setup SCS client.
+        """Initializes Momento to setup SCS client.
 
         Args: 
             auth_token: Momento JWT
-            endpoint_override: String of optional endpoint ovveride to be used when given an explicit endpoint by the Momneto team
+            endpoint_override: String of optional endpoint override to be used when given an explicit endpoint by the Momneto team
         """
         endpoints = _momento_endpoint_resolver.resolve(auth_token,
                                                        endpoint_override)
@@ -89,7 +89,7 @@ class Momento:
         Args: 
             cache_name: String cache name
             ttl_seconds: Time to live if object insdie of cache in seconds.
-            create_if_absent: Boolean value to decide if cahce should be created if it does not exist.
+            create_if_absent: Boolean value to decide if cache should be created if it does not exist.
 
         Returns:
             Cache
@@ -110,10 +110,10 @@ class Momento:
         return cache._connect()
 
     def list_caches(self, next_token=None):
-        """Lists ll caches.
+        """Lists all caches.
 
         Args: 
-            next_token: Token to continue paginating through the list. It's ised to hnadle large paginated lists.
+            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
 
         Returns:
             ListCachesResponse
