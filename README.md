@@ -29,3 +29,14 @@ To test your changes you can then just run your python shell as follows:
 
 `python` this will start the interactive shell or if you prefer you may put all
 your code in a my_test.py file and run `python my_test.py`
+
+# Tests
+
+- Integration tests require an auth token for testing. Set this as `TEST_AUTH_TOKEN`.
+- `TEST_CACHE_NAME` is required, but for now any string value works.
+
+Run:
+
+```
+TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> python3 tests/*
+```
