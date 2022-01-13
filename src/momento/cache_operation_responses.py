@@ -24,7 +24,6 @@ class CacheSetResponse:
             ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
                             The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to store the item.
-            SdkError: Base exception for all errors raised by Sdk.
         """
         self._value = value
         if (grpc_set_response.result != cache_client_types.Ok):
@@ -55,7 +54,6 @@ class CacheGetResponse:
             ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
                             The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
-            SdkError: Base exception for all errors raised by Sdk.
         """
         self._value = grpc_get_response.cache_body
 

@@ -77,7 +77,6 @@ class Cache:
             ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
                             The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to store the item.
-            SdkError: Base exception for all errors raised by Sdk.
         """
         try:
             _momento_logger.debug(f'Issuing a set request with key {key}')
@@ -113,7 +112,6 @@ class Cache:
             ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
                             The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
-            SdkError: Base exception for all errors raised by Sdk.
         """
         try:
             _momento_logger.debug(f'Issuing a get request with key {key}')
