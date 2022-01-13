@@ -14,6 +14,14 @@ from . import _momento_logger
 
 class Cache:
     def __init__(self, auth_token, cache_name, endpoint, default_ttlSeconds):
+        """Initializes Cache to perform gets and sets.
+
+        Args:
+            auth_token: Momento JWT token.
+            cache_name: Name of the cache
+            end_point: String of endpoint to reach Momento Cache
+            default_ttlSeconds: Time (in seconds) for which an item will be stored in the cache.
+        """
         self._validate_ttl(default_ttlSeconds)
         self._default_ttlSeconds = default_ttlSeconds
         self._secure_channel = grpc.secure_channel(
@@ -27,11 +35,15 @@ class Cache:
                                                    cache_interceptor)
         self._client = cache_client.ScsStub(intercept_channel)
 
-    # While the constructor opens the grpc channel. Connect allows the channel
-    # to test the connection with provided cache name and auth token.
-    # Separating the _connect from the constructor, allows better latency and
-    # resource management for calls that need get or create functionality.
+    
     def _connect(self) :
+        """Connects the cache to backend.
+
+        While the constructor opens the grpc channel. Connect allows the channel
+        to test the connection with provided cache name and auth token.
+        Separating the _connect from the constructor, allows better latency and
+        resource management for calls that need get or create functionality.
+        """
         try:
             _momento_logger.debug('Initializing connection with Cache Service')
             self.get(uuid.uuid1().bytes)
@@ -48,6 +60,22 @@ class Cache:
         self._secure_channel.close()
 
     def set(self, key, value, ttl_seconds=None):
+        """Stores an item in cache
+
+        Args:
+            key (string or bytes): The key to be used to store item in the cache.
+            value (string or bytes): The value to be used to store item in the cache.
+            ttl_second (Optional): Time to live in cache in seconds. If not provided default TTL provided while creating the cache client instance is used.
+        
+        Returns:
+            CacheSetResponse
+        
+        Raises:
+            CacheValueError: If service validation fails for provided values.
+            CacheNotFoundError: If an attempt is made to store an item in a cache that doesn't exist.
+            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
+            InternalServerError: If server encountered an unknown error while trying to store the item.
+        """
         try:
             _momento_logger.debug(f'Issuing a set request with key {key}')
             item_ttl_seconds = self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
@@ -67,6 +95,20 @@ class Cache:
             raise _cache_service_errors_converter.convert(e)
 
     def get(self, key):
+        """Retrieve an item from the cache
+
+        Args:
+            key (string or bytes): The key to be used to retrieve item from the cache. 
+        
+        Returns:
+            CacheGetResponse
+        
+        Raises:
+            CacheValueError: If service validation fails for provided values.
+            CacheNotFoundError: If an attempt is made to retrieve an item in a cache that doesn't exist.
+            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
         try:
             _momento_logger.debug(f'Issuing a get request with key {key}')
             get_request = cache_client_types.GetRequest()
