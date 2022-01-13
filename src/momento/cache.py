@@ -74,8 +74,6 @@ class Cache:
             CacheValueError: If service validation fails for provided values.
             CacheNotFoundError: If an attempt is made to store an item in a cache that doesn't exist.
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
-            ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
-                            The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         try:
@@ -109,8 +107,6 @@ class Cache:
             CacheValueError: If service validation fails for provided values.
             CacheNotFoundError: If an attempt is made to retrieve an item in a cache that doesn't exist.
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
-            ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
-                            The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         try:

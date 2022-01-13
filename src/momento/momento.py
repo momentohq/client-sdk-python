@@ -51,7 +51,7 @@ class Momento:
             CreateCacheResponse
 
         Raises:
-            Exception to notify either sdk, grpc, or operation error.
+            ClientSdkError: If an attempt is made to pass anything other than string as cache_name.
         """
         try:
             _momento_logger.debug(f'Creating cache with name: {cache_name}')
@@ -72,7 +72,8 @@ class Momento:
             DeleteCacheResponse
 
         Raises:
-            Exception to notify either sdk, grpc, or operation error.
+            CacheNotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
+            ClientSdkError: If an attempt is made to pass anything other than string as cache_name.
         """
         try:
             _momento_logger.debug(f'Deleting cache with name: {cache_name}')
@@ -95,7 +96,8 @@ class Momento:
             Cache
 
         Raises:
-            CacheNotFoundError
+            CacheNotFoundError: If an attempt is made to get a MomentoCache that doesn't exits.
+            ClientSdkError: If an attempt is made to pass anything other than string as cache_name.
         """
         cache = Cache(self._auth_token, cache_name, self._cache_endpoint,
                      ttl_seconds)

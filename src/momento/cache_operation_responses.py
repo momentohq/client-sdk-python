@@ -18,11 +18,6 @@ class CacheSetResponse:
             value (string or bytes): The value to be used to store item in the cache
 
         Raises:
-            CacheValueError: If service validation fails for provided values.
-            CacheNotFoundError: If an attempt is made to store an item in a cache that doesn't exist.
-            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
-            ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
-                            The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         self._value = value
@@ -48,11 +43,6 @@ class CacheGetResponse:
             grpc_get_response: Protobuf based response returned by Scs.
 
         Raises:
-            CacheValueError: If service validation fails for provided values.
-            CacheNotFoundError: If an attempt is made to retrieve an item in a cache that doesn't exist.
-            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
-            ClientSdkError: For all errors raised by the client. Indicates that the request failed on the SDK. 
-                            The request either did not make it to the service or if it did the response from the service could not be parsed successfully.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         self._value = grpc_get_response.cache_body
@@ -125,5 +115,5 @@ class CacheInfo:
         self._name = grpc_listed_cache.cache_name
 
     def name(self):
-        """Returns all caches' names."""
+        """Returns all cache's name."""
         return self._name
