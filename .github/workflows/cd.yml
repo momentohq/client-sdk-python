@@ -1,4 +1,4 @@
-name: On Push
+name: CD
 
 # If this is made manual, then also update the pull_request.yml, to run builds
 # on main on merge.
