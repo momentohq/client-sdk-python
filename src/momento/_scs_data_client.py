@@ -8,6 +8,7 @@ from . import _scs_grpc_manager
 
 
 class _ScsDataClient:
+    """Internal"""
     def __init__(self, auth_token, endpoint, default_ttl_seconds):
         self._grpc_manager = _scs_grpc_manager._DataGrpcManager(
             auth_token, endpoint)
