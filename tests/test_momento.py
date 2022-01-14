@@ -2,7 +2,7 @@ import unittest
 import os
 import uuid
 
-import momento.momento as momento
+import momento.simple_cache_client as simple_cache_client
 from momento.cache_operation_responses import CacheResult
 
 
@@ -23,16 +23,12 @@ class TestMomento(unittest.TestCase):
         key = str(uuid.uuid4())
         value = str(uuid.uuid4())
 
-        with momento.init(_AUTH_TOKEN) as momento_client:
-            with momento_client.get_cache(_TEST_CACHE_NAME,
-                    ttl_seconds=_DEFAULT_TTL_SECONDS, create_if_absent=True) as cache_client:
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            simple_cache.set(_TEST_CACHE_NAME, key, value)
+            get_resp = simple_cache.get(_TEST_CACHE_NAME, key)
 
-               cache_client.set(key, value)
-
-               get_resp = cache_client.get(key)
-
-               self.assertEqual(get_resp.result(), CacheResult.HIT)
-               self.assertEqual(get_resp.str_utf8(), value)
+            self.assertEqual(get_resp.result(), CacheResult.HIT)
+            self.assertEqual(get_resp.str_utf8(), value)
 
 
 if __name__ == '__main__':

@@ -13,7 +13,7 @@ class _ScsDataClient:
         _validate_ttl(default_ttl_seconds)
         self._default_ttlSeconds = default_ttl_seconds
 
-    def set(self, cache_name, key, value, ttl_seconds=None):
+    def set(self, cache_name, key, value, ttl_seconds):
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Issuing a set request with key {key}')
