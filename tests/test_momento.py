@@ -23,7 +23,7 @@ class TestMomento(unittest.TestCase):
         key = str(uuid.uuid4())
         value = str(uuid.uuid4())
 
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        with simple_cache_client.get(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             simple_cache.set(_TEST_CACHE_NAME, key, value)
             get_resp = simple_cache.get(_TEST_CACHE_NAME, key)
 
