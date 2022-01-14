@@ -22,7 +22,9 @@ class CacheSetResponse:
         """
         self._value = value
         if (grpc_set_response.result != cache_client_types.Ok):
-            _momento_logger.debug(f'Set received unsupported ECacheResult {grpc_set_response.result}')
+            _momento_logger.debug(
+                f'Set received unsupported ECacheResult {grpc_set_response.result}'
+            )
             raise error_converter.convert_ecache_result(
                 grpc_set_response.result, grpc_set_response.message, 'SET')
 
@@ -52,10 +54,11 @@ class CacheGetResponse:
         elif (grpc_get_response.result == cache_client_types.Miss):
             self._result = CacheResult.MISS
         else:
-            _momento_logger.debug(f'Get received unsupported ECacheResult: {grpc_get_response.result}')
+            _momento_logger.debug(
+                f'Get received unsupported ECacheResult: {grpc_get_response.result}'
+            )
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, 'GET')
-
 
     def str_utf8(self):
         """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""

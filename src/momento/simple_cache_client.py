@@ -3,11 +3,15 @@ from ._scs_data_client import _ScsDataClient
 
 from . import _momento_endpoint_resolver
 
+
 class SimpleCacheClient:
     def __init__(self, auth_token, default_ttl_seconds):
         endpoints = _momento_endpoint_resolver.resolve(auth_token)
-        self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
-        self._data_client = _ScsDataClient(auth_token, endpoints.cache_endpoint, default_ttl_seconds)
+        self._control_client = _ScsControlClient(auth_token,
+                                                 endpoints.control_endpoint)
+        self._data_client = _ScsDataClient(auth_token,
+                                           endpoints.cache_endpoint,
+                                           default_ttl_seconds)
 
     def __enter__(self):
         return self
