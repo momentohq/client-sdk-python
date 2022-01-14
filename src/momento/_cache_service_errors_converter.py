@@ -2,7 +2,6 @@ import grpc
 from . import errors
 from . import _momento_logger
 
-
 __rpc_to_error = {
     grpc.StatusCode.ALREADY_EXISTS: errors.CacheExistsError,
     grpc.StatusCode.INVALID_ARGUMENT: errors.CacheValueError,
@@ -27,7 +26,8 @@ def convert(exception):
 
 
 def convert_ecache_result(ecache_result, message, operation_name):
-    _momento_logger.debug(f'Converting ECacheResult: {ecache_result} to error.')
+    _momento_logger.debug(
+        f'Converting ECacheResult: {ecache_result} to error.')
     return errors.InternalServerError(
         f'CacheService returned an unexpected result: {ecache_result}' +
         f' for operation: {operation_name} with message: {message}')
