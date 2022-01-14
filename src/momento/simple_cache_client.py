@@ -108,7 +108,7 @@ def get(auth_token, item_default_ttl_seconds):
 
     Args:
         auth_token: Momento Token to authenticate the requests with Simple Cache Service
-        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. 0It is possible to override this setting when calling the set method.
+        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is possible to override this setting when calling the set method.
     Returns:
         SimpleCacheClient
     """
