@@ -30,7 +30,8 @@ class SimpleCacheClient:
             CreateCacheResponse
 
         Raises:
-            ClientSdkError: If an attempt is made to pass anything other than string as cache_name.
+            InvalidInputError: For any SDK checks that fail.
+            CacheValueError: If provided cache_name is rejected by the service
         """
         return self._control_client.create_cache(cache_name)
 
@@ -45,7 +46,7 @@ class SimpleCacheClient:
 
         Raises:
             CacheNotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
-            ClientSdkError: If an attempt is made to pass anything other than string as cache_name.
+            InvalidInputError: For any SDK checks that fail.
         """
         return self._control_client.delete_cache(cache_name)
 
@@ -76,7 +77,7 @@ class SimpleCacheClient:
             CacheSetResponse
 
         Raises:
-            CacheValueError: If service validation fails for provided values.
+            InvalidInputError: If service validation fails for provided values.
             CacheNotFoundError: If an attempt is made to store an item in a cache that doesn't exist.
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
             InternalServerError: If server encountered an unknown error while trying to store the item.
@@ -94,7 +95,7 @@ class SimpleCacheClient:
             CacheGetResponse
 
         Raises:
-            CacheValueError: If service validation fails for provided values.
+            InvalidInputError: If service validation fails for provided values.
             CacheNotFoundError: If an attempt is made to retrieve an item in a cache that doesn't exist.
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
