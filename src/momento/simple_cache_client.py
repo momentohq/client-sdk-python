@@ -68,7 +68,7 @@ class SimpleCacheClient:
         """Stores an item in cache
 
         Args:
-            cache_name: Name of the cache to stor the item in.
+            cache_name: Name of the cache to store the item in.
             key (string or bytes): The key to be used to store item.
             value (string or bytes): The value to be stored.
             ttl_second (Optional): Time to live in cache in seconds. If not provided default TTL provided while creating the cache client instance is used.
