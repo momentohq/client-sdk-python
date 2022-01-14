@@ -103,7 +103,7 @@ class SimpleCacheClient:
         return self._data_client.get(cache_name, key)
 
 
-def get(auth_token, item_default_ttl_seconds):
+def init(auth_token, item_default_ttl_seconds):
     """ Creates a SimpleCacheClient
 
     Args:
