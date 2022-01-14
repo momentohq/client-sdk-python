@@ -32,6 +32,7 @@ class SimpleCacheClient:
         Raises:
             InvalidInputError: For any SDK checks that fail.
             CacheValueError: If provided cache_name is rejected by the service
+            CacheExistsError: If cache with the given name already exists
         """
         return self._control_client.create_cache(cache_name)
 
