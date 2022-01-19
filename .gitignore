@@ -2,6 +2,7 @@
 src/*.pyc
 src/momento/*.pyc
 src/momento/__pycache__
+tests/__pycache__
 
 # Setuptools distribution folder.
 /dist/
