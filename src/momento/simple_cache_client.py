@@ -30,9 +30,11 @@ class SimpleCacheClient:
             CreateCacheResponse
 
         Raises:
-            InvalidInputError: For any SDK checks that fail.
-            CacheValueError: If provided cache_name is rejected by the service
-            CacheExistsError: If cache with the given name already exists
+            InvalidInputError: If cache name is None.
+            ClientSdkError: For any SDK checks that fail.
+            CacheValueError: If provided cache_name is empty.
+            CacheExistsError: If cache with the given name already exists.
+            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
         """
         return self._control_client.create_cache(cache_name)
 
@@ -47,7 +49,10 @@ class SimpleCacheClient:
 
         Raises:
             CacheNotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
-            InvalidInputError: For any SDK checks that fail.
+            InvalidInputError: If cache name is None.
+            ClientSdkError: For any SDK checks that fail.
+            CacheValueError: If provided cache name is empty
+            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
         """
         return self._control_client.delete_cache(cache_name)
 
@@ -62,6 +67,7 @@ class SimpleCacheClient:
 
         Raises:
             Exception to notify either sdk, grpc, or operation error.
+            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
         """
         return self._control_client.list_caches(next_token)
 
@@ -72,13 +78,14 @@ class SimpleCacheClient:
             cache_name: Name of the cache to store the item in.
             key (string or bytes): The key to be used to store item.
             value (string or bytes): The value to be stored.
-            ttl_second (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache client instance is used.
+            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache client instance is used.
 
         Returns:
             CacheSetResponse
 
         Raises:
             InvalidInputError: If service validation fails for provided values.
+            ClientSdkError: If cache name is invalid type.
             CacheNotFoundError: If an attempt is made to store an item in a cache that doesn't exist.
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
             InternalServerError: If server encountered an unknown error while trying to store the item.
@@ -97,6 +104,7 @@ class SimpleCacheClient:
 
         Raises:
             InvalidInputError: If service validation fails for provided values.
+            ClientSdkError: If cache name is invalid type.
             CacheNotFoundError: If an attempt is made to retrieve an item in a cache that doesn't exist.
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
@@ -112,5 +120,8 @@ def init(auth_token, item_default_ttl_seconds):
         item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is possible to override this setting when calling the set method.
     Returns:
         SimpleCacheClient
+    Raises:
+        InvalidInputError: If service validation fails for provided values
+        InternalServerError: If server encountered an unknown error.
     """
     return SimpleCacheClient(auth_token, item_default_ttl_seconds)
