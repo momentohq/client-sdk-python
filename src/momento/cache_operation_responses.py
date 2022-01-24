@@ -13,7 +13,7 @@ class CacheSetResponse:
     def __init__(self, grpc_set_response, value):
         """Initializes CacheSetResponse to handle gRPC set response.
 
-        Args: 
+        Args:
             grpc_set_response: Protobuf based response returned by Scs.
             value (string or bytes): The value to be used to store item in the cache
 
@@ -21,12 +21,6 @@ class CacheSetResponse:
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         self._value = value
-        if (grpc_set_response.result != cache_client_types.Ok):
-            _momento_logger.debug(
-                f'Set received unsupported ECacheResult {grpc_set_response.result}'
-            )
-            raise error_converter.convert_ecache_result(
-                grpc_set_response.result, grpc_set_response.message, 'SET')
 
     def str_utf8(self):
         """Decodes string value set in cache to a utf-8 string."""
