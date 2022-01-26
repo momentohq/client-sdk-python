@@ -37,9 +37,10 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     async def asyncTearDown(self) -> None:
-        # close client
-        await self.client._control_client.close()
-        await self.client._data_client.close()
+        # close client. Usually you'd expect people to
+        # async with simple_cache_client.init(auth, ttl) as simple_cache:
+        # and allow the scope manager to close the client.
+        await self.client.__aexit__(None, None, None)
 
     # basic happy path test
     async def test_create_cache_get_set_values_and_delete_cache(self):
