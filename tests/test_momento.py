@@ -3,9 +3,9 @@ import os
 import uuid
 import time
 
-import momento.simple_cache_client as simple_cache_client
-import momento.errors as errors
-from momento.cache_operation_responses import CacheResult
+import src.momento.simple_cache_client as simple_cache_client
+import src.momento.errors as errors
+from src.momento.cache_operation_responses import CacheResult
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
@@ -320,6 +320,7 @@ class TestMomento(unittest.TestCase):
                                       _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.PermissionError):
                 simple_cache.get(_TEST_CACHE_NAME, "foo")
+
 
 if __name__ == '__main__':
     unittest.main()

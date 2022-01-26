@@ -38,5 +38,5 @@ your code in a my_test.py file and run `python my_test.py`
 Run:
 
 ```
-TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> python3 tests/*
+TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> python3 -m unittest discover -v
 ```
