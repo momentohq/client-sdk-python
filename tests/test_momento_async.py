@@ -3,7 +3,7 @@ import os
 import uuid
 import time
 
-import momento.aio.simple_cache_client as simple_cache_async_client
+import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
 from momento.cache_operation_responses import CacheResult
 
@@ -26,7 +26,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             )
 
         # default client for use in tests
-        self.client = simple_cache_async_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS)
+        self.client = simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS)
 
         # ensure test cache exists
         try:
@@ -66,12 +66,12 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_init_throws_exception_when_client_uses_negative_default_ttl(self):
         with self.assertRaises(errors.InvalidInputError) as cm:
-            simple_cache_async_client.init(_AUTH_TOKEN, -1)
+            simple_cache_client.init(_AUTH_TOKEN, -1)
         self.assertEqual('{}'.format(cm.exception), "TTL Seconds must be a non-negative integer")
 
     async def test_init_throws_exception_for_non_jwt_token(self):
         with self.assertRaises(errors.InvalidInputError) as cm:
-            simple_cache_async_client.init("notanauthtoken", _DEFAULT_TTL_SECONDS)
+            simple_cache_client.init("notanauthtoken", _DEFAULT_TTL_SECONDS)
         self.assertEqual('{}'.format(cm.exception), "Invalid Auth token.")
 
     # create_cache
@@ -96,7 +96,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
                 "Operation failed with error: 1 has type int, but expected one of: bytes, unicode")
 
     async def test_create_cache_throws_permission_exception_for_bad_token(self):
-        async with simple_cache_async_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.PermissionError):
                 await simple_cache.create_cache(str(uuid.uuid4()))
 
@@ -131,7 +131,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
                 "Operation failed with error: 1 has type int, but expected one of: bytes, unicode")
 
     async def test_delete_cache_throws_permission_exception_for_bad_token(self):
-        async with simple_cache_async_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.PermissionError):
                 await simple_cache.create_cache(str(uuid.uuid4()))
 
@@ -156,7 +156,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             await self.client.delete_cache(cache_name)
 
     async def test_list_caches_throws_permission_exception_for_bad_token(self):
-        async with simple_cache_async_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.PermissionError):
                 await simple_cache.list_caches()
 
@@ -202,7 +202,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
     async def test_expires_items_after_ttl(self):
         key = str(uuid.uuid4())
         val = str(uuid.uuid4())
-        async with simple_cache_async_client.init(_AUTH_TOKEN, 1) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, 1) as simple_cache:
             await simple_cache.set(_TEST_CACHE_NAME, key, val)
 
             self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).result(), CacheResult.HIT)
@@ -273,7 +273,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for value: <class 'int'>")
 
     async def test_set_throws_permission_exception_for_bad_token(self):
-        async with simple_cache_async_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.PermissionError):
                 await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
 
@@ -312,7 +312,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for key: <class 'int'>")
 
     async def test_get_throws_permission_exception_for_bad_token(self):
-        async with simple_cache_async_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.PermissionError):
                 await simple_cache.get(_TEST_CACHE_NAME, "foo")
 
