@@ -3,7 +3,7 @@ import os
 import uuid
 import time
 
-import momento.simple_cache_async_client as simple_cache_async_client
+import momento.aio.simple_cache_client as simple_cache_async_client
 import momento.errors as errors
 from momento.cache_operation_responses import CacheResult
 
