@@ -3,9 +3,9 @@ import os
 import uuid
 import time
 
-import src.momento.simple_cache_client as simple_cache_client
-import src.momento.errors as errors
-from src.momento.cache_operation_responses import CacheResult
+import momento.simple_cache_client as simple_cache_client
+import momento.errors as errors
+from momento.cache_operation_responses import CacheResult
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
