@@ -1,6 +1,6 @@
 from grpc.aio import Metadata
 
-from src.momento import errors
+from .. import errors
 
 
 def _make_metadata(cache_name) -> Metadata:
