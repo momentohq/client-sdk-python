@@ -199,7 +199,7 @@ class TestMomento(unittest.TestCase):
         get_resp = self.client.get(_TEST_CACHE_NAME, key)
         self.assertEqual(get_resp.status(), CacheGetStatus.MISS)
         self.assertEqual(get_resp.value_as_bytes(), None)
-        self.assertEqual(get_resp.value_as_bytes(), None)
+        self.assertEqual(get_resp.value(), None)
 
     def test_expires_items_after_ttl(self):
         key = str(uuid.uuid4())
