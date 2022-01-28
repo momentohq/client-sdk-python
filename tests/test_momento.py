@@ -5,7 +5,7 @@ import time
 
 import momento.simple_cache_client as simple_cache_client
 import momento.errors as errors
-from momento.cache_operation_responses import CacheResult
+from momento.cache_operation_responses import CacheGetStatus
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
@@ -50,14 +50,14 @@ class TestMomento(unittest.TestCase):
         self.client.create_cache(cache_name)
 
         set_resp = self.client.set(cache_name, key, value)
-        self.assertEqual(set_resp.str_utf8(), value)
+        self.assertEqual(set_resp.value(), value)
 
         get_resp = self.client.get(cache_name, key)
-        self.assertEqual(get_resp.result(), CacheResult.HIT)
-        self.assertEqual(get_resp.str_utf8(), value)
+        self.assertEqual(get_resp.status(), CacheGetStatus.HIT)
+        self.assertEqual(get_resp.value(), value)
 
         get_for_key_in_some_other_cache = self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_for_key_in_some_other_cache.result(), CacheResult.MISS)
+        self.assertEqual(get_for_key_in_some_other_cache.status(), CacheGetStatus.MISS)
 
         self.client.delete_cache(cache_name)
 
@@ -174,32 +174,32 @@ class TestMomento(unittest.TestCase):
         value = str(uuid.uuid4())
 
         set_resp = self.client.set(_TEST_CACHE_NAME, key, value)
-        self.assertEqual(set_resp.str_utf8(), value)
-        self.assertEqual(set_resp.bytes(), bytes(value, 'utf-8'))
+        self.assertEqual(set_resp.value(), value)
+        self.assertEqual(set_resp.value_as_bytes(), bytes(value, 'utf-8'))
 
         get_resp = self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_resp.result(), CacheResult.HIT)
-        self.assertEqual(get_resp.str_utf8(), value)
-        self.assertEqual(get_resp.bytes(), bytes(value, 'utf-8'))
+        self.assertEqual(get_resp.status(), CacheGetStatus.HIT)
+        self.assertEqual(get_resp.value(), value)
+        self.assertEqual(get_resp.value_as_bytes(), bytes(value, 'utf-8'))
 
     def test_set_and_get_with_byte_key_values(self):
         key = uuid.uuid4().bytes
         value = uuid.uuid4().bytes
 
         set_resp = self.client.set(_TEST_CACHE_NAME, key, value)
-        self.assertEqual(set_resp.bytes(), value)
+        self.assertEqual(set_resp.value_as_bytes(), value)
 
         get_resp = self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_resp.result(), CacheResult.HIT)
-        self.assertEqual(get_resp.bytes(), value)
+        self.assertEqual(get_resp.status(), CacheGetStatus.HIT)
+        self.assertEqual(get_resp.value_as_bytes(), value)
 
     def test_get_returns_miss(self):
         key = str(uuid.uuid4())
 
         get_resp = self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_resp.result(), CacheResult.MISS)
-        self.assertEqual(get_resp.bytes(), None)
-        self.assertEqual(get_resp.str_utf8(), None)
+        self.assertEqual(get_resp.status(), CacheGetStatus.MISS)
+        self.assertEqual(get_resp.value_as_bytes(), None)
+        self.assertEqual(get_resp.value_as_bytes(), None)
 
     def test_expires_items_after_ttl(self):
         key = str(uuid.uuid4())
@@ -208,10 +208,10 @@ class TestMomento(unittest.TestCase):
                                       1) as simple_cache:
             simple_cache.set(_TEST_CACHE_NAME, key, val)
 
-            self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).result(), CacheResult.HIT)
+            self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.HIT)
 
             time.sleep(1.5)
-            self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).result(), CacheResult.MISS)
+            self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.MISS)
 
     def test_set_with_different_ttl(self):
         key1 = str(uuid.uuid4())
@@ -220,12 +220,12 @@ class TestMomento(unittest.TestCase):
         self.client.set(_TEST_CACHE_NAME, key1, "1", 1)
         self.client.set(_TEST_CACHE_NAME, key2, "2")
 
-        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).result(), CacheResult.HIT)
-        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).result(), CacheResult.HIT)
+        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.HIT)
+        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 
         time.sleep(1.5)
-        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).result(), CacheResult.MISS)
-        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).result(), CacheResult.HIT)
+        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.MISS)
+        self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 
     # set
 
