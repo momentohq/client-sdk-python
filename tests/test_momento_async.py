@@ -239,7 +239,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_set_with_empty_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.PermissionError) as cm:
+        with self.assertRaises(errors.CacheValueError) as cm:
             await self.client.set("", "foo", "bar")
         self.assertEqual('{}'.format(cm.exception), "Cache header is empty")
 
@@ -292,7 +292,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_get_with_empty_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.PermissionError) as cm:
+        with self.assertRaises(errors.CacheValueError) as cm:
             await self.client.get("", "foo")
         self.assertEqual('{}'.format(cm.exception), "Cache header is empty")
 
