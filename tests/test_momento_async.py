@@ -5,7 +5,7 @@ import time
 
 import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
-from momento.cache_operation_responses import CacheResult
+from momento.cache_operation_responses import CacheGetStatus
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
@@ -51,14 +51,14 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         await self.client.create_cache(cache_name)
 
         set_resp = await self.client.set(cache_name, key, value)
-        self.assertEqual(set_resp.str_utf8(), value)
+        self.assertEqual(set_resp.value(), value)
 
         get_resp = await self.client.get(cache_name, key)
-        self.assertEqual(get_resp.result(), CacheResult.HIT)
-        self.assertEqual(get_resp.str_utf8(), value)
+        self.assertEqual(get_resp.status(), CacheGetStatus.HIT)
+        self.assertEqual(get_resp.value(), value)
 
         get_for_key_in_some_other_cache = await self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_for_key_in_some_other_cache.result(), CacheResult.MISS)
+        self.assertEqual(get_for_key_in_some_other_cache.status(), CacheGetStatus.MISS)
 
         await self.client.delete_cache(cache_name)
 
@@ -172,32 +172,32 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         value = str(uuid.uuid4())
 
         set_resp = await self.client.set(_TEST_CACHE_NAME, key, value)
-        self.assertEqual(set_resp.str_utf8(), value)
-        self.assertEqual(set_resp.bytes(), bytes(value, 'utf-8'))
+        self.assertEqual(set_resp.value(), value)
+        self.assertEqual(set_resp.value_as_bytes(), bytes(value, 'utf-8'))
 
         get_resp = await self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_resp.result(), CacheResult.HIT)
-        self.assertEqual(get_resp.str_utf8(), value)
-        self.assertEqual(get_resp.bytes(), bytes(value, 'utf-8'))
+        self.assertEqual(get_resp.status(), CacheGetStatus.HIT)
+        self.assertEqual(get_resp.value(), value)
+        self.assertEqual(get_resp.value_as_bytes(), bytes(value, 'utf-8'))
 
     async def test_set_and_get_with_byte_key_values(self):
         key = uuid.uuid4().bytes
         value = uuid.uuid4().bytes
 
         set_resp = await self.client.set(_TEST_CACHE_NAME, key, value)
-        self.assertEqual(set_resp.bytes(), value)
+        self.assertEqual(set_resp.value_as_bytes(), value)
 
         get_resp = await self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_resp.result(), CacheResult.HIT)
-        self.assertEqual(get_resp.bytes(), value)
+        self.assertEqual(get_resp.status(), CacheGetStatus.HIT)
+        self.assertEqual(get_resp.value_as_bytes(), value)
 
     async def test_get_returns_miss(self):
         key = str(uuid.uuid4())
 
         get_resp = await self.client.get(_TEST_CACHE_NAME, key)
-        self.assertEqual(get_resp.result(), CacheResult.MISS)
-        self.assertEqual(get_resp.bytes(), None)
-        self.assertEqual(get_resp.str_utf8(), None)
+        self.assertEqual(get_resp.status(), CacheGetStatus.MISS)
+        self.assertEqual(get_resp.value_as_bytes(), None)
+        self.assertEqual(get_resp.value(), None)
 
     async def test_expires_items_after_ttl(self):
         key = str(uuid.uuid4())
@@ -205,10 +205,10 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         async with simple_cache_client.init(_AUTH_TOKEN, 1) as simple_cache:
             await simple_cache.set(_TEST_CACHE_NAME, key, val)
 
-            self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).result(), CacheResult.HIT)
+            self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).status(), CacheGetStatus.HIT)
 
             time.sleep(1.5)
-            self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).result(), CacheResult.MISS)
+            self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).status(), CacheGetStatus.MISS)
 
     async def test_set_with_different_ttl(self):
         key1 = str(uuid.uuid4())
@@ -217,12 +217,12 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         await self.client.set(_TEST_CACHE_NAME, key1, "1", 1)
         await self.client.set(_TEST_CACHE_NAME, key2, "2")
 
-        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).result(), CacheResult.HIT)
-        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).result(), CacheResult.HIT)
+        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).status(), CacheGetStatus.HIT)
+        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).status(), CacheGetStatus.HIT)
 
         time.sleep(1.5)
-        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).result(), CacheResult.MISS)
-        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).result(), CacheResult.HIT)
+        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).status(), CacheGetStatus.MISS)
+        self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).status(), CacheGetStatus.HIT)
 
     # set
 

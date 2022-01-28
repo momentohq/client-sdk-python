@@ -1,3 +1,4 @@
+from momento.cache_operation_responses import CacheGetResponse, CacheSetResponse, CreateCacheResponse, DeleteCacheResponse, ListCachesResponse
 from ._scs_control_client import _ScsControlClient
 from ._scs_data_client import _ScsDataClient
 
@@ -20,7 +21,7 @@ class SimpleCacheClient:
         self._control_client.close()
         self._data_client.close()
 
-    def create_cache(self, cache_name):
+    def create_cache(self, cache_name) -> CreateCacheResponse:
         """Creates a new cache in your Momento account.
 
         Args:
@@ -38,7 +39,7 @@ class SimpleCacheClient:
         """
         return self._control_client.create_cache(cache_name)
 
-    def delete_cache(self, cache_name):
+    def delete_cache(self, cache_name) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
 
         Args:
@@ -56,7 +57,7 @@ class SimpleCacheClient:
         """
         return self._control_client.delete_cache(cache_name)
 
-    def list_caches(self, next_token=None):
+    def list_caches(self, next_token=None) -> ListCachesResponse:
         """Lists all caches.
 
         Args:
@@ -71,7 +72,7 @@ class SimpleCacheClient:
         """
         return self._control_client.list_caches(next_token)
 
-    def set(self, cache_name, key, value, ttl_seconds=None):
+    def set(self, cache_name, key, value, ttl_seconds=None) -> CacheSetResponse:
         """Stores an item in cache
 
         Args:
@@ -92,7 +93,7 @@ class SimpleCacheClient:
         """
         return self._data_client.set(cache_name, key, value, ttl_seconds)
 
-    def get(self, cache_name, key):
+    def get(self, cache_name, key) -> CacheGetResponse:
         """Retrieve an item from the cache
 
         Args:
@@ -112,7 +113,7 @@ class SimpleCacheClient:
         return self._data_client.get(cache_name, key)
 
 
-def init(auth_token, item_default_ttl_seconds):
+def init(auth_token, item_default_ttl_seconds) -> SimpleCacheClient:
     """ Creates a SimpleCacheClient
 
     Args:

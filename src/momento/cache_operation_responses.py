@@ -4,7 +4,7 @@ from . import _cache_service_errors_converter as error_converter
 from . import _momento_logger
 
 
-class CacheResult(Enum):
+class CacheGetStatus(Enum):
     HIT = 1
     MISS = 2
 
@@ -22,11 +22,11 @@ class CacheSetResponse:
         """
         self._value = value
 
-    def str_utf8(self):
+    def value(self) -> str:
         """Decodes string value set in cache to a utf-8 string."""
         return self._value.decode('utf-8')
 
-    def bytes(self):
+    def value_as_bytes(self) -> bytes:
         """Returns byte value set in cache."""
         return self._value
 
@@ -44,9 +44,9 @@ class CacheGetResponse:
         self._value = grpc_get_response.cache_body
 
         if (grpc_get_response.result == cache_client_types.Hit):
-            self._result = CacheResult.HIT
+            self._result = CacheGetStatus.HIT
         elif (grpc_get_response.result == cache_client_types.Miss):
-            self._result = CacheResult.MISS
+            self._result = CacheGetStatus.MISS
         else:
             _momento_logger.debug(
                 f'Get received unsupported ECacheResult: {grpc_get_response.result}'
@@ -54,19 +54,19 @@ class CacheGetResponse:
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, 'GET')
 
-    def str_utf8(self):
+    def value(self) -> str:
         """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
-        if (self._result == CacheResult.HIT):
+        if (self._result == CacheGetStatus.HIT):
             return self._value.decode('utf-8')
         return None
 
-    def bytes(self):
+    def value_as_bytes(self) -> bytes:
         """Returns value stored in cache as bytes if there was Hit. Returns None otherwise."""
-        if (self._result == CacheResult.HIT):
+        if (self._result == CacheGetStatus.HIT):
             return self._value
         return None
 
-    def result(self):
+    def status(self) -> CacheGetStatus:
         """Returns get operation result such as HIT or MISS."""
         return self._result
 
@@ -81,6 +81,20 @@ class DeleteCacheResponse:
         pass
 
 
+class CacheInfo:
+    def __init__(self, grpc_listed_cache):
+        """Initializes CacheInfo to handle caches returned from list cache operation.
+
+        Args:
+            grpc_listed_cache: Protobuf based response returned by Scs.
+        """
+        self._name = grpc_listed_cache.cache_name
+
+    def name(self) -> str:
+        """Returns all cache's name."""
+        return self._name
+
+
 class ListCachesResponse:
     def __init__(self, grpc_list_cache_response):
         """Initializes ListCacheResponse to handle list cache response.
@@ -93,24 +107,10 @@ class ListCachesResponse:
         for cache in grpc_list_cache_response.cache:
             self._caches.append(CacheInfo(cache))
 
-    def next_token(self):
+    def next_token(self) -> str:
         """Returns next token."""
         return self._next_token
 
-    def caches(self):
+    def caches(self) -> CacheInfo:
         """Returns all caches."""
         return self._caches
-
-
-class CacheInfo:
-    def __init__(self, grpc_listed_cache):
-        """Initializes CacheInfo to handle caches returned from list cache operation.
-
-        Args:
-            grpc_listed_cache: Protobuf based response returned by Scs.
-        """
-        self._name = grpc_listed_cache.cache_name
-
-    def name(self):
-        """Returns all cache's name."""
-        return self._name
