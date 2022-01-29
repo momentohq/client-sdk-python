@@ -33,7 +33,7 @@ class SimpleCacheClient:
         Raises:
             InvalidInputError: If cache name is None.
             ClientSdkError: For any SDK checks that fail.
-            CacheValueError: If provided cache_name is empty.
+            InvalidArgumentError: If provided cache_name is empty.
             CacheExistsError: If cache with the given name already exists.
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
         """
@@ -52,7 +52,7 @@ class SimpleCacheClient:
             CacheNotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
             InvalidInputError: If cache name is None.
             ClientSdkError: For any SDK checks that fail.
-            CacheValueError: If provided cache name is empty
+            InvalidArgumentError: If provided cache name is empty
             PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
         """
         return self._control_client.delete_cache(cache_name)

@@ -8,8 +8,8 @@ def _make_metadata(cache_name) -> Metadata:
 
 
 def _validate_cache_name(cache_name):
-    if cache_name is None:
-        raise errors.InvalidInputError('Cache Name cannot be None')
+    if cache_name is None or not isinstance(cache_name, str):
+        raise errors.InvalidInputError('Cache name must be a non-None value with `str` type')
 
 
 def _as_bytes(data, error_message):

@@ -49,7 +49,7 @@ class CacheExistsError(CacheServiceError):
         super().__init__(message)
 
 
-class CacheValueError(CacheServiceError):
+class InvalidArgumentError(CacheServiceError):
     """Error raised when service validation fails for provided values"""
     def __init__(self, message):
         super().__init__(message)

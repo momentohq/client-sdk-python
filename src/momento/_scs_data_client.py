@@ -6,6 +6,8 @@ from . import errors
 from . import _momento_logger
 from . import _scs_grpc_manager
 
+from ._utilities._data_validation import _as_bytes, _validate_ttl, _make_metadata, _validate_cache_name
+
 
 class _ScsDataClient:
     """Internal"""
@@ -22,8 +24,8 @@ class _ScsDataClient:
             item_ttl_seconds = self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
             _validate_ttl(item_ttl_seconds)
             set_request = cache_client_types.SetRequest()
-            set_request.cache_key = _asBytes(key, 'Unsupported type for key: ')
-            set_request.cache_body = _asBytes(value,
+            set_request.cache_key = _as_bytes(key, 'Unsupported type for key: ')
+            set_request.cache_body = _as_bytes(value,
                                               'Unsupported type for value: ')
             set_request.ttl_milliseconds = item_ttl_seconds * 1000
             response = self._getStub().Set(set_request,
@@ -40,7 +42,7 @@ class _ScsDataClient:
         try:
             _momento_logger.debug(f'Issuing a get request with key {key}')
             get_request = cache_client_types.GetRequest()
-            get_request.cache_key = _asBytes(key, 'Unsupported type for key: ')
+            get_request.cache_key = _as_bytes(key, 'Unsupported type for key: ')
             response = self._getStub().Get(get_request,
                                            metadata=_make_metadata(cache_name))
             _momento_logger.debug(f'Received a get response for {key}')
@@ -54,26 +56,3 @@ class _ScsDataClient:
 
     def close(self):
         self._grpc_manager.close()
-
-
-def _make_metadata(cache_name):
-    return (('cache', cache_name), )
-
-
-def _validate_cache_name(cache_name):
-    if (cache_name is None):
-        raise errors.InvalidInputError('Cache Name cannot be None')
-
-
-def _asBytes(data, errorMessage):
-    if (isinstance(data, str)):
-        return data.encode('utf-8')
-    if (isinstance(data, bytes)):
-        return data
-    raise errors.InvalidInputError(errorMessage + str(type(data)))
-
-
-def _validate_ttl(ttl_seconds):
-    if (not isinstance(ttl_seconds, int) or ttl_seconds < 0):
-        raise errors.InvalidInputError(
-            'TTL Seconds must be a non-negative integer')
