@@ -4,7 +4,7 @@ from . import _momento_logger
 
 __rpc_to_error = {
     grpc.StatusCode.ALREADY_EXISTS: errors.CacheExistsError,
-    grpc.StatusCode.INVALID_ARGUMENT: errors.CacheValueError,
+    grpc.StatusCode.INVALID_ARGUMENT: errors.InvalidArgumentError,
     grpc.StatusCode.NOT_FOUND: errors.CacheNotFoundError,
     grpc.StatusCode.PERMISSION_DENIED: errors.PermissionError,
 }
