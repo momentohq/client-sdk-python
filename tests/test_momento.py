@@ -86,12 +86,12 @@ class TestMomento(unittest.TestCase):
     def test_create_cache_throws_validation_exception_for_null_cache_name(self):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.create_cache(None)
-        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
+        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
     def test_create_cache_with_bad_cache_name_throws_exception(self):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.create_cache(1)
-        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
+        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
     def test_create_cache_throws_permission_exception_for_bad_token(self):
         with simple_cache_client.init(_BAD_AUTH_TOKEN,
@@ -126,7 +126,7 @@ class TestMomento(unittest.TestCase):
     def test_delete_with_bad_cache_name_throws_exception(self):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.delete_cache(1)
-        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
+        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
     def test_delete_cache_throws_permission_exception_for_bad_token(self):
         with simple_cache_client.init(_BAD_AUTH_TOKEN,
@@ -236,7 +236,7 @@ class TestMomento(unittest.TestCase):
         cache_name = str(uuid.uuid4())
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.set(None, "foo", "bar")
-        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
+        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
     def test_set_with_empty_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
@@ -260,7 +260,7 @@ class TestMomento(unittest.TestCase):
     def test_set_with_bad_cache_name_throws_exception(self):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.set(1, "foo", "bar")
-        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
+        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
     def test_set_with_bad_key_throws_exception(self):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
@@ -289,7 +289,7 @@ class TestMomento(unittest.TestCase):
         cache_name = str(uuid.uuid4())
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.get(None, "foo")
-        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
+        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
     def test_get_with_empty_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
@@ -304,7 +304,7 @@ class TestMomento(unittest.TestCase):
     def test_get_with_bad_cache_name_throws_exception(self):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.get(1, "foo")
-        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
+        self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
     def test_get_with_bad_key_throws_exception(self):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
