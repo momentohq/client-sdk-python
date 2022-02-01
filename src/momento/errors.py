@@ -68,7 +68,7 @@ class AuthenticationError(CacheServiceError):
 
 
 class CancelError(CacheServiceError):
-    """Error an operation with Cache Service was cancelled"""
+    """Error when an operation with Cache Service was cancelled"""
     def __init__(self, message):
         super().__init__(message)
 
