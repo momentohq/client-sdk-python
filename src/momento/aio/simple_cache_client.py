@@ -33,11 +33,11 @@ class SimpleCacheClient:
             CreateCacheResponse
 
         Raises:
-            InvalidInputError: If cache name is None.
+            InvalidArgumentError: If provided cache_name None.
+            BadRequestError: If the cache name provided doesn't follow the naming conventions
+            ExistsError: If cache with the given name already exists.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
-            CacheValueError: If provided cache_name is empty.
-            CacheExistsError: If cache with the given name already exists.
-            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
         """
         return await self._control_client.create_cache(cache_name)
 
@@ -51,11 +51,11 @@ class SimpleCacheClient:
             DeleteCacheResponse
 
         Raises:
-            CacheNotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
-            InvalidInputError: If cache name is None.
+            InvalidArgumentError: If provided cache_name is None.
+            BadRequestError: If the cache name provided doesn't follow the naming conventions
+            NotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
-            CacheValueError: If provided cache name is empty
-            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
         """
         return await self._control_client.delete_cache(cache_name)
 
@@ -69,8 +69,7 @@ class SimpleCacheClient:
             ListCachesResponse
 
         Raises:
-            Exception to notify either sdk, grpc, or operation error.
-            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
         """
         return await self._control_client.list_caches(next_token)
 
@@ -87,10 +86,10 @@ class SimpleCacheClient:
             CacheSetResponse
 
         Raises:
-            InvalidInputError: If service validation fails for provided values.
-            ClientSdkError: If cache name is invalid type.
-            CacheNotFoundError: If an attempt is made to store an item in a cache that doesn't exist.
-            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
+            InvalidArgumentError: If validation fails for provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
@@ -106,10 +105,10 @@ class SimpleCacheClient:
             CacheGetResponse
 
         Raises:
-            InvalidInputError: If service validation fails for provided values.
-            ClientSdkError: If cache name is invalid type.
-            CacheNotFoundError: If an attempt is made to retrieve an item in a cache that doesn't exist.
-            PermissionError: If the provided Momento Auth Token is invalid to perform the requested operation.
+            InvalidArgumentError: If validation fails for provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         return await self._data_client.get(cache_name, key)
@@ -124,7 +123,6 @@ def init(auth_token, item_default_ttl_seconds) -> SimpleCacheClient:
     Returns:
         SimpleCacheClient
     Raises:
-        InvalidInputError: If service validation fails for provided values
-        InternalServerError: If server encountered an unknown error.
+        IllegalArgumentError: If the provided auth token and/or item_default_ttl_seconds is invalid
     """
     return SimpleCacheClient(auth_token, item_default_ttl_seconds)

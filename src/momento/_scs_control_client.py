@@ -11,6 +11,8 @@ from . import errors
 from . import _momento_logger
 from . import _scs_grpc_manager
 
+from ._utilities._data_validation import _validate_cache_name
+
 
 class _ScsControlClient:
     """Momento Internal."""
@@ -56,8 +58,3 @@ class _ScsControlClient:
 
     def close(self):
         self._grpc_manager.close()
-
-
-def _validate_cache_name(cache_name):
-    if (cache_name is None):
-        raise errors.InvalidInputError('Cache Name cannot be None')

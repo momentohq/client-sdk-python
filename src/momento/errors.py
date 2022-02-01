@@ -15,7 +15,7 @@ class ClientSdkError(SdkError):
         super().__init__(message)
 
 
-class InvalidInputError(ClientSdkError):
+class InvalidArgumentError(ClientSdkError):
     """Error raised when provided input values to the SDK are invalid
 
        Some examples - missing required parameters, incorrect parameter
@@ -37,26 +37,50 @@ class CacheServiceError(MomentoServiceError):
         super().__init__(message)
 
 
-class CacheNotFoundError(CacheServiceError):
+class NotFoundError(CacheServiceError):
     """Error raised for operations performed on non-existent cache"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class CacheExistsError(CacheServiceError):
+class AlreadyExistsError(CacheServiceError):
     """Error raised when attempting to create a cache with same name"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class CacheValueError(CacheServiceError):
+class BadRequestError(CacheServiceError):
     """Error raised when service validation fails for provided values"""
     def __init__(self, message):
         super().__init__(message)
 
 
 class PermissionError(CacheServiceError):
+    """Error for insufficient permissions to perform an operation with Cache Service."""
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class AuthenticationError(CacheServiceError):
     """Error when authentication with Cache Service fails"""
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class CancelledError(CacheServiceError):
+    """Error when an operation with Cache Service was cancelled"""
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class TimeoutError(CacheServiceError):
+    """Error when an operation did not complete in time"""
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class LimitExceededError(CacheServiceError):
+    """Error when calls are throttled due to request limit rate"""
     def __init__(self, message):
         super().__init__(message)
 

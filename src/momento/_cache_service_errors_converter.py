@@ -3,10 +3,22 @@ from . import errors
 from . import _momento_logger
 
 __rpc_to_error = {
-    grpc.StatusCode.ALREADY_EXISTS: errors.CacheExistsError,
-    grpc.StatusCode.INVALID_ARGUMENT: errors.CacheValueError,
-    grpc.StatusCode.NOT_FOUND: errors.CacheNotFoundError,
+    grpc.StatusCode.INVALID_ARGUMENT: errors.BadRequestError,
+    grpc.StatusCode.OUT_OF_RANGE: errors.BadRequestError,
+    grpc.StatusCode.UNIMPLEMENTED: errors.BadRequestError,
+    grpc.StatusCode.FAILED_PRECONDITION: errors.BadRequestError,
+    grpc.StatusCode.CANCELLED: errors.CancelledError,
+    grpc.StatusCode.DEADLINE_EXCEEDED: errors.TimeoutError,
     grpc.StatusCode.PERMISSION_DENIED: errors.PermissionError,
+    grpc.StatusCode.UNAUTHENTICATED: errors.AuthenticationError,
+    grpc.StatusCode.RESOURCE_EXHAUSTED: errors.LimitExceededError,
+    grpc.StatusCode.ALREADY_EXISTS: errors.AlreadyExistsError,
+    grpc.StatusCode.NOT_FOUND: errors.NotFoundError,
+    grpc.StatusCode.UNKNOWN: errors.InternalServerError,
+    grpc.StatusCode.ABORTED: errors.InternalServerError,
+    grpc.StatusCode.INTERNAL: errors.InternalServerError,
+    grpc.StatusCode.UNAVAILABLE: errors.InternalServerError,
+    grpc.StatusCode.DATA_LOSS: errors.InternalServerError,
 }
 
 
