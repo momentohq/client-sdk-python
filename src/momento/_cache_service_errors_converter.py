@@ -7,7 +7,7 @@ __rpc_to_error = {
     grpc.StatusCode.OUT_OF_RANGE: errors.BadRequestError,
     grpc.StatusCode.UNIMPLEMENTED: errors.BadRequestError,
     grpc.StatusCode.FAILED_PRECONDITION: errors.BadRequestError,
-    grpc.StatusCode.CANCELLED: errors.CancelError,
+    grpc.StatusCode.CANCELLED: errors.CancelledError,
     grpc.StatusCode.DEADLINE_EXCEEDED: errors.TimeoutError,
     grpc.StatusCode.PERMISSION_DENIED: errors.PermissionError,
     grpc.StatusCode.UNAUTHENTICATED: errors.AuthenticationError,
