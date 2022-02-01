@@ -31,7 +31,7 @@ class TestMomento(unittest.TestCase):
         # ensure test cache exists
         try:
             cls.client.create_cache(_TEST_CACHE_NAME)
-        except errors.CacheExistsError:
+        except errors.AlreadyExistsError:
             # do nothing, cache already exists
             pass
 
@@ -64,32 +64,32 @@ class TestMomento(unittest.TestCase):
     # init
 
     def test_init_throws_exception_when_client_uses_negative_default_ttl(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             simple_cache_client.init(_AUTH_TOKEN, -1)
         self.assertEqual('{}'.format(cm.exception), "TTL Seconds must be a non-negative integer")
 
     def test_init_throws_exception_for_non_jwt_token(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             simple_cache_client.init("notanauthtoken", _DEFAULT_TTL_SECONDS)
         self.assertEqual('{}'.format(cm.exception), "Invalid Auth token.")
 
     # create_cache
 
     def test_create_cache_throws_already_exists_when_creating_existing_cache(self):
-        with self.assertRaises(errors.CacheExistsError):
+        with self.assertRaises(errors.AlreadyExistsError):
             self.client.create_cache(_TEST_CACHE_NAME)
 
     def test_create_cache_throws_exception_for_empty_cache_name(self):
-        with self.assertRaises(errors.InvalidArgumentError):
+        with self.assertRaises(errors.BadRequestError):
             self.client.create_cache("")
 
     def test_create_cache_throws_validation_exception_for_null_cache_name(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.create_cache(None)
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
 
     def test_create_cache_with_bad_cache_name_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.create_cache(1)
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
 
@@ -104,27 +104,27 @@ class TestMomento(unittest.TestCase):
         cache_name = str(uuid.uuid4())
 
         self.client.create_cache(cache_name)
-        with self.assertRaises(errors.CacheExistsError):
+        with self.assertRaises(errors.AlreadyExistsError):
             self.client.create_cache(cache_name)
         self.client.delete_cache(cache_name)
-        with self.assertRaises(errors.CacheNotFoundError):
+        with self.assertRaises(errors.NotFoundError):
             self.client.delete_cache(cache_name)
 
     def test_delete_cache_throws_not_found_when_deleting_unknown_cache(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.CacheNotFoundError):
+        with self.assertRaises(errors.NotFoundError):
             self.client.delete_cache(cache_name)
 
     def test_delete_cache_throws_invalid_input_for_null_cache_name(self):
-        with self.assertRaises(errors.InvalidInputError):
+        with self.assertRaises(errors.InvalidArgumentError):
             self.client.delete_cache(None)
 
     def test_delete_cache_throws_exception_for_empty_cache_name(self):
-        with self.assertRaises(errors.InvalidArgumentError):
+        with self.assertRaises(errors.BadRequestError):
             self.client.delete_cache("")
 
     def test_delete_with_bad_cache_name_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.delete_cache(1)
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
 
@@ -229,46 +229,46 @@ class TestMomento(unittest.TestCase):
 
     def test_set_with_non_existent_cache_name_throws_not_found(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.CacheNotFoundError):
+        with self.assertRaises(errors.NotFoundError):
             self.client.set(cache_name, "foo", "bar")
 
     def test_set_with_null_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.set(None, "foo", "bar")
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
 
     def test_set_with_empty_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.InvalidArgumentError) as cm:
+        with self.assertRaises(errors.BadRequestError) as cm:
             self.client.set("", "foo", "bar")
         self.assertEqual('{}'.format(cm.exception), "Cache header is empty")
 
     def test_set_with_null_key_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError):
+        with self.assertRaises(errors.InvalidArgumentError):
             self.client.set(_TEST_CACHE_NAME, None, "bar")
 
     def test_set_with_null_value_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError):
+        with self.assertRaises(errors.InvalidArgumentError):
             self.client.set(_TEST_CACHE_NAME, "foo", None)
 
     def test_set_negative_ttl_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.set(_TEST_CACHE_NAME, "foo", "bar", -1)
         self.assertEqual('{}'.format(cm.exception), "TTL Seconds must be a non-negative integer")
 
     def test_set_with_bad_cache_name_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.set(1, "foo", "bar")
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
 
     def test_set_with_bad_key_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.set(_TEST_CACHE_NAME, 1, "bar")
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for key: <class 'int'>")
 
     def test_set_with_bad_value_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.set(_TEST_CACHE_NAME, "foo", 1)
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for value: <class 'int'>")
 
@@ -282,32 +282,32 @@ class TestMomento(unittest.TestCase):
 
     def test_get_with_non_existent_cache_name_throws_not_found(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.CacheNotFoundError):
+        with self.assertRaises(errors.NotFoundError):
             self.client.get(cache_name, "foo")
 
     def test_get_with_null_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.get(None, "foo")
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
 
     def test_get_with_empty_cache_name_throws_exception(self):
         cache_name = str(uuid.uuid4())
-        with self.assertRaises(errors.InvalidArgumentError) as cm:
+        with self.assertRaises(errors.BadRequestError) as cm:
             self.client.get("", "foo")
         self.assertEqual('{}'.format(cm.exception), "Cache header is empty")
 
     def test_get_with_null_key_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError):
+        with self.assertRaises(errors.InvalidArgumentError):
             self.client.get(_TEST_CACHE_NAME, None)
 
     def test_get_with_bad_cache_name_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.get(1, "foo")
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-None value with `str` type")
 
     def test_get_with_bad_key_throws_exception(self):
-        with self.assertRaises(errors.InvalidInputError) as cm:
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
             self.client.get(_TEST_CACHE_NAME, 1)
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for key: <class 'int'>")
 

@@ -28,4 +28,4 @@ def _getEndpointFromToken(auth_token):
         return _Endpoints(claims[_CONTROL_ENDPOINT_CLAIM_ID],
                           claims[_CACHE_ENDPOINT_CLAIM_ID])
     except (DecodeError, KeyError):
-        raise errors.InvalidInputError('Invalid Auth token.') from None
+        raise errors.InvalidArgumentError('Invalid Auth token.') from None
