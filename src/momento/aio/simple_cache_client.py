@@ -33,7 +33,7 @@ class SimpleCacheClient:
             CreateCacheResponse
 
         Raises:
-            InvalidArgumentError: If provided cache_name is empty or None.
+            InvalidArgumentError: If provided cache_name None.
             BadRequestError: If the cache name provided doesn't follow the naming conventions
             ExistsError: If cache with the given name already exists.
             AuthenticationError: If the provided Momento Auth Token is invalid.
@@ -51,7 +51,7 @@ class SimpleCacheClient:
             DeleteCacheResponse
 
         Raises:
-            InvalidArgumentError: If provided cache_name is empty or None.
+            InvalidArgumentError: If provided cache_name is None.
             BadRequestError: If the cache name provided doesn't follow the naming conventions
             NotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
             AuthenticationError: If the provided Momento Auth Token is invalid.
