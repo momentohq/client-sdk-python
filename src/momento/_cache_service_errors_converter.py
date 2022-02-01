@@ -1,4 +1,3 @@
-from tokenize import group
 import grpc
 from . import errors
 from . import _momento_logger
