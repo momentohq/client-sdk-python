@@ -31,61 +31,55 @@ class MomentoServiceError(SdkError):
         super().__init__(message)
 
 
-class CacheServiceError(MomentoServiceError):
-    """Base class for all errors raised by the Caching Service"""
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class NotFoundError(CacheServiceError):
+class NotFoundError(MomentoServiceError):
     """Error raised for operations performed on non-existent cache"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class AlreadyExistsError(CacheServiceError):
+class AlreadyExistsError(MomentoServiceError):
     """Error raised when attempting to create a cache with same name"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class BadRequestError(CacheServiceError):
+class BadRequestError(MomentoServiceError):
     """Error raised when service validation fails for provided values"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class PermissionError(CacheServiceError):
+class PermissionError(MomentoServiceError):
     """Error for insufficient permissions to perform an operation with Cache Service."""
     def __init__(self, message):
         super().__init__(message)
 
 
-class AuthenticationError(CacheServiceError):
+class AuthenticationError(MomentoServiceError):
     """Error when authentication with Cache Service fails"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class CancelledError(CacheServiceError):
+class CancelledError(MomentoServiceError):
     """Error when an operation with Cache Service was cancelled"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class TimeoutError(CacheServiceError):
+class TimeoutError(MomentoServiceError):
     """Error when an operation did not complete in time"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class LimitExceededError(CacheServiceError):
+class LimitExceededError(MomentoServiceError):
     """Error when calls are throttled due to request limit rate"""
     def __init__(self, message):
         super().__init__(message)
 
 
-class InternalServerError(CacheServiceError):
+class InternalServerError(MomentoServiceError):
     """Operation failed on the server with an unknown error"""
     def __init__(self, message):
         super().__init__(message)
