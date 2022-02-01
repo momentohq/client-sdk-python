@@ -8,7 +8,7 @@ def _make_metadata(cache_name) -> Metadata:
 
 
 def _validate_cache_name(cache_name):
-    if cache_name is None or not isinstance(cache_name, str):
+    if not cache_name or not isinstance(cache_name, str):
         raise errors.InvalidArgumentError('Cache name must be a non-None value with `str` type')
 
 
