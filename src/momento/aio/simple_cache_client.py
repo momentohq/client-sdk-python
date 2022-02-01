@@ -86,7 +86,7 @@ class SimpleCacheClient:
             CacheSetResponse
 
         Raises:
-            InvalidArgumentError: If validation fails for provided values.
+            InvalidArgumentError: If validation fails for provided method arguments.
             BadRequestError: If the provided inputs are rejected by server because they are invalid
             NotFoundError: If the cache with the given name doesn't exist.
             AuthenticationError: If the provided Momento Auth Token is invalid.
@@ -105,11 +105,11 @@ class SimpleCacheClient:
             CacheGetResponse
 
         Raises:
-            InvalidArgumentError: If validation fails for provided values.
+            InvalidArgumentError: If validation fails for provided method arguments.
             BadRequestError: If the provided inputs are rejected by server because they are invalid
             NotFoundError: If the cache with the given name doesn't exist.
             AuthenticationError: If the provided Momento Auth Token is invalid.
-            InternalServerError: If server encountered an unknown error while trying to store the item.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         return await self._data_client.get(cache_name, key)
 
