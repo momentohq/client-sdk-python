@@ -33,7 +33,7 @@ class SimpleCacheClient:
         Raises:
             InvalidArgumentError: If provided cache_name is None.
             BadRequestError: If the cache name provided doesn't follow the naming conventions
-            ExistsError: If cache with the given name already exists.
+            AlreadyExistsError: If cache with the given name already exists.
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
