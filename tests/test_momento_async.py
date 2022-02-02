@@ -95,9 +95,9 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual('{}'.format(cm.exception),
                 "Cache name must be a non-empty string")
 
-    async def test_create_cache_throws_permission_exception_for_bad_token(self):
+    async def test_create_cache_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.create_cache(str(uuid.uuid4()))
 
     # delete_cache
@@ -129,9 +129,9 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             await self.client.delete_cache(1)
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
-    async def test_delete_cache_throws_permission_exception_for_bad_token(self):
+    async def test_delete_cache_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.create_cache(str(uuid.uuid4()))
 
     # list_caches
@@ -154,9 +154,9 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         finally:
             await self.client.delete_cache(cache_name)
 
-    async def test_list_caches_throws_permission_exception_for_bad_token(self):
+    async def test_list_caches_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.list_caches()
 
     async def test_list_caches_with_next_token_works(self):
@@ -270,9 +270,9 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             await self.client.set(_TEST_CACHE_NAME, "foo", 1)
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for value: <class 'int'>")
 
-    async def test_set_throws_permission_exception_for_bad_token(self):
+    async def test_set_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
 
     # get
@@ -308,9 +308,9 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             await self.client.get(_TEST_CACHE_NAME, 1)
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for key: <class 'int'>")
 
-    async def test_get_throws_permission_exception_for_bad_token(self):
+    async def test_get_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.get(_TEST_CACHE_NAME, "foo")
 
 
