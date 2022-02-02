@@ -97,7 +97,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_create_cache_throws_permission_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.create_cache(str(uuid.uuid4()))
 
     # delete_cache
@@ -131,7 +131,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_delete_cache_throws_permission_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.create_cache(str(uuid.uuid4()))
 
     # list_caches
@@ -156,7 +156,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_list_caches_throws_permission_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.list_caches()
 
     async def test_list_caches_with_next_token_works(self):
@@ -272,7 +272,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_set_throws_permission_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
 
     # get
@@ -310,7 +310,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_get_throws_permission_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            with self.assertRaises(errors.PermissionError):
+            with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.get(_TEST_CACHE_NAME, "foo")
 
 
