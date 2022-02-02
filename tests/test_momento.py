@@ -93,7 +93,7 @@ class TestMomento(unittest.TestCase):
             self.client.create_cache(1)
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
-    def test_create_cache_throws_permission_exception_for_bad_token(self):
+    def test_create_cache_throws_authentication_exception_for_bad_token(self):
         with simple_cache_client.init(_BAD_AUTH_TOKEN,
                                       _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
@@ -128,7 +128,7 @@ class TestMomento(unittest.TestCase):
             self.client.delete_cache(1)
         self.assertEqual('{}'.format(cm.exception), "Cache name must be a non-empty string")
 
-    def test_delete_cache_throws_permission_exception_for_bad_token(self):
+    def test_delete_cache_throws_authentication_exception_for_bad_token(self):
         with simple_cache_client.init(_BAD_AUTH_TOKEN,
                                       _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
@@ -154,7 +154,7 @@ class TestMomento(unittest.TestCase):
         finally:
             self.client.delete_cache(cache_name)
 
-    def test_list_caches_throws_permission_exception_for_bad_token(self):
+    def test_list_caches_throws_authentication_exception_for_bad_token(self):
         with simple_cache_client.init(_BAD_AUTH_TOKEN,
                                       _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
@@ -272,7 +272,7 @@ class TestMomento(unittest.TestCase):
             self.client.set(_TEST_CACHE_NAME, "foo", 1)
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for value: <class 'int'>")
 
-    def test_set_throws_permission_exception_for_bad_token(self):
+    def test_set_throws_authentication_exception_for_bad_token(self):
         with simple_cache_client.init(_BAD_AUTH_TOKEN,
                                       _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
@@ -311,7 +311,7 @@ class TestMomento(unittest.TestCase):
             self.client.get(_TEST_CACHE_NAME, 1)
         self.assertEqual('{}'.format(cm.exception), "Unsupported type for key: <class 'int'>")
 
-    def test_get_throws_permission_exception_for_bad_token(self):
+    def test_get_throws_authentication_exception_for_bad_token(self):
         with simple_cache_client.init(_BAD_AUTH_TOKEN,
                                       _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
