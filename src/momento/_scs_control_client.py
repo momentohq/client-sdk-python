@@ -1,6 +1,6 @@
-from momento_wire_types.controlclient_pb2 import CreateCacheRequest
-from momento_wire_types.controlclient_pb2 import DeleteCacheRequest
-from momento_wire_types.controlclient_pb2 import ListCachesRequest
+from momento_wire_types.controlclient_pb2 import _CreateCacheRequest
+from momento_wire_types.controlclient_pb2 import _DeleteCacheRequest
+from momento_wire_types.controlclient_pb2 import _ListCachesRequest
 
 from .cache_operation_responses import CreateCacheResponse
 from .cache_operation_responses import DeleteCacheResponse
@@ -24,7 +24,7 @@ class _ScsControlClient:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Creating cache with name: {cache_name}')
-            request = CreateCacheRequest()
+            request = _CreateCacheRequest()
             request.cache_name = cache_name
             return CreateCacheResponse(self._getStub().CreateCache(request))
         except Exception as e:
@@ -36,7 +36,7 @@ class _ScsControlClient:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Deleting cache with name: {cache_name}')
-            request = DeleteCacheRequest()
+            request = _DeleteCacheRequest()
             request.cache_name = cache_name
             return DeleteCacheResponse(self._getStub().DeleteCache(request))
         except Exception as e:
@@ -46,7 +46,7 @@ class _ScsControlClient:
 
     def list_caches(self, next_token=None):
         try:
-            list_caches_request = ListCachesRequest()
+            list_caches_request = _ListCachesRequest()
             list_caches_request.next_token = next_token if next_token is not None else ''
             return ListCachesResponse(
                 self._getStub().ListCaches(list_caches_request))
