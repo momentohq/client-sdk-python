@@ -1,6 +1,6 @@
-from momento_wire_types.controlclient_pb2 import CreateCacheRequest
-from momento_wire_types.controlclient_pb2 import DeleteCacheRequest
-from momento_wire_types.controlclient_pb2 import ListCachesRequest
+from momento_wire_types.controlclient_pb2 import _CreateCacheRequest
+from momento_wire_types.controlclient_pb2 import _DeleteCacheRequest
+from momento_wire_types.controlclient_pb2 import _ListCachesRequest
 
 from .._utilities._data_validation import _validate_cache_name
 from ..cache_operation_responses import CreateCacheResponse
@@ -22,7 +22,7 @@ class _ScsControlClient:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Creating cache with name: {cache_name}')
-            request = CreateCacheRequest()
+            request = _CreateCacheRequest()
             request.cache_name = cache_name
             return CreateCacheResponse(await self._grpc_manager.async_stub().CreateCache(request))
         except Exception as e:
@@ -34,7 +34,7 @@ class _ScsControlClient:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Deleting cache with name: {cache_name}')
-            request = DeleteCacheRequest()
+            request = _DeleteCacheRequest()
             request.cache_name = cache_name
             return DeleteCacheResponse(await self._grpc_manager.async_stub().DeleteCache(request))
         except Exception as e:
@@ -44,7 +44,7 @@ class _ScsControlClient:
 
     async def list_caches(self, next_token=None):
         try:
-            list_caches_request = ListCachesRequest()
+            list_caches_request = _ListCachesRequest()
             list_caches_request.next_token = next_token if next_token is not None else ''
             return ListCachesResponse(await self._grpc_manager.async_stub().ListCaches(list_caches_request))
         except Exception as e:

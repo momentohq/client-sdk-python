@@ -1,4 +1,5 @@
-import momento_wire_types.cacheclient_pb2 as cache_client_types
+from momento_wire_types.cacheclient_pb2 import _GetRequest
+from momento_wire_types.cacheclient_pb2 import _SetRequest
 
 from . import cache_operation_responses as cache_sdk_resp
 from . import _cache_service_errors_converter
@@ -23,7 +24,7 @@ class _ScsDataClient:
             _momento_logger.debug(f'Issuing a set request with key {key}')
             item_ttl_seconds = self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
             _validate_ttl(item_ttl_seconds)
-            set_request = cache_client_types.SetRequest()
+            set_request = _SetRequest()
             set_request.cache_key = _as_bytes(key, 'Unsupported type for key: ')
             set_request.cache_body = _as_bytes(value,
                                               'Unsupported type for value: ')
@@ -41,7 +42,7 @@ class _ScsDataClient:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Issuing a get request with key {key}')
-            get_request = cache_client_types.GetRequest()
+            get_request = _GetRequest()
             get_request.cache_key = _as_bytes(key, 'Unsupported type for key: ')
             response = self._getStub().Get(get_request,
                                            metadata=_make_metadata(cache_name))
