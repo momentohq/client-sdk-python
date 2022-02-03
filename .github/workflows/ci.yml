@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
 
 jobs:
@@ -16,18 +14,11 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: "gabrielfalcao/pyenv-action@v5"
         with:
-          python-version: '3.x'
+          versions: 3.8.12, 3.9.10
 
-      - name: Install python dependencies
+      - name: Build package and run tests
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel build
-          pip install -e . --extra-index-url https://momento.jfrog.io/artifactory/api/pypi/pypi-public/simple
-
-      - name: Build package
-        run: python -m pip install -e .
-
-      - name: Run tests
-        run: python -m unittest discover -v
+          pyenv local 3.8.12 3.9.10
+          tox
