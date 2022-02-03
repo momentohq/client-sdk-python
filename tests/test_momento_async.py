@@ -289,7 +289,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
     async def test_set_throws_timeout_error_for_short_request_timeout(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
-                await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
+                await simple_cache.get(_TEST_CACHE_NAME, "foo", "bar")
 
 
     # get
