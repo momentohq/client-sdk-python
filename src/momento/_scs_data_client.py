@@ -12,9 +12,9 @@ from ._utilities._data_validation import _as_bytes, _validate_ttl, _make_metadat
 
 class _ScsDataClient:
     """Internal"""
-    def __init__(self, auth_token, endpoint, default_ttl_seconds):
+    def __init__(self, auth_token, endpoint, default_ttl_seconds, request_timeout_ms):
         self._grpc_manager = _scs_grpc_manager._DataGrpcManager(
-            auth_token, endpoint)
+            auth_token, endpoint, request_timeout_ms)
         _validate_ttl(default_ttl_seconds)
         self._default_ttlSeconds = default_ttl_seconds
 
