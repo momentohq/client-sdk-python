@@ -73,6 +73,16 @@ class TestMomento(unittest.TestCase):
             simple_cache_client.init("notanauthtoken", _DEFAULT_TTL_SECONDS)
         self.assertEqual('{}'.format(cm.exception), "Invalid Auth token.")
 
+    def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(self):
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
+            simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, -1)
+        self.assertEqual('{}'.format(cm.exception), "Request timeout must be greater than zero.")
+
+    def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(self):
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
+            simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, 0)
+        self.assertEqual('{}'.format(cm.exception), "Request timeout must be greater than zero.")
+
     # create_cache
 
     def test_create_cache_throws_already_exists_when_creating_existing_cache(self):
