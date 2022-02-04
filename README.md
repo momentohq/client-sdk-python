@@ -46,6 +46,12 @@ want to use.
 
 ## First run of `tox` to set up tox virtual envs
 
+If you haven't installed tox yet:
+
+```
+pip install tox
+```
+
 If you want to test with all of the versions of python that we have listed
 in our `tox.ini`, and you have already run `pyenv local` to register all
 of the versions, run this command to do the initial setup of virtual envs
