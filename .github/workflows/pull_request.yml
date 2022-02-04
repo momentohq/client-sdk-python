@@ -33,5 +33,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: x64
       - run: |
-          TOX_ENV="py${${{ matrix.python-version }}//./}"
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          TOX_ENV="py${PYTHON_VERSION//./}"
           echo "SHOULD BE RUNNING TESTS FOR TOX ENV: $TOX_ENV"
