@@ -25,7 +25,7 @@ class _ControlGrpcManager:
 
 class _DataGrpcManager:
     """Momento Internal."""
-    def __init__(self, auth_token, endpoint, request_timeout_ms):
+    def __init__(self, auth_token, endpoint):
         self._secure_channel = grpc.secure_channel(
             endpoint, grpc.ssl_channel_credentials())
         intercept_channel = grpc.intercept_channel(

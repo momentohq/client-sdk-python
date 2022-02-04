@@ -1,4 +1,3 @@
-from socket import timeout
 from momento_wire_types.cacheclient_pb2 import _GetRequest
 from momento_wire_types.cacheclient_pb2 import _SetRequest
 
@@ -18,7 +17,7 @@ class _ScsDataClient:
     def __init__(self, auth_token, endpoint, default_ttl_seconds, request_timeout_ms):
         self._default_deadline_seconds = _DEFAULT_DEADLINE_SECONDS if not request_timeout_ms else request_timeout_ms/1000.0
         self._grpc_manager = _scs_grpc_manager._DataGrpcManager(
-            auth_token, endpoint, request_timeout_ms)
+            auth_token, endpoint)
         _validate_ttl(default_ttl_seconds)
         self._default_ttlSeconds = default_ttl_seconds
 
