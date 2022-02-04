@@ -37,4 +37,4 @@ jobs:
           TOXENV="py${PYTHON_VERSION//./}"
           echo "Running tests for TOXENV: $TOXENV"
           pip install tox
-          tox
+          tox -e $TOXENV
