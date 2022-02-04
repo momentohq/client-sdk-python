@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-        run: |
+      - run: |
           echo "Should be doing linting here!"
 
   test:
@@ -32,6 +32,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-        run: |
+      - run: |
           TOX_ENV="py${${{ matrix.python-version }}//./}"
           echo "SHOULD BE RUNNING TESTS FOR TOX ENV: $TOX_ENV"
