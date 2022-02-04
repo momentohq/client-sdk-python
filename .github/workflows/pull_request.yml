@@ -1,0 +1,37 @@
+name: PR / Push
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+        run: |
+          echo "Should be doing linting here!"
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.8', '3.9' ]
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_CACHE_NAME: python-integration-test-cache
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Python ${{ matrix.python-version }} sample
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+        run: |
+          TOX_ENV="py${${{ matrix.python-version }}//./}"
+          echo "SHOULD BE RUNNING TESTS FOR TOX ENV: $TOX_ENV"
