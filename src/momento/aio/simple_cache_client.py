@@ -1,5 +1,6 @@
 from ._scs_control_client import _ScsControlClient
 from ._scs_data_client import _ScsDataClient
+from .._utilities._data_validation import _validate_request_timeout
 
 from .. import _momento_endpoint_resolver
 from ..cache_operation_responses import CreateCacheResponse, DeleteCacheResponse, ListCachesResponse, CacheSetResponse, \
@@ -8,13 +9,14 @@ from ..cache_operation_responses import CreateCacheResponse, DeleteCacheResponse
 
 class SimpleCacheClient:
     """async Simple Cache client"""
-    def __init__(self, auth_token, default_ttl_seconds):
+    def __init__(self, auth_token, default_ttl_seconds, data_client_operation_timeout_ms):
         endpoints = _momento_endpoint_resolver.resolve(auth_token)
         self._control_client = _ScsControlClient(auth_token,
                                                  endpoints.control_endpoint)
         self._data_client = _ScsDataClient(auth_token,
                                            endpoints.cache_endpoint,
-                                           default_ttl_seconds)
+                                           default_ttl_seconds,
+                                           data_client_operation_timeout_ms)
 
     async def __aenter__(self):
         return self
@@ -114,15 +116,17 @@ class SimpleCacheClient:
         return await self._data_client.get(cache_name, key)
 
 
-def init(auth_token, item_default_ttl_seconds) -> SimpleCacheClient:
+def init(auth_token: str, item_default_ttl_seconds: int, request_timeout_ms: int=None) -> SimpleCacheClient:
     """ Creates an async SimpleCacheClient
 
     Args:
         auth_token: Momento Token to authenticate the requests with Simple Cache Service
         item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is possible to override this setting when calling the set method.
+        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete. Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in TimeoutError.
     Returns:
         SimpleCacheClient
     Raises:
-        IllegalArgumentError: If the provided auth token and/or item_default_ttl_seconds is invalid
+        IllegalArgumentError: If method arguments fail validations.
     """
-    return SimpleCacheClient(auth_token, item_default_ttl_seconds)
+    _validate_request_timeout(request_timeout_ms)
+    return SimpleCacheClient(auth_token, item_default_ttl_seconds, request_timeout_ms)

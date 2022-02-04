@@ -74,6 +74,17 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             simple_cache_client.init("notanauthtoken", _DEFAULT_TTL_SECONDS)
         self.assertEqual('{}'.format(cm.exception), "Invalid Auth token.")
 
+    async def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(self):
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
+            simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, -1)
+        self.assertEqual('{}'.format(cm.exception), "Request timeout must be greater than zero.")
+
+    async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(self):
+        with self.assertRaises(errors.InvalidArgumentError) as cm:
+            simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, 0)
+        self.assertEqual('{}'.format(cm.exception), "Request timeout must be greater than zero.")
+
+
     # create_cache
 
     async def test_create_cache_throws_already_exists_when_creating_existing_cache(self):
@@ -275,6 +286,12 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(errors.AuthenticationError):
                 await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
 
+    async def test_set_throws_timeout_error_for_short_request_timeout(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
+            with self.assertRaises(errors.TimeoutError):
+                await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
+
+
     # get
 
     async def test_get_with_non_existent_cache_name_throws_not_found(self):
@@ -311,6 +328,11 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
     async def test_get_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
+                await simple_cache.get(_TEST_CACHE_NAME, "foo")
+
+    async def test_get_throws_timeout_error_for_short_request_timeout(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
+            with self.assertRaises(errors.TimeoutError):
                 await simple_cache.get(_TEST_CACHE_NAME, "foo")
 
 

@@ -24,3 +24,10 @@ def _validate_ttl(ttl_seconds):
     if not isinstance(ttl_seconds, int) or ttl_seconds < 0:
         raise errors.InvalidArgumentError(
             'TTL Seconds must be a non-negative integer')
+
+
+def _validate_request_timeout(request_timeout_ms):
+    if request_timeout_ms is None:
+        return
+    if not isinstance(request_timeout_ms, int) or request_timeout_ms <= 0:
+        raise errors.InvalidArgumentError('Request timeout must be greater than zero.')
