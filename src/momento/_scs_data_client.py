@@ -3,7 +3,6 @@ from momento_wire_types.cacheclient_pb2 import _SetRequest
 
 from . import cache_operation_responses as cache_sdk_resp
 from . import _cache_service_errors_converter
-from . import errors
 from . import _momento_logger
 from . import _scs_grpc_manager
 

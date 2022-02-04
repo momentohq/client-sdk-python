@@ -1,4 +1,3 @@
-from socket import timeout
 import grpc
 
 import momento_wire_types.cacheclient_pb2_grpc as cache_client
@@ -13,8 +12,7 @@ class _ControlGrpcManager:
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=[
-                AddHeaderClientInterceptor('authorization', auth_token)]
+            interceptors=[AddHeaderClientInterceptor('authorization', auth_token)]
         )
 
     async def close(self):
@@ -31,8 +29,7 @@ class _DataGrpcManager:
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=[
-                AddHeaderClientInterceptor('authorization', auth_token)]
+            interceptors=[AddHeaderClientInterceptor('authorization', auth_token)]
         )
 
     async def close(self):

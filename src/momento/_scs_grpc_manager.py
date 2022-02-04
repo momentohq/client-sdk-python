@@ -13,7 +13,8 @@ class _ControlGrpcManager:
             endpoint, grpc.ssl_channel_credentials())
         intercept_channel = grpc.intercept_channel(
             self._secure_channel,
-            _authorization_interceptor.get_authorization_interceptor(auth_token))
+            _authorization_interceptor.get_authorization_interceptor(
+                auth_token))
         self._stub = control_client.ScsControlStub(intercept_channel)
 
     def close(self):
@@ -30,7 +31,8 @@ class _DataGrpcManager:
             endpoint, grpc.ssl_channel_credentials())
         intercept_channel = grpc.intercept_channel(
             self._secure_channel,
-            _authorization_interceptor.get_authorization_interceptor(auth_token))
+            _authorization_interceptor.get_authorization_interceptor(
+                auth_token))
         self._stub = cache_client.ScsStub(intercept_channel)
 
     def close(self):

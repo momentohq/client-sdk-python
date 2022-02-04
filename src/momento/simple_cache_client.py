@@ -1,4 +1,3 @@
-from ctypes import Union
 from momento.cache_operation_responses import CacheGetResponse, CacheSetResponse, CreateCacheResponse, DeleteCacheResponse, ListCachesResponse
 from ._scs_control_client import _ScsControlClient
 from ._scs_data_client import _ScsDataClient
@@ -95,7 +94,7 @@ class SimpleCacheClient:
         """
         return self._data_client.set(cache_name, key, value, ttl_seconds)
 
-    def get(self, cache_name: str, key) -> CacheGetResponse:
+    def get(self, cache_name, key) -> CacheGetResponse:
         """Retrieve an item from the cache
 
         Args:
