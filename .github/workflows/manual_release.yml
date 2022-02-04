@@ -32,16 +32,14 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: "gabrielfalcao/pyenv-action@v5"
+      - uses: actions/setup-python@v2
         with:
-          versions: 3.8.12, 3.9.10
+          python-version: '3.9'
 
       - name: Build package and run tests
         run: |
-          pyenv local 3.8.12 3.9.10
-          tox
+          pip install tox
+          tox -e py39
 
       - name: Prepare to publish
           python -m pip install --upgrade pip
