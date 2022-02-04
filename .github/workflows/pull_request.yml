@@ -36,4 +36,5 @@ jobs:
           PYTHON_VERSION="${{ matrix.python-version }}"
           TOXENV="py${PYTHON_VERSION//./}"
           echo "Running tests for TOXENV: $TOXENV"
+          pip install tox
           tox
