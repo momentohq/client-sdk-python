@@ -1,11 +1,6 @@
-name: CD
+name: Manual Release
 
-# If this is made manual, then also update the pull_request.yml, to run builds
-# on main on merge.
 on:
-  push:
-    branches: [ main ]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -37,16 +32,19 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: '3.9'
 
-      - name: Install python dependencies
+      - name: Build package and run tests
         run: |
+          pip install tox
+          tox -e py39
+
+      - name: Prepare to publish
           python -m pip install --upgrade pip
           pip install setuptools wheel twine build
+
       - name: Configure Artifactory publish credentials
         run: |
           set -e
@@ -63,8 +61,8 @@ jobs:
           export MOMENTO_SDK_VERSION="${{needs.release.outputs.version}}"
           if [ -z "$MOMENTO_SDK_VERSION"]
           then
-            echo "Using default version"
-            export MOMENTO_SDK_VERSION="0.0.dev"`date +%s`
+            echo "Unable to determine SDK version!  Exiting!"
+            exit 1
           fi
           echo "MOMENTO_SDK_VERSION=${MOMENTO_SDK_VERSION}"
           python -m build
