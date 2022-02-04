@@ -1,6 +1,16 @@
 
+import collections
+import grpc
+
 from . import _generic_client_interceptor
-from ._generic_client_interceptor import _ClientCallDetails
+
+
+class _ClientCallDetails(
+        collections.namedtuple(
+            '_ClientCallDetails',
+            ('method', 'timeout', 'metadata', 'credentials')),
+        grpc.ClientCallDetails):
+    pass
 
 
 def header_adder_interceptor(header, value):

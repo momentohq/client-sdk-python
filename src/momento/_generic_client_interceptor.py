@@ -1,13 +1,4 @@
 import grpc
-import collections
-
-
-class _ClientCallDetails(
-        collections.namedtuple(
-            '_ClientCallDetails',
-            ('method', 'timeout', 'metadata', 'credentials')),
-        grpc.ClientCallDetails):
-    pass
 
 
 class _GenericClientInterceptor(grpc.UnaryUnaryClientInterceptor):
