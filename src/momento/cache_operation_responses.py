@@ -26,7 +26,7 @@ class CacheSetResponse:
 
     def value(self) -> str:
         """Decodes string value set in cache to a utf-8 string."""
-        return self._value.decode('utf-8')
+        return self._value.decode("utf-8")
 
     def value_as_bytes(self) -> bytes:
         """Returns byte value set in cache."""
@@ -45,26 +45,27 @@ class CacheGetResponse:
         """
         self._value: bytes = grpc_get_response.cache_body
 
-        if (grpc_get_response.result == cache_client_types.Hit):
+        if grpc_get_response.result == cache_client_types.Hit:
             self._result = CacheGetStatus.HIT
-        elif (grpc_get_response.result == cache_client_types.Miss):
+        elif grpc_get_response.result == cache_client_types.Miss:
             self._result = CacheGetStatus.MISS
         else:
             _momento_logger.debug(
-                f'Get received unsupported ECacheResult: {grpc_get_response.result}'
+                f"Get received unsupported ECacheResult: {grpc_get_response.result}"
             )
             raise error_converter.convert_ecache_result(
-                grpc_get_response.result, grpc_get_response.message, 'GET')
+                grpc_get_response.result, grpc_get_response.message, "GET"
+            )
 
     def value(self) -> Optional[str]:
         """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
-        if (self._result == CacheGetStatus.HIT):
-            return self._value.decode('utf-8')
+        if self._result == CacheGetStatus.HIT:
+            return self._value.decode("utf-8")
         return None
 
     def value_as_bytes(self) -> Optional[bytes]:
         """Returns value stored in cache as bytes if there was Hit. Returns None otherwise."""
-        if (self._result == CacheGetStatus.HIT):
+        if self._result == CacheGetStatus.HIT:
             return self._value
         return None
 
@@ -104,7 +105,11 @@ class ListCachesResponse:
         Args:
             grpc_list_cache_response: Protobuf based response returned by Scs.
         """
-        self._next_token: Optional[str] = grpc_list_cache_response.next_token if grpc_list_cache_response.next_token != '' else None
+        self._next_token: Optional[str] = (
+            grpc_list_cache_response.next_token
+            if grpc_list_cache_response.next_token != ""
+            else None
+        )
         self._caches = []
         for cache in grpc_list_cache_response.cache:
             self._caches.append(CacheInfo(cache))

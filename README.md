@@ -24,6 +24,7 @@ subset of these you wish to use locally, you will need to make sure that
 you have a `pyenv` installation of that version.  For example:
 
 ```
+pyenv install 3.7.12
 pyenv install 3.8.12
 pyenv install 3.9.10
 ```
@@ -36,7 +37,7 @@ the list of pyenv python versions that you want tox to be able to use.
 e.g.:
 
 ```
-pyenv local 3.8.12 3.9.6
+pyenv local 3.7.12 3.8.12 3.9.6
 ```
 
 This will create a file called `.python-version` containing the desired
@@ -102,6 +103,29 @@ tox virtualenv, e.g.:
 
 Alternately you may put all of your code in a my_test.py file and
 run `.tox/py39/bin/python my_test.py`
+
+# Linting
+
+We use `mypy` for ensuring that we have type annotations and that the types are correct.
+(We should use it on all of our python projects; there is a movement
+in the python community to try to create type stubs for all major open source libraries
+via [typeshed](https://github.com/python/typeshed), similar to the [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped)
+project for javascript/typescript.  In the not-too-distant future this will become table
+stakes for open source python libraries.)
+
+We use `black` for formatting and checking the formatting of the code.
+
+To run the lint checks:
+
+```
+tox -e lint
+```
+
+To run the auto-formatter:
+
+```
+tox -e format
+```
 
 # Tests
 

@@ -1,7 +1,13 @@
 from types import TracebackType
 from typing import Optional, Union, Type
 
-from .cache_operation_responses import CacheGetResponse, CacheSetResponse, CreateCacheResponse, DeleteCacheResponse, ListCachesResponse
+from .cache_operation_responses import (
+    CacheGetResponse,
+    CacheSetResponse,
+    CreateCacheResponse,
+    DeleteCacheResponse,
+    ListCachesResponse,
+)
 from ._scs_control_client import _ScsControlClient
 from ._scs_data_client import _ScsDataClient
 from ._utilities._data_validation import _validate_request_timeout
@@ -10,22 +16,30 @@ from . import _momento_endpoint_resolver
 
 
 class SimpleCacheClient:
-    def __init__(self, auth_token: str, default_ttl_seconds: int, data_client_operation_timeout_ms: Optional[int]):
+    def __init__(
+        self,
+        auth_token: str,
+        default_ttl_seconds: int,
+        data_client_operation_timeout_ms: Optional[int],
+    ):
         endpoints = _momento_endpoint_resolver.resolve(auth_token)
-        self._control_client = _ScsControlClient(auth_token,
-                                                 endpoints.control_endpoint)
-        self._data_client = _ScsDataClient(auth_token,
-                                           endpoints.cache_endpoint,
-                                           default_ttl_seconds,
-                                           data_client_operation_timeout_ms)
+        self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
+        self._data_client = _ScsDataClient(
+            auth_token,
+            endpoints.cache_endpoint,
+            default_ttl_seconds,
+            data_client_operation_timeout_ms,
+        )
 
-    def __enter__(self) -> 'SimpleCacheClient':
+    def __enter__(self) -> "SimpleCacheClient":
         return self
 
-    def __exit__(self,
-                 exc_type: Optional[Type[BaseException]],
-                 exc_value: Optional[BaseException],
-                 traceback: Optional[TracebackType]) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
         self._control_client.close()
         self._data_client.close()
 
@@ -79,7 +93,13 @@ class SimpleCacheClient:
         """
         return self._control_client.list_caches(next_token)
 
-    def set(self, cache_name: str, key: str, value: Union[str, bytes], ttl_seconds: Optional[int] = None) -> CacheSetResponse:
+    def set(
+        self,
+        cache_name: str,
+        key: str,
+        value: Union[str, bytes],
+        ttl_seconds: Optional[int] = None,
+    ) -> CacheSetResponse:
         """Stores an item in cache
 
         Args:
@@ -120,8 +140,12 @@ class SimpleCacheClient:
         return self._data_client.get(cache_name, key)
 
 
-def init(auth_token: str, item_default_ttl_seconds: int , request_timeout_ms: Optional[int] = None) -> SimpleCacheClient:
-    """ Creates a SimpleCacheClient
+def init(
+    auth_token: str,
+    item_default_ttl_seconds: int,
+    request_timeout_ms: Optional[int] = None,
+) -> SimpleCacheClient:
+    """Creates a SimpleCacheClient
 
     Args:
         auth_token: Momento Token to authenticate the requests with Simple Cache Service
