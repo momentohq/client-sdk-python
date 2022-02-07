@@ -7,13 +7,15 @@ import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
 from momento.cache_operation_responses import CacheGetStatus
 
+from src.momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
+
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
 _BAD_AUTH_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"
 _DEFAULT_TTL_SECONDS = 60
 
 
-class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
+class TestMomentoAsync(IsolatedAsyncioTestCase):
     @classmethod
     async def asyncSetUp(self) -> None:
         if not _AUTH_TOKEN:
