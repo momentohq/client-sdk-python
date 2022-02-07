@@ -218,7 +218,7 @@ class TestMomento(unittest.TestCase):
 
             self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.HIT)
 
-            time.sleep(3)
+            time.sleep(2)
             self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.MISS)
 
     def test_set_with_different_ttl(self):
@@ -231,7 +231,7 @@ class TestMomento(unittest.TestCase):
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.HIT)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 
-        time.sleep(3)
+        time.sleep(2)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.MISS)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 
