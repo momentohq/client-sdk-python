@@ -1,6 +1,16 @@
 # client-sdk-python
 Python SDK for Momento
 
+# Minimum Python version
+
+Our minimum supported python version is currently `3.7`.  This is the oldest version of python that is
+currently supported by the python maintainers as well:
+
+https://en.wikipedia.org/wiki/History_of_Python#Table_of_versions
+
+We rely on some features in `asyncio` that were introduced in `3.7`.  If we have a customer use case that
+requires support for `3.6` then we can revisit at that time.
+
 # Requirements
 
 * [pyenv](https://github.com/pyenv/pyenv)
