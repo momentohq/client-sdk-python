@@ -7,7 +7,7 @@ import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
 from momento.cache_operation_responses import CacheGetStatus
 
-from src.momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
+from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
