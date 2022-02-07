@@ -24,6 +24,7 @@ subset of these you wish to use locally, you will need to make sure that
 you have a `pyenv` installation of that version.  For example:
 
 ```
+pyenv install 3.6.15
 pyenv install 3.8.12
 pyenv install 3.9.10
 ```
@@ -36,7 +37,7 @@ the list of pyenv python versions that you want tox to be able to use.
 e.g.:
 
 ```
-pyenv local 3.8.12 3.9.6
+pyenv local 3.6.15 3.8.12 3.9.6
 ```
 
 This will create a file called `.python-version` containing the desired

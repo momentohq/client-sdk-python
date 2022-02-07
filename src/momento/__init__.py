@@ -1,3 +1,3 @@
 import logging
 
-logging.getLogger('momentosdk').addHandler(logging.NullHandler())
+logging.getLogger("momentosdk").addHandler(logging.NullHandler())

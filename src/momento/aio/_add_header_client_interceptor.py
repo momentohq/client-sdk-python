@@ -10,10 +10,13 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         self._header_value = header_value
 
     async def intercept_unary_unary(
-            self,
-            continuation: Callable[[grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType], grpc.aio._call.UnaryUnaryCall],
-            client_call_details: grpc.aio._interceptor.ClientCallDetails,
-            request: grpc.aio._typing.RequestType
+        self,
+        continuation: Callable[
+            [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
+            grpc.aio._call.UnaryUnaryCall,
+        ],
+        client_call_details: grpc.aio._interceptor.ClientCallDetails,
+        request: grpc.aio._typing.RequestType,
     ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
         if client_call_details.metadata is None:
             client_call_details.metadata = Metadata()
