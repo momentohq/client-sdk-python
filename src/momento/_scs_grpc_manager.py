@@ -8,7 +8,7 @@ from . import _authorization_interceptor
 
 class _ControlGrpcManager:
     """Momento Internal."""
-    def __init__(self, auth_token, endpoint) -> None:
+    def __init__(self, auth_token: str, endpoint: str) -> None:
         self._secure_channel = grpc.secure_channel(
             endpoint, grpc.ssl_channel_credentials())
         intercept_channel = grpc.intercept_channel(
@@ -17,16 +17,16 @@ class _ControlGrpcManager:
                 auth_token))
         self._stub = control_client.ScsControlStub(intercept_channel)
 
-    def close(self):
+    def close(self) -> None:
         self._secure_channel.close()
 
-    def stub(self):
+    def stub(self) -> control_client.ScsControlStub:
         return self._stub
 
 
 class _DataGrpcManager:
     """Momento Internal."""
-    def __init__(self, auth_token, endpoint):
+    def __init__(self, auth_token: str, endpoint: str):
         self._secure_channel = grpc.secure_channel(
             endpoint, grpc.ssl_channel_credentials())
         intercept_channel = grpc.intercept_channel(
@@ -35,8 +35,8 @@ class _DataGrpcManager:
                 auth_token))
         self._stub = cache_client.ScsStub(intercept_channel)
 
-    def close(self):
+    def close(self) -> None:
         self._secure_channel.close()
 
-    def stub(self):
+    def stub(self) -> cache_client.ScsStub:
         return self._stub

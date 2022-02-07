@@ -1,4 +1,7 @@
-from momento.cache_operation_responses import CacheGetResponse, CacheSetResponse, CreateCacheResponse, DeleteCacheResponse, ListCachesResponse
+from types import TracebackType
+from typing import Optional, Union, Type
+
+from .cache_operation_responses import CacheGetResponse, CacheSetResponse, CreateCacheResponse, DeleteCacheResponse, ListCachesResponse
 from ._scs_control_client import _ScsControlClient
 from ._scs_data_client import _ScsDataClient
 from ._utilities._data_validation import _validate_request_timeout
@@ -7,7 +10,7 @@ from . import _momento_endpoint_resolver
 
 
 class SimpleCacheClient:
-    def __init__(self, auth_token, default_ttl_seconds, data_client_operation_timeout_ms):
+    def __init__(self, auth_token: str, default_ttl_seconds: int, data_client_operation_timeout_ms: Optional[int]):
         endpoints = _momento_endpoint_resolver.resolve(auth_token)
         self._control_client = _ScsControlClient(auth_token,
                                                  endpoints.control_endpoint)
@@ -16,14 +19,17 @@ class SimpleCacheClient:
                                            default_ttl_seconds,
                                            data_client_operation_timeout_ms)
 
-    def __enter__(self):
+    def __enter__(self) -> 'SimpleCacheClient':
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
+    def __exit__(self,
+                 exc_type: Optional[Type[BaseException]],
+                 exc_value: Optional[BaseException],
+                 traceback: Optional[TracebackType]) -> None:
         self._control_client.close()
         self._data_client.close()
 
-    def create_cache(self, cache_name) -> CreateCacheResponse:
+    def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a new cache in your Momento account.
 
         Args:
@@ -41,7 +47,7 @@ class SimpleCacheClient:
         """
         return self._control_client.create_cache(cache_name)
 
-    def delete_cache(self, cache_name) -> DeleteCacheResponse:
+    def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
 
         Args:
@@ -59,7 +65,7 @@ class SimpleCacheClient:
         """
         return self._control_client.delete_cache(cache_name)
 
-    def list_caches(self, next_token=None) -> ListCachesResponse:
+    def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         """Lists all caches.
 
         Args:
@@ -73,7 +79,7 @@ class SimpleCacheClient:
         """
         return self._control_client.list_caches(next_token)
 
-    def set(self, cache_name, key, value, ttl_seconds=None) -> CacheSetResponse:
+    def set(self, cache_name: str, key: str, value: Union[str, bytes], ttl_seconds: Optional[int] = None) -> CacheSetResponse:
         """Stores an item in cache
 
         Args:
@@ -94,7 +100,7 @@ class SimpleCacheClient:
         """
         return self._data_client.set(cache_name, key, value, ttl_seconds)
 
-    def get(self, cache_name, key) -> CacheGetResponse:
+    def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
 
         Args:
@@ -114,7 +120,7 @@ class SimpleCacheClient:
         return self._data_client.get(cache_name, key)
 
 
-def init(auth_token: str, item_default_ttl_seconds: int , request_timeout_ms: int=None) -> SimpleCacheClient:
+def init(auth_token: str, item_default_ttl_seconds: int , request_timeout_ms: Optional[int] = None) -> SimpleCacheClient:
     """ Creates a SimpleCacheClient
 
     Args:

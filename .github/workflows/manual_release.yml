@@ -39,6 +39,7 @@ jobs:
       - name: Build package and run tests
         run: |
           pip install tox
+          tox -e lint
           tox -e py39
 
       - name: Prepare to publish
