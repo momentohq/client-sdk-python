@@ -104,6 +104,29 @@ tox virtualenv, e.g.:
 Alternately you may put all of your code in a my_test.py file and
 run `.tox/py39/bin/python my_test.py`
 
+# Linting
+
+We use `mypy` for ensuring that we have type annotations and that the types are correct.
+(We should use it on all of our python projects; there is a movement
+in the python community to try to create type stubs for all major open source libraries
+via [typeshed](https://github.com/python/typeshed), similar to the [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped)
+project for javascript/typescript.  In the not-too-distant future this will become table
+stakes for open source python libraries.)
+
+We use `black` for formatting and checking the formatting of the code.
+
+To run the lint checks:
+
+```
+tox -e lint
+```
+
+To run the auto-formatter:
+
+```
+tox -e format
+```
+
 # Tests
 
 Integration tests require an auth token for testing. Set the env var `TEST_AUTH_TOKEN` to
