@@ -217,7 +217,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).status(), CacheGetStatus.HIT)
 
-            time.sleep(1.5)
+            time.sleep(2)
             self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).status(), CacheGetStatus.MISS)
 
     async def test_set_with_different_ttl(self):
@@ -230,7 +230,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).status(), CacheGetStatus.HIT)
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).status(), CacheGetStatus.HIT)
 
-        time.sleep(1.5)
+        time.sleep(2)
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).status(), CacheGetStatus.MISS)
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).status(), CacheGetStatus.HIT)
 
