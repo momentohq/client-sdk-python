@@ -4,7 +4,6 @@ import inspect
 from unittest.case import TestCase
 
 
-
 class IsolatedAsyncioTestCase(TestCase):
     # Names intentionally have a long prefix
     # to reduce a chance of clashing with user-defined attributes
@@ -31,7 +30,7 @@ class IsolatedAsyncioTestCase(TestCase):
     # should reset a policy in every test module
     # by calling asyncio.set_event_loop_policy(None) in tearDownModule()
 
-    def __init__(self, methodName='runTest'):
+    def __init__(self, methodName="runTest"):
         super().__init__(methodName)
         self._asyncioTestLoop = None
         self._asyncioCallsQueue = None
@@ -135,17 +134,20 @@ class IsolatedAsyncioTestCase(TestCase):
                 task.cancel()
 
             loop.run_until_complete(
-                asyncio.gather(*to_cancel, loop=loop, return_exceptions=True))
+                asyncio.gather(*to_cancel, loop=loop, return_exceptions=True)
+            )
 
             for task in to_cancel:
                 if task.cancelled():
                     continue
                 if task.exception() is not None:
-                    loop.call_exception_handler({
-                        'message': 'unhandled exception during test shutdown',
-                        'exception': task.exception(),
-                        'task': task,
-                    })
+                    loop.call_exception_handler(
+                        {
+                            "message": "unhandled exception during test shutdown",
+                            "exception": task.exception(),
+                            "task": task,
+                        }
+                    )
             # shutdown asyncgens
             loop.run_until_complete(loop.shutdown_asyncgens())
         finally:
