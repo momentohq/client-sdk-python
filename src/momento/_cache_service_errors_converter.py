@@ -1,3 +1,5 @@
+from typing import Any
+
 import grpc
 from . import errors
 from . import _momento_logger
@@ -22,7 +24,7 @@ __rpc_to_error = {
 }
 
 
-def convert(exception):
+def convert(exception: Exception) -> Exception:
     if (isinstance(exception, errors.SdkError)):
         return exception
 
@@ -37,7 +39,7 @@ def convert(exception):
                                  str(exception))
 
 
-def convert_ecache_result(ecache_result, message, operation_name):
+def convert_ecache_result(ecache_result: Any, message: str, operation_name: str) -> errors.InternalServerError:  # type: ignore[misc]
     _momento_logger.debug(
         f'Converting ECacheResult: {ecache_result} to error.')
     return errors.InternalServerError(

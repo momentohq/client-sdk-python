@@ -1,5 +1,8 @@
 import collections
+from typing import Any
+
 import grpc
+from momento._generic_client_interceptor import _GenericClientInterceptor
 
 from . import _generic_client_interceptor
 
@@ -12,9 +15,9 @@ class _ClientCallDetails(
     pass
 
 
-def header_adder_interceptor(header, value):
-    def intercept_call(client_call_details, request_iterator,
-                       request_streaming, response_streaming):
+def header_adder_interceptor(header: str, value: str) -> _GenericClientInterceptor:
+    def intercept_call(client_call_details: Any, request_iterator: Any,  # type: ignore[misc]
+                       request_streaming: Any, response_streaming: Any) -> Any:
         metadata = []
         if client_call_details.metadata is not None:
             metadata = list(client_call_details.metadata)

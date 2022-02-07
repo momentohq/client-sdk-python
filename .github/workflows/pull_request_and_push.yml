@@ -14,7 +14,8 @@ jobs:
         with:
           python-version: '3.x'
       - run: |
-          echo "Should be doing linting here!"
+          pip install tox
+          tox -e lint
 
   test:
     runs-on: ubuntu-latest

@@ -1,5 +1,8 @@
+from typing import Union, Optional
+
 from momento_wire_types.cacheclient_pb2 import _GetRequest
 from momento_wire_types.cacheclient_pb2 import _SetRequest
+from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 
 from . import cache_operation_responses as cache_sdk_resp
 from . import _cache_service_errors_converter
@@ -13,14 +16,14 @@ _DEFAULT_DEADLINE_SECONDS = 5.0 # 5 seconds
 
 class _ScsDataClient:
     """Internal"""
-    def __init__(self, auth_token, endpoint, default_ttl_seconds, request_timeout_ms):
+    def __init__(self, auth_token: str, endpoint: str, default_ttl_seconds: int, request_timeout_ms: Optional[int]):
         self._default_deadline_seconds = _DEFAULT_DEADLINE_SECONDS if not request_timeout_ms else request_timeout_ms/1000.0
         self._grpc_manager = _scs_grpc_manager._DataGrpcManager(
             auth_token, endpoint)
         _validate_ttl(default_ttl_seconds)
         self._default_ttlSeconds = default_ttl_seconds
 
-    def set(self, cache_name, key, value, ttl_seconds):
+    def set(self, cache_name: str, key: str, value: Union[str, bytes], ttl_seconds: Optional[int]) -> cache_sdk_resp.CacheSetResponse:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Issuing a set request with key {key}')
@@ -41,7 +44,7 @@ class _ScsDataClient:
             _momento_logger.debug(f'Set failed for {key} with response: {e}')
             raise _cache_service_errors_converter.convert(e)
 
-    def get(self, cache_name, key):
+    def get(self, cache_name: str, key: str) -> cache_sdk_resp.CacheGetResponse:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Issuing a get request with key {key}')
@@ -56,8 +59,8 @@ class _ScsDataClient:
             _momento_logger.debug(f'Get failed for {key} with response: {e}')
             raise _cache_service_errors_converter.convert(e)
 
-    def _getStub(self):
+    def _getStub(self) -> ScsStub:
         return self._grpc_manager.stub()
 
-    def close(self):
+    def close(self) -> None:
         self._grpc_manager.close()

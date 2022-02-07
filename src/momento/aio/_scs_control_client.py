@@ -1,4 +1,5 @@
-from socket import timeout
+from typing import Optional
+
 from momento_wire_types.controlclient_pb2 import _CreateCacheRequest
 from momento_wire_types.controlclient_pb2 import _DeleteCacheRequest
 from momento_wire_types.controlclient_pb2 import _ListCachesRequest
@@ -16,11 +17,11 @@ _DEADLINE_SECONDS = 60.0 # 1 minute
 
 class _ScsControlClient:
     """Momento Internal."""
-    def __init__(self, auth_token, endpoint):
+    def __init__(self, auth_token: str, endpoint: str):
         self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(
             auth_token, endpoint)
 
-    async def create_cache(self, cache_name):
+    async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Creating cache with name: {cache_name}')
@@ -32,7 +33,7 @@ class _ScsControlClient:
                 f'Failed to create cache: {cache_name} with exception:{e}')
             raise _cache_service_errors_converter.convert(e) from None
 
-    async def delete_cache(self, cache_name):
+    async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f'Deleting cache with name: {cache_name}')
@@ -44,7 +45,7 @@ class _ScsControlClient:
                 f'Failed to delete cache: {cache_name} with exception:{e}')
             raise _cache_service_errors_converter.convert(e) from None
 
-    async def list_caches(self, next_token=None):
+    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         try:
             list_caches_request = _ListCachesRequest()
             list_caches_request.next_token = next_token if next_token is not None else ''
@@ -52,5 +53,5 @@ class _ScsControlClient:
         except Exception as e:
             raise _cache_service_errors_converter.convert(e)
 
-    async def close(self):
+    async def close(self) -> None:
         await self._grpc_manager.close()

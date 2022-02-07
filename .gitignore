@@ -11,3 +11,4 @@ src/*.egg-info
 # Don't checkin the pyenv/tox files
 .tox
 .python-version
+build
