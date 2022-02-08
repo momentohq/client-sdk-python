@@ -11,7 +11,6 @@ jobs:
       version: ${{ steps.release.outputs.release }}
     steps:
       - uses: actions/checkout@v2
-
       - name: Set release
         id: semrel
         uses: go-semantic-release/action@v1
