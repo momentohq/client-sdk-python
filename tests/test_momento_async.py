@@ -84,7 +84,6 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, 0)
         self.assertEqual('{}'.format(cm.exception), "Request timeout must be greater than zero.")
 
-
     # create_cache
 
     async def test_create_cache_throws_already_exists_when_creating_existing_cache(self):
@@ -104,7 +103,7 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             await self.client.create_cache(1)
         self.assertEqual('{}'.format(cm.exception),
-                "Cache name must be a non-empty string")
+                         "Cache name must be a non-empty string")
 
     async def test_create_cache_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -291,7 +290,6 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(errors.TimeoutError):
                 await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
 
-
     # get
 
     async def test_get_with_non_existent_cache_name_throws_not_found(self):
@@ -334,6 +332,33 @@ class TestMomentoAsync(unittest.IsolatedAsyncioTestCase):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
                 await simple_cache.get(_TEST_CACHE_NAME, "foo")
+
+    # Multi op tests
+    async def test_multi_get_and_set(self):
+        set_resp = await self.client.m_set(
+            cache_name=_TEST_CACHE_NAME,
+            ops=[
+                {
+                    'key': "foo1",
+                    'value': "bar1"
+                },
+                {
+                    'key': "foo2",
+                    'value': "bar2"
+                }
+            ]
+        )
+        get_resp = await self.client.m_get(
+            cache_name=_TEST_CACHE_NAME,
+            ops=[{
+                    'key': "foo1",
+                },
+                {
+                    'key': "foo2"
+            }]
+        )
+        self.assertEqual("bar1", get_resp.values()[0])
+        self.assertEqual("bar2", get_resp.values()[1])
 
 
 if __name__ == '__main__':

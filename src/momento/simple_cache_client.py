@@ -120,6 +120,9 @@ class SimpleCacheClient:
         """
         return self._data_client.set(cache_name, key, value, ttl_seconds)
 
+    def m_get(self, ops):
+        self._data_client.m_get(ops)
+
     def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
 

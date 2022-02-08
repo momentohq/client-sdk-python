@@ -33,6 +33,11 @@ class CacheSetResponse:
         return self._value
 
 
+class CacheMultiSetResponse:
+    def __init__(self):
+        pass
+
+
 class CacheGetResponse:
     def __init__(self, grpc_get_response: Any):  # type: ignore[misc]
         """Initializes CacheGetResponse to handle gRPC get response.
@@ -72,6 +77,33 @@ class CacheGetResponse:
     def status(self) -> CacheGetStatus:
         """Returns get operation result such as HIT or MISS."""
         return self._result
+
+
+class CacheMultiGetResponse:
+    def __init__(self, cache_get_responses: List[CacheGetResponse]):
+        """Initializes CacheMultiGetResponse to handle multi gRPC get response.
+
+        Args:
+            grpc_get_response: Protobuf based response returned by Scs.
+
+        Raises:
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
+        self.responses = cache_get_responses
+
+    def values(self) -> List[Optional[str]]:
+        """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
+        r_values = []
+        for r in self.responses:
+            r_values.append(r.value())
+        return r_values
+
+    def values_as_bytes(self) -> List[bytes]:
+        """Returns value stored in cache as bytes if there was Hit. Returns None otherwise."""
+        r_values = []
+        for r in self.responses:
+            r_values.append(r.value_as_bytes())
+        return r_values
 
 
 class CreateCacheResponse:

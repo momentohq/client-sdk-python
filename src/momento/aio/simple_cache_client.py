@@ -95,6 +95,9 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_caches(next_token)
 
+    async def m_set(self, cache_name: str, ops):
+        return await self._data_client.m_set(cache_name, ops)
+
     async def set(
         self,
         cache_name: str,
@@ -121,6 +124,9 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
+
+    async def m_get(self, cache_name: str, ops):
+        return await self._data_client.m_get(cache_name, ops)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
