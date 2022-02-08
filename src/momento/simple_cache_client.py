@@ -1,6 +1,7 @@
 from types import TracebackType
 from typing import Optional, Union, Type
 
+from ._async_utils import wait_for_coroutine
 from .cache_operation_responses import (
     CacheGetResponse,
     CacheSetResponse,
@@ -8,11 +9,10 @@ from .cache_operation_responses import (
     DeleteCacheResponse,
     ListCachesResponse,
 )
-from ._scs_control_client import _ScsControlClient
-from ._scs_data_client import _ScsDataClient
+
 from ._utilities._data_validation import _validate_request_timeout
 
-from . import _momento_endpoint_resolver
+from .aio import simple_cache_client as aio
 
 
 class SimpleCacheClient:
@@ -22,13 +22,10 @@ class SimpleCacheClient:
         default_ttl_seconds: int,
         data_client_operation_timeout_ms: Optional[int],
     ):
-        endpoints = _momento_endpoint_resolver.resolve(auth_token)
-        self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
-        self._data_client = _ScsDataClient(
-            auth_token,
-            endpoints.cache_endpoint,
-            default_ttl_seconds,
-            data_client_operation_timeout_ms,
+        self._momento_async_client = aio.SimpleCacheClient(
+            auth_token=auth_token,
+            default_ttl_seconds=default_ttl_seconds,
+            data_client_operation_timeout_ms=data_client_operation_timeout_ms,
         )
 
     def __enter__(self) -> "SimpleCacheClient":
@@ -40,8 +37,8 @@ class SimpleCacheClient:
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        self._control_client.close()
-        self._data_client.close()
+        self._momento_async_client._control_client.close()
+        self._momento_async_client._data_client.close()
 
     def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a new cache in your Momento account.
@@ -59,7 +56,8 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return self._control_client.create_cache(cache_name)
+        coroutine = self._momento_async_client.create_cache(cache_name)
+        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
@@ -77,7 +75,8 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return self._control_client.delete_cache(cache_name)
+        coroutine = self._momento_async_client.delete_cache(cache_name)
+        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         """Lists all caches.
@@ -91,7 +90,8 @@ class SimpleCacheClient:
         Raises:
             AuthenticationError: If the provided Momento Auth Token is invalid.
         """
-        return self._control_client.list_caches(next_token)
+        coroutine = self._momento_async_client.list_caches(next_token)
+        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def set(
         self,
@@ -118,7 +118,8 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
-        return self._data_client.set(cache_name, key, value, ttl_seconds)
+        coroutine = self._momento_async_client.set(cache_name, key, value, ttl_seconds)
+        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def m_get(self, ops):
         self._data_client.m_get(ops)
@@ -140,7 +141,8 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return self._data_client.get(cache_name, key)
+        coroutine = self._momento_async_client.get(cache_name, key)
+        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
 
 def init(

@@ -38,8 +38,8 @@ class TestMomento(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # close client
-        cls.client._control_client.close()
-        cls.client._data_client.close()
+        cls.client._momento_async_client._control_client.close()
+        cls.client._momento_async_client._data_client.close()
 
     # basic happy path test
     def test_create_cache_get_set_values_and_delete_cache(self):
@@ -218,7 +218,7 @@ class TestMomento(unittest.TestCase):
 
             self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.HIT)
 
-            time.sleep(1.5)
+            time.sleep(2)
             self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.MISS)
 
     def test_set_with_different_ttl(self):
@@ -231,7 +231,7 @@ class TestMomento(unittest.TestCase):
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.HIT)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 
-        time.sleep(1.5)
+        time.sleep(2)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.MISS)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 

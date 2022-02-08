@@ -2,7 +2,7 @@ import collections
 from typing import Any
 
 import grpc
-from momento._generic_client_interceptor import _GenericClientInterceptor
+from ._generic_client_interceptor import _GenericClientInterceptor
 
 from . import _generic_client_interceptor
 
