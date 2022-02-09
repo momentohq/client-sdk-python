@@ -17,6 +17,8 @@ python3 -m pip install momento
 
 ## Running the Example
 
+Check out [Momento SDK Example](https://github.com/momentohq/client-sdk-examples/tree/main/python) to run the following examples.
+
 ```
 MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python3 example.py
 ```
