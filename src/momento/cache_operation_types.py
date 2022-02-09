@@ -50,11 +50,11 @@ class CacheMultiSetResponse:
         self._failed_responses = failed_responses
 
     def get_successful_responses(self) -> List[CacheSetResponse]:
-        """Returns the responses of items successfully stored in cache"""
+        """Returns list of responses of items successfully stored in cache"""
         return self._success_responses
 
     def get_failed_responses(self) -> List[CacheSetResponse]:
-        """Returns the responses of items we failed to store in cache"""
+        """Returns list of set responses of items that an error occurred while trying to store in cache"""
         return self._failed_responses
 
 
@@ -116,7 +116,7 @@ class CacheMultiGetResponse:
         """Initializes CacheMultiGetResponse to handle multi gRPC get response.
 
         Args:
-            grpc_get_response: Protobuf based response returned by Scs.
+            cache_get_responses: list of CacheGetResponse objects from result of executing multi get op list.
 
         Raises:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
@@ -124,14 +124,14 @@ class CacheMultiGetResponse:
         self.responses = cache_get_responses
 
     def values(self) -> List[Optional[str]]:
-        """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
+        """Returns list of values as utf-8 string for each Hit. Each item in list is None if was a Miss."""
         r_values = []
         for r in self.responses:
             r_values.append(r.value())
         return r_values
 
     def values_as_bytes(self) -> List[bytes]:
-        """Returns value stored in cache as bytes if there was Hit. Returns None otherwise."""
+        """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
         r_values = []
         for r in self.responses:
             r_values.append(r.value_as_bytes())

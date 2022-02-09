@@ -23,11 +23,11 @@ class _ScsDataClient:
     """Internal"""
 
     def __init__(
-            self,
-            auth_token: str,
-            endpoint: str,
-            default_ttl_seconds: int,
-            operation_timeout_ms: Optional[int],
+        self,
+        auth_token: str,
+        endpoint: str,
+        default_ttl_seconds: int,
+        operation_timeout_ms: Optional[int],
     ):
         self._default_deadline_seconds = (
             _DEFAULT_DEADLINE_SECONDS
@@ -39,11 +39,11 @@ class _ScsDataClient:
         self._default_ttlSeconds = default_ttl_seconds
 
     async def set(
-            self,
-            cache_name: str,
-            key: Union[str, bytes],
-            value: Union[str, bytes],
-            ttl_seconds: Optional[int],
+        self,
+        cache_name: str,
+        key: Union[str, bytes],
+        value: Union[str, bytes],
+        ttl_seconds: Optional[int],
     ) -> cache_sdk_ops.CacheSetResponse:
         _validate_cache_name(cache_name)
         try:
@@ -68,9 +68,9 @@ class _ScsDataClient:
             raise _cache_service_errors_converter.convert(e)
 
     async def multi_set(
-            self,
-            cache_name: str,
-            set_operations: List[cache_sdk_ops.CacheMultiSetOperation],
+        self,
+        cache_name: str,
+        set_operations: List[cache_sdk_ops.CacheMultiSetOperation],
     ) -> cache_sdk_ops.CacheMultiSetResponse:
 
         _validate_multi_op_list(set_operations)
@@ -88,9 +88,9 @@ class _ScsDataClient:
         successful_ops = []
 
         def _handle_task_result(
-                t: asyncio.Task,
-                key: Union[bytes, str],
-                value: Union[bytes, str],
+            t: asyncio.Task,
+            key: Union[bytes, str],
+            value: Union[bytes, str],
         ) -> None:
             """
             Set sub operation callback handler. Pushes result to proper return list and handles some logging for viz.
@@ -104,7 +104,7 @@ class _ScsDataClient:
                     f'multi-set sub command failed with '
                     f'error: {er} '
                     f'key: {key} '
-                    f'task={task.get_name()}'
+                    f'task={t.get_name()}'
                 )
                 failed_ops.append(cache_sdk_ops.CacheSetResponse(None, key, value))
 
@@ -130,10 +130,10 @@ class _ScsDataClient:
                 request_promises.add(task)
 
             _ = await asyncio.gather(
-                *request_promises,  # Expand list of promises to wait on
+                *request_promises,
+                return_exceptions=True,
                 # When set to True exceptions are treated the same as successful results, and aggregated in the
                 # result list. We want to try and make sure all requests have chance to finish.
-                return_exceptions=True,
             )
             _momento_logger.debug(
                 f'multi-set succeeded '
@@ -150,7 +150,12 @@ class _ScsDataClient:
             # re-raise any error caught here is fatal error with overall handling of request objects
             raise _cache_service_errors_converter.convert(e)
 
-    async def get(self, cache_name: str, key: Union[str, bytes]):
+    async def get(
+        self,
+        cache_name: str,
+        key: Union[str, bytes]
+    ) -> cache_sdk_ops.CacheGetResponse:
+
         _validate_cache_name(cache_name)
         try:
             _momento_logger.debug(f"Issuing a get request with key {key}")

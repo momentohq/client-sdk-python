@@ -9,14 +9,14 @@ def _make_metadata(cache_name: str) -> Metadata:
     return Metadata(("cache", cache_name))  # type: ignore[misc]
 
 
-def _validate_multi_op_list(values):
+def _validate_multi_op_list(values) -> None:
     if len(values) < 1:
         raise errors.InvalidArgumentError('empty op list passed to multi operation')
     if len(values) > 20:
         raise errors.InvalidArgumentError("multi operation op list max size is 20. passed=" + str(len(values)))
 
 
-def _validate_cache_name(cache_name):
+def _validate_cache_name(cache_name) -> None:
     if cache_name is None or not isinstance(cache_name, str):
         raise errors.InvalidArgumentError("Cache name must be a non-empty string")
 
