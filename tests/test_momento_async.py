@@ -214,25 +214,25 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
     async def test_expires_items_after_ttl(self):
         key = str(uuid.uuid4())
         val = str(uuid.uuid4())
-        async with simple_cache_client.init(_AUTH_TOKEN, 1) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, 2) as simple_cache:
             await simple_cache.set(_TEST_CACHE_NAME, key, val)
 
             self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).status(), CacheGetStatus.HIT)
 
-            time.sleep(2)
+            time.sleep(4)
             self.assertEqual((await simple_cache.get(_TEST_CACHE_NAME, key)).status(), CacheGetStatus.MISS)
 
     async def test_set_with_different_ttl(self):
         key1 = str(uuid.uuid4())
         key2 = str(uuid.uuid4())
 
-        await self.client.set(_TEST_CACHE_NAME, key1, "1", 1)
+        await self.client.set(_TEST_CACHE_NAME, key1, "1", 2)
         await self.client.set(_TEST_CACHE_NAME, key2, "2")
 
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).status(), CacheGetStatus.HIT)
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).status(), CacheGetStatus.HIT)
 
-        time.sleep(2)
+        time.sleep(4)
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key1)).status(), CacheGetStatus.MISS)
         self.assertEqual((await self.client.get(_TEST_CACHE_NAME, key2)).status(), CacheGetStatus.HIT)
 
