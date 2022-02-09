@@ -1,5 +1,7 @@
+import numbers
 from enum import Enum
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Union
+from dataclasses import dataclass
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 from . import _cache_service_errors_converter as error_converter
@@ -12,7 +14,7 @@ class CacheGetStatus(Enum):
 
 
 class CacheSetResponse:
-    def __init__(self, grpc_set_response: Any, value: bytes):  # type: ignore[misc]
+    def __init__(self, grpc_set_response: Any, key: bytes, value: bytes):  # type: ignore[misc]
         """Initializes CacheSetResponse to handle gRPC set response.
 
         Args:
@@ -23,6 +25,7 @@ class CacheSetResponse:
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         self._value = value
+        self._key = key
 
     def value(self) -> str:
         """Decodes string value set in cache to a utf-8 string."""
@@ -32,10 +35,39 @@ class CacheSetResponse:
         """Returns byte value set in cache."""
         return self._value
 
+    def key(self) -> str:
+        """Decodes key of item set in cache to a utf-8 string."""
+        return self._key.decode("utf-8")
+
+    def key_as_bytes(self) -> bytes:
+        """Returns key of item stored in cache as bytes."""
+        return self._key
+
 
 class CacheMultiSetResponse:
-    def __init__(self):
-        pass
+    def __init__(self, successful_responses: List[CacheSetResponse], failed_responses: List[CacheSetResponse]):
+        self._success_responses = successful_responses
+        self._failed_responses = failed_responses
+
+    def get_successful_responses(self) -> List[CacheSetResponse]:
+        """Returns the responses of items successfully stored in cache"""
+        return self._success_responses
+
+    def get_failed_responses(self) -> List[CacheSetResponse]:
+        """Returns the responses of items we failed to store in cache"""
+        return self._failed_responses
+
+
+@dataclass
+class CacheMultiSetOperation:
+    key: Union[str, bytes]
+    value: Union[str, bytes]
+    ttl_seconds: Optional[numbers.Number] = None
+
+
+@dataclass
+class CacheMultiGetOperation:
+    key: Union[str, bytes]
 
 
 class CacheGetResponse:

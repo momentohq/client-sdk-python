@@ -5,9 +5,9 @@ from momento_wire_types.controlclient_pb2 import _DeleteCacheRequest
 from momento_wire_types.controlclient_pb2 import _ListCachesRequest
 
 from .._utilities._data_validation import _validate_cache_name
-from ..cache_operation_responses import CreateCacheResponse
-from ..cache_operation_responses import DeleteCacheResponse
-from ..cache_operation_responses import ListCachesResponse
+from ..cache_operation_types import CreateCacheResponse
+from ..cache_operation_types import DeleteCacheResponse
+from ..cache_operation_types import ListCachesResponse
 
 from .. import _cache_service_errors_converter
 from .. import _momento_logger

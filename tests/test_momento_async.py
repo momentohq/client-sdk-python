@@ -5,9 +5,12 @@ import time
 
 import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
-from momento.cache_operation_responses import CacheGetStatus
+from momento.cache_operation_types import \
+    CacheGetStatus, \
+    CacheMultiSetOperation, \
+    CacheMultiGetOperation
 
-from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
+from src.momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
@@ -337,27 +340,22 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
     # Multi op tests
     async def test_multi_get_and_set(self):
-        set_resp = await self.client.m_set(
+        set_resp = await self.client.multi_set(
             cache_name=_TEST_CACHE_NAME,
             ops=[
-                {
-                    'key': "foo1",
-                    'value': "bar1"
-                },
-                {
-                    'key': "foo2",
-                    'value': "bar2"
-                }
+                CacheMultiSetOperation(key="foo1", value="bar1", ttl_seconds=None),
+                CacheMultiSetOperation(key="foo2", value="bar2", ttl_seconds=None),
             ]
         )
-        get_resp = await self.client.m_get(
+        self.assertEqual(0, len(set_resp.get_failed_responses()))
+        self.assertEqual(2, len(set_resp.get_successful_responses()))
+        self.assertEqual('foo2', set_resp.get_successful_responses()[1].key())
+        get_resp = await self.client.multi_get(
             cache_name=_TEST_CACHE_NAME,
-            ops=[{
-                    'key': "foo1",
-                },
-                {
-                    'key': "foo2"
-            }]
+            ops=[
+                CacheMultiGetOperation(key="foo1"),
+                CacheMultiGetOperation(key="foo2")
+            ]
         )
         self.assertEqual("bar1", get_resp.values()[0])
         self.assertEqual("bar2", get_resp.values()[1])

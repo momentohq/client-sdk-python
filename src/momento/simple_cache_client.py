@@ -122,7 +122,7 @@ class SimpleCacheClient:
         return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def m_get(self, ops):
-        self._data_client.m_get(ops)
+        self._data_client.multi_get(ops)
 
     def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache

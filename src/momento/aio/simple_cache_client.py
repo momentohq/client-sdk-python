@@ -1,17 +1,19 @@
 from types import TracebackType
-from typing import Optional, Union, Type
+from typing import Optional, Union, Type, List
 
 from ._scs_control_client import _ScsControlClient
 from ._scs_data_client import _ScsDataClient
 from .._utilities._data_validation import _validate_request_timeout
 
 from .. import _momento_endpoint_resolver
-from ..cache_operation_responses import (
+from ..cache_operation_types import (
     CreateCacheResponse,
     DeleteCacheResponse,
     ListCachesResponse,
     CacheSetResponse,
     CacheGetResponse,
+    CacheMultiSetOperation,
+    CacheMultiGetOperation,
 )
 
 
@@ -95,8 +97,8 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_caches(next_token)
 
-    async def m_set(self, cache_name: str, ops):
-        return await self._data_client.m_set(cache_name, ops)
+    async def multi_set(self, cache_name: str, ops: List[CacheMultiSetOperation]):
+        return await self._data_client.multi_set(cache_name, ops)
 
     async def set(
         self,
@@ -125,8 +127,8 @@ class SimpleCacheClient:
         """
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
 
-    async def m_get(self, cache_name: str, ops):
-        return await self._data_client.m_get(cache_name, ops)
+    async def multi_get(self, cache_name: str, ops: List[CacheMultiGetOperation]):
+        return await self._data_client.multi_get(cache_name, ops)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
@@ -157,8 +159,11 @@ def init(
 
     Args:
         auth_token: Momento Token to authenticate the requests with Simple Cache Service
-        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is possible to override this setting when calling the set method.
-        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete. Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in TimeoutError.
+        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
+            possible to override this setting when calling the set method.
+        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
+            Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in
+            TimeoutError.
     Returns:
         SimpleCacheClient
     Raises:
