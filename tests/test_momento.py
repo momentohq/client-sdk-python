@@ -38,8 +38,8 @@ class TestMomento(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # close client
-        cls.client._control_client.close()
-        cls.client._data_client.close()
+        cls.client._momento_async_client._control_client.close()
+        cls.client._momento_async_client._data_client.close()
 
     # basic happy path test
     def test_create_cache_get_set_values_and_delete_cache(self):

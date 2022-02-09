@@ -37,6 +37,7 @@ you have a `pyenv` installation of that version.  For example:
 pyenv install 3.7.12
 pyenv install 3.8.12
 pyenv install 3.9.10
+pyenv install 3.10.2
 ```
 
 ## Make the pyenv python runtimes visible to tox
@@ -47,7 +48,7 @@ the list of pyenv python versions that you want tox to be able to use.
 e.g.:
 
 ```
-pyenv local 3.7.12 3.8.12 3.9.6
+pyenv local 3.7.12 3.8.12 3.9.10 3.10.2
 ```
 
 This will create a file called `.python-version` containing the desired
@@ -77,13 +78,13 @@ do either of the following to limit `tox` to one version (in these examples,
 python 3.9):
 
 ```
-TOXENV=py39 tox --notest
+TOXENV=python3.9 tox --notest
 ```
 
 or:
 
 ```
-tox -e py39 --notest
+tox -e python3.9 --notest
 ```
 
 
