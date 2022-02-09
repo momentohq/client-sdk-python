@@ -349,7 +349,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         )
         self.assertEqual(0, len(set_resp.get_failed_responses()))
         self.assertEqual(2, len(set_resp.get_successful_responses()))
-        self.assertEqual('foo2', set_resp.get_successful_responses()[1].key())
         get_resp = await self.client.multi_get(
             cache_name=_TEST_CACHE_NAME,
             ops=[

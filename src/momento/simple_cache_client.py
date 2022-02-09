@@ -1,13 +1,17 @@
 from types import TracebackType
-from typing import Optional, Union, Type
+from typing import Optional, Union, Type, List
 
 from ._async_utils import wait_for_coroutine
-from .cache_operation_responses import (
+from .cache_operation_types import (
     CacheGetResponse,
     CacheSetResponse,
     CreateCacheResponse,
     DeleteCacheResponse,
     ListCachesResponse,
+    CacheMultiGetResponse,
+    CacheMultiGetOperation,
+    CacheMultiSetOperation,
+    CacheMultiSetResponse,
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -121,8 +125,27 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.set(cache_name, key, value, ttl_seconds)
         return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
-    def m_get(self, ops):
-        self._data_client.multi_get(ops)
+    def multi_set(
+        self, cache_name: str, ops: List[CacheMultiSetOperation]
+    ) -> CacheMultiSetResponse:
+        """Executes a list of passed Set operations in parallel.
+
+        Args:
+            cache_name: Name of the cache to store the item in.
+            ops: (List[CacheMultiSetOperation]): List of set operations to execute.
+
+        Returns:
+            CacheMultiGetResponse
+
+        Raises:
+            InvalidArgumentError: If validation fails for the provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
+        coroutine = self._momento_async_client.multi_set(cache_name, ops)
+        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
@@ -144,6 +167,28 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.get(cache_name, key)
         return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
+    def multi_get(
+        self, cache_name: str, ops: List[CacheMultiGetOperation]
+    ) -> CacheMultiGetResponse:
+        """Executes a list of passed Get operations in parallel.
+
+        Args:
+            cache_name: Name of the cache to get the item from.
+            ops: (List[CacheMultiGetOperation]): List of get operations to execute.
+
+        Returns:
+            CacheMultiGetResponse
+
+        Raises:
+            InvalidArgumentError: If validation fails for the provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
+        coroutine = self._momento_async_client.multi_get(cache_name, ops)
+        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+
 
 def init(
     auth_token: str,
@@ -154,8 +199,11 @@ def init(
 
     Args:
         auth_token: Momento Token to authenticate the requests with Simple Cache Service
-        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is possible to override this setting when calling the set method.
-        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete. Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in TimeoutError.
+        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
+            possible to override this setting when calling the set method.
+        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
+            Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result
+            in TimeoutError.
     Returns:
         SimpleCacheClient
     Raises:

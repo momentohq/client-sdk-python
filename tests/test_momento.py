@@ -7,6 +7,8 @@ import momento.simple_cache_client as simple_cache_client
 import momento.errors as errors
 from momento.cache_operation_responses import CacheGetStatus
 
+from src.momento.cache_operation_types import CacheMultiSetOperation, CacheMultiGetOperation
+
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
 _BAD_AUTH_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"
@@ -337,6 +339,27 @@ class TestMomento(unittest.TestCase):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
                 simple_cache.get(_TEST_CACHE_NAME, "foo")
+
+    def test_multi_get_and_set(self):
+        set_resp = self.client.multi_set(
+            cache_name=_TEST_CACHE_NAME,
+            ops=[
+                CacheMultiSetOperation(key="foo1", value="bar1", ttl_seconds=None),
+                CacheMultiSetOperation(key="foo2", value="bar2", ttl_seconds=None),
+            ]
+        )
+        self.assertEqual(0, len(set_resp.get_failed_responses()))
+        self.assertEqual(2, len(set_resp.get_successful_responses()))
+        self.assertEqual('foo2', set_resp.get_successful_responses()[1].key())
+        get_resp = self.client.multi_get(
+            cache_name=_TEST_CACHE_NAME,
+            ops=[
+                CacheMultiGetOperation(key="foo1"),
+                CacheMultiGetOperation(key="foo2")
+            ]
+        )
+        self.assertEqual("bar1", get_resp.values()[0])
+        self.assertEqual("bar2", get_resp.values()[1])
 
 
 if __name__ == '__main__':

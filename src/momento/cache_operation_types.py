@@ -45,7 +45,11 @@ class CacheSetResponse:
 
 
 class CacheMultiSetResponse:
-    def __init__(self, successful_responses: List[CacheSetResponse], failed_responses: List[CacheSetResponse]):
+    def __init__(
+        self,
+        successful_responses: List[CacheSetResponse],
+        failed_responses: List[CacheSetResponse],
+    ):
         self._success_responses = successful_responses
         self._failed_responses = failed_responses
 
@@ -130,7 +134,7 @@ class CacheMultiGetResponse:
             r_values.append(r.value())
         return r_values
 
-    def values_as_bytes(self) -> List[bytes]:
+    def values_as_bytes(self) -> List[Optional[bytes]]:
         """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
         r_values = []
         for r in self.responses:

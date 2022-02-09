@@ -1,22 +1,27 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from grpc.aio import Metadata
 
 from .. import errors
+from ..cache_operation_types import CacheMultiSetOperation, CacheMultiGetOperation
 
 
 def _make_metadata(cache_name: str) -> Metadata:
     return Metadata(("cache", cache_name))  # type: ignore[misc]
 
 
-def _validate_multi_op_list(values) -> None:
+def _validate_multi_op_list(
+    values: List[Union[CacheMultiSetOperation, CacheMultiGetOperation]]
+) -> None:
     if len(values) < 1:
-        raise errors.InvalidArgumentError('empty op list passed to multi operation')
+        raise errors.InvalidArgumentError("empty op list passed to multi operation")
     if len(values) > 20:
-        raise errors.InvalidArgumentError("multi operation op list max size is 20. passed=" + str(len(values)))
+        raise errors.InvalidArgumentError(
+            "multi operation op list max size is 20. passed=" + str(len(values))
+        )
 
 
-def _validate_cache_name(cache_name) -> None:
+def _validate_cache_name(cache_name: str) -> None:
     if cache_name is None or not isinstance(cache_name, str):
         raise errors.InvalidArgumentError("Cache name must be a non-empty string")
 
