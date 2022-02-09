@@ -11,14 +11,7 @@ with open("README.md", "r") as fh:
 
 # version is the only dynamic configuration
 setuptools.setup(
-    description='Python SDK for Momento',
-    name='momento',
     version=version,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    license='Apache License 2.0',
-    author="Momento",
-    packages=setuptools.find_packages('src'),
-    package_dir={'':'src'}, 
-    python_requires='>=3.7',
 )
