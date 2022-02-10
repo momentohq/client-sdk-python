@@ -1,6 +1,8 @@
 from types import TracebackType
 from typing import Optional, Union, Type
 
+from .aio import simple_cache_client as aio
+
 from ._async_utils import wait_for_coroutine
 from .cache_operation_responses import (
     CacheGetResponse,
@@ -12,7 +14,6 @@ from .cache_operation_responses import (
 
 from ._utilities._data_validation import _validate_request_timeout
 
-from .aio import simple_cache_client as aio
 
 
 class SimpleCacheClient:
