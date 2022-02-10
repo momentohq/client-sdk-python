@@ -35,7 +35,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Build package and run tests
         run: |
@@ -48,12 +48,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine build
 
-      - name: Configure Artifactory publish credentials
+      - name: Configure PyPI publish credentials
         run: |
           set -e
           set -x
-          pushd artifactory_setup
-            ./jfrog_setup.sh deploy-user ${{ secrets.PUBLIC_ARTIFACTORY_DEPLOY_USER_MAGIC_PASSTOKEN }} >> ~/.pypirc
+          pushd package_index_setup
+            ./pypi_setup.sh __token__ ${{ secrets.PYPI_AUTH_TOKEN }} >> ~/.pypirc
           popd
         shell: bash
 
@@ -68,6 +68,6 @@ jobs:
             exit 1
           fi
           echo "MOMENTO_SDK_VERSION=${MOMENTO_SDK_VERSION}"
-          python -m build
-          twine upload -r local dist/* --config-file ~/.pypirc
+          python setup.py sdist bdist_wheel
+          python -m twine upload dist/* --config-file ~/.pypirc
         shell: bash
