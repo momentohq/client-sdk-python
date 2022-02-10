@@ -1,5 +1,10 @@
 # Welcome to client-sdk-python contributing guide :wave:
 
+Thank you for taking your time to contribute to our Python SDK!
+<br/>
+This guide will provide you information to start your own development and testing.
+<br/>
+Happy coding :dancer:
 <br/>
 
 ## Minimum Python version :snake:
