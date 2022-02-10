@@ -13,10 +13,16 @@ except ImportError as e:
             "There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387",
             file=sys.stderr,
         )
+        print("-".join("" for _ in range(99)), file=sys.stderr)
+        print("    TO WORK AROUND:", file=sys.stderr)
+        print("    * Install Rosetta 2", file=sys.stderr)
         print(
-            "TO WORK AROUND, please install Rosetta 2 and re-run with:", file=sys.stderr
+            "    * Install Python from python.org (you might need to do this if you're using an arm-only build)",
+            file=sys.stderr,
         )
+        print("    * re-run with:", file=sys.stderr)
         print("arch -x86_64 {} {}".format(sys.executable, *sys.argv), file=sys.stderr)
+        print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
 from .. import _momento_endpoint_resolver
