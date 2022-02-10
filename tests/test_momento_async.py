@@ -29,6 +29,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
         # default client for use in tests
         self.client = simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS)
+        await self.client.__aenter__()
 
         # ensure test cache exists
         try:
