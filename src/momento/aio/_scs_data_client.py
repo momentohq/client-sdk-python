@@ -1,6 +1,6 @@
 import asyncio
 import functools
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Any
 from momento_wire_types.cacheclient_pb2 import _GetRequest
 from momento_wire_types.cacheclient_pb2 import _SetRequest
 
@@ -47,7 +47,7 @@ class _ScsDataClient:
     ) -> cache_sdk_ops.CacheSetResponse:
         _validate_cache_name(cache_name)
         try:
-            _momento_logger.debug(f"Issuing a set request with key {key}")
+            _momento_logger.debug(f"Issuing a set request with key {str(key)}")
             item_ttl_seconds = (
                 self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
             )
@@ -61,10 +61,12 @@ class _ScsDataClient:
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            _momento_logger.debug(f"Set succeeded for key: {key}")
-            return cache_sdk_ops.CacheSetResponse(response, set_request.cache_body)
+            _momento_logger.debug(f"Set succeeded for key: {str(key)}")
+            return cache_sdk_ops.CacheSetResponse(
+                response, set_request.cache_key, set_request.cache_body
+            )
         except Exception as e:
-            _momento_logger.debug(f"Set failed for {key} with response: {e}")
+            _momento_logger.debug(f"Set failed for {str(key)} with response: {e}")
             raise _cache_service_errors_converter.convert(e)
 
     async def multi_set(
@@ -76,24 +78,15 @@ class _ScsDataClient:
         _validate_multi_op_list(set_operations)
         _validate_cache_name(cache_name)
 
-        async def _execute_op(request):
-            """Wrapper func for async grpc set call"""
-            return await self._grpc_manager.async_stub().Set(
-                request, metadata=_make_metadata(cache_name)
-            )
-
         # Will hold which tasks have succeeded or failed to return to caller
-        failed_ops = []
-        successful_ops = []
+        failed_ops: List[cache_sdk_ops.CacheSetResponse] = []
+        successful_ops: List[cache_sdk_ops.CacheSetResponse] = []
 
         def _handle_task_result(
-            t: asyncio.Task,
-            key: Union[bytes, str],
-            value: Union[bytes, str],
+            t: asyncio.Task[Any],
+            key: bytes,
+            value: bytes,
         ) -> None:
-            """
-            Set sub operation callback handler. Pushes result to proper return list and handles some logging for viz.
-            """
             try:
                 successful_ops.append(
                     cache_sdk_ops.CacheSetResponse(task.result(), key, value)
@@ -104,7 +97,7 @@ class _ScsDataClient:
                 _momento_logger.debug(
                     f"multi-set sub command failed with "
                     f"error: {er} "
-                    f"key: {key} "
+                    f"key: {str(key)} "
                     f"task={t.get_name()}"
                 )
                 failed_ops.append(cache_sdk_ops.CacheSetResponse(None, key, value))
@@ -125,7 +118,9 @@ class _ScsDataClient:
                 )
                 set_request.ttl_milliseconds = item_ttl_seconds * 1000
                 task = asyncio.create_task(
-                    _execute_op(set_request),
+                    self._grpc_manager.async_stub().Set(
+                        set_request, metadata=_make_metadata(cache_name)
+                    ),
                 )
                 task.add_done_callback(
                     functools.partial(
@@ -162,7 +157,7 @@ class _ScsDataClient:
 
         _validate_cache_name(cache_name)
         try:
-            _momento_logger.debug(f"Issuing a get request with key {key}")
+            _momento_logger.debug(f"Issuing a get request with key {str(key)}")
             get_request = _GetRequest()
             get_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
             response = await self._grpc_manager.async_stub().Get(
@@ -170,10 +165,10 @@ class _ScsDataClient:
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            _momento_logger.debug(f"Received a get response for {key}")
+            _momento_logger.debug(f"Received a get response for {str(key)}")
             return cache_sdk_ops.CacheGetResponse(response)
         except Exception as e:
-            _momento_logger.debug(f"Get failed for {key} with response: {e}")
+            _momento_logger.debug(f"Get failed for {str(key)} with response: {e}")
             raise _cache_service_errors_converter.convert(e)
 
     async def multi_get(

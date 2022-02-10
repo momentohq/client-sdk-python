@@ -11,7 +11,7 @@ def _make_metadata(cache_name: str) -> Metadata:
 
 
 def _validate_multi_op_list(
-    values: List[Union[CacheMultiSetOperation, CacheMultiGetOperation]]
+    values: Union[List[CacheMultiSetOperation], List[CacheMultiGetOperation]]
 ) -> None:
     if len(values) < 1:
         raise errors.InvalidArgumentError("empty op list passed to multi operation")

@@ -66,7 +66,7 @@ class CacheMultiSetResponse:
 class CacheMultiSetOperation:
     key: Union[str, bytes]
     value: Union[str, bytes]
-    ttl_seconds: Optional[numbers.Number] = None
+    ttl_seconds: Optional[int] = None
 
 
 @dataclass
