@@ -1,6 +1,12 @@
 # Momento client-sdk-python
 
-Python SDK for Momento, which allows developers to easily use cache that works at scale without any of the operational overhead required by traditional caching solution.
+```
+:warning: Python SDK for Momento is experimental and under active development.
+There could be non-backward compatible changes or removal in the future.
+Please be aware that you may need to update your source code with the current version of the SDK when its version gets upgraded.
+```
+
+Python SDK for Momento, a serverless cache that automatically scales without any of the operational overhead required by traditional caching solutions.
 
 <br/>
 
@@ -39,7 +45,7 @@ _KEY = 'MyKey'
 _VALUE = 'MyValue'
 cache_client.set(_CACHE_NAME, _KEY, _VALUE)
 get_resp = cache_client.get(_CACHE_NAME, _KEY)
-print(f'Looked up Value: {str(get_resp.value())}')\
+print(f'Looked up Value: {str(get_resp.value())}')
 
 # Sets key with TTL of 5 seconds
 cache_client.set(_CACHE_NAME, _KEY, _VALUE, 5)
