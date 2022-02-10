@@ -1,10 +1,14 @@
 # Momento client-sdk-python
 
-```
-:warning: Python SDK for Momento is experimental and under active development.
+:warning: Experimental SDK :warning:
+
+Python SDK for Momento is experimental and under active development.
 There could be non-backward compatible changes or removal in the future.
 Please be aware that you may need to update your source code with the current version of the SDK when its version gets upgraded.
-```
+
+---
+
+<br/>
 
 Python SDK for Momento, a serverless cache that automatically scales without any of the operational overhead required by traditional caching solutions.
 
