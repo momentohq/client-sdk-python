@@ -16,8 +16,6 @@ requires support for `3.6` then we can revisit at that time.
 
 ## Requirements :eyes:
 
----
-
 - [pyenv](https://github.com/pyenv/pyenv)
 - [Working knowledge of python vitualenv](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#installing-virtualenv)
 
