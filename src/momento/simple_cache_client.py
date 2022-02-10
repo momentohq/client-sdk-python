@@ -15,7 +15,6 @@ from .cache_operation_responses import (
 from ._utilities._data_validation import _validate_request_timeout
 
 
-
 class SimpleCacheClient:
     def __init__(
         self,

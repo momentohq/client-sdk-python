@@ -6,11 +6,17 @@ try:
     from ._scs_data_client import _ScsDataClient
     from .._utilities._data_validation import _validate_request_timeout
 except ImportError as e:
-    if e.name == 'cygrpc':
+    if e.name == "cygrpc":
         import sys
-        print('There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387', file=sys.stderr)
-        print('TO WORK AROUND, please install Rosetta 2 and re-run with:', file=sys.stderr)
-        print('arch -x86_64 {} {}'.format(sys.executable, *sys.argv), file=sys.stderr)
+
+        print(
+            "There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387",
+            file=sys.stderr,
+        )
+        print(
+            "TO WORK AROUND, please install Rosetta 2 and re-run with:", file=sys.stderr
+        )
+        print("arch -x86_64 {} {}".format(sys.executable, *sys.argv), file=sys.stderr)
     raise e
 
 from .. import _momento_endpoint_resolver
