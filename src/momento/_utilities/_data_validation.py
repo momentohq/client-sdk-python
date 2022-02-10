@@ -15,10 +15,6 @@ def _validate_multi_op_list(
 ) -> None:
     if len(values) < 1:
         raise errors.InvalidArgumentError("empty op list passed to multi operation")
-    if len(values) > 20:
-        raise errors.InvalidArgumentError(
-            "multi operation op list max size is 20. passed=" + str(len(values))
-        )
 
 
 def _validate_cache_name(cache_name: str) -> None:
