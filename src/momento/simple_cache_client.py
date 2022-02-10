@@ -74,7 +74,7 @@ class SimpleCacheClient:
             ClientSdkError: For any SDK checks that fail.
         """
         coroutine = self._momento_async_client.create_cache(cache_name)
-        return wait_for_coroutine(self._loop, coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
@@ -93,7 +93,7 @@ class SimpleCacheClient:
             ClientSdkError: For any SDK checks that fail.
         """
         coroutine = self._momento_async_client.delete_cache(cache_name)
-        return wait_for_coroutine(self._loop, coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         """Lists all caches.
@@ -108,7 +108,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
         """
         coroutine = self._momento_async_client.list_caches(next_token)
-        return wait_for_coroutine(self._loop, coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def set(
         self,
@@ -136,7 +136,7 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         coroutine = self._momento_async_client.set(cache_name, key, value, ttl_seconds)
-        return wait_for_coroutine(self._loop, coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
@@ -156,7 +156,7 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         coroutine = self._momento_async_client.get(cache_name, key)
-        return wait_for_coroutine(self._loop, coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
 
 def init(
