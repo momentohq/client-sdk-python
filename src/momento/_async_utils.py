@@ -11,5 +11,7 @@ _TReturn = TypeVar("_TReturn")
 # 2. Kenny believes that we should be able to do this without a direct dependency on asyncio,
 #    by writing a loop that calls `send` on the coroutine and then returns on StopIteration.
 #    I was not able to get this working during my timeboxed window so left it like this for now.
-def wait_for_coroutine(loop: asyncio.AbstractEventLoop, coroutine: Awaitable[_TReturn]) -> _TReturn:
+def wait_for_coroutine(
+    loop: asyncio.AbstractEventLoop, coroutine: Awaitable[_TReturn]
+) -> _TReturn:
     return loop.run_until_complete(coroutine)

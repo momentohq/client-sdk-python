@@ -52,7 +52,10 @@ class SimpleCacheClient:
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        wait_for_coroutine(self._loop, self._momento_async_client.__aexit__(exc_type, exc_value, traceback))
+        wait_for_coroutine(
+            self._loop,
+            self._momento_async_client.__aexit__(exc_type, exc_value, traceback),
+        )
 
     def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a new cache in your Momento account.
