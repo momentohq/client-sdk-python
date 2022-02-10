@@ -4,8 +4,6 @@
 
 ## Minimum Python version :snake:
 
----
-
 Our minimum supported python version is currently `3.7`. This is the oldest version of python that is
 currently supported by the python maintainers as well:
 
@@ -26,8 +24,6 @@ requires support for `3.6` then we can revisit at that time.
 <br/>
 
 ## First-time setup :wrench:
-
----
 
 We use [tox](https://tox.wiki/en/latest/) to run linting, tests, etc. Tox
 allows us to easily test against multiple versions of python as well as
@@ -129,8 +125,6 @@ virtualenv created by `tox`. These live in the `.tox` dir; e.g.
 
 ## Developing :computer:
 
----
-
 To test your changes in a python shell, just launch python from the desired
 tox virtualenv, e.g.:
 
@@ -142,8 +136,6 @@ run `.tox/py39/bin/python my_test.py`
 <br/>
 
 ## Linting :flashlight:
-
----
 
 We use `mypy` for ensuring that we have type annotations and that the types are correct.
 (We should use it on all of our python projects; there is a movement
@@ -170,8 +162,6 @@ tox -e format
 
 ## Tests :zap:
 
----
-
 Integration tests require an auth token for testing. Set the env var `TEST_AUTH_TOKEN` to
 provide it. The env `TEST_CACHE_NAME` is also required, but for now any string value works.
 
@@ -190,7 +180,5 @@ TOXENV=py39 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
 <br/>
 
 ## Mypy :construction:
-
----
 
 TODO (add `mypy`)

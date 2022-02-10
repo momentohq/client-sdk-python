@@ -6,8 +6,6 @@ Python SDK for Momento, which allows developers to easily use cache that works a
 
 ## Getting Started :running:
 
----
-
 ### Requirements
 
 - [Python 3.7](https://www.python.org/downloads/) or above is required
@@ -53,8 +51,6 @@ cache_client.delete_cache(_CACHE_NAME)
 <br/>
 
 ## Running Tests :zap:
-
----
 
 Integration tests require an auth token for testing. Set the env var `TEST_AUTH_TOKEN` to
 provide it. The env `TEST_CACHE_NAME` is also required, but for now any string value works.
