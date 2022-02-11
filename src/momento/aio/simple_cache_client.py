@@ -14,6 +14,8 @@ from ..cache_operation_types import (
     CacheGetResponse,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
+    CacheMultiSetFailureResponse,
+    CacheMultiSetResponse,
 )
 
 
@@ -97,7 +99,25 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_caches(next_token)
 
-    async def multi_set(self, cache_name: str, ops: List[CacheMultiSetOperation]):
+    async def multi_set(self, cache_name: str, ops: Union[
+        List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]
+    ]) -> CacheMultiSetResponse:
+        """Executes a list of passed Set operations in parallel.
+
+        Args:
+            cache_name: Name of the cache to store the item in.
+            ops: (List[CacheMultiSetOperation]): List of set operations to execute.
+
+        Returns:
+            CacheMultiGetResponse
+
+        Raises:
+            InvalidArgumentError: If validation fails for the provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
         return await self._data_client.multi_set(cache_name, ops)
 
     async def set(
@@ -128,6 +148,22 @@ class SimpleCacheClient:
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
 
     async def multi_get(self, cache_name: str, ops: List[CacheMultiGetOperation]):
+        """Executes a list of passed Get operations in parallel.
+
+        Args:
+            cache_name: Name of the cache to get the item from.
+            ops: (List[CacheMultiGetOperation]): List of get operations to execute.
+
+        Returns:
+            CacheMultiGetResponse
+
+        Raises:
+            InvalidArgumentError: If validation fails for the provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
         return await self._data_client.multi_get(cache_name, ops)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:

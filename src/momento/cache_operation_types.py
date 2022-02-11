@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 from . import _cache_service_errors_converter as error_converter
 from . import _momento_logger
+from .errors import MomentoServiceError
 
 
 class CacheGetStatus(Enum):
@@ -19,7 +20,8 @@ class CacheSetResponse:
 
         Args:
             grpc_set_response: Protobuf based response returned by Scs.
-            value (string or bytes): The value to be used to store item in the cache
+            key (bytes): The value of the key of item that was stored in cache..
+            value (bytes): The value of item that was stored in the cache.
 
         Raises:
             InternalServerError: If server encountered an unknown error while trying to store the item.
@@ -44,11 +46,19 @@ class CacheSetResponse:
         return self._key
 
 
+@dataclass
+class CacheMultiSetFailureResponse:
+    key: bytes
+    value: bytes
+    ttl_ms: int
+    failure: Exception
+
+
 class CacheMultiSetResponse:
     def __init__(
         self,
         successful_responses: List[CacheSetResponse],
-        failed_responses: List[CacheSetResponse],
+        failed_responses: List[CacheMultiSetFailureResponse],
     ):
         self._success_responses = successful_responses
         self._failed_responses = failed_responses
@@ -57,7 +67,7 @@ class CacheMultiSetResponse:
         """Returns list of responses of items successfully stored in cache"""
         return self._success_responses
 
-    def get_failed_responses(self) -> List[CacheSetResponse]:
+    def get_failed_responses(self) -> List[CacheMultiSetFailureResponse]:
         """Returns list of set responses of items that an error occurred while trying to store in cache"""
         return self._failed_responses
 

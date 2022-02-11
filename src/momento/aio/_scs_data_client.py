@@ -72,20 +72,29 @@ class _ScsDataClient:
     async def multi_set(
         self,
         cache_name: str,
-        set_operations: List[cache_sdk_ops.CacheMultiSetOperation],
+        set_operations: Union[
+            List[cache_sdk_ops.CacheMultiSetOperation], List[cache_sdk_ops.CacheMultiSetFailureResponse]
+        ],
     ) -> cache_sdk_ops.CacheMultiSetResponse:
 
         _validate_multi_op_list(set_operations)
         _validate_cache_name(cache_name)
 
         # Will hold which tasks have succeeded or failed to return to caller
-        failed_ops: List[cache_sdk_ops.CacheSetResponse] = []
+        failed_ops: List[cache_sdk_ops.CacheMultiSetFailureResponse] = []
         successful_ops: List[cache_sdk_ops.CacheSetResponse] = []
+
+        async def _execute_op(request):
+            """Wrapper func for async grpc set call"""
+            return await self._grpc_manager.async_stub().Set(
+                request, metadata=_make_metadata(cache_name)
+            )
 
         def _handle_task_result(
             t: asyncio.Task[Any],
             key: bytes,
             value: bytes,
+            ttl_ms: int,
         ) -> None:
             try:
                 successful_ops.append(
@@ -100,7 +109,10 @@ class _ScsDataClient:
                     f"key: {str(key)} "
                     f"task={t.get_name()}"
                 )
-                failed_ops.append(cache_sdk_ops.CacheSetResponse(None, key, value))
+                failed_ops.append(cache_sdk_ops.CacheMultiSetFailureResponse(
+                    key=key, value=value, ttl_ms=ttl_ms,
+                    failure=_cache_service_errors_converter.convert(e),
+                ))
 
         try:
             request_promises = set()
@@ -118,15 +130,14 @@ class _ScsDataClient:
                 )
                 set_request.ttl_milliseconds = item_ttl_seconds * 1000
                 task = asyncio.create_task(
-                    self._grpc_manager.async_stub().Set(
-                        set_request, metadata=_make_metadata(cache_name)
-                    ),
+                    _execute_op(set_request),
                 )
                 task.add_done_callback(
                     functools.partial(
                         _handle_task_result,
                         key=set_request.cache_key,
                         value=set_request.cache_body,
+                        ttl_ms=set_request.ttl_milliseconds
                     )
                 )
                 request_promises.add(task)
