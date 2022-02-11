@@ -1,4 +1,3 @@
-import numbers
 from enum import Enum
 from typing import Any, Optional, List, Union
 from dataclasses import dataclass
@@ -50,7 +49,7 @@ class CacheSetResponse:
 class CacheMultiSetFailureResponse:
     key: bytes
     value: bytes
-    ttl_ms: int
+    ttl_seconds: int
     failure: Exception
 
 
@@ -94,18 +93,18 @@ class CacheGetResponse:
         Raises:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        self._value: bytes = grpc_get_response.cache_body
+        self._value: bytes = grpc_get_response.cache_body  # type: ignore[misc]
 
-        if grpc_get_response.result == cache_client_types.Hit:
+        if grpc_get_response.result == cache_client_types.Hit:  # type: ignore[misc]
             self._result = CacheGetStatus.HIT
-        elif grpc_get_response.result == cache_client_types.Miss:
+        elif grpc_get_response.result == cache_client_types.Miss:  # type: ignore[misc]
             self._result = CacheGetStatus.MISS
         else:
             _momento_logger.debug(
-                f"Get received unsupported ECacheResult: {grpc_get_response.result}"
+                f"Get received unsupported ECacheResult: {grpc_get_response.result}"  # type: ignore[misc]
             )
             raise error_converter.convert_ecache_result(
-                grpc_get_response.result, grpc_get_response.message, "GET"
+                grpc_get_response.result, grpc_get_response.message, "GET"  # type: ignore[misc]
             )
 
     def value(self) -> Optional[str]:
@@ -169,7 +168,7 @@ class CacheInfo:
         Args:
             grpc_listed_cache: Protobuf based response returned by Scs.
         """
-        self._name: str = grpc_listed_cache.cache_name
+        self._name: str = grpc_listed_cache.cache_name  # type: ignore[misc]
 
     def name(self) -> str:
         """Returns all cache's name."""
@@ -184,13 +183,13 @@ class ListCachesResponse:
             grpc_list_cache_response: Protobuf based response returned by Scs.
         """
         self._next_token: Optional[str] = (
-            grpc_list_cache_response.next_token
-            if grpc_list_cache_response.next_token != ""
+            grpc_list_cache_response.next_token  # type: ignore[misc]
+            if grpc_list_cache_response.next_token != ""  # type: ignore[misc]
             else None
         )
         self._caches = []
-        for cache in grpc_list_cache_response.cache:
-            self._caches.append(CacheInfo(cache))
+        for cache in grpc_list_cache_response.cache:  # type: ignore[misc]
+            self._caches.append(CacheInfo(cache))  # type: ignore[misc]
 
     def next_token(self) -> Optional[str]:
         """Returns next token."""

@@ -3,7 +3,11 @@ from typing import Optional, Union, List
 from grpc.aio import Metadata
 
 from .. import errors
-from ..cache_operation_types import CacheMultiSetOperation, CacheMultiGetOperation
+from ..cache_operation_types import (
+    CacheMultiSetOperation,
+    CacheMultiGetOperation,
+    CacheMultiSetFailureResponse,
+)
 
 
 def _make_metadata(cache_name: str) -> Metadata:
@@ -11,7 +15,11 @@ def _make_metadata(cache_name: str) -> Metadata:
 
 
 def _validate_multi_op_list(
-    values: Union[List[CacheMultiSetOperation], List[CacheMultiGetOperation]]
+    values: Union[
+        List[CacheMultiSetOperation],
+        List[CacheMultiGetOperation],
+        List[CacheMultiSetFailureResponse],
+    ]
 ) -> None:
     if len(values) < 1:
         raise errors.InvalidArgumentError("empty op list passed to multi operation")

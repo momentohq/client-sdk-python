@@ -73,7 +73,8 @@ class _ScsDataClient:
         self,
         cache_name: str,
         set_operations: Union[
-            List[cache_sdk_ops.CacheMultiSetOperation], List[cache_sdk_ops.CacheMultiSetFailureResponse]
+            List[cache_sdk_ops.CacheMultiSetOperation],
+            List[cache_sdk_ops.CacheMultiSetFailureResponse],
         ],
     ) -> cache_sdk_ops.CacheMultiSetResponse:
 
@@ -84,17 +85,17 @@ class _ScsDataClient:
         failed_ops: List[cache_sdk_ops.CacheMultiSetFailureResponse] = []
         successful_ops: List[cache_sdk_ops.CacheSetResponse] = []
 
-        async def _execute_op(request):
+        async def _execute_op(request) -> Any:  # type: ignore[no-untyped-def,misc]
             """Wrapper func for async grpc set call"""
             return await self._grpc_manager.async_stub().Set(
                 request, metadata=_make_metadata(cache_name)
             )
 
-        def _handle_task_result(
+        def _handle_task_result(  # type: ignore[misc]
             t: asyncio.Task[Any],
             key: bytes,
             value: bytes,
-            ttl_ms: int,
+            ttl_seconds: int,
         ) -> None:
             try:
                 successful_ops.append(
@@ -109,10 +110,14 @@ class _ScsDataClient:
                     f"key: {str(key)} "
                     f"task={t.get_name()}"
                 )
-                failed_ops.append(cache_sdk_ops.CacheMultiSetFailureResponse(
-                    key=key, value=value, ttl_ms=ttl_ms,
-                    failure=_cache_service_errors_converter.convert(e),
-                ))
+                failed_ops.append(
+                    cache_sdk_ops.CacheMultiSetFailureResponse(
+                        key=key,
+                        value=value,
+                        ttl_seconds=ttl_seconds,
+                        failure=_cache_service_errors_converter.convert(er),
+                    )
+                )
 
         try:
             request_promises = set()
@@ -137,7 +142,7 @@ class _ScsDataClient:
                         _handle_task_result,
                         key=set_request.cache_key,
                         value=set_request.cache_body,
-                        ttl_ms=set_request.ttl_milliseconds
+                        ttl_seconds=item_ttl_seconds,
                     )
                 )
                 request_promises.add(task)

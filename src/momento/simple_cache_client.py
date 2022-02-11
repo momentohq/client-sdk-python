@@ -11,7 +11,8 @@ from .cache_operation_types import (
     CacheMultiGetResponse,
     CacheMultiGetOperation,
     CacheMultiSetOperation,
-    CacheMultiSetResponse, CacheMultiSetFailureResponse,
+    CacheMultiSetResponse,
+    CacheMultiSetFailureResponse,
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -126,7 +127,9 @@ class SimpleCacheClient:
         return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def multi_set(
-        self, cache_name: str, ops: Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]]
+        self,
+        cache_name: str,
+        ops: Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]],
     ) -> CacheMultiSetResponse:
         """Executes a list of passed Set operations in parallel.
 

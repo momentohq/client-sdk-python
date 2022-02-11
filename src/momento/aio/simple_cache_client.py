@@ -16,6 +16,7 @@ from ..cache_operation_types import (
     CacheMultiGetOperation,
     CacheMultiSetFailureResponse,
     CacheMultiSetResponse,
+    CacheMultiGetResponse,
 )
 
 
@@ -99,9 +100,11 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_caches(next_token)
 
-    async def multi_set(self, cache_name: str, ops: Union[
-        List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]
-    ]) -> CacheMultiSetResponse:
+    async def multi_set(
+        self,
+        cache_name: str,
+        ops: Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]],
+    ) -> CacheMultiSetResponse:
         """Executes a list of passed Set operations in parallel.
 
         Args:
@@ -147,7 +150,9 @@ class SimpleCacheClient:
         """
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
 
-    async def multi_get(self, cache_name: str, ops: List[CacheMultiGetOperation]):
+    async def multi_get(
+        self, cache_name: str, ops: List[CacheMultiGetOperation]
+    ) -> CacheMultiGetResponse:
         """Executes a list of passed Get operations in parallel.
 
         Args:
