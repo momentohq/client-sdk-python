@@ -27,6 +27,8 @@ class TestMomento(unittest.TestCase):
 
         # default client for use in tests
         cls.client = simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS)
+        # Open client, like you would do normally via a scope manager `with simple_cache_client.init(..) as client:`
+        cls.client.__enter__()
 
         # ensure test cache exists
         try:
@@ -37,9 +39,8 @@ class TestMomento(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # close client
-        cls.client._momento_async_client._control_client.close()
-        cls.client._momento_async_client._data_client.close()
+        # close client, like you would do normally via a scope manager `with simple_cache_client.init(..) as client:`
+        cls.client.__exit__(None, None, None)
 
     # basic happy path test
     def test_create_cache_get_set_values_and_delete_cache(self):
