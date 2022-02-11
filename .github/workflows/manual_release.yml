@@ -56,7 +56,7 @@ jobs:
           set -e
           set -x
           pushd package_index_setup
-            ./pypi_setup.sh __token__ ${{ secrets.PYPI_AUTH_TOKEN }} >> ~/.pypirc
+            ./pypi_setup.sh __token__ ${{ secrets.PYTHON_CUSTOMER_SDK_PYPI_TOKEN }} >> ~/.pypirc
           popd
         shell: bash
 
