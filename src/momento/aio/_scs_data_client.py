@@ -86,6 +86,7 @@ class _ScsDataClient:
         successful_ops: List[cache_sdk_ops.CacheSetResponse] = []
 
         try:
+            requests: List[_SetRequest] = list()
             request_promises = list()
             for op in set_operations:
                 item_ttl_seconds = (
@@ -101,6 +102,7 @@ class _ScsDataClient:
                 )
                 set_request.ttl_milliseconds = item_ttl_seconds * 1000
 
+                requests.append(set_request)
                 request_promises.append(
                     self._grpc_manager.async_stub().Set(
                         set_request,
@@ -116,30 +118,26 @@ class _ScsDataClient:
                 # result list. We want to try and make sure all requests have chance to finish.
             )
 
-            for op, result in zip(set_operations, results):  # type: ignore[assignment]
-                key = _as_bytes(op.key, "Unsupported type for key: ")
-                value = _as_bytes(op.value, "Unsupported type for value: ")
+            for request, result in zip(requests, results):
                 if isinstance(result, Exception):
                     _momento_logger.debug(
                         f"multi-set sub command failed with "
                         f"error: {result} "
-                        f"key: {str(op.key)}"
+                        f"key: {str(request.cache_key)}"
                     )
                     failed_ops.append(
                         cache_sdk_ops.CacheMultiSetFailureResponse(
-                            key=key,
-                            value=value,
-                            ttl_seconds=(
-                                self._default_ttlSeconds
-                                if op.ttl_seconds is None
-                                else op.ttl_seconds
-                            ),
+                            key=request.cache_key,
+                            value=request.cache_body,
+                            ttl_seconds=int(request.ttl_milliseconds / 1000),
                             failure=_cache_service_errors_converter.convert(result),
                         )
                     )
                 else:
                     successful_ops.append(
-                        cache_sdk_ops.CacheSetResponse(result, key, value)
+                        cache_sdk_ops.CacheSetResponse(
+                            result, request.cache_key, request.cache_body
+                        )
                     )
             _momento_logger.debug(
                 f"multi-set succeeded "
@@ -187,9 +185,11 @@ class _ScsDataClient:
         _validate_cache_name(cache_name)
         try:
             request_promises = list()
+            requests: List[_GetRequest] = list()
             for op in get_operations:
                 get_request = _GetRequest()
                 get_request.cache_key = _as_bytes(op.key, "Unsupported type for key: ")
+                requests.append(get_request)
                 request_promises.append(
                     self._grpc_manager.async_stub().Get(
                         get_request,
@@ -206,11 +206,11 @@ class _ScsDataClient:
                 # When set to True exceptions are treated the same as successful results, and aggregated in the
                 # result list. We want to try and make sure all requests have chance to finish.
             )
-            for op, result in zip(get_operations, results):  # type: ignore[assignment]
+            for request, result in zip(requests, results):
                 if isinstance(result, Exception):
                     failed_responses.append(
                         cache_sdk_ops.CacheMultiGetFailureResponse(
-                            key=_as_bytes(op.key, "Unsupported type for key: "),
+                            key=request.cache_key,
                             failure=_cache_service_errors_converter.convert(result),
                         )
                     )

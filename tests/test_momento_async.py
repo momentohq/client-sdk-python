@@ -1,16 +1,15 @@
-import unittest
 import os
-import uuid
 import time
+import unittest
+import uuid
 
 import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
 from momento.cache_operation_types import \
     CacheGetStatus, \
     CacheMultiSetOperation, \
-    CacheMultiGetOperation, CacheMultiSetFailureResponse
-
-from src.momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
+    CacheMultiGetOperation
+from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
@@ -404,8 +403,8 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             self.assertEqual(0, len(set_resp.get_failed_responses()))
             self.assertEqual(0, len(get_resp.get_failed_responses()))
 
-            # Make sure were getting keys we expect back
-            self.assertEqual("fizz5", get_resp.values()[1])
+            # Make sure were getting values we expect back
+            self.assertEqual("buzz5", get_resp.values()[1])
 
 
 if __name__ == '__main__':
