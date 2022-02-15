@@ -368,31 +368,44 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
     # Multi op failure retry test
     async def test_multi_set_failure_retry(self):
-        set_resp = await self.client.multi_set(
-            cache_name=_TEST_CACHE_NAME,
-            ops=[
-                # Should be able to pass list of failure response objects back into multi set
-                CacheMultiSetFailureResponse(
-                    key="fizz".encode('utf-8'), value="bar1".encode('utf-8'), ttl_seconds=25000,
-                    failure=errors.InternalServerError(message="catastrophic test error")
-                ),
-                CacheMultiSetFailureResponse(
-                    key="buzz".encode('utf-8'), value="bar2".encode('utf-8'), ttl_seconds=25000,
-                    failure=errors.InternalServerError(message="another catastrophic test error")
-                ),
-            ]
-        )
-        self.assertEqual(0, len(set_resp.get_failed_responses()))
-        self.assertEqual(2, len(set_resp.get_successful_responses()))
-        get_resp = await self.client.multi_get(
-            cache_name=_TEST_CACHE_NAME,
-            ops=[
-                CacheMultiGetOperation(key="fizz"),
-                CacheMultiGetOperation(key="buzz")
-            ]
-        )
-        self.assertEqual("fizz", get_resp.values()[0])
-        self.assertEqual("buzz", get_resp.values()[1])
+
+        # Start with a cache client with impossibly small request timeout to force failures
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
+            set_resp = await simple_cache.multi_set(
+                cache_name=_TEST_CACHE_NAME,
+                ops=[
+                    CacheMultiSetOperation(key="fizz1", value="buzz1"),
+                    CacheMultiSetOperation(key="fizz2", value="buzz2"),
+                    CacheMultiSetOperation(key="fizz3", value="buzz3"),
+                    CacheMultiSetOperation(key="fizz4", value="buzz4"),
+                    CacheMultiSetOperation(key="fizz5", value="buzz5"),
+                ]
+            )
+            get_resp = await simple_cache.multi_get(
+                cache_name=_TEST_CACHE_NAME,
+                ops=[
+                    CacheMultiGetOperation(key="fizz4"),
+                    CacheMultiGetOperation(key="fizz5")
+                ]
+            )
+
+            self.assertEqual(0, len(set_resp.get_successful_responses()))
+            self.assertEqual(5, len(set_resp.get_failed_responses()))
+            self.assertEqual(0, len(get_resp.get_successful_responses()))
+            self.assertEqual(2, len(get_resp.get_failed_responses()))
+
+            # Now switch over to normal test client and re-drive failed transactions make sure it works
+            set_resp = await self.client.multi_set(cache_name=_TEST_CACHE_NAME, ops=set_resp.get_failed_responses())
+            get_resp = await self.client.multi_get(cache_name=_TEST_CACHE_NAME, ops=get_resp.get_failed_responses())
+
+            # we should only have success now and now errors after re-driving failed ops
+            self.assertEqual(5, len(set_resp.get_successful_responses()))
+            self.assertEqual(2, len(get_resp.get_successful_responses()))
+            self.assertEqual(0, len(set_resp.get_failed_responses()))
+            self.assertEqual(0, len(get_resp.get_failed_responses()))
+
+            # Make sure were getting keys we expect back
+            self.assertEqual("fizz5", get_resp.values()[1])
 
 
 if __name__ == '__main__':

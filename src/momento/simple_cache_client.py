@@ -13,6 +13,7 @@ from .cache_operation_types import (
     CacheMultiSetOperation,
     CacheMultiSetResponse,
     CacheMultiSetFailureResponse,
+    CacheMultiGetFailureResponse,
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -171,13 +172,16 @@ class SimpleCacheClient:
         return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
 
     def multi_get(
-        self, cache_name: str, ops: List[CacheMultiGetOperation]
+        self,
+        cache_name: str,
+        ops: Union[List[CacheMultiGetOperation], List[CacheMultiGetFailureResponse]],
     ) -> CacheMultiGetResponse:
         """Executes a list of passed Get operations in parallel.
 
         Args:
             cache_name: Name of the cache to get the item from.
-            ops: (List[CacheMultiGetOperation]): List of get operations to execute.
+            ops: (Union[List[CacheMultiGetOperation], List[CacheMultiGetFailureResponse]]): List of get operations to
+                execute.
 
         Returns:
             CacheMultiGetResponse

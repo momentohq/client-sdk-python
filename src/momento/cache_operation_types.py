@@ -53,6 +53,12 @@ class CacheMultiSetFailureResponse:
     failure: Exception
 
 
+@dataclass
+class CacheMultiGetFailureResponse:
+    key: bytes
+    failure: Exception
+
+
 class CacheMultiSetResponse:
     def __init__(
         self,
@@ -125,28 +131,33 @@ class CacheGetResponse:
 
 
 class CacheMultiGetResponse:
-    def __init__(self, cache_get_responses: List[CacheGetResponse]):
-        """Initializes CacheMultiGetResponse to handle multi gRPC get response.
+    def __init__(
+        self,
+        successful_responses: List[CacheGetResponse],
+        failed_responses: List[CacheMultiGetFailureResponse],
+    ):
+        self._success_responses = successful_responses
+        self._failed_responses = failed_responses
 
-        Args:
-            cache_get_responses: list of CacheGetResponse objects from result of executing multi get op list.
+    def get_successful_responses(self) -> List[CacheGetResponse]:
+        """Returns list of responses of items successfully fetched from cache"""
+        return self._success_responses
 
-        Raises:
-            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
-        """
-        self.responses = cache_get_responses
+    def get_failed_responses(self) -> List[CacheMultiGetFailureResponse]:
+        """Returns list of set responses of items that an error occurred while trying to store in cache"""
+        return self._failed_responses
 
     def values(self) -> List[Optional[str]]:
         """Returns list of values as utf-8 string for each Hit. Each item in list is None if was a Miss."""
         r_values = []
-        for r in self.responses:
+        for r in self._success_responses:
             r_values.append(r.value())
         return r_values
 
     def values_as_bytes(self) -> List[Optional[bytes]]:
         """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
         r_values = []
-        for r in self.responses:
+        for r in self._success_responses:
             r_values.append(r.value_as_bytes())
         return r_values
 

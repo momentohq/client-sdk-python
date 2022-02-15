@@ -7,6 +7,7 @@ from ..cache_operation_types import (
     CacheMultiSetOperation,
     CacheMultiGetOperation,
     CacheMultiSetFailureResponse,
+    CacheMultiGetFailureResponse,
 )
 
 
@@ -19,6 +20,7 @@ def _validate_multi_op_list(
         List[CacheMultiSetOperation],
         List[CacheMultiGetOperation],
         List[CacheMultiSetFailureResponse],
+        List[CacheMultiGetFailureResponse],
     ]
 ) -> None:
     if len(values) < 1:
