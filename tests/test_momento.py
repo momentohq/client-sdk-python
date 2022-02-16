@@ -28,6 +28,8 @@ class TestMomento(unittest.TestCase):
 
         # default client for use in tests
         cls.client = simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS)
+        # Open client, like you would do normally via a scope manager `with simple_cache_client.init(..) as client:`
+        cls.client.__enter__()
 
         # ensure test cache exists
         try:
@@ -38,9 +40,8 @@ class TestMomento(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # close client
-        cls.client._momento_async_client._control_client.close()
-        cls.client._momento_async_client._data_client.close()
+        # close client, like you would do normally via a scope manager `with simple_cache_client.init(..) as client:`
+        cls.client.__exit__(None, None, None)
 
     # basic happy path test
     def test_create_cache_get_set_values_and_delete_cache(self):
@@ -214,25 +215,25 @@ class TestMomento(unittest.TestCase):
         key = str(uuid.uuid4())
         val = str(uuid.uuid4())
         with simple_cache_client.init(_AUTH_TOKEN,
-                                      1) as simple_cache:
+                                      2) as simple_cache:
             simple_cache.set(_TEST_CACHE_NAME, key, val)
 
             self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.HIT)
 
-            time.sleep(2)
+            time.sleep(4)
             self.assertEqual(simple_cache.get(_TEST_CACHE_NAME, key).status(), CacheGetStatus.MISS)
 
     def test_set_with_different_ttl(self):
         key1 = str(uuid.uuid4())
         key2 = str(uuid.uuid4())
 
-        self.client.set(_TEST_CACHE_NAME, key1, "1", 1)
+        self.client.set(_TEST_CACHE_NAME, key1, "1", 2)
         self.client.set(_TEST_CACHE_NAME, key2, "2")
 
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.HIT)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 
-        time.sleep(2)
+        time.sleep(4)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key1).status(), CacheGetStatus.MISS)
         self.assertEqual(self.client.get(_TEST_CACHE_NAME, key2).status(), CacheGetStatus.HIT)
 

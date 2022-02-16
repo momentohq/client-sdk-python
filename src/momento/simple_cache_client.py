@@ -1,5 +1,8 @@
+import asyncio
 from types import TracebackType
 from typing import Optional, Union, Type, List
+
+from .aio import simple_cache_client as aio
 
 from ._async_utils import wait_for_coroutine
 from .cache_operation_types import (
@@ -18,8 +21,6 @@ from .cache_operation_types import (
 
 from ._utilities._data_validation import _validate_request_timeout
 
-from .aio import simple_cache_client as aio
-
 
 class SimpleCacheClient:
     def __init__(
@@ -28,6 +29,19 @@ class SimpleCacheClient:
         default_ttl_seconds: int,
         data_client_operation_timeout_ms: Optional[int],
     ):
+        try:
+            # If the synchronous client is used inside an async application,
+            # use the event loop it's running within.
+            loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        except RuntimeError:
+            # Currently we rely on asyncio's module-wide event loop due to the
+            # way the grpc stubs we've got are hiding the _loop parameter.
+            # If a separate loop is required, e.g., so you can run Simple Cache
+            # on a background thread, you'll want to open an issue.
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        self._loop = loop
+
         self._momento_async_client = aio.SimpleCacheClient(
             auth_token=auth_token,
             default_ttl_seconds=default_ttl_seconds,
@@ -35,6 +49,7 @@ class SimpleCacheClient:
         )
 
     def __enter__(self) -> "SimpleCacheClient":
+        wait_for_coroutine(self._loop, self._momento_async_client.__aenter__())
         return self
 
     def __exit__(
@@ -43,8 +58,10 @@ class SimpleCacheClient:
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        self._momento_async_client._control_client.close()
-        self._momento_async_client._data_client.close()
+        wait_for_coroutine(
+            self._loop,
+            self._momento_async_client.__aexit__(exc_type, exc_value, traceback),
+        )
 
     def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a new cache in your Momento account.
@@ -63,7 +80,7 @@ class SimpleCacheClient:
             ClientSdkError: For any SDK checks that fail.
         """
         coroutine = self._momento_async_client.create_cache(cache_name)
-        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
@@ -82,7 +99,7 @@ class SimpleCacheClient:
             ClientSdkError: For any SDK checks that fail.
         """
         coroutine = self._momento_async_client.delete_cache(cache_name)
-        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         """Lists all caches.
@@ -97,7 +114,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
         """
         coroutine = self._momento_async_client.list_caches(next_token)
-        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def set(
         self,
@@ -125,7 +142,7 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         coroutine = self._momento_async_client.set(cache_name, key, value, ttl_seconds)
-        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def multi_set(
         self,
@@ -169,7 +186,7 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         coroutine = self._momento_async_client.get(cache_name, key)
-        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def multi_get(
         self,
