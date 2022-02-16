@@ -34,7 +34,7 @@ class SimpleCacheClient:
             # use the event loop it's running within.
             loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
         except RuntimeError:
-            # Currently we rely on asyncio's module-wide event loop due to the
+            # Currently, we rely on asyncio's module-wide event loop due to the
             # way the grpc stubs we've got are hiding the _loop parameter.
             # If a separate loop is required, e.g., so you can run Simple Cache
             # on a background thread, you'll want to open an issue.
@@ -83,7 +83,7 @@ class SimpleCacheClient:
         return wait_for_coroutine(self._loop, coroutine)
 
     def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
-        """Deletes a cache and all of the items within it.
+        """Deletes a cache and all the items within it.
 
         Args:
             cache_name: String cache name to delete.
@@ -94,7 +94,7 @@ class SimpleCacheClient:
         Raises:
             InvalidArgumentError: If provided cache_name is None.
             BadRequestError: If the cache name provided doesn't follow the naming conventions
-            NotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
+            NotFoundError: If an attempt is made to delete a MomentoCache that doesn't exist.
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
@@ -129,7 +129,8 @@ class SimpleCacheClient:
             cache_name: Name of the cache to store the item in.
             key (string or bytes): The key to be used to store item.
             value (string or bytes): The value to be stored.
-            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache client instance is used.
+            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache
+                client instance is used.
 
         Returns:
             CacheSetResponse
@@ -166,7 +167,7 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         coroutine = self._momento_async_client.multi_set(cache_name, ops)
-        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
     def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
@@ -211,7 +212,7 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         coroutine = self._momento_async_client.multi_get(cache_name, ops)
-        return wait_for_coroutine(coroutine)  # type: ignore[misc, no-any-return]
+        return wait_for_coroutine(self._loop, coroutine)
 
 
 def init(
