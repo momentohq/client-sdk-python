@@ -398,7 +398,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             set_resp = await self.client.multi_set(cache_name=_TEST_CACHE_NAME, ops=set_resp.get_failed_responses())
             get_resp = await self.client.multi_get(cache_name=_TEST_CACHE_NAME, ops=get_resp.get_failed_responses())
 
-            # we should only have success now and now errors after re-driving failed ops
+            # we should only have success now and no errors after re-driving all the failed ops
             self.assertEqual(5, len(set_resp.get_successful_responses()))
             self.assertEqual(2, len(get_resp.get_successful_responses()))
             self.assertEqual(0, len(set_resp.get_failed_responses()))
