@@ -1,12 +1,14 @@
-import unittest
 import os
-import uuid
 import time
+import unittest
+import uuid
 
 import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
-from momento.cache_operation_responses import CacheGetStatus
-
+from momento.cache_operation_types import \
+    CacheGetStatus, \
+    CacheMultiSetOperation, \
+    CacheMultiGetOperation
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
@@ -87,7 +89,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, 0)
         self.assertEqual('{}'.format(cm.exception), "Request timeout must be greater than zero.")
 
-
     # create_cache
 
     async def test_create_cache_throws_already_exists_when_creating_existing_cache(self):
@@ -107,7 +108,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             await self.client.create_cache(1)
         self.assertEqual('{}'.format(cm.exception),
-                "Cache name must be a non-empty string")
+                         "Cache name must be a non-empty string")
 
     async def test_create_cache_throws_authentication_exception_for_bad_token(self):
         async with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -294,7 +295,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             with self.assertRaises(errors.TimeoutError):
                 await simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
 
-
     # get
 
     async def test_get_with_non_existent_cache_name_throws_not_found(self):
@@ -337,6 +337,75 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
                 await simple_cache.get(_TEST_CACHE_NAME, "foo")
+
+    # Multi op tests
+    async def test_multi_get_and_set(self):
+        set_resp = await self.client.multi_set(
+            cache_name=_TEST_CACHE_NAME,
+            ops=[
+                CacheMultiSetOperation(key="foo1", value="bar1"),
+                CacheMultiSetOperation(key="foo2", value="bar2"),
+                CacheMultiSetOperation(key="foo3", value="bar3"),
+                CacheMultiSetOperation(key="foo4", value="bar4"),
+                CacheMultiSetOperation(key="foo5", value="bar5"),
+            ]
+        )
+        self.assertEqual(0, len(set_resp.get_failed_responses()))
+        self.assertEqual(5, len(set_resp.get_successful_responses()))
+        get_resp = await self.client.multi_get(
+            cache_name=_TEST_CACHE_NAME,
+            ops=[
+                CacheMultiGetOperation(key="foo5"),
+                CacheMultiGetOperation(key="foo1"),
+                CacheMultiGetOperation(key="foo2"),
+                CacheMultiGetOperation(key="foo3")
+            ]
+        )
+        self.assertEqual("bar5", get_resp.values()[0])
+        self.assertEqual("bar1", get_resp.values()[1])
+        self.assertEqual("bar2", get_resp.values()[2])
+        self.assertEqual("bar3", get_resp.values()[3])
+
+    # Multi op failure retry test
+    async def test_multi_set_failure_retry(self):
+
+        # Start with a cache client with impossibly small request timeout to force failures
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
+            set_resp = await simple_cache.multi_set(
+                cache_name=_TEST_CACHE_NAME,
+                ops=[
+                    CacheMultiSetOperation(key="fizz1", value="buzz1"),
+                    CacheMultiSetOperation(key="fizz2", value="buzz2"),
+                    CacheMultiSetOperation(key="fizz3", value="buzz3"),
+                    CacheMultiSetOperation(key="fizz4", value="buzz4"),
+                    CacheMultiSetOperation(key="fizz5", value="buzz5"),
+                ]
+            )
+            get_resp = await simple_cache.multi_get(
+                cache_name=_TEST_CACHE_NAME,
+                ops=[
+                    CacheMultiGetOperation(key="fizz4"),
+                    CacheMultiGetOperation(key="fizz5")
+                ]
+            )
+
+            self.assertEqual(0, len(set_resp.get_successful_responses()))
+            self.assertEqual(5, len(set_resp.get_failed_responses()))
+            self.assertEqual(0, len(get_resp.get_successful_responses()))
+            self.assertEqual(2, len(get_resp.get_failed_responses()))
+
+            # Now switch over to normal test client and re-drive failed transactions make sure it works
+            set_resp = await self.client.multi_set(cache_name=_TEST_CACHE_NAME, ops=set_resp.get_failed_responses())
+            get_resp = await self.client.multi_get(cache_name=_TEST_CACHE_NAME, ops=get_resp.get_failed_responses())
+
+            # we should only have success now and no errors after re-driving all the failed ops
+            self.assertEqual(5, len(set_resp.get_successful_responses()))
+            self.assertEqual(2, len(get_resp.get_successful_responses()))
+            self.assertEqual(0, len(set_resp.get_failed_responses()))
+            self.assertEqual(0, len(get_resp.get_failed_responses()))
+
+            # Make sure were getting values we expect back
+            self.assertEqual("buzz5", get_resp.values()[1])
 
 
 if __name__ == '__main__':

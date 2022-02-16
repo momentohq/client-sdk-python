@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Optional, Union, Type
+from typing import Optional, Union, Type, List
 
 try:
     from ._scs_control_client import _ScsControlClient
@@ -26,12 +26,18 @@ except ImportError as e:
     raise e
 
 from .. import _momento_endpoint_resolver
-from ..cache_operation_responses import (
+from ..cache_operation_types import (
     CreateCacheResponse,
     DeleteCacheResponse,
     ListCachesResponse,
     CacheSetResponse,
     CacheGetResponse,
+    CacheMultiSetOperation,
+    CacheMultiGetOperation,
+    CacheMultiSetFailureResponse,
+    CacheMultiSetResponse,
+    CacheMultiGetResponse,
+    CacheMultiGetFailureResponse,
 )
 
 
@@ -115,6 +121,30 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_caches(next_token)
 
+    async def multi_set(
+        self,
+        cache_name: str,
+        ops: Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]],
+    ) -> CacheMultiSetResponse:
+        """Executes a list of passed Set operations in parallel.
+
+        Args:
+            cache_name: Name of the cache to store the item in.
+            ops: (Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]]): List of set operations to
+                execute.
+
+        Returns:
+            CacheMultiGetResponse
+
+        Raises:
+            InvalidArgumentError: If validation fails for the provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
+        return await self._data_client.multi_set(cache_name, ops)
+
     async def set(
         self,
         cache_name: str,
@@ -128,7 +158,8 @@ class SimpleCacheClient:
             cache_name: Name of the cache to store the item in.
             key (string or bytes): The key to be used to store item.
             value (string or bytes): The value to be stored.
-            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache client instance is used.
+            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache
+                client instance is used.
 
         Returns:
             CacheSetResponse
@@ -141,6 +172,30 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
+
+    async def multi_get(
+        self,
+        cache_name: str,
+        ops: Union[List[CacheMultiGetOperation], List[CacheMultiGetFailureResponse]],
+    ) -> CacheMultiGetResponse:
+        """Executes a list of passed Get operations in parallel.
+
+        Args:
+            cache_name: Name of the cache to get the item from.
+            ops: (Union[List[CacheMultiGetOperation], List[CacheMultiGetFailureResponse]]): List of get operations to
+                execute.
+
+        Returns:
+            CacheMultiGetResponse
+
+        Raises:
+            InvalidArgumentError: If validation fails for the provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
+        return await self._data_client.multi_get(cache_name, ops)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
@@ -171,8 +226,11 @@ def init(
 
     Args:
         auth_token: Momento Token to authenticate the requests with Simple Cache Service
-        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is possible to override this setting when calling the set method.
-        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete. Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in TimeoutError.
+        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
+            possible to override this setting when calling the set method.
+        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
+            Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in
+            TimeoutError.
     Returns:
         SimpleCacheClient
     Raises:
