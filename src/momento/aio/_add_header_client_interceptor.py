@@ -1,11 +1,11 @@
-from typing import Callable, Union
+from typing import Callable, Union, List, Dict
 
 import grpc
 from grpc.aio import Metadata
 
 
 class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
-    def __init__(self, headers):
+    def __init__(self, headers: List[Dict[str, str]]):
         self._headers = headers
 
     async def intercept_unary_unary(

@@ -13,11 +13,11 @@ class _ControlGrpcManager:
 
     def __init__(self, auth_token: str, endpoint: str):
         headers = [
-            {"authorization", auth_token}
+            {"authorization": auth_token}
         ]
         if _ControlGrpcManager.is_user_agent_sent == False:
             version = pkg_resources.get_distribution('momento').version
-            headers.append({"agent", f"python:{version}"})
+            headers.append({"agent": f"python:{version}"})
             _ControlGrpcManager.is_user_agent_sent = True
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
@@ -38,11 +38,11 @@ class _DataGrpcManager:
 
     def __init__(self, auth_token: str, endpoint: str):
         headers = [
-            {"authorization", auth_token}
+            {"authorization": auth_token}
         ]
         if _ControlGrpcManager.is_user_agent_sent == False:
             version = pkg_resources.get_distribution('momento').version
-            headers.append({"agent", f"python:{version}"})
+            headers.append({"agent": f"python:{version}"})
             _ControlGrpcManager.is_user_agent_sent = True
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
