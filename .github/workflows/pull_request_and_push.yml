@@ -15,6 +15,7 @@ jobs:
           python-version: "3.x"
       - run: |
           pip install tox
+          pip install types-setuptools
           tox -e lint
 
   test:

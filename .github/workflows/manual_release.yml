@@ -43,6 +43,7 @@ jobs:
       - name: Build package and run tests
         run: |
           pip install tox
+          pip install types-setuptools
           tox -e lint
           tox -e py39
 
