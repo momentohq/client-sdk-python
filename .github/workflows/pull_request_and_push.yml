@@ -15,7 +15,6 @@ jobs:
           python-version: "3.x"
       - run: |
           pip install tox
-          pip install types-setuptools
           tox -e lint
 
   test:
@@ -39,5 +38,4 @@ jobs:
           TOXENV="py${PYTHON_VERSION//./}"
           echo "Running tests for TOXENV: $TOXENV"
           pip install tox
-          pip install types-setuptools
           tox -e $TOXENV
