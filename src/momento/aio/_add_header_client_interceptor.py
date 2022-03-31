@@ -5,9 +5,8 @@ from grpc.aio import Metadata
 
 
 class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
-    def __init__(self, header_name: str, header_value: str):
-        self._header_name = header_name
-        self._header_value = header_value
+    def __init__(self, headers):
+        self._headers = headers
 
     async def intercept_unary_unary(
         self,
@@ -20,6 +19,8 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
     ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
         if client_call_details.metadata is None:
             client_call_details.metadata = Metadata()
-        client_call_details.metadata.add(self._header_name, self._header_value)
+        for dict in self._headers:
+            for header_name in dict:
+                client_call_details.metadata.add(header_name, dict[header_name])
 
         return await continuation(client_call_details, request)
