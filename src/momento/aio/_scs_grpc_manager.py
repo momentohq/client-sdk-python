@@ -5,6 +5,7 @@ import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.controlclient_pb2_grpc as control_client
 
 from ._add_header_client_interceptor import AddHeaderClientInterceptor
+from ._add_header_client_interceptor import Header
 
 
 class _ControlGrpcManager:
@@ -14,8 +15,8 @@ class _ControlGrpcManager:
 
     def __init__(self, auth_token: str, endpoint: str):
         headers = [
-            {"authorization": auth_token},
-            {"agent": f"python:{_ControlGrpcManager.version}"},
+            Header("authorization", auth_token),
+            Header("agent", f"python:{_ControlGrpcManager.version}"),
         ]
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
@@ -37,8 +38,8 @@ class _DataGrpcManager:
 
     def __init__(self, auth_token: str, endpoint: str):
         headers = [
-            {"authorization": auth_token},
-            {"agent": f"python:{_DataGrpcManager.version}"},
+            Header("authorization", auth_token),
+            Header("agent", f"python:{_ControlGrpcManager.version}"),
         ]
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
