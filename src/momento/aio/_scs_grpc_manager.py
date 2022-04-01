@@ -9,10 +9,14 @@ from ._add_header_client_interceptor import AddHeaderClientInterceptor
 
 class _ControlGrpcManager:
     """Momento Internal."""
+
     version = pkg_resources.get_distribution("momento").version
 
     def __init__(self, auth_token: str, endpoint: str):
-        headers = [{"authorization": auth_token}, {"agent": f"python:{_ControlGrpcManager.version}"}]
+        headers = [
+            {"authorization": auth_token},
+            {"agent": f"python:{_ControlGrpcManager.version}"},
+        ]
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
             credentials=grpc.ssl_channel_credentials(),
@@ -28,10 +32,14 @@ class _ControlGrpcManager:
 
 class _DataGrpcManager:
     """Momento Internal."""
+
     version = pkg_resources.get_distribution("momento").version
 
     def __init__(self, auth_token: str, endpoint: str):
-        headers = [{"authorization": auth_token}, {"agent": f"python:{_DataGrpcManager.version}"}]
+        headers = [
+            {"authorization": auth_token},
+            {"agent": f"python:{_DataGrpcManager.version}"},
+        ]
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
             credentials=grpc.ssl_channel_credentials(),
