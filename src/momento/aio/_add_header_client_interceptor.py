@@ -1,11 +1,11 @@
-from typing import Callable, Union, List, Dict
+from typing import Callable, Union, List
 
 import grpc
 from grpc.aio import Metadata
 
 
 class Header:
-    once_only_headers = ["Agent"]
+    once_only_headers = ["agent"]
 
     def __init__(self, name: str, value: str):
         self.name = name
