@@ -161,6 +161,13 @@ To run the auto-formatter:
 tox -e format
 ```
 
+## Adding a new dependency :notebook_with_decorative_cover:
+
+Add the new dependency to the `install_requires` section in `setup.cfg`. Then run:
+```
+tox --recreate
+```
+
 <br/>
 
 ## Tests :zap:
