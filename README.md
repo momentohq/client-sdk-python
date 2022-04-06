@@ -76,3 +76,10 @@ Example of running tests against one specific python version:
 ```
 TOXENV=py39 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
 ```
+
+## For M1 Users##
+There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387
+TO WORK AROUND, please install Rosetta 2 and re-run with:
+```
+arch -x86_64 TOXENV=py39 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
+```
