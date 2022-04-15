@@ -101,3 +101,12 @@ class TestMomentoSigner(unittest.TestCase):
         ))
 
         self.assertEqual(result, 'https://example.com/cache/set/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RLZXlJZCJ9.eyJleHAiOjQwNzkyNzYwOTgsImNhY2hlIjoiISMkJicoKSorLC86Oz0_QFtdIiwia2V5IjoiISMkJicoKSorLC86Oz0_QFtdIiwibWV0aG9kIjpbInNldCJdLCJ0dGwiOjV9.GlsGrxuoMMvwyr-SHBxfAK_CEk55P218jcsBTW9PiXoYgd85BNuDaHcQJaE_31CRdJ5emXj_qIQZjFLz3LDb3zHSAHCSYzg_pDZyVB-yLaW4nOCiztaxlr_FsihgghHUziO2lFyPgNpx2iZUQ5RnUvaCkhwN8R-FbKhBQ4Oh8hG4xBuILEIA5fJ8PAhbvmqzgmgbzplbhPMVvNPVXbdEn5YCdqIuoo6oQTB8ksgm788d7zRBgJmcyF07lDviGFaXt7OYshBWxKZ8f8Iv9PTaDtIFWPJDdaYCTcaYoaOqA2VXFEFmqcuDwcRIaNGkaYd8emqnlKc4ItdASLWV5k1Wjg&ttl_milliseconds=5000')
+
+    def test_create_presigned_url_for_set_missing_ttl(self):
+        with self.assertRaises(InvalidArgumentError):
+            MomentoSigner(_RSA_256_JWK).create_presigned_url("example.com", SigningRequest(
+                cache_name="!#$&\'()*+,/:;=?@[]",
+                cache_key="!#$&\'()*+,/:;=?@[]",
+                cache_operation=CacheOperation.SET,
+                expiry_epoch_seconds=4079276098,
+            ))
