@@ -104,8 +104,9 @@ class MomentoSigner:
             claims["method"] = ["get"]
         elif signing_request.cache_operation() == CacheOperation.SET:
             claims["method"] = ["set"]
-            if signing_request.ttl_seconds() is not None:
-                claims["ttl"] = signing_request.ttl_seconds()
+            if signing_request.ttl_seconds() is None:
+                raise InvalidArgumentError("ttl_seconds is required for SET operation.")
+            claims["ttl"] = signing_request.ttl_seconds()
         else:
             raise NotImplementedError(
                 f"Unrecognized Operation: {signing_request.cache_operation()}"
