@@ -9,6 +9,7 @@ from .cache_operation_types import (
     CacheGetResponse,
     CacheSetResponse,
     CreateCacheResponse,
+    CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
     CacheMultiGetResponse,
@@ -17,6 +18,8 @@ from .cache_operation_types import (
     CacheMultiSetResponse,
     CacheMultiSetFailureResponse,
     CacheMultiGetFailureResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -114,6 +117,58 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
         """
         coroutine = self._momento_async_client.list_caches(next_token)
+        return wait_for_coroutine(self._loop, coroutine)
+
+    def create_signing_key(self, ttl_minutes: int) -> CreateSigningKeyResponse:
+        """Creates a Momento signing key
+
+        Args:
+            ttl_minutes: The key's time-to-live in minutes
+
+        Returns:
+            CreateSigningKeyResponse
+
+        Raises:
+            InvalidArgumentError: If provided ttl minutes is negative.
+            BadRequestError: If the ttl provided is not accepted
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        coroutine = self._momento_async_client.create_signing_key(ttl_minutes)
+        return wait_for_coroutine(self._loop, coroutine)
+
+    def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+        """Revokes a Momento signing key, all tokens signed by which will be invalid
+
+        Args:
+            key_id: The id of the Momento signing key to revoke
+
+        Returns:
+            RevokeSigningKeyResponse
+
+        Raises:
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        coroutine = self._momento_async_client.revoke_signing_key(key_id)
+        return wait_for_coroutine(self._loop, coroutine)
+
+    def list_signing_keys(
+        self, next_token: Optional[str] = None
+    ) -> ListSigningKeysResponse:
+        """Lists all Momento signing keys for the provided auth token.
+
+        Args:
+            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+
+        Returns:
+            ListSigningKeysResponse
+
+        Raises:
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        coroutine = self._momento_async_client.list_signing_keys(next_token)
         return wait_for_coroutine(self._loop, coroutine)
 
     def set(

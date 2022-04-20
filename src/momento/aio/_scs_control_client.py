@@ -1,13 +1,23 @@
+from time import time
 from typing import Optional
 
 from momento_wire_types.controlclient_pb2 import _CreateCacheRequest
 from momento_wire_types.controlclient_pb2 import _DeleteCacheRequest
 from momento_wire_types.controlclient_pb2 import _ListCachesRequest
+from momento_wire_types.controlclient_pb2 import _CreateSigningKeyRequest
+from momento_wire_types.controlclient_pb2 import _RevokeSigningKeyRequest
+from momento_wire_types.controlclient_pb2 import _ListSigningKeysRequest
 
 from .._utilities._data_validation import _validate_cache_name
-from ..cache_operation_types import CreateCacheResponse
+from .._utilities._data_validation import _validate_ttl_minutes
+from ..cache_operation_types import (
+    CreateCacheResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
+)
 from ..cache_operation_types import DeleteCacheResponse
 from ..cache_operation_types import ListCachesResponse
+from ..cache_operation_types import CreateSigningKeyResponse
 
 from .. import _cache_service_errors_converter
 from .. import _momento_logger
@@ -66,6 +76,59 @@ class _ScsControlClient:
                 await self._grpc_manager.async_stub().ListCaches(
                     list_caches_request, timeout=_DEADLINE_SECONDS
                 )
+            )
+        except Exception as e:
+            raise _cache_service_errors_converter.convert(e)
+
+    async def create_signing_key(
+        self, ttl_minutes: int, endpoint: str
+    ) -> CreateSigningKeyResponse:
+        _validate_ttl_minutes(ttl_minutes)
+        try:
+            _momento_logger.debug(
+                f"Creating signing key with ttl (in minutes): {ttl_minutes}"
+            )
+            create_signing_key_request = _CreateSigningKeyRequest()
+            create_signing_key_request.ttl_minutes = ttl_minutes
+            return CreateSigningKeyResponse(
+                await self._grpc_manager.async_stub().CreateSigningKey(
+                    create_signing_key_request, timeout=_DEADLINE_SECONDS
+                ),
+                endpoint,
+            )
+        except Exception as e:
+            _momento_logger.debug(f"Failed to create signing key with exception: {e}")
+            raise _cache_service_errors_converter.convert(e)
+
+    async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+        try:
+            _momento_logger.debug(f"Revoking signing key with key_id {key_id}")
+            request = _RevokeSigningKeyRequest()
+            request.key_id = key_id
+            return RevokeSigningKeyResponse(
+                await self._grpc_manager.async_stub().RevokeSigningKey(
+                    request, timeout=_DEADLINE_SECONDS
+                )
+            )
+        except Exception as e:
+            _momento_logger.debug(
+                f"Failed to revoke signing key with key_id {key_id} exception: {e}"
+            )
+            raise _cache_service_errors_converter.convert(e)
+
+    async def list_signing_keys(
+        self, endpoint: str, next_token: Optional[str] = None
+    ) -> ListSigningKeysResponse:
+        try:
+            list_signing_keys_request = _ListSigningKeysRequest()
+            list_signing_keys_request.next_token = (
+                next_token if next_token is not None else ""
+            )
+            return ListSigningKeysResponse(
+                await self._grpc_manager.async_stub().ListSigningKeys(
+                    list_signing_keys_request, timeout=_DEADLINE_SECONDS
+                ),
+                endpoint,
             )
         except Exception as e:
             raise _cache_service_errors_converter.convert(e)

@@ -1,3 +1,5 @@
+import json
+from datetime import datetime
 from enum import Enum
 from typing import Any, Optional, List, Union
 from dataclasses import dataclass
@@ -5,7 +7,6 @@ from dataclasses import dataclass
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 from . import _cache_service_errors_converter as error_converter
 from . import _momento_logger
-from .errors import MomentoServiceError
 
 
 class CacheGetStatus(Enum):
@@ -209,3 +210,91 @@ class ListCachesResponse:
     def caches(self) -> List[CacheInfo]:
         """Returns all caches."""
         return self._caches
+
+
+class CreateSigningKeyResponse:
+    def __init__(self, grpc_create_signing_key_response: Any, endpoint: str):  # type: ignore[misc]
+        """Initializes CreateSigningKeyResponse to handle create signing key response.
+
+        Args:
+            grpc_create_signing_key_response: Protobuf based response returned by Scs.
+        """
+        self._key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]  # type: ignore[misc]
+        self._endpoint: str = endpoint
+        self._key: str = grpc_create_signing_key_response.key  # type: ignore[misc]
+        self._expires_at: datetime = datetime.fromtimestamp(
+            grpc_create_signing_key_response.expires_at  # type: ignore[misc]
+        )
+
+    def key_id(self) -> str:
+        """Returns the id of the signing key"""
+        return self._key_id
+
+    def endpoint(self) -> str:
+        """Returns the endpoint of the signing key"""
+        return self._endpoint
+
+    def key(self) -> str:
+        """Returns the JSON string of the key itself"""
+        return self._key
+
+    def expires_at(self) -> datetime:
+        """Returns the datetime representation of when the key expires"""
+        return self._expires_at
+
+
+class RevokeSigningKeyResponse:
+    def __init__(self, grpc_revoke_signing_key_response: Any):  # type: ignore[misc]
+        pass
+
+
+class SigningKey:
+    def __init__(self, grpc_listed_signing_key: Any, endpoint: str):  # type: ignore[misc]
+        """Initializes SigningKey to handle signing keys returned from list signing keys operation.
+
+        Args:
+            grpc_listed_signing_key: Protobuf based response returned by Scs.
+        """
+        self._key_id: str = grpc_listed_signing_key.key_id  # type: ignore[misc]
+        self._expires_at: datetime = datetime.fromtimestamp(
+            grpc_listed_signing_key.expires_at  # type: ignore[misc]
+        )
+        self._endpoint: str = endpoint
+
+    def key_id(self) -> str:
+        """Returns the id of the Momento signing key"""
+        return self._key_id
+
+    def expires_at(self) -> datetime:
+        """Returns the time the key expires"""
+        return self._expires_at
+
+    def endpoint(self) -> str:
+        """Returns the endpoint of the Momento signing key"""
+        return self._endpoint
+
+
+class ListSigningKeysResponse:
+    def __init__(self, grpc_list_signing_keys_response: Any, endpoint: str):  # type: ignore[misc]
+        """Initializes ListSigningKeysResponse to handle list signing keys response.
+
+        Args:
+            grpc_list_signing_keys_response: Protobuf based response returned by Scs.
+        """
+        self._next_token: Optional[str] = (
+            grpc_list_signing_keys_response.next_token  # type: ignore[misc]
+            if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]
+            else None
+        )
+        self._signing_keys: List[SigningKey] = [  # type: ignore[misc]
+            SigningKey(signing_key, endpoint)  # type: ignore[misc]
+            for signing_key in grpc_list_signing_keys_response.signing_key  # type: ignore[misc]
+        ]
+
+    def next_token(self) -> Optional[str]:
+        """Returns next token."""
+        return self._next_token
+
+    def signing_keys(self) -> List[SigningKey]:
+        """Returns all signing keys."""
+        return self._signing_keys
