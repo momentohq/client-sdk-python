@@ -135,9 +135,7 @@ class MomentoSigner:
         cache_name = quote(signing_request.cache_name(), safe="")
         cache_key = quote(signing_request.cache_key(), safe="")
         if signing_request.cache_operation() == CacheOperation.GET:
-            return (
-                f"https://rest.{hostname}/cache/get/{cache_name}/{cache_key}?token={token}"
-            )
+            return f"https://rest.{hostname}/cache/get/{cache_name}/{cache_key}?token={token}"
         elif signing_request.cache_operation() == CacheOperation.SET:
             ttl_seconds = signing_request.ttl_seconds()
             if ttl_seconds is None:
