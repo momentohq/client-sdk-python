@@ -125,6 +125,7 @@ class MomentoSigner:
 
         Args:
             hostname: Hostname of SimpleCacheService. This value can be obtained from create_signing_key response.
+            The SDK will prepend rest to it to get to the REST endpoint
             signing_request: Contains parameters for the generated URL.
 
         Returns:
@@ -135,13 +136,13 @@ class MomentoSigner:
         cache_key = quote(signing_request.cache_key(), safe="")
         if signing_request.cache_operation() == CacheOperation.GET:
             return (
-                f"https://{hostname}/cache/get/{cache_name}/{cache_key}?token={token}"
+                f"https://rest.{hostname}/cache/get/{cache_name}/{cache_key}?token={token}"
             )
         elif signing_request.cache_operation() == CacheOperation.SET:
             ttl_seconds = signing_request.ttl_seconds()
             if ttl_seconds is None:
                 raise InvalidArgumentError("ttl_seconds is required for SET operation.")
-            url = f"https://{hostname}/cache/set/{cache_name}/{cache_key}?token={token}&ttl_milliseconds={ttl_seconds * 1000}"
+            url = f"https://rest.{hostname}/cache/set/{cache_name}/{cache_key}?token={token}&ttl_milliseconds={ttl_seconds * 1000}"
             return url
         else:
             raise NotImplementedError(
