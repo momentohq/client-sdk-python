@@ -181,19 +181,12 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
     
     # signing keys
     async def test_create_list_revoke_signing_keys(self):
-        try:
-            create_resp = await self.client.create_signing_key(30)
-            list_resp = await self.client.list_signing_keys()
-            self.assertTrue(0 < len(list_resp.signing_keys()))
-            signing_key = list_resp.signing_keys()[0]
-            self.assertEqual(create_resp.endpoint(), signing_key.endpoint())
-            self.assertEqual(create_resp.key_id(), signing_key.key_id())
-        finally:
-            list_resp = await self.client.list_signing_keys()
-            for signing_key in list_resp.signing_keys():
-                await self.client.revoke_signing_key(signing_key.key_id())
+        create_resp = await self.client.create_signing_key(30)
         list_resp = await self.client.list_signing_keys()
-        self.assertEqual(0, len(list_resp.signing_keys()))
+        self.assertTrue(create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()])
+        await self.client.revoke_signing_key(create_resp.key_id())
+        list_resp = await self.client.list_signing_keys()
+        self.assertFalse(create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()])
 
     # setting and getting
 
