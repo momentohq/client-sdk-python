@@ -178,6 +178,15 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         # skip until pagination is actually implemented, see
         # https://github.com/momentohq/control-plane-service/issues/83
         self.skipTest("pagination not yet implemented")
+    
+    # signing keys
+    async def test_create_list_revoke_signing_keys(self):
+        create_resp = await self.client.create_signing_key(30)
+        list_resp = await self.client.list_signing_keys()
+        self.assertTrue(create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()])
+        await self.client.revoke_signing_key(create_resp.key_id())
+        list_resp = await self.client.list_signing_keys()
+        self.assertFalse(create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()])
 
     # setting and getting
 

@@ -37,6 +37,10 @@ class _ScsDataClient:
         self._grpc_manager = _scs_grpc_manager._DataGrpcManager(auth_token, endpoint)
         _validate_ttl(default_ttl_seconds)
         self._default_ttlSeconds = default_ttl_seconds
+        self._endpoint = endpoint
+
+    def get_endpoint(self) -> str:
+        return self._endpoint
 
     async def set(
         self,

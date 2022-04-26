@@ -30,6 +30,9 @@ from ..cache_operation_types import (
     CreateCacheResponse,
     DeleteCacheResponse,
     ListCachesResponse,
+    CreateSigningKeyResponse,
+    RevokeSigningKeyResponse,
+    ListSigningKeysResponse,
     CacheSetResponse,
     CacheGetResponse,
     CacheMultiSetOperation,
@@ -120,6 +123,59 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
         """
         return await self._control_client.list_caches(next_token)
+
+    async def create_signing_key(self, ttl_minutes: int) -> CreateSigningKeyResponse:
+        """Creates a Momento signing key
+
+        Args:
+            ttl_minutes: The key's time-to-live in minutes
+
+        Returns:
+            CreateSigningKeyResponse
+
+        Raises:
+            InvalidArgumentError: If provided ttl minutes is negative.
+            BadRequestError: If the ttl provided is not accepted
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        return await self._control_client.create_signing_key(
+            ttl_minutes, self._data_client.get_endpoint()
+        )
+
+    async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+        """Revokes a Momento signing key, all tokens signed by which will be invalid
+
+        Args:
+            key_id: The id of the Momento signing key to revoke
+
+        Returns:
+            RevokeSigningKeyResponse
+
+        Raises:
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        return await self._control_client.revoke_signing_key(key_id)
+
+    async def list_signing_keys(
+        self, next_token: Optional[str] = None
+    ) -> ListSigningKeysResponse:
+        """Lists all Momento signing keys for the provided auth token.
+
+        Args:
+            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+
+        Returns:
+            ListSigningKeysResponse
+
+        Raises:
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        return await self._control_client.list_signing_keys(
+            self._data_client.get_endpoint(), next_token
+        )
 
     async def multi_set(
         self,

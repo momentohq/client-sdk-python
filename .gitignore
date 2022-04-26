@@ -14,3 +14,4 @@ src/*.egg-info
 
 build
 .idea
+.vscode
