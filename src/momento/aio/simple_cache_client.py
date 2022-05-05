@@ -1,6 +1,6 @@
 import pickle
 from types import TracebackType
-from typing import cast, Optional, Union, Type, List
+from typing import cast, Dict, Optional, Union, Type, List
 
 try:
     from ._scs_control_client import _ScsControlClient
@@ -54,9 +54,17 @@ from ..cache_operation_types import (
 )
 
 
-def _from_stored_hash(pickled_dict: bytes) -> StoredHashType:
+def convert_dict_values_to_bytes(dict_: HashType) -> HashType:
+    return {k: v if isinstance(v, bytes) else v.encode() for k, v in dict_.items()}
+
+
+def dict_to_stored_hash(dict_: HashType) -> StoredHashType:
+    return {k: CacheHashValue(v) for k, v in dict_.items()}
+
+
+def _deserialize_stored_hash(pickled_dict: bytes) -> StoredHashType:
     d = cast(HashType, pickle.loads(pickled_dict))
-    return {k: CacheHashValue(v) for k, v in d.items()}
+    return dict_to_stored_hash(d)
 
 
 class SimpleCacheClient:
@@ -291,18 +299,18 @@ class SimpleCacheClient:
         self,
         cache_name: str,
         hash_name: str,
-        map: HashType,
+        mapping: HashType,
     ) -> CacheHashSetResponse:
         hash_get_response = await self.get(cache_name, hash_name)
         hash_d = {}
         if hash_get_response.status() == CacheGetStatus.HIT:
             hash_d = cast(HashType, pickle.loads(hash_get_response.value_as_bytes()))
 
-        map = {k: v if isinstance(v, bytes) else v.encode() for k, v in map.items()}
-        hash_d.update(map)
+        mapping = convert_dict_values_to_bytes(mapping)
+        hash_d.update(mapping)
 
         set_response = await self.set(cache_name, hash_name, pickle.dumps(hash_d))
-        return CacheHashSetResponse(key=set_response._key, value=_from_stored_hash(set_response._value))
+        return CacheHashSetResponse(key=set_response._key, value=_deserialize_stored_hash(set_response._value))
 
     async def hget(
         self,
@@ -332,9 +340,8 @@ class SimpleCacheClient:
         if get_response.status() == CacheGetStatus.MISS:
             return CacheHashGetAllResponse(value=None, result=CacheGetStatus.MISS)
 
-        value = cast(HashType, pickle.loads(cast(bytes, get_response.value_as_bytes())))
-        new_value = {k: CacheHashValue(v) for k, v in value.items()}
-        return CacheHashGetAllResponse(value=new_value, result=CacheGetStatus.HIT)
+        value = _deserialize_stored_hash(cast(bytes, get_response.value_as_bytes()))
+        return CacheHashGetAllResponse(value=value, result=CacheGetStatus.HIT)
 
 
 def init(
