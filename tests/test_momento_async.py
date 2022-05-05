@@ -9,7 +9,8 @@ from momento.cache_operation_types import (
     CacheGetStatus,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
-    CacheHashGetStatus)
+    CacheHashGetStatus,
+    CacheHashValue)
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
@@ -418,14 +419,25 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             self.assertEqual("buzz5", get_resp.values()[1])
 
     # Test hget hash miss
-    async def test_get_hash_not_there(self):
+    async def test_get_hash_miss(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             get_response = await simple_cache.hget(
                 cache_name=_TEST_CACHE_NAME, hash_name="hello world", key="key")
             self.assertEquals(CacheHashGetStatus.HASH_MISS, get_response.status())
 
-    def test_hset(self):
-        pass
+    async def test_hset_response(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            # Test with key as string
+            set_response = await simple_cache.hset(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash", map={"key1": "value1"})
+            self.assertEquals("myhash", set_response.key())
+            self.assertEquals({"key1": CacheHashValue(value=b"value1")}, set_response.value())
+
+            # Test key as bytes
+            set_response = await simple_cache.hset(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash2", map={b"key1": "value1"})
+            self.assertEquals("myhash2", set_response.key())
+            self.assertEquals({b"key1": CacheHashValue(value=b"value1")}, set_response.value())            
 
     def test_hget(self):
         pass

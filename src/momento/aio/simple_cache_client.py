@@ -45,9 +45,17 @@ from ..cache_operation_types import (
     CacheMultiGetFailureResponse,
     CacheHashGetResponse,
     CacheHashGetStatus,
+    CacheHashSetResponse,
+    CacheHashValue,
     HashKeyValueType,
-    HashType
+    HashType,
+    StoredHashType
 )
+
+
+def _from_stored_hash(pickled_dict: bytes) -> StoredHashType:
+    d = cast(HashType, pickle.loads(pickled_dict))
+    return {k: CacheHashValue(v) for k, v in d.items()}
 
 
 class SimpleCacheClient:
@@ -277,6 +285,23 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         return await self._data_client.get(cache_name, key)
+
+    async def hset(
+        self,
+        cache_name: str,
+        hash_name: str,
+        map: HashType,
+    ) -> CacheHashSetResponse:
+        hash_get_response = await self.get(cache_name, hash_name)
+        hash_d = {}
+        if hash_get_response.status() == CacheGetStatus.HIT:
+            hash_d = cast(HashType, pickle.loads(hash_get_response.value_as_bytes()))
+
+        map = {k: v if isinstance(v, bytes) else v.encode() for k, v in map.items()}
+        hash_d.update(map)
+
+        set_response = await self.set(cache_name, hash_name, pickle.dumps(hash_d))
+        return CacheHashSetResponse(key=set_response._key, value=_from_stored_hash(set_response._value))
 
     async def hget(
         self,

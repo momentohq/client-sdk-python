@@ -221,6 +221,9 @@ class CacheHashValue:
     def value_as_bytes(self) -> bytes:
         return cast(bytes, self._value)
 
+    def __eq__(self, other: object) -> bool:
+        return cast(bool, type(other) == type(self) and self._value == other._value)
+
     def __str__(self) -> str:
         return self.__repr__()
 
