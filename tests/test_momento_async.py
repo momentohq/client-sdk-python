@@ -1,3 +1,4 @@
+import itertools
 import os
 import time
 import unittest
@@ -446,6 +447,26 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             get_response = await simple_cache.hget(
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash3", key="key2")
             self.assertEquals(CacheHashGetStatus.HASH_KEY_MISS, get_response.status())
+
+    async def test_hget_hit(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
+            for i, (key_is_str, value_is_str) in enumerate(itertools.product((True, False), (True, False))):
+                key, value = "key1", "value1"
+                if not key_is_str:
+                    key = key.encode()
+                if not value_is_str:
+                    value = value.encode()
+                mapping = {key: value}
+                # Use distinct hash names to avoid collisions with already finished tests
+                hash_name = f"myhash4-{i}"
+
+                await simple_cache.hset(
+                    cache_name=_TEST_CACHE_NAME, hash_name=hash_name, map=mapping)
+                get_response = await simple_cache.hget(
+                    cache_name=_TEST_CACHE_NAME, hash_name=hash_name, key=key)
+                self.assertEquals(CacheHashGetStatus.HIT, get_response.status())
+                self.assertEquals(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
     def test_hgetall(self):
         pass
