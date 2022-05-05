@@ -439,8 +439,13 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             self.assertEquals("myhash2", set_response.key())
             self.assertEquals({b"key1": CacheHashValue(value=b"value1")}, set_response.value())            
 
-    def test_hget(self):
-        pass
+    async def test_hget_and_hset_missing_key(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            await simple_cache.hset(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash3", map={"key1": "value1"})
+            get_response = await simple_cache.hget(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash3", key="key2")
+            self.assertEquals(CacheHashGetStatus.HASH_KEY_MISS, get_response.status())
 
     def test_hgetall(self):
         pass
