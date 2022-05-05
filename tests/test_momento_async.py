@@ -468,8 +468,11 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                 self.assertEquals(CacheHashGetStatus.HIT, get_response.status())
                 self.assertEquals(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
-    def test_hgetall(self):
-        pass
+    async def test_hgetall_miss(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            get_response = await simple_cache.hgetall(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash5")
+            self.assertEquals(CacheGetStatus.MISS, get_response.status())
 
 
 if __name__ == '__main__':

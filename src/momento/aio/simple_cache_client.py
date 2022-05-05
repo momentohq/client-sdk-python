@@ -47,6 +47,7 @@ from ..cache_operation_types import (
     CacheHashGetStatus,
     CacheHashSetResponse,
     CacheHashValue,
+    CacheHashGetAllResponse,
     HashKeyValueType,
     HashType,
     StoredHashType
@@ -321,6 +322,19 @@ class SimpleCacheClient:
             return CacheHashGetResponse(value=None, result=CacheHashGetStatus.HASH_KEY_MISS)
 
         return CacheHashGetResponse(value=value, result=CacheHashGetStatus.HIT)
+
+    async def hgetall(
+        self,
+        cache_name: str,
+        hash_name: str
+    ) -> CacheHashGetAllResponse:
+        get_response = await self.get(cache_name, hash_name)
+        if get_response.status() == CacheGetStatus.MISS:
+            return CacheHashGetAllResponse(value=None, result=CacheGetStatus.MISS)
+
+        value = cast(HashType, pickle.loads(cast(bytes, get_response.value_as_bytes())))
+        new_value = {k: CacheHashValue(v) for k, v in value.items()}
+        return CacheHashGetAllResponse(value=new_value, result=CacheGetStatus.HIT)
 
 
 def init(
