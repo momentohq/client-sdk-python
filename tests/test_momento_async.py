@@ -5,10 +5,11 @@ import uuid
 
 import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
-from momento.cache_operation_types import \
-    CacheGetStatus, \
-    CacheMultiSetOperation, \
-    CacheMultiGetOperation
+from momento.cache_operation_types import (
+    CacheGetStatus,
+    CacheMultiSetOperation,
+    CacheMultiGetOperation,
+    CacheHashGetStatus)
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
@@ -415,6 +416,22 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
             # Make sure were getting values we expect back
             self.assertEqual("buzz5", get_resp.values()[1])
+
+    # Test hget hash miss
+    async def test_get_hash_not_there(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            get_response = await simple_cache.hget(
+                cache_name=_TEST_CACHE_NAME, hash_name="hello world", key="key")
+            self.assertEquals(CacheHashGetStatus.HASH_MISS, get_response.status())
+
+    def test_hset(self):
+        pass
+
+    def test_hget(self):
+        pass
+
+    def test_hgetall(self):
+        pass
 
 
 if __name__ == '__main__':

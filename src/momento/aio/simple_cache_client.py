@@ -1,5 +1,6 @@
+import pickle
 from types import TracebackType
-from typing import Optional, Union, Type, List
+from typing import cast, Optional, Union, Type, List
 
 try:
     from ._scs_control_client import _ScsControlClient
@@ -35,12 +36,17 @@ from ..cache_operation_types import (
     ListSigningKeysResponse,
     CacheSetResponse,
     CacheGetResponse,
+    CacheGetStatus,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
     CacheMultiSetFailureResponse,
     CacheMultiSetResponse,
     CacheMultiGetResponse,
     CacheMultiGetFailureResponse,
+    CacheHashGetResponse,
+    CacheHashGetStatus,
+    HashKeyValueType,
+    HashType
 )
 
 
@@ -271,6 +277,25 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         return await self._data_client.get(cache_name, key)
+
+    async def hget(
+        self,
+        cache_name: str,
+        hash_name: str,
+        key: HashKeyValueType,
+    ) -> CacheHashGetResponse:
+        hash_get_response = await self.get(cache_name, hash_name)
+        if hash_get_response.status() == CacheGetStatus.MISS:
+            return CacheHashGetResponse(value=None, result=CacheHashGetStatus.HASH_MISS)
+
+        hash_d: HashType = pickle.loads(cast(bytes, hash_get_response.value_as_bytes()))
+
+        try:
+            value = hash_d[key]
+        except KeyError:
+            return CacheHashGetResponse(value=None, result=CacheHashGetStatus.HASH_KEY_MISS)
+
+        return CacheHashGetResponse(value=value, result=CacheHashGetStatus.HIT)
 
 
 def init(
