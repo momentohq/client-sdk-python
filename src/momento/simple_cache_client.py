@@ -27,7 +27,7 @@ from .cache_operation_types import (
     CacheHashGetAllResponse,
     HashKeyValueType,
     HashType,
-    StoredHashType
+    StoredHashType,
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -295,11 +295,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.hash_get(cache_name, hash_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def hash_get_all(
-        self,
-        cache_name: str,
-        hash_name: str
-    ) -> CacheHashGetAllResponse:
+    def hash_get_all(self, cache_name: str, hash_name: str) -> CacheHashGetAllResponse:
         coroutine = self._momento_async_client.hash_get_all(cache_name, hash_name)
         return wait_for_coroutine(self._loop, coroutine)
 
