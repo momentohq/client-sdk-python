@@ -295,7 +295,7 @@ class SimpleCacheClient:
         """
         return await self._data_client.get(cache_name, key)
 
-    async def hset(
+    async def hash_set(
         self,
         cache_name: str,
         hash_name: str,
@@ -312,7 +312,7 @@ class SimpleCacheClient:
         set_response = await self.set(cache_name, hash_name, pickle.dumps(hash_d))
         return CacheHashSetResponse(key=set_response._key, value=_deserialize_stored_hash(set_response._value))
 
-    async def hget(
+    async def hash_get(
         self,
         cache_name: str,
         hash_name: str,
@@ -331,7 +331,7 @@ class SimpleCacheClient:
 
         return CacheHashGetResponse(value=value, result=CacheHashGetStatus.HIT)
 
-    async def hgetall(
+    async def hash_get_all(
         self,
         cache_name: str,
         hash_name: str
