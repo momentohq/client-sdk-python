@@ -423,21 +423,21 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             get_response = await simple_cache.hash_get(
                 cache_name=_TEST_CACHE_NAME, hash_name="hello world", key="key")
-            self.assertEquals(CacheHashGetStatus.HASH_MISS, get_response.status())
+            self.assertEqual(CacheHashGetStatus.HASH_MISS, get_response.status())
 
     async def test_hash_set_response(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             # Test with key as string
             set_response = await simple_cache.hash_set(
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash", mapping={"key1": "value1"})
-            self.assertEquals("myhash", set_response.key())
-            self.assertEquals({"key1": CacheHashValue(value=b"value1")}, set_response.value())
+            self.assertEqual("myhash", set_response.key())
+            self.assertEqual({"key1": CacheHashValue(value=b"value1")}, set_response.value())
 
             # Test key as bytes
             set_response = await simple_cache.hash_set(
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash2", mapping={b"key1": "value1"})
-            self.assertEquals("myhash2", set_response.key())
-            self.assertEquals({b"key1": CacheHashValue(value=b"value1")}, set_response.value())
+            self.assertEqual("myhash2", set_response.key())
+            self.assertEqual({b"key1": CacheHashValue(value=b"value1")}, set_response.value())
 
     async def test_hash_set_and_hash_get_missing_key(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -445,7 +445,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash3", mapping={"key1": "value1"})
             get_response = await simple_cache.hash_get(
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash3", key="key2")
-            self.assertEquals(CacheHashGetStatus.HASH_KEY_MISS, get_response.status())
+            self.assertEqual(CacheHashGetStatus.HASH_KEY_MISS, get_response.status())
 
     async def test_hash_get_hit(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -464,14 +464,14 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                     cache_name=_TEST_CACHE_NAME, hash_name=hash_name, mapping=mapping)
                 get_response = await simple_cache.hash_get(
                     cache_name=_TEST_CACHE_NAME, hash_name=hash_name, key=key)
-                self.assertEquals(CacheHashGetStatus.HIT, get_response.status())
-                self.assertEquals(value, get_response.value() if value_is_str else get_response.value_as_bytes())
+                self.assertEqual(CacheHashGetStatus.HIT, get_response.status())
+                self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
     async def test_hash_get_all_miss(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             get_response = await simple_cache.hash_get_all(
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash5")
-            self.assertEquals(CacheGetStatus.MISS, get_response.status())
+            self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     async def test_hash_get_all_hit(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -481,11 +481,11 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             )
             get_all_response = await simple_cache.hash_get_all(
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash6")
-            self.assertEquals(CacheGetStatus.HIT, get_all_response.status())
+            self.assertEqual(CacheGetStatus.HIT, get_all_response.status())
 
             expected = simple_cache_client.dict_to_stored_hash(
                 simple_cache_client.convert_dict_values_to_bytes(mapping))
-            self.assertEquals(expected, get_all_response.value())
+            self.assertEqual(expected, get_all_response.value())
 
 
 if __name__ == '__main__':
