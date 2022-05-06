@@ -28,7 +28,7 @@ class TestMomento(unittest.TestCase):
     def setUpClass(cls):
         if not _AUTH_TOKEN:
             raise RuntimeError(
-                "Integration tests require TEST_AUTH_TOKEN env var; see README for more details."
+                f"Integration tests require TEST_AUTH_TOKEN env var; see README for more details. (TEST_AUTH_TOKEN={os.getenv('TEST_AUTH_TOKEN')})"
             )
         if not _TEST_CACHE_NAME:
             raise RuntimeError(
