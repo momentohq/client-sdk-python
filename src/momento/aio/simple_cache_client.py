@@ -1,6 +1,6 @@
 import pickle
 from types import TracebackType
-from typing import cast, Dict, Optional, Union, Type, List
+from typing import cast, Optional, Union, Type, List
 
 try:
     from ._scs_control_client import _ScsControlClient

@@ -204,11 +204,11 @@ class CacheHashGetResponse:
     def __repr__(self) -> str:
         value = self._value
         try:
-            value = self.value()  # type: ignore
+            value = self.value()
         except UnicodeDecodeError:
             value = str(value)
 
-        return f"CacheHashGetResponse(value={value}, result={self._result})"  # type: ignore
+        return f"CacheHashGetResponse(value={value}, result={self._result})"
 
 
 class CacheHashValue:
@@ -222,7 +222,7 @@ class CacheHashValue:
         return cast(bytes, self._value)
 
     def __eq__(self, other: object) -> bool:
-        return cast(bool, type(other) == type(self) and self._value == other._value)
+        return type(other) == type(self) and self._value == other._value  # type: ignore
 
     def __str__(self) -> str:
         return self.__repr__()
