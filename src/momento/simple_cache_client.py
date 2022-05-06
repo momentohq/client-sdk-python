@@ -277,7 +277,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.multi_get(cache_name, ops)
         return wait_for_coroutine(self._loop, coroutine)
 
-    async def hash_set(
+    def hash_set(
         self,
         cache_name: str,
         hash_name: str,
@@ -286,7 +286,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.hash_set(cache_name, hash_name, mapping)
         return wait_for_coroutine(self._loop, coroutine)
 
-    async def hash_get(
+    def hash_get(
         self,
         cache_name: str,
         hash_name: str,
@@ -295,7 +295,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.hash_get(cache_name, hash_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
-    async def hash_get_all(
+    def hash_get_all(
         self,
         cache_name: str,
         hash_name: str

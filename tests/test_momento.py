@@ -14,7 +14,8 @@ from momento.cache_operation_types import (
     CacheGetStatus,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
-    CacheHashGetStatus)
+    CacheHashGetStatus,
+    CacheHashValue)
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
