@@ -304,7 +304,8 @@ class SimpleCacheClient:
         hash_get_response = await self.get(cache_name, hash_name)
         hash_d = {}
         if hash_get_response.status() == CacheGetStatus.HIT:
-            hash_d = cast(HashType, pickle.loads(hash_get_response.value_as_bytes()))
+            hash_d = cast(HashType, pickle.loads(
+                cast(bytes, hash_get_response.value_as_bytes())))
 
         mapping = convert_dict_values_to_bytes(mapping)
         hash_d.update(mapping)

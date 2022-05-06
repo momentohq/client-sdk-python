@@ -181,7 +181,7 @@ class CacheHashGetStatus(Enum):
 
 
 class CacheHashGetResponse:
-    def __init__(self, value: HashKeyValueType, result: CacheHashGetStatus):
+    def __init__(self, value: Optional[HashKeyValueType], result: CacheHashGetStatus):
         self._value = value
         self._result = result
 
