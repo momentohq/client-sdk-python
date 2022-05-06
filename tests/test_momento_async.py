@@ -419,7 +419,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             # Make sure were getting values we expect back
             self.assertEqual("buzz5", get_resp.values()[1])
 
-    # Test hash_get hash miss
     async def test_get_hash_miss(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             get_response = await simple_cache.hash_get(

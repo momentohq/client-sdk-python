@@ -20,6 +20,14 @@ from .cache_operation_types import (
     CacheMultiGetFailureResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
+    CacheHashGetResponse,
+    CacheHashGetStatus,
+    CacheHashSetResponse,
+    CacheHashValue,
+    CacheHashGetAllResponse,
+    HashKeyValueType,
+    HashType,
+    StoredHashType
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -267,6 +275,32 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         coroutine = self._momento_async_client.multi_get(cache_name, ops)
+        return wait_for_coroutine(self._loop, coroutine)
+
+    async def hash_set(
+        self,
+        cache_name: str,
+        hash_name: str,
+        mapping: HashType,
+    ) -> CacheHashSetResponse:
+        coroutine = self._momento_async_client.hash_set(cache_name, hash_name, mapping)
+        return wait_for_coroutine(self._loop, coroutine)
+
+    async def hash_get(
+        self,
+        cache_name: str,
+        hash_name: str,
+        key: HashKeyValueType,
+    ) -> CacheHashGetResponse:
+        coroutine = self._momento_async_client.hash_get(cache_name, hash_name, key)
+        return wait_for_coroutine(self._loop, coroutine)
+
+    async def hash_get_all(
+        self,
+        cache_name: str,
+        hash_name: str
+    ) -> CacheHashGetAllResponse:
+        coroutine = self._momento_async_client.hash_get_all(cache_name, hash_name)
         return wait_for_coroutine(self._loop, coroutine)
 
 
