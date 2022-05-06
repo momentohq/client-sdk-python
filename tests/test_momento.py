@@ -388,7 +388,7 @@ class TestMomento(unittest.TestCase):
             set_response = simple_cache.hash_set(
                 cache_name=_TEST_CACHE_NAME, hash_name="myhash2", mapping={b"key1": "value1"})
             self.assertEquals("myhash2", set_response.key())
-            self.assertEquals({b"key1": CacheHashValue(value=b"value1")}, set_response.value())            
+            self.assertEquals({b"key1": CacheHashValue(value=b"value1")}, set_response.value())
 
     def test_hash_set_and_hash_get_missing_key(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
