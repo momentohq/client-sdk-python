@@ -302,6 +302,9 @@ class SimpleCacheClient:
     ) -> CacheDictionarySetResponse:
         """Store dictionary items (key-value pairs) in the cache.
 
+        Inserts items from `mapping` into a dictionary `dictionary_name`.
+        Updates (overwrites) values if the key already exists.
+
         Args:
             cache_name (str): Name of the cache to store the dictionary mapping in.
             dictionary_name (str): The name of the dictionary to store the mapping.
