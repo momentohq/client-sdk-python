@@ -1,3 +1,4 @@
+import itertools
 import os
 import time
 import unittest
@@ -5,10 +6,12 @@ import uuid
 
 import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
-from momento.cache_operation_types import \
-    CacheGetStatus, \
-    CacheMultiSetOperation, \
-    CacheMultiGetOperation
+from momento.cache_operation_types import (
+    CacheGetStatus,
+    CacheMultiSetOperation,
+    CacheMultiGetOperation,
+    CacheHashGetStatus,
+    CacheHashValue)
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
@@ -415,6 +418,74 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
             # Make sure were getting values we expect back
             self.assertEqual("buzz5", get_resp.values()[1])
+
+    async def test_get_hash_miss(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            get_response = await simple_cache.hash_get(
+                cache_name=_TEST_CACHE_NAME, hash_name="hello world", key="key")
+            self.assertEqual(CacheHashGetStatus.HASH_MISS, get_response.status())
+
+    async def test_hash_set_response(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            # Test with key as string
+            set_response = await simple_cache.hash_set(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash", mapping={"key1": "value1"})
+            self.assertEqual("myhash", set_response.key())
+            self.assertEqual({"key1": CacheHashValue(value=b"value1")}, set_response.value())
+
+            # Test key as bytes
+            set_response = await simple_cache.hash_set(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash2", mapping={b"key1": "value1"})
+            self.assertEqual("myhash2", set_response.key())
+            self.assertEqual({b"key1": CacheHashValue(value=b"value1")}, set_response.value())
+
+    async def test_hash_set_and_hash_get_missing_key(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            await simple_cache.hash_set(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash3", mapping={"key1": "value1"})
+            get_response = await simple_cache.hash_get(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash3", key="key2")
+            self.assertEqual(CacheHashGetStatus.HASH_KEY_MISS, get_response.status())
+
+    async def test_hash_get_hit(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
+            for i, (key_is_str, value_is_str) in enumerate(itertools.product((True, False), (True, False))):
+                key, value = "key1", "value1"
+                if not key_is_str:
+                    key = key.encode()
+                if not value_is_str:
+                    value = value.encode()
+                mapping = {key: value}
+                # Use distinct hash names to avoid collisions with already finished tests
+                hash_name = f"myhash4-{i}"
+
+                await simple_cache.hash_set(
+                    cache_name=_TEST_CACHE_NAME, hash_name=hash_name, mapping=mapping)
+                get_response = await simple_cache.hash_get(
+                    cache_name=_TEST_CACHE_NAME, hash_name=hash_name, key=key)
+                self.assertEqual(CacheHashGetStatus.HIT, get_response.status())
+                self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
+
+    async def test_hash_get_all_miss(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            get_response = await simple_cache.hash_get_all(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash5")
+            self.assertEqual(CacheGetStatus.MISS, get_response.status())
+
+    async def test_hash_get_all_hit(self):
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+            mapping = {"key1": "value1", "key2": "value2"}
+            await simple_cache.hash_set(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash6", mapping=mapping
+            )
+            get_all_response = await simple_cache.hash_get_all(
+                cache_name=_TEST_CACHE_NAME, hash_name="myhash6")
+            self.assertEqual(CacheGetStatus.HIT, get_all_response.status())
+
+            expected = simple_cache_client.dict_to_stored_hash(
+                simple_cache_client.convert_dict_values_to_bytes(mapping))
+            self.assertEqual(expected, get_all_response.value())
 
 
 if __name__ == '__main__':

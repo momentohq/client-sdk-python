@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, List, Union
+from typing import cast, Any, Dict, Optional, List, Union
 from dataclasses import dataclass
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
@@ -161,6 +161,133 @@ class CacheMultiGetResponse:
         for r in self._success_responses:
             r_values.append(r.value_as_bytes())
         return r_values
+
+
+# Hash related respnses
+HashKeyValueType = Union[str, bytes]
+HashType = Dict[HashKeyValueType, HashKeyValueType]
+
+
+class CacheHashGetStatus(Enum):
+    # The key exists for a particular hash
+    HIT = 1
+    # The hash is missing from the cache
+    HASH_MISS = 2
+    # The hash is in the cache but the key is missing from the hash
+    HASH_KEY_MISS = 3
+
+    def is_hit(self) -> bool:
+        return self.value == self.HIT.value  # type: ignore
+
+
+class CacheHashGetResponse:
+    def __init__(self, value: Optional[HashKeyValueType], result: CacheHashGetStatus):
+        self._value = value
+        self._result = result
+
+    def value(self) -> Optional[str]:
+        if not self.status().is_hit():
+            return None
+        return cast(bytes, self._value).decode("utf-8")
+
+    def value_as_bytes(self) -> Optional[bytes]:
+        if not self.status().is_hit():
+            return None
+        return cast(bytes, self._value)
+
+    def status(self) -> CacheHashGetStatus:
+        return self._result
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        value = self._value
+        try:
+            value = self.value()
+        except UnicodeDecodeError:
+            value = str(value)
+
+        return f"CacheHashGetResponse(value={value}, result={self._result})"
+
+
+class CacheHashValue:
+    def __init__(self, value: HashKeyValueType) -> None:
+        self._value = value
+
+    def value(self) -> str:
+        return cast(bytes, self._value).decode("utf-8")
+
+    def value_as_bytes(self) -> bytes:
+        return cast(bytes, self._value)
+
+    def __eq__(self, other: object) -> bool:
+        return type(other) == type(self) and self._value == other._value  # type: ignore
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        value = self._value
+        try:
+            value = self.value()
+        except UnicodeDecodeError:
+            pass
+
+        return f"CacheHashValue(value={value})"  # type: ignore
+
+
+# Represents the type of a hash as stored in the cache.
+# This is the type returned by hgetall and hset.
+StoredHashType = Dict[HashKeyValueType, CacheHashValue]
+
+
+class CacheHashSetResponse:
+    def __init__(self, key: bytes, value: StoredHashType):
+        self._key = key
+        self._value = value
+
+    def value(self) -> StoredHashType:
+        return self._value
+
+    def key(self) -> str:
+        """Decodes key of item set in cache to a utf-8 string."""
+        return self._key.decode("utf-8")
+
+    def key_as_bytes(self) -> bytes:
+        """Returns key of item stored in cache as bytes."""
+        return self._key
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        try:
+            key = self.key()
+        except UnicodeDecodeError:
+            key = self.key_as_bytes()  # type: ignore
+
+        return f"CacheHashSetResponse(key={key}, value={self._value})"
+
+
+class CacheHashGetAllResponse:
+    def __init__(self, value: Optional[StoredHashType], result: CacheGetStatus):
+        self._value = value
+        self._result = result
+
+    def value(self) -> Optional[StoredHashType]:
+        if self.status() != CacheGetStatus.HIT:
+            return None
+        return self._value
+
+    def status(self) -> CacheGetStatus:
+        return self._result
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CacheHashGetAllResponse(value={self._value}, result={self._result})"
 
 
 class CreateCacheResponse:
