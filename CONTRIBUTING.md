@@ -47,11 +47,14 @@ subset of these you wish to use locally, you will need to make sure that
 you have a `pyenv` installation of that version. For example:
 
 ```
-pyenv install 3.7.12
-pyenv install 3.8.12
-pyenv install 3.9.10
-pyenv install 3.10.2
+pyenv install 3.7.13
+pyenv install 3.8.13
+pyenv install 3.9.12
+pyenv install 3.10.4
 ```
+
+NB: These are examples. You will need one of each (3.7, 3.8, 3.9, 3.10)
+but the patch version ("13" in "3.7.13") can be the latest one.
 
 <be/>
 
@@ -63,7 +66,7 @@ the list of pyenv python versions that you want tox to be able to use.
 e.g.:
 
 ```
-pyenv local 3.7.12 3.8.12 3.9.10 3.10.2
+pyenv local 3.7.13 3.8.13 3.9.12 3.10.4
 ```
 
 This will create a file called `.python-version` containing the desired
@@ -95,13 +98,13 @@ do either of the following to limit `tox` to one version (in these examples,
 python 3.9):
 
 ```
-TOXENV=python3.9 tox --notest
+TOXENV=py39 tox --notest
 ```
 
 or:
 
 ```
-tox -e python3.9 --notest
+tox -e py39 --notest
 ```
 
 <br />
