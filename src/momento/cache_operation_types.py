@@ -164,12 +164,12 @@ class CacheMultiGetResponse:
 
 
 # Dictionary related respnses
-DictionaryKeyValueType = Union[str, bytes]
-DictionaryType = Dict[DictionaryKeyValueType, DictionaryKeyValueType]
+DictionaryKeyValue = Union[str, bytes]
+Dictionary = Dict[DictionaryKeyValue, DictionaryKeyValue]
 
 
 class CacheDictionaryGetResponse:
-    def __init__(self, value: Optional[DictionaryKeyValueType], result: CacheGetStatus):
+    def __init__(self, value: Optional[DictionaryKeyValue], result: CacheGetStatus):
         self._value = value
         self._result = result
 
@@ -200,7 +200,7 @@ class CacheDictionaryGetResponse:
 
 
 class CacheDictionaryValue:
-    def __init__(self, value: DictionaryKeyValueType) -> None:
+    def __init__(self, value: DictionaryKeyValue) -> None:
         self._value = value
 
     def value(self) -> str:
@@ -227,15 +227,15 @@ class CacheDictionaryValue:
 
 # Represents the type of a hash as stored in the cache.
 # This is the type returned by hgetall and hset.
-StoredDictionaryType = Dict[DictionaryKeyValueType, CacheDictionaryValue]
+StoredDictionary = Dict[DictionaryKeyValue, CacheDictionaryValue]
 
 
 class CacheDictionarySetResponse:
-    def __init__(self, key: bytes, value: StoredDictionaryType):
+    def __init__(self, key: bytes, value: StoredDictionary):
         self._key = key
         self._value = value
 
-    def value(self) -> StoredDictionaryType:
+    def value(self) -> StoredDictionary:
         return self._value
 
     def key(self) -> str:
@@ -259,11 +259,11 @@ class CacheDictionarySetResponse:
 
 
 class CacheDictionaryGetAllResponse:
-    def __init__(self, value: Optional[StoredDictionaryType], result: CacheGetStatus):
+    def __init__(self, value: Optional[StoredDictionary], result: CacheGetStatus):
         self._value = value
         self._result = result
 
-    def value(self) -> Optional[StoredDictionaryType]:
+    def value(self) -> Optional[StoredDictionary]:
         if self.status() != CacheGetStatus.HIT:
             return None
         return self._value

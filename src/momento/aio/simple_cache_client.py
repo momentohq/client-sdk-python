@@ -47,22 +47,22 @@ from ..cache_operation_types import (
     CacheDictionarySetResponse,
     CacheDictionaryValue,
     CacheDictionaryGetAllResponse,
-    DictionaryKeyValueType,
-    DictionaryType,
-    StoredDictionaryType,
+    DictionaryKeyValue,
+    Dictionary,
+    StoredDictionary,
 )
 
 
-def convert_dict_values_to_bytes(dict_: DictionaryType) -> DictionaryType:
+def convert_dict_values_to_bytes(dict_: Dictionary) -> Dictionary:
     return {k: v if isinstance(v, bytes) else v.encode() for k, v in dict_.items()}
 
 
-def dict_to_stored_hash(dict_: DictionaryType) -> StoredDictionaryType:
+def dict_to_stored_hash(dict_: Dictionary) -> StoredDictionary:
     return {k: CacheDictionaryValue(v) for k, v in dict_.items()}
 
 
-def _deserialize_stored_hash(pickled_dict: bytes) -> StoredDictionaryType:
-    d = cast(DictionaryType, pickle.loads(pickled_dict))
+def _deserialize_stored_hash(pickled_dict: bytes) -> StoredDictionary:
+    d = cast(Dictionary, pickle.loads(pickled_dict))
     return dict_to_stored_hash(d)
 
 
@@ -298,13 +298,13 @@ class SimpleCacheClient:
         self,
         cache_name: str,
         dictionary_name: str,
-        mapping: DictionaryType,
+        mapping: Dictionary,
     ) -> CacheDictionarySetResponse:
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         dictionary = {}
         if dictionary_get_response.status() == CacheGetStatus.HIT:
             dictionary = cast(
-                DictionaryType, pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
+                Dictionary, pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
             )
 
         mapping = convert_dict_values_to_bytes(mapping)
@@ -319,13 +319,13 @@ class SimpleCacheClient:
         self,
         cache_name: str,
         dictionary_name: str,
-        key: DictionaryKeyValueType,
+        key: DictionaryKeyValue,
     ) -> CacheDictionaryGetResponse:
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
 
-        dictionary: DictionaryType = pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
+        dictionary: Dictionary = pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
 
         try:
             value = dictionary[key]

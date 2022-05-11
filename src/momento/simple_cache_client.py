@@ -24,9 +24,9 @@ from .cache_operation_types import (
     CacheDictionarySetResponse,
     CacheDictionaryValue,
     CacheDictionaryGetAllResponse,
-    DictionaryKeyValueType,
-    DictionaryType,
-    StoredDictionaryType,
+    DictionaryKeyValue,
+    Dictionary,
+    StoredDictionary,
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -280,7 +280,7 @@ class SimpleCacheClient:
         self,
         cache_name: str,
         dictionary_name: str,
-        mapping: DictionaryType,
+        mapping: Dictionary,
     ) -> CacheDictionarySetResponse:
         coroutine = self._momento_async_client.dictionary_set(cache_name, dictionary_name, mapping)
         return wait_for_coroutine(self._loop, coroutine)
@@ -289,7 +289,7 @@ class SimpleCacheClient:
         self,
         cache_name: str,
         dictionary_name: str,
-        key: DictionaryKeyValueType,
+        key: DictionaryKeyValue,
     ) -> CacheDictionaryGetResponse:
         coroutine = self._momento_async_client.dictionary_get(cache_name, dictionary_name, key)
         return wait_for_coroutine(self._loop, coroutine)
