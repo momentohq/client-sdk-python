@@ -21,7 +21,6 @@ from .cache_operation_types import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
     CacheDictionaryGetResponse,
-    CacheDictionaryGetStatus,
     CacheDictionarySetResponse,
     CacheDictionaryValue,
     CacheDictionaryGetAllResponse,

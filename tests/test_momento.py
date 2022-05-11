@@ -14,7 +14,6 @@ from momento.cache_operation_types import (
     CacheGetStatus,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
-    CacheDictionaryGetStatus,
     CacheDictionaryValue)
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
@@ -374,7 +373,7 @@ class TestMomento(unittest.TestCase):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             get_response = simple_cache.dictionary_get(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key")
-            self.assertEqual(CacheDictionaryGetStatus.HASH_MISS, get_response.status())
+            self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     def test_dictionary_set_response(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -396,7 +395,7 @@ class TestMomento(unittest.TestCase):
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", mapping={"key1": "value1"})
             get_response = simple_cache.dictionary_get(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", key="key2")
-            self.assertEqual(CacheDictionaryGetStatus.HASH_KEY_MISS, get_response.status())
+            self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     def test_dictionary_get_hit(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -415,7 +414,7 @@ class TestMomento(unittest.TestCase):
                     cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, mapping=mapping)
                 get_response = simple_cache.dictionary_get(
                     cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key)
-                self.assertEqual(CacheDictionaryGetStatus.HIT, get_response.status())
+                self.assertEqual(CacheGetStatus.HIT, get_response.status())
                 self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
     def test_dictionary_get_all_miss(self):

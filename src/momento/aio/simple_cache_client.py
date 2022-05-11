@@ -44,7 +44,6 @@ from ..cache_operation_types import (
     CacheMultiGetResponse,
     CacheMultiGetFailureResponse,
     CacheDictionaryGetResponse,
-    CacheDictionaryGetStatus,
     CacheDictionarySetResponse,
     CacheDictionaryValue,
     CacheDictionaryGetAllResponse,
@@ -324,7 +323,7 @@ class SimpleCacheClient:
     ) -> CacheDictionaryGetResponse:
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
-            return CacheDictionaryGetResponse(value=None, result=CacheDictionaryGetStatus.HASH_MISS)
+            return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
 
         dictionary: DictionaryType = pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
 
@@ -332,10 +331,10 @@ class SimpleCacheClient:
             value = dictionary[key]
         except KeyError:
             return CacheDictionaryGetResponse(
-                value=None, result=CacheDictionaryGetStatus.HASH_KEY_MISS
+                value=None, result=CacheGetStatus.MISS
             )
 
-        return CacheDictionaryGetResponse(value=value, result=CacheDictionaryGetStatus.HIT)
+        return CacheDictionaryGetResponse(value=value, result=CacheGetStatus.HIT)
 
     async def dictionary_get_all(
         self, cache_name: str, dictionary_name: str

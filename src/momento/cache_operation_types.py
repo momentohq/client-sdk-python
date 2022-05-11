@@ -168,34 +168,22 @@ DictionaryKeyValueType = Union[str, bytes]
 DictionaryType = Dict[DictionaryKeyValueType, DictionaryKeyValueType]
 
 
-class CacheDictionaryGetStatus(Enum):
-    # The key exists for a particular hash
-    HIT = 1
-    # The hash is missing from the cache
-    HASH_MISS = 2
-    # The hash is in the cache but the key is missing from the hash
-    HASH_KEY_MISS = 3
-
-    def is_hit(self) -> bool:
-        return self.value == self.HIT.value  # type: ignore
-
-
 class CacheDictionaryGetResponse:
-    def __init__(self, value: Optional[DictionaryKeyValueType], result: CacheDictionaryGetStatus):
+    def __init__(self, value: Optional[DictionaryKeyValueType], result: CacheGetStatus):
         self._value = value
         self._result = result
 
     def value(self) -> Optional[str]:
-        if not self.status().is_hit():
+        if self.status() == CacheGetStatus.MISS:
             return None
         return cast(bytes, self._value).decode("utf-8")
 
     def value_as_bytes(self) -> Optional[bytes]:
-        if not self.status().is_hit():
+        if self.status() == CacheGetStatus.MISS:
             return None
         return cast(bytes, self._value)
 
-    def status(self) -> CacheDictionaryGetStatus:
+    def status(self) -> CacheGetStatus:
         return self._result
 
     def __str__(self) -> str:

@@ -10,7 +10,7 @@ from momento.cache_operation_types import (
     CacheGetStatus,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
-    CacheDictionaryGetStatus,
+    CacheGetStatus,
     CacheDictionaryValue)
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
@@ -423,7 +423,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             get_response = await simple_cache.dictionary_get(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key")
-            self.assertEqual(CacheDictionaryGetStatus.HASH_MISS, get_response.status())
+            self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     async def test_dictionary_set_response(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -445,7 +445,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", mapping={"key1": "value1"})
             get_response = await simple_cache.dictionary_get(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", key="key2")
-            self.assertEqual(CacheDictionaryGetStatus.HASH_KEY_MISS, get_response.status())
+            self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     async def test_dictionary_get_hit(self):
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -464,7 +464,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                     cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, mapping=mapping)
                 get_response = await simple_cache.dictionary_get(
                     cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key)
-                self.assertEqual(CacheDictionaryGetStatus.HIT, get_response.status())
+                self.assertEqual(CacheGetStatus.HIT, get_response.status())
                 self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
     async def test_dictionary_get_all_miss(self):
