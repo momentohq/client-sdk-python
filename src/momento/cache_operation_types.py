@@ -164,12 +164,13 @@ class CacheMultiGetResponse:
 
 
 # Dictionary related respnses
-DictionaryKeyValue = Union[str, bytes]
-Dictionary = Dict[DictionaryKeyValue, DictionaryKeyValue]
+DictionaryKey = Union[str, bytes]
+DictionaryValue = Union[str, bytes]
+Dictionary = Dict[DictionaryKey, DictionaryValue]
 
 
 class CacheDictionaryGetResponse:
-    def __init__(self, value: Optional[DictionaryKeyValue], result: CacheGetStatus):
+    def __init__(self, value: Optional[DictionaryValue], result: CacheGetStatus):
         self._value = value
         self._result = result
 
@@ -200,7 +201,7 @@ class CacheDictionaryGetResponse:
 
 
 class CacheDictionaryValue:
-    def __init__(self, value: DictionaryKeyValue) -> None:
+    def __init__(self, value: DictionaryValue) -> None:
         self._value = value
 
     def value(self) -> str:
@@ -227,7 +228,7 @@ class CacheDictionaryValue:
 
 # Represents the type of a hash as stored in the cache.
 # This is the type returned by hgetall and hset.
-StoredDictionary = Dict[DictionaryKeyValue, CacheDictionaryValue]
+StoredDictionary = Dict[DictionaryKey, CacheDictionaryValue]
 
 
 class CacheDictionarySetResponse:

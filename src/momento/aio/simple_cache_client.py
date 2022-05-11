@@ -47,7 +47,7 @@ from ..cache_operation_types import (
     CacheDictionarySetResponse,
     CacheDictionaryValue,
     CacheDictionaryGetAllResponse,
-    DictionaryKeyValue,
+    DictionaryKey,
     Dictionary,
     StoredDictionary,
 )
@@ -319,7 +319,7 @@ class SimpleCacheClient:
         self,
         cache_name: str,
         dictionary_name: str,
-        key: DictionaryKeyValue,
+        key: DictionaryKey,
     ) -> CacheDictionaryGetResponse:
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:

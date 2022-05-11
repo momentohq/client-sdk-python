@@ -24,7 +24,7 @@ from .cache_operation_types import (
     CacheDictionarySetResponse,
     CacheDictionaryValue,
     CacheDictionaryGetAllResponse,
-    DictionaryKeyValue,
+    DictionaryKey,
     Dictionary,
     StoredDictionary,
 )
@@ -289,7 +289,7 @@ class SimpleCacheClient:
         self,
         cache_name: str,
         dictionary_name: str,
-        key: DictionaryKeyValue,
+        key: DictionaryKey,
     ) -> CacheDictionaryGetResponse:
         coroutine = self._momento_async_client.dictionary_get(cache_name, dictionary_name, key)
         return wait_for_coroutine(self._loop, coroutine)
