@@ -282,6 +282,16 @@ class SimpleCacheClient:
         dictionary_name: str,
         mapping: Dictionary,
     ) -> CacheDictionarySetResponse:
+        """Store dictionary items (key-value pairs) in the cache.
+
+        Args:
+            cache_name (str): Name of the cache to store the dictionary mapping in.
+            dictionary_name (str): The name of the dictionary to store the mapping.
+            mapping (Dictionary): The items (key-value pairs) to be stored.
+
+        Returns:
+            CacheDictionarySetResponse: data stored in the cache
+        """
         coroutine = self._momento_async_client.dictionary_set(cache_name, dictionary_name, mapping)
         return wait_for_coroutine(self._loop, coroutine)
 
@@ -291,10 +301,29 @@ class SimpleCacheClient:
         dictionary_name: str,
         key: DictionaryKey,
     ) -> CacheDictionaryGetResponse:
+        """Retrieve a dictionary value from the cache.
+
+        Args:
+            cache_name (str): Name of the cache to get the dictionary from.
+            dictionary_name (str): Name of the dictionary to query.
+            key (DictionaryKey): The item to index in the dictionary.
+
+        Returns:
+            CacheDictionaryGetResponse: Value (if present) and status (HIT or MISS).
+        """
         coroutine = self._momento_async_client.dictionary_get(cache_name, dictionary_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
     def dictionary_get_all(self, cache_name: str, dictionary_name: str) -> CacheDictionaryGetAllResponse:
+        """Retrieve the entire dictionary from the cache.
+
+        Args:
+            cache_name (str): Name of the cache to get the dictionary from.
+            dictionary_name (str): Name of the dictionary to retrieve.
+
+        Returns:
+            CacheDictionaryGetAllResponse: Value (the mapping, if present) and status (HIT or MISS).
+        """
         coroutine = self._momento_async_client.dictionary_get_all(cache_name, dictionary_name)
         return wait_for_coroutine(self._loop, coroutine)
 

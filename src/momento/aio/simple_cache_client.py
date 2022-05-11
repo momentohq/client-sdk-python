@@ -300,6 +300,16 @@ class SimpleCacheClient:
         dictionary_name: str,
         mapping: Dictionary,
     ) -> CacheDictionarySetResponse:
+        """Store dictionary items (key-value pairs) in the cache.
+
+        Args:
+            cache_name (str): Name of the cache to store the dictionary mapping in.
+            dictionary_name (str): The name of the dictionary to store the mapping.
+            mapping (Dictionary): The items (key-value pairs) to be stored.
+
+        Returns:
+            CacheDictionarySetResponse: data stored in the cache
+        """
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         dictionary = {}
         if dictionary_get_response.status() == CacheGetStatus.HIT:
@@ -321,6 +331,16 @@ class SimpleCacheClient:
         dictionary_name: str,
         key: DictionaryKey,
     ) -> CacheDictionaryGetResponse:
+        """Retrieve a dictionary value from the cache.
+
+        Args:
+            cache_name (str): Name of the cache to get the dictionary from.
+            dictionary_name (str): Name of the dictionary to query.
+            key (DictionaryKey): The item to index in the dictionary.
+
+        Returns:
+            CacheDictionaryGetResponse: Value (if present) and status (HIT or MISS).
+        """
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
@@ -339,6 +359,15 @@ class SimpleCacheClient:
     async def dictionary_get_all(
         self, cache_name: str, dictionary_name: str
     ) -> CacheDictionaryGetAllResponse:
+        """Retrieve the entire dictionary from the cache.
+
+        Args:
+            cache_name (str): Name of the cache to get the dictionary from.
+            dictionary_name (str): Name of the dictionary to retrieve.
+
+        Returns:
+            CacheDictionaryGetAllResponse: Value (the mapping, if present) and status (HIT or MISS).
+        """
         get_response = await self.get(cache_name, dictionary_name)
         if get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetAllResponse(value=None, result=CacheGetStatus.MISS)
