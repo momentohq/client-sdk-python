@@ -163,12 +163,12 @@ class CacheMultiGetResponse:
         return r_values
 
 
-# Hash related respnses
-HashKeyValueType = Union[str, bytes]
-HashType = Dict[HashKeyValueType, HashKeyValueType]
+# Dictionary related respnses
+DictionaryKeyValueType = Union[str, bytes]
+DictionaryType = Dict[DictionaryKeyValueType, DictionaryKeyValueType]
 
 
-class CacheHashGetStatus(Enum):
+class CacheDictionaryGetStatus(Enum):
     # The key exists for a particular hash
     HIT = 1
     # The hash is missing from the cache
@@ -180,8 +180,8 @@ class CacheHashGetStatus(Enum):
         return self.value == self.HIT.value  # type: ignore
 
 
-class CacheHashGetResponse:
-    def __init__(self, value: Optional[HashKeyValueType], result: CacheHashGetStatus):
+class CacheDictionaryGetResponse:
+    def __init__(self, value: Optional[DictionaryKeyValueType], result: CacheDictionaryGetStatus):
         self._value = value
         self._result = result
 
@@ -195,7 +195,7 @@ class CacheHashGetResponse:
             return None
         return cast(bytes, self._value)
 
-    def status(self) -> CacheHashGetStatus:
+    def status(self) -> CacheDictionaryGetStatus:
         return self._result
 
     def __str__(self) -> str:
@@ -208,11 +208,11 @@ class CacheHashGetResponse:
         except UnicodeDecodeError:
             value = str(value)
 
-        return f"CacheHashGetResponse(value={value}, result={self._result})"
+        return f"CacheDictionaryGetResponse(value={value}, result={self._result})"
 
 
-class CacheHashValue:
-    def __init__(self, value: HashKeyValueType) -> None:
+class CacheDictionaryValue:
+    def __init__(self, value: DictionaryKeyValueType) -> None:
         self._value = value
 
     def value(self) -> str:
@@ -234,20 +234,20 @@ class CacheHashValue:
         except UnicodeDecodeError:
             pass
 
-        return f"CacheHashValue(value={value})"  # type: ignore
+        return f"CacheDictionaryValue(value={value})"  # type: ignore
 
 
 # Represents the type of a hash as stored in the cache.
 # This is the type returned by hgetall and hset.
-StoredHashType = Dict[HashKeyValueType, CacheHashValue]
+StoredDictionaryType = Dict[DictionaryKeyValueType, CacheDictionaryValue]
 
 
-class CacheHashSetResponse:
-    def __init__(self, key: bytes, value: StoredHashType):
+class CacheDictionarySetResponse:
+    def __init__(self, key: bytes, value: StoredDictionaryType):
         self._key = key
         self._value = value
 
-    def value(self) -> StoredHashType:
+    def value(self) -> StoredDictionaryType:
         return self._value
 
     def key(self) -> str:
@@ -267,15 +267,15 @@ class CacheHashSetResponse:
         except UnicodeDecodeError:
             key = self.key_as_bytes()  # type: ignore
 
-        return f"CacheHashSetResponse(key={key}, value={self._value})"
+        return f"CacheDictionarySetResponse(key={key}, value={self._value})"
 
 
-class CacheHashGetAllResponse:
-    def __init__(self, value: Optional[StoredHashType], result: CacheGetStatus):
+class CacheDictionaryGetAllResponse:
+    def __init__(self, value: Optional[StoredDictionaryType], result: CacheGetStatus):
         self._value = value
         self._result = result
 
-    def value(self) -> Optional[StoredHashType]:
+    def value(self) -> Optional[StoredDictionaryType]:
         if self.status() != CacheGetStatus.HIT:
             return None
         return self._value
@@ -287,7 +287,7 @@ class CacheHashGetAllResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheHashGetAllResponse(value={self._value}, result={self._result})"
+        return f"CacheDictionaryGetAllResponse(value={self._value}, result={self._result})"
 
 
 class CreateCacheResponse:

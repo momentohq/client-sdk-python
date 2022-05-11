@@ -20,14 +20,14 @@ from .cache_operation_types import (
     CacheMultiGetFailureResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
-    CacheHashGetResponse,
-    CacheHashGetStatus,
-    CacheHashSetResponse,
-    CacheHashValue,
-    CacheHashGetAllResponse,
-    HashKeyValueType,
-    HashType,
-    StoredHashType,
+    CacheDictionaryGetResponse,
+    CacheDictionaryGetStatus,
+    CacheDictionarySetResponse,
+    CacheDictionaryValue,
+    CacheDictionaryGetAllResponse,
+    DictionaryKeyValueType,
+    DictionaryType,
+    StoredDictionaryType,
 )
 
 from ._utilities._data_validation import _validate_request_timeout
@@ -277,26 +277,26 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.multi_get(cache_name, ops)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def hash_set(
+    def dictionary_set(
         self,
         cache_name: str,
-        hash_name: str,
-        mapping: HashType,
-    ) -> CacheHashSetResponse:
-        coroutine = self._momento_async_client.hash_set(cache_name, hash_name, mapping)
+        dictionary_name: str,
+        mapping: DictionaryType,
+    ) -> CacheDictionarySetResponse:
+        coroutine = self._momento_async_client.dictionary_set(cache_name, dictionary_name, mapping)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def hash_get(
+    def dictionary_get(
         self,
         cache_name: str,
-        hash_name: str,
-        key: HashKeyValueType,
-    ) -> CacheHashGetResponse:
-        coroutine = self._momento_async_client.hash_get(cache_name, hash_name, key)
+        dictionary_name: str,
+        key: DictionaryKeyValueType,
+    ) -> CacheDictionaryGetResponse:
+        coroutine = self._momento_async_client.dictionary_get(cache_name, dictionary_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def hash_get_all(self, cache_name: str, hash_name: str) -> CacheHashGetAllResponse:
-        coroutine = self._momento_async_client.hash_get_all(cache_name, hash_name)
+    def dictionary_get_all(self, cache_name: str, dictionary_name: str) -> CacheDictionaryGetAllResponse:
+        coroutine = self._momento_async_client.dictionary_get_all(cache_name, dictionary_name)
         return wait_for_coroutine(self._loop, coroutine)
 
 

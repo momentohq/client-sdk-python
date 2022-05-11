@@ -43,27 +43,27 @@ from ..cache_operation_types import (
     CacheMultiSetResponse,
     CacheMultiGetResponse,
     CacheMultiGetFailureResponse,
-    CacheHashGetResponse,
-    CacheHashGetStatus,
-    CacheHashSetResponse,
-    CacheHashValue,
-    CacheHashGetAllResponse,
-    HashKeyValueType,
-    HashType,
-    StoredHashType,
+    CacheDictionaryGetResponse,
+    CacheDictionaryGetStatus,
+    CacheDictionarySetResponse,
+    CacheDictionaryValue,
+    CacheDictionaryGetAllResponse,
+    DictionaryKeyValueType,
+    DictionaryType,
+    StoredDictionaryType,
 )
 
 
-def convert_dict_values_to_bytes(dict_: HashType) -> HashType:
+def convert_dict_values_to_bytes(dict_: DictionaryType) -> DictionaryType:
     return {k: v if isinstance(v, bytes) else v.encode() for k, v in dict_.items()}
 
 
-def dict_to_stored_hash(dict_: HashType) -> StoredHashType:
-    return {k: CacheHashValue(v) for k, v in dict_.items()}
+def dict_to_stored_hash(dict_: DictionaryType) -> StoredDictionaryType:
+    return {k: CacheDictionaryValue(v) for k, v in dict_.items()}
 
 
-def _deserialize_stored_hash(pickled_dict: bytes) -> StoredHashType:
-    d = cast(HashType, pickle.loads(pickled_dict))
+def _deserialize_stored_hash(pickled_dict: bytes) -> StoredDictionaryType:
+    d = cast(DictionaryType, pickle.loads(pickled_dict))
     return dict_to_stored_hash(d)
 
 
@@ -295,57 +295,57 @@ class SimpleCacheClient:
         """
         return await self._data_client.get(cache_name, key)
 
-    async def hash_set(
+    async def dictionary_set(
         self,
         cache_name: str,
-        hash_name: str,
-        mapping: HashType,
-    ) -> CacheHashSetResponse:
-        hash_get_response = await self.get(cache_name, hash_name)
-        hash_d = {}
-        if hash_get_response.status() == CacheGetStatus.HIT:
-            hash_d = cast(
-                HashType, pickle.loads(cast(bytes, hash_get_response.value_as_bytes()))
+        dictionary_name: str,
+        mapping: DictionaryType,
+    ) -> CacheDictionarySetResponse:
+        dictionary_get_response = await self.get(cache_name, dictionary_name)
+        dictionary = {}
+        if dictionary_get_response.status() == CacheGetStatus.HIT:
+            dictionary = cast(
+                DictionaryType, pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
             )
 
         mapping = convert_dict_values_to_bytes(mapping)
-        hash_d.update(mapping)
+        dictionary.update(mapping)
 
-        set_response = await self.set(cache_name, hash_name, pickle.dumps(hash_d))
-        return CacheHashSetResponse(
+        set_response = await self.set(cache_name, dictionary_name, pickle.dumps(dictionary))
+        return CacheDictionarySetResponse(
             key=set_response._key, value=_deserialize_stored_hash(set_response._value)
         )
 
-    async def hash_get(
+    async def dictionary_get(
         self,
         cache_name: str,
-        hash_name: str,
-        key: HashKeyValueType,
-    ) -> CacheHashGetResponse:
-        hash_get_response = await self.get(cache_name, hash_name)
-        if hash_get_response.status() == CacheGetStatus.MISS:
-            return CacheHashGetResponse(value=None, result=CacheHashGetStatus.HASH_MISS)
+        dictionary_name: str,
+        key: DictionaryKeyValueType,
+    ) -> CacheDictionaryGetResponse:
+        dictionary_get_response = await self.get(cache_name, dictionary_name)
+        if dictionary_get_response.status() == CacheGetStatus.MISS:
+            return CacheDictionaryGetResponse(value=None, result=CacheDictionaryGetStatus.HASH_MISS)
 
-        hash_d: HashType = pickle.loads(cast(bytes, hash_get_response.value_as_bytes()))
+        dictionary: DictionaryType = pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
 
         try:
-            value = hash_d[key]
+            value = dictionary[key]
         except KeyError:
-            return CacheHashGetResponse(
-                value=None, result=CacheHashGetStatus.HASH_KEY_MISS
+            return CacheDictionaryGetResponse(
+                value=None, result=CacheDictionaryGetStatus.HASH_KEY_MISS
             )
 
-        return CacheHashGetResponse(value=value, result=CacheHashGetStatus.HIT)
+        return CacheDictionaryGetResponse(value=value, result=CacheDictionaryGetStatus.HIT)
 
-    async def hash_get_all(
-        self, cache_name: str, hash_name: str
-    ) -> CacheHashGetAllResponse:
-        get_response = await self.get(cache_name, hash_name)
+    async def dictionary_get_all(
+        self, cache_name: str, dictionary_name: str
+    ) -> CacheDictionaryGetAllResponse:
+        get_response = await self.get(cache_name, dictionary_name)
         if get_response.status() == CacheGetStatus.MISS:
-            return CacheHashGetAllResponse(value=None, result=CacheGetStatus.MISS)
+            return CacheDictionaryGetAllResponse(value=None, result=CacheGetStatus.MISS)
 
         value = _deserialize_stored_hash(cast(bytes, get_response.value_as_bytes()))
-        return CacheHashGetAllResponse(value=value, result=CacheGetStatus.HIT)
+        return CacheDictionaryGetAllResponse(value=value, result=CacheGetStatus.HIT)
 
 
 def init(

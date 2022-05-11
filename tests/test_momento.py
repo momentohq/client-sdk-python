@@ -14,8 +14,8 @@ from momento.cache_operation_types import (
     CacheGetStatus,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
-    CacheHashGetStatus,
-    CacheHashValue)
+    CacheDictionaryGetStatus,
+    CacheDictionaryValue)
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
 _TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
@@ -370,35 +370,35 @@ class TestMomento(unittest.TestCase):
         self.assertEqual("bar1", get_resp.values()[0])
         self.assertEqual("bar2", get_resp.values()[1])
 
-    def test_get_hash_miss(self):
+    def test_get_dictionary_miss(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            get_response = simple_cache.hash_get(
-                cache_name=_TEST_CACHE_NAME, hash_name="hello world", key="key")
-            self.assertEqual(CacheHashGetStatus.HASH_MISS, get_response.status())
+            get_response = simple_cache.dictionary_get(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key")
+            self.assertEqual(CacheDictionaryGetStatus.HASH_MISS, get_response.status())
 
-    def test_hash_set_response(self):
+    def test_dictionary_set_response(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             # Test with key as string
-            set_response = simple_cache.hash_set(
-                cache_name=_TEST_CACHE_NAME, hash_name="myhash", mapping={"key1": "value1"})
+            set_response = simple_cache.dictionary_set(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", mapping={"key1": "value1"})
             self.assertEqual("myhash", set_response.key())
-            self.assertEqual({"key1": CacheHashValue(value=b"value1")}, set_response.value())
+            self.assertEqual({"key1": CacheDictionaryValue(value=b"value1")}, set_response.value())
 
             # Test key as bytes
-            set_response = simple_cache.hash_set(
-                cache_name=_TEST_CACHE_NAME, hash_name="myhash2", mapping={b"key1": "value1"})
+            set_response = simple_cache.dictionary_set(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash2", mapping={b"key1": "value1"})
             self.assertEqual("myhash2", set_response.key())
-            self.assertEqual({b"key1": CacheHashValue(value=b"value1")}, set_response.value())
+            self.assertEqual({b"key1": CacheDictionaryValue(value=b"value1")}, set_response.value())
 
-    def test_hash_set_and_hash_get_missing_key(self):
+    def test_dictionary_set_and_dictionary_get_missing_key(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            simple_cache.hash_set(
-                cache_name=_TEST_CACHE_NAME, hash_name="myhash3", mapping={"key1": "value1"})
-            get_response = simple_cache.hash_get(
-                cache_name=_TEST_CACHE_NAME, hash_name="myhash3", key="key2")
-            self.assertEqual(CacheHashGetStatus.HASH_KEY_MISS, get_response.status())
+            simple_cache.dictionary_set(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", mapping={"key1": "value1"})
+            get_response = simple_cache.dictionary_get(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", key="key2")
+            self.assertEqual(CacheDictionaryGetStatus.HASH_KEY_MISS, get_response.status())
 
-    def test_hash_get_hit(self):
+    def test_dictionary_get_hit(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
             for i, (key_is_str, value_is_str) in enumerate(itertools.product((True, False), (True, False))):
@@ -409,29 +409,29 @@ class TestMomento(unittest.TestCase):
                     value = value.encode()
                 mapping = {key: value}
                 # Use distinct hash names to avoid collisions with already finished tests
-                hash_name = f"myhash4-{i}"
+                dictionary_name = f"myhash4-{i}"
 
-                simple_cache.hash_set(
-                    cache_name=_TEST_CACHE_NAME, hash_name=hash_name, mapping=mapping)
-                get_response = simple_cache.hash_get(
-                    cache_name=_TEST_CACHE_NAME, hash_name=hash_name, key=key)
-                self.assertEqual(CacheHashGetStatus.HIT, get_response.status())
+                simple_cache.dictionary_set(
+                    cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, mapping=mapping)
+                get_response = simple_cache.dictionary_get(
+                    cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key)
+                self.assertEqual(CacheDictionaryGetStatus.HIT, get_response.status())
                 self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
-    def test_hash_get_all_miss(self):
+    def test_dictionary_get_all_miss(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
-            get_response = simple_cache.hash_get_all(
-                cache_name=_TEST_CACHE_NAME, hash_name="myhash5")
+            get_response = simple_cache.dictionary_get_all(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash5")
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
-    def test_hash_get_all_hit(self):
+    def test_dictionary_get_all_hit(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             mapping = {"key1": "value1", "key2": "value2"}
-            simple_cache.hash_set(
-                cache_name=_TEST_CACHE_NAME, hash_name="myhash6", mapping=mapping
+            simple_cache.dictionary_set(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6", mapping=mapping
             )
-            get_all_response = simple_cache.hash_get_all(
-                cache_name=_TEST_CACHE_NAME, hash_name="myhash6")
+            get_all_response = simple_cache.dictionary_get_all(
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6")
             self.assertEqual(CacheGetStatus.HIT, get_all_response.status())
 
             expected = dict_to_stored_hash(
