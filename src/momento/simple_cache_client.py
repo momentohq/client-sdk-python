@@ -295,7 +295,9 @@ class SimpleCacheClient:
         Returns:
             CacheDictionarySetResponse: data stored in the cache
         """
-        coroutine = self._momento_async_client.dictionary_set(cache_name, dictionary_name, mapping)
+        coroutine = self._momento_async_client.dictionary_set(
+            cache_name, dictionary_name, mapping
+        )
         return wait_for_coroutine(self._loop, coroutine)
 
     def dictionary_get(
@@ -314,10 +316,14 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryGetResponse: Value (if present) and status (HIT or MISS).
         """
-        coroutine = self._momento_async_client.dictionary_get(cache_name, dictionary_name, key)
+        coroutine = self._momento_async_client.dictionary_get(
+            cache_name, dictionary_name, key
+        )
         return wait_for_coroutine(self._loop, coroutine)
 
-    def dictionary_get_all(self, cache_name: str, dictionary_name: str) -> CacheDictionaryGetAllResponse:
+    def dictionary_get_all(
+        self, cache_name: str, dictionary_name: str
+    ) -> CacheDictionaryGetAllResponse:
         """Retrieve the entire dictionary from the cache.
 
         Args:
@@ -327,7 +333,9 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryGetAllResponse: Value (the mapping, if present) and status (HIT or MISS).
         """
-        coroutine = self._momento_async_client.dictionary_get_all(cache_name, dictionary_name)
+        coroutine = self._momento_async_client.dictionary_get_all(
+            cache_name, dictionary_name
+        )
         return wait_for_coroutine(self._loop, coroutine)
 
 

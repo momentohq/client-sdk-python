@@ -317,13 +317,16 @@ class SimpleCacheClient:
         dictionary = {}
         if dictionary_get_response.status() == CacheGetStatus.HIT:
             dictionary = cast(
-                Dictionary, pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
+                Dictionary,
+                pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes())),
             )
 
         mapping = convert_dict_values_to_bytes(mapping)
         dictionary.update(mapping)
 
-        set_response = await self.set(cache_name, dictionary_name, pickle.dumps(dictionary))
+        set_response = await self.set(
+            cache_name, dictionary_name, pickle.dumps(dictionary)
+        )
         return CacheDictionarySetResponse(
             key=set_response._key, value=_deserialize_stored_hash(set_response._value)
         )
@@ -348,14 +351,14 @@ class SimpleCacheClient:
         if dictionary_get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
 
-        dictionary: Dictionary = pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes()))
+        dictionary: Dictionary = pickle.loads(
+            cast(bytes, dictionary_get_response.value_as_bytes())
+        )
 
         try:
             value = dictionary[key]
         except KeyError:
-            return CacheDictionaryGetResponse(
-                value=None, result=CacheGetStatus.MISS
-            )
+            return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
 
         return CacheDictionaryGetResponse(value=value, result=CacheGetStatus.HIT)
 

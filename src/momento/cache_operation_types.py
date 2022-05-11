@@ -276,7 +276,9 @@ class CacheDictionaryGetAllResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionaryGetAllResponse(value={self._value}, result={self._result})"
+        return (
+            f"CacheDictionaryGetAllResponse(value={self._value}, result={self._result})"
+        )
 
 
 class CreateCacheResponse:
