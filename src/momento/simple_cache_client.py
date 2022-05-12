@@ -40,6 +40,14 @@ class SimpleCacheClient:
         default_ttl_seconds: int,
         data_client_operation_timeout_ms: Optional[int],
     ):
+        self._init_loop()
+        self._momento_async_client = aio.SimpleCacheClient(
+            auth_token=auth_token,
+            default_ttl_seconds=default_ttl_seconds,
+            data_client_operation_timeout_ms=data_client_operation_timeout_ms,
+        )
+
+    def _init_loop(self):
         try:
             # If the synchronous client is used inside an async application,
             # use the event loop it's running within.
@@ -52,12 +60,6 @@ class SimpleCacheClient:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
         self._loop = loop
-
-        self._momento_async_client = aio.SimpleCacheClient(
-            auth_token=auth_token,
-            default_ttl_seconds=default_ttl_seconds,
-            data_client_operation_timeout_ms=data_client_operation_timeout_ms,
-        )
 
     def __enter__(self) -> "SimpleCacheClient":
         wait_for_coroutine(self._loop, self._momento_async_client.__aenter__())
@@ -286,7 +288,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         data_client_operation_timeout_ms: Optional[int],
     ):
         warnings.warn(aio.INCUBATING_WARNING_MSG)
-        super().__init__(auth_token, default_ttl_seconds, data_client_operation_timeout_ms)
+        self._init_loop()
         self._momento_async_client = aio.SimpleCacheClientIncubating(
             auth_token=auth_token,
             default_ttl_seconds=default_ttl_seconds,
