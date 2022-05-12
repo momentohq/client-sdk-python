@@ -301,23 +301,23 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        mapping: Dictionary,
+        dictionary: Dictionary,
     ) -> CacheDictionarySetResponse:
         """Store dictionary items (key-value pairs) in the cache.
 
-        Inserts items from `mapping` into a dictionary `dictionary_name`.
+        Inserts items from `dictionary` into a dictionary `dictionary_name`.
         Updates (overwrites) values if the key already exists.
 
         Args:
-            cache_name (str): Name of the cache to store the dictionary mapping in.
-            dictionary_name (str): The name of the dictionary to store the mapping.
-            mapping (Dictionary): The items (key-value pairs) to be stored.
+            cache_name (str): Name of the cache to store the dictionary in.
+            dictionary_name (str): The name of the dictionary in the cache.
+            dictionary (Dictionary): The items (key-value pairs) to be stored.
 
         Returns:
             CacheDictionarySetResponse: data stored in the cache
         """
         coroutine = self._momento_async_client.dictionary_set(
-            cache_name, dictionary_name, mapping
+            cache_name, dictionary_name, dictionary
         )
         return wait_for_coroutine(self._loop, coroutine)
 

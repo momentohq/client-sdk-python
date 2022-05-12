@@ -315,34 +315,33 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        mapping: Dictionary,
+        dictionary: Dictionary,
     ) -> CacheDictionarySetResponse:
         """Store dictionary items (key-value pairs) in the cache.
 
-        Inserts items from `mapping` into a dictionary `dictionary_name`.
+        Inserts items from `dictionary` into a dictionary `dictionary_name`.
         Updates (overwrites) values if the key already exists.
 
         Args:
-            cache_name (str): Name of the cache to store the dictionary mapping in.
-            dictionary_name (str): The name of the dictionary to store the mapping.
-            mapping (Dictionary): The items (key-value pairs) to be stored.
+            cache_name (str): Name of the cache to store the dictionary in.
+            dictionary_name (str): The name of the dictionary in the cache.
+            dictionary (Dictionary): The items (key-value pairs) to be stored.
 
         Returns:
             CacheDictionarySetResponse: data stored in the cache
         """
         dictionary_get_response = await self.get(cache_name, dictionary_name)
-        dictionary = {}
+        cached_dictionary = {}
         if dictionary_get_response.status() == CacheGetStatus.HIT:
-            dictionary = cast(
+            cached_dictionary = cast(
                 Dictionary,
                 pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes())),
             )
 
-        mapping = convert_dict_values_to_bytes(mapping)
-        dictionary.update(mapping)
+        cached_dictionary.update(convert_dict_values_to_bytes(dictionary))
 
         set_response = await self.set(
-            cache_name, dictionary_name, pickle.dumps(dictionary)
+            cache_name, dictionary_name, pickle.dumps(cached_dictionary)
         )
         return CacheDictionarySetResponse(
             key=set_response._key, value=_deserialize_stored_hash(set_response._value)
