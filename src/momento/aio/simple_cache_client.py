@@ -1,6 +1,7 @@
 import pickle
 from types import TracebackType
 from typing import cast, Optional, Union, Type, List
+import warnings
 
 try:
     from ._scs_control_client import _ScsControlClient
@@ -51,6 +52,9 @@ from ..cache_operation_types import (
     Dictionary,
     StoredDictionary,
 )
+
+
+INCUBATING_WARNING_MSG = "Using the incubating client: functionality and features are experimental and subject to change or deletion!"
 
 
 def convert_dict_values_to_bytes(dict_: Dictionary) -> Dictionary:
@@ -294,6 +298,17 @@ class SimpleCacheClient:
         """
         return await self._data_client.get(cache_name, key)
 
+
+class SimpleCacheClientIncubating(SimpleCacheClient):
+    def __init__(
+        self,
+        auth_token: str,
+        default_ttl_seconds: int,
+        data_client_operation_timeout_ms: Optional[int],
+    ):
+        warnings.warn(INCUBATING_WARNING_MSG)
+        super().__init__(auth_token, default_ttl_seconds, data_client_operation_timeout_ms)
+
     async def dictionary_set(
         self,
         cache_name: str,
@@ -386,6 +401,8 @@ def init(
     auth_token: str,
     item_default_ttl_seconds: int,
     request_timeout_ms: Optional[int] = None,
+    *,
+    incubating: bool = False
 ) -> SimpleCacheClient:
     """Creates an async SimpleCacheClient
 
@@ -396,10 +413,13 @@ def init(
         request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
             Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in
             TimeoutError.
+        incubating (bool): Use the incubating client. Includes non-final, experimental features and APIs.
     Returns:
         SimpleCacheClient
     Raises:
         IllegalArgumentError: If method arguments fail validations.
     """
     _validate_request_timeout(request_timeout_ms)
+    if incubating:
+        return SimpleCacheClientIncubating(auth_token, item_default_ttl_seconds, request_timeout_ms)
     return SimpleCacheClient(auth_token, item_default_ttl_seconds, request_timeout_ms)

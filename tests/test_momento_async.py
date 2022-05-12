@@ -3,6 +3,7 @@ import os
 import time
 import unittest
 import uuid
+import warnings
 
 import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
@@ -419,14 +420,20 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             # Make sure were getting values we expect back
             self.assertEqual("buzz5", get_resp.values()[1])
 
+    async def test_incubating_warning(self):
+        with self.assertWarns(UserWarning):
+            warnings.simplefilter("always")
+            async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True):
+                pass
+
     async def test_get_dictionary_miss(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             get_response = await simple_cache.dictionary_get(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key")
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     async def test_dictionary_set_response(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             # Test with key as string
             set_response = await simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", mapping={"key1": "value1"})
@@ -440,7 +447,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             self.assertEqual({b"key1": CacheDictionaryValue(value=b"value1")}, set_response.value())
 
     async def test_dictionary_set_and_dictionary_get_missing_key(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             await simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", mapping={"key1": "value1"})
             get_response = await simple_cache.dictionary_get(
@@ -448,7 +455,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     async def test_dictionary_get_hit(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
             for i, (key_is_str, value_is_str) in enumerate(itertools.product((True, False), (True, False))):
                 key, value = "key1", "value1"
@@ -468,13 +475,13 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                 self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
     async def test_dictionary_get_all_miss(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             get_response = await simple_cache.dictionary_get_all(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash5")
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     async def test_dictionary_get_all_hit(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             mapping = {"key1": "value1", "key2": "value2"}
             await simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6", mapping=mapping

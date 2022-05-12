@@ -1,6 +1,7 @@
 import asyncio
 from types import TracebackType
 from typing import Optional, Union, Type, List
+import warnings
 
 from .aio import simple_cache_client as aio
 
@@ -276,6 +277,22 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.multi_get(cache_name, ops)
         return wait_for_coroutine(self._loop, coroutine)
 
+
+class SimpleCacheClientIncubating(SimpleCacheClient):
+    def __init__(
+        self,
+        auth_token: str,
+        default_ttl_seconds: int,
+        data_client_operation_timeout_ms: Optional[int],
+    ):
+        warnings.warn(aio.INCUBATING_WARNING_MSG)
+        super().__init__(auth_token, default_ttl_seconds, data_client_operation_timeout_ms)
+        self._momento_async_client = aio.SimpleCacheClientIncubating(
+            auth_token=auth_token,
+            default_ttl_seconds=default_ttl_seconds,
+            data_client_operation_timeout_ms=data_client_operation_timeout_ms,
+        )
+
     def dictionary_set(
         self,
         cache_name: str,
@@ -343,6 +360,8 @@ def init(
     auth_token: str,
     item_default_ttl_seconds: int,
     request_timeout_ms: Optional[int] = None,
+    *,
+    incubating: bool = False
 ) -> SimpleCacheClient:
     """Creates a SimpleCacheClient
 
@@ -353,10 +372,13 @@ def init(
         request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
             Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result
             in TimeoutError.
+        incubating (bool): Use the incubating client. Includes non-final, experimental features and APIs.
     Returns:
         SimpleCacheClient
     Raises:
         IllegalArgumentError: If method arguments fail validations
     """
     _validate_request_timeout(request_timeout_ms)
+    if incubating:
+        return SimpleCacheClientIncubating(auth_token, item_default_ttl_seconds, request_timeout_ms)
     return SimpleCacheClient(auth_token, item_default_ttl_seconds, request_timeout_ms)

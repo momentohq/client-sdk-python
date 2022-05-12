@@ -3,6 +3,7 @@ import unittest
 import os
 import uuid
 import time
+import warnings
 
 import momento.simple_cache_client as simple_cache_client
 from momento.aio.simple_cache_client import (
@@ -369,14 +370,20 @@ class TestMomento(unittest.TestCase):
         self.assertEqual("bar1", get_resp.values()[0])
         self.assertEqual("bar2", get_resp.values()[1])
 
+    def test_incubating_warning(self):
+        with self.assertWarns(UserWarning):
+            warnings.simplefilter("always")
+            with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True):
+                pass
+
     def test_get_dictionary_miss(self):
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             get_response = simple_cache.dictionary_get(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key")
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     def test_dictionary_set_response(self):
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             # Test with key as string
             set_response = simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", mapping={"key1": "value1"})
@@ -390,7 +397,7 @@ class TestMomento(unittest.TestCase):
             self.assertEqual({b"key1": CacheDictionaryValue(value=b"value1")}, set_response.value())
 
     def test_dictionary_set_and_dictionary_get_missing_key(self):
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", mapping={"key1": "value1"})
             get_response = simple_cache.dictionary_get(
@@ -398,7 +405,7 @@ class TestMomento(unittest.TestCase):
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     def test_dictionary_get_hit(self):
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
             for i, (key_is_str, value_is_str) in enumerate(itertools.product((True, False), (True, False))):
                 key, value = "key1", "value1"
@@ -418,13 +425,13 @@ class TestMomento(unittest.TestCase):
                 self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
 
     def test_dictionary_get_all_miss(self):
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             get_response = simple_cache.dictionary_get_all(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash5")
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     def test_dictionary_get_all_hit(self):
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, incubating=True) as simple_cache:
             mapping = {"key1": "value1", "key2": "value2"}
             simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6", mapping=mapping
