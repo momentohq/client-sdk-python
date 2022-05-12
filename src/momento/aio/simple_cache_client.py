@@ -307,7 +307,9 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         data_client_operation_timeout_ms: Optional[int],
     ):
         warnings.warn(INCUBATING_WARNING_MSG)
-        super().__init__(auth_token, default_ttl_seconds, data_client_operation_timeout_ms)
+        super().__init__(
+            auth_token, default_ttl_seconds, data_client_operation_timeout_ms
+        )
 
     async def dictionary_set(
         self,
@@ -421,5 +423,7 @@ def init(
     """
     _validate_request_timeout(request_timeout_ms)
     if incubating:
-        return SimpleCacheClientIncubating(auth_token, item_default_ttl_seconds, request_timeout_ms)
+        return SimpleCacheClientIncubating(
+            auth_token, item_default_ttl_seconds, request_timeout_ms
+        )
     return SimpleCacheClient(auth_token, item_default_ttl_seconds, request_timeout_ms)

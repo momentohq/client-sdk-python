@@ -380,5 +380,7 @@ def init(
     """
     _validate_request_timeout(request_timeout_ms)
     if incubating:
-        return SimpleCacheClientIncubating(auth_token, item_default_ttl_seconds, request_timeout_ms)
+        return SimpleCacheClientIncubating(
+            auth_token, item_default_ttl_seconds, request_timeout_ms
+        )
     return SimpleCacheClient(auth_token, item_default_ttl_seconds, request_timeout_ms)
