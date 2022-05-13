@@ -163,7 +163,7 @@ class CacheMultiGetResponse:
         return r_values
 
 
-# Dictionary related respnses
+# Dictionary related responses
 DictionaryKey = Union[str, bytes]
 DictionaryValue = Union[str, bytes]
 Dictionary = Dict[DictionaryKey, DictionaryValue]
@@ -226,8 +226,9 @@ class CacheDictionaryValue:
         return f"CacheDictionaryValue(value={value})"  # type: ignore
 
 
-# Represents the type of a hash as stored in the cache.
-# This is the type returned by hgetall and hset.
+# Represents the type of a dictionary as stored in the cache.
+# This is the type returned by dictionary_get_all and
+# dictionary_set.
 StoredDictionary = Dict[DictionaryKey, CacheDictionaryValue]
 
 
