@@ -374,7 +374,6 @@ def init(
         request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
             Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result
             in TimeoutError.
-        incubating (bool): Use the incubating client. Includes non-final, experimental features and APIs.
     Returns:
         SimpleCacheClient
     Raises:
