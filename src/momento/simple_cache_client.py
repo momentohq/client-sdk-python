@@ -3,7 +3,6 @@ from types import TracebackType
 from typing import Optional, Union, Type, List
 
 from .aio import simple_cache_client as aio
-
 from ._async_utils import wait_for_coroutine
 from .cache_operation_types import (
     CacheGetResponse,
@@ -21,7 +20,6 @@ from .cache_operation_types import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-
 from ._utilities._data_validation import _validate_request_timeout
 
 
@@ -32,6 +30,14 @@ class SimpleCacheClient:
         default_ttl_seconds: int,
         data_client_operation_timeout_ms: Optional[int],
     ):
+        self._init_loop()
+        self._momento_async_client = aio.SimpleCacheClient(
+            auth_token=auth_token,
+            default_ttl_seconds=default_ttl_seconds,
+            data_client_operation_timeout_ms=data_client_operation_timeout_ms,
+        )
+
+    def _init_loop(self) -> None:
         try:
             # If the synchronous client is used inside an async application,
             # use the event loop it's running within.
@@ -44,12 +50,6 @@ class SimpleCacheClient:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
         self._loop = loop
-
-        self._momento_async_client = aio.SimpleCacheClient(
-            auth_token=auth_token,
-            default_ttl_seconds=default_ttl_seconds,
-            data_client_operation_timeout_ms=data_client_operation_timeout_ms,
-        )
 
     def __enter__(self) -> "SimpleCacheClient":
         wait_for_coroutine(self._loop, self._momento_async_client.__aenter__())
