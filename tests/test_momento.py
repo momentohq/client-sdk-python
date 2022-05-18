@@ -364,6 +364,27 @@ class TestMomento(unittest.TestCase):
         self.assertEqual("bar1", get_resp.values()[0])
         self.assertEqual("bar2", get_resp.values()[1])
 
+    # Test delete for key that doesn't exist
+    def test_delete_key_doesnt_exist(self):
+        key = "a key that isnt there"
+        self.assertEqual(CacheGetStatus.MISS, (self.client.get(_TEST_CACHE_NAME, key)).status())
+        self.client.delete(_TEST_CACHE_NAME, "a key that isnt there")
+        self.assertEqual(CacheGetStatus.MISS, (self.client.get(_TEST_CACHE_NAME, key)).status())
+
+    # Test delete
+    def test_delete(self):
+        # Set an item to then delete...
+        key = "key1"
+        self.assertEqual(CacheGetStatus.MISS, (self.client.get(_TEST_CACHE_NAME, key)).status())
+        self.client.set(_TEST_CACHE_NAME, key, "value1")
+        self.assertEqual(CacheGetStatus.HIT, (self.client.get(_TEST_CACHE_NAME, key)).status())
+
+        # Delete
+        self.client.delete(_TEST_CACHE_NAME, key)
+
+        # Verify deleted
+        self.assertEqual(CacheGetStatus.MISS, (self.client.get(_TEST_CACHE_NAME, key)).status())
+
 
 if __name__ == '__main__':
     unittest.main()

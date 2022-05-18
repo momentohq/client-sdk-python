@@ -1,8 +1,7 @@
 import asyncio
 import functools
 from typing import Union, Optional, List, Any
-from momento_wire_types.cacheclient_pb2 import _GetRequest
-from momento_wire_types.cacheclient_pb2 import _SetRequest
+from momento_wire_types.cacheclient_pb2 import _GetRequest, _SetRequest, _DeleteRequest
 
 from .. import cache_operation_types as cache_sdk_ops
 from .. import _cache_service_errors_converter
@@ -232,6 +231,25 @@ class _ScsDataClient:
             )
         except Exception as e:
             _momento_logger.debug(f"multi_get failed with response: {e}")
+            raise _cache_service_errors_converter.convert(e)
+
+    async def delete(
+        self, cache_name: str, key: Union[str, bytes]
+    ) -> cache_sdk_ops.CacheDeleteResponse:
+        _validate_cache_name(cache_name)
+        try:
+            _momento_logger.debug(f"Issuing a delete request with key {str(key)}")
+            delete_request = _DeleteRequest()
+            delete_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+            response = await self._grpc_manager.async_stub().Delete(
+                delete_request,
+                metadata=_make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            _momento_logger.debug(f"Received a delete response for {str(key)}")
+            return cache_sdk_ops.CacheDeleteResponse(response)
+        except Exception as e:
+            _momento_logger.debug(f"Delete failed for {str(key)} with response: {e}")
             raise _cache_service_errors_converter.convert(e)
 
     async def close(self) -> None:
