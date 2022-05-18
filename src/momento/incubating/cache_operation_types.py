@@ -105,10 +105,28 @@ class CacheDictionaryGetAllResponse:
         self._value = value
         self._result = result
 
-    def value(self) -> Optional[StoredDictionary]:
+    def value(self, *, keys_as_bytes: bool = False) -> Optional[StoredDictionary]:
+        """Get the dictionary as stored in the cache.
+
+        By default unmarshals the keys to strings. To override this
+        set `keys_as_bytes` to `True`.
+
+        Values are of type `CacheDictionaryValue`, which implement `value` and
+        `value_as_bytes` methods to unmarshal to string or bytes respectively.
+
+        Args:
+            keys_as_bytes (bool, optional): Leave the keys as uninterpreted bytes. Defaults to False.
+
+        Returns:
+            Optional[StoredDictionary]: The dictionary if the cache get was a hit, else None.
+        """
         if self.status() != CacheGetStatus.HIT:
             return None
-        return self._value
+
+        if keys_as_bytes:
+            return self._value
+
+        return {cast(bytes, k).decode("utf-8"): v for k, v in self._value.items()}
 
     def status(self) -> CacheGetStatus:
         return self._result

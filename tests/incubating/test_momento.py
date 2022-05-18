@@ -91,6 +91,9 @@ class TestMomento(unittest.TestCase):
 
             expected = dict_to_stored_hash(
                 convert_dict_values_to_bytes(dictionary))
+            self.assertEqual(expected, get_all_response.value(keys_as_bytes=True))
+
+            expected = {k.decode("utf-8"): v for k, v in expected.items()}
             self.assertEqual(expected, get_all_response.value())
 
 

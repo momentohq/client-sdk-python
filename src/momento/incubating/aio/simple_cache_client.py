@@ -4,6 +4,8 @@ import warnings
 
 from .. import INCUBATING_WARNING_MSG
 from ...aio.simple_cache_client import SimpleCacheClient
+from ..._utilities._data_validation import _as_bytes
+
 from ..cache_operation_types import (
     CacheGetStatus,
     CacheDictionaryGetResponse,
@@ -87,7 +89,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         )
 
         try:
-            value = dictionary[key]
+            value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
         except KeyError:
             return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
 
