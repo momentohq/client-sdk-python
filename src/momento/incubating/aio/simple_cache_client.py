@@ -60,9 +60,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         set_response = await self.set(
             cache_name, dictionary_name, pickle.dumps(cached_dictionary)
         )
-        return CacheDictionarySetResponse(
-            key=set_response._key, value=deserialize_stored_hash(set_response._value)
-        )
+        return CacheDictionarySetResponse(key=set_response._key, value=dictionary)
 
     async def dictionary_get(
         self,

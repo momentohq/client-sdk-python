@@ -73,11 +73,11 @@ StoredDictionary = Dict[DictionaryKey, CacheDictionaryValue]
 
 
 class CacheDictionarySetResponse:
-    def __init__(self, key: bytes, value: StoredDictionary):
+    def __init__(self, key: bytes, value: Dictionary):
         self._key = key
         self._value = value
 
-    def value(self) -> StoredDictionary:
+    def value(self) -> Dictionary:
         return self._value
 
     def key(self) -> str:
