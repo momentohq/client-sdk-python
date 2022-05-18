@@ -368,7 +368,7 @@ class TestMomento(unittest.TestCase):
     def test_delete_key_doesnt_exist(self):
         key = "a key that isnt there"
         self.assertEqual(CacheGetStatus.MISS, (self.client.get(_TEST_CACHE_NAME, key)).status())
-        self.client.delete(_TEST_CACHE_NAME, "a key that isnt there")
+        self.client.delete(_TEST_CACHE_NAME, key)
         self.assertEqual(CacheGetStatus.MISS, (self.client.get(_TEST_CACHE_NAME, key)).status())
 
     # Test delete

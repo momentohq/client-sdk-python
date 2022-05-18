@@ -420,7 +420,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
     async def test_delete_key_doesnt_exist(self):
         key = "a key that isnt there"
         self.assertEqual(CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status())
-        await self.client.delete(_TEST_CACHE_NAME, "a key that isnt there")
+        await self.client.delete(_TEST_CACHE_NAME, key)
         self.assertEqual(CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status())
 
     # Test delete
