@@ -416,6 +416,27 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             # Make sure were getting values we expect back
             self.assertEqual("buzz5", get_resp.values()[1])
 
+    # Test delete for key that doesn't exist
+    async def test_delete_key_doesnt_exist(self):
+        key = "a key that isnt there"
+        self.assertEqual(CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status())
+        await self.client.delete(_TEST_CACHE_NAME, key)
+        self.assertEqual(CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status())
+
+    # Test delete
+    async def test_delete(self):
+        # Set an item to then delete...
+        key = "key1"
+        self.assertEqual(CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status())
+        await self.client.set(_TEST_CACHE_NAME, key, "value1")
+        self.assertEqual(CacheGetStatus.HIT, (await self.client.get(_TEST_CACHE_NAME, key)).status())
+
+        # Delete
+        await self.client.delete(_TEST_CACHE_NAME, key)
+
+        # Verify deleted
+        self.assertEqual(CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status())
+
 
 if __name__ == '__main__':
     unittest.main()

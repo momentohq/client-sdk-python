@@ -163,6 +163,11 @@ class CacheMultiGetResponse:
         return r_values
 
 
+class CacheDeleteResponse:
+    def __init__(self, grpc_create_cache_response: Any):  # type: ignore[misc]
+        pass
+
+
 class CreateCacheResponse:
     def __init__(self, grpc_create_cache_response: Any):  # type: ignore[misc]
         pass

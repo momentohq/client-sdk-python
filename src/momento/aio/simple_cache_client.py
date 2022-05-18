@@ -35,6 +35,7 @@ from ..cache_operation_types import (
     ListSigningKeysResponse,
     CacheSetResponse,
     CacheGetResponse,
+    CacheDeleteResponse,
     CacheMultiSetOperation,
     CacheMultiGetOperation,
     CacheMultiSetFailureResponse,
@@ -271,6 +272,27 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
         return await self._data_client.get(cache_name, key)
+
+    async def delete(self, cache_name: str, key: str) -> CacheDeleteResponse:
+        """Delete an item from the cache.
+
+        Performs a no-op if the item is not in the cache.
+
+        Args:
+            cache_name: Name of the cache to get the item from.
+            key (string or bytes): The key to delete.
+
+        Returns:
+            CacheDeleteResponse
+
+        Raises:
+            InvalidArgumentError: If validation fails for provided method arguments.
+            BadRequestError: If the provided inputs are rejected by server because they are invalid
+            NotFoundError: If the cache with the given name doesn't exist.
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+        """
+        return await self._data_client.delete(cache_name, key)
 
 
 def init(
