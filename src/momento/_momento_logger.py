@@ -3,9 +3,9 @@ import logging
 logger = logging.getLogger("momentosdk")
 
 
-def info(msg: str) -> None:
-    logger.info(msg)
+""" info('some %s stuff', 'information') """
+info = logger.info
 
 
-def debug(msg: str) -> None:
-    logger.debug(msg)
+""" debug('some %s stuff', 'debug') """
+debug = logger.debug
