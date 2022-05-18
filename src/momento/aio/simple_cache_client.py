@@ -279,7 +279,7 @@ class SimpleCacheClient:
         Performs a no-op if the item is not in the cache.
 
         Args:
-            cache_name: Name of the cache to get the item from.
+            cache_name: Name of the cache to delete the item from.
             key (string or bytes): The key to delete.
 
         Returns:
@@ -290,7 +290,7 @@ class SimpleCacheClient:
             BadRequestError: If the provided inputs are rejected by server because they are invalid
             NotFoundError: If the cache with the given name doesn't exist.
             AuthenticationError: If the provided Momento Auth Token is invalid.
-            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+            InternalServerError: If server encountered an unknown error while trying to delete the item.
         """
         return await self._data_client.delete(cache_name, key)
 
