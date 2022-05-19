@@ -37,7 +37,7 @@ class CacheDictionaryGetResponse:
         except UnicodeDecodeError:
             value = str(value)
 
-        return f"CacheDictionaryGetResponse(value={value}, result={self._result})"
+        return f"CacheDictionaryGetResponse(value={value!r}, result={self._result!r})"
 
 
 class CacheDictionaryValue:
@@ -63,7 +63,7 @@ class CacheDictionaryValue:
         except UnicodeDecodeError:
             pass
 
-        return f"CacheDictionaryValue(value={value})"  # type: ignore
+        return f"CacheDictionaryValue(value={value!r})"
 
 
 # Represents the type of a dictionary as stored in the cache.
@@ -97,7 +97,7 @@ class CacheDictionarySetResponse:
         except UnicodeDecodeError:
             key = self.key_as_bytes()  # type: ignore
 
-        return f"CacheDictionarySetResponse(key={key}, value={self._value})"
+        return f"CacheDictionarySetResponse(key={key!r}, value={self._value!r})"
 
 
 class CacheDictionaryGetAllResponse:
@@ -135,6 +135,4 @@ class CacheDictionaryGetAllResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return (
-            f"CacheDictionaryGetAllResponse(value={self._value}, result={self._result})"
-        )
+        return f"CacheDictionaryGetAllResponse(value={self._value!r}, result={self._result!r})"
