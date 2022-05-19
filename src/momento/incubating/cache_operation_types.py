@@ -126,7 +126,7 @@ class CacheDictionaryGetAllResponse:
         if keys_as_bytes:
             return self._value
 
-        return {cast(bytes, k).decode("utf-8"): v for k, v in self._value.items()}
+        return {cast(bytes, k).decode("utf-8"): v for k, v in self._value.items()}  # type: ignore
 
     def status(self) -> CacheGetStatus:
         return self._result
