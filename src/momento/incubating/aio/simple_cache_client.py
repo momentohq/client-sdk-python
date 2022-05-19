@@ -4,6 +4,8 @@ import warnings
 
 from .. import INCUBATING_WARNING_MSG
 from ...aio.simple_cache_client import SimpleCacheClient
+from ..._utilities._data_validation import _as_bytes
+
 from ..cache_operation_types import (
     CacheGetStatus,
     CacheDictionaryGetResponse,
@@ -60,9 +62,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         set_response = await self.set(
             cache_name, dictionary_name, pickle.dumps(cached_dictionary)
         )
-        return CacheDictionarySetResponse(
-            key=set_response._key, value=deserialize_stored_hash(set_response._value)
-        )
+        return CacheDictionarySetResponse(key=set_response._key, value=dictionary)
 
     async def dictionary_get(
         self,
@@ -89,7 +89,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         )
 
         try:
-            value = dictionary[key]
+            value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
         except KeyError:
             return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
 

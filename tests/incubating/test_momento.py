@@ -32,16 +32,18 @@ class TestMomento(unittest.TestCase):
     def test_dictionary_set_response(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             # Test with key as string
+            dictionary = {"key1": "value1"}
             set_response = simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", dictionary={"key1": "value1"})
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", dictionary=dictionary)
             self.assertEqual("myhash", set_response.key())
-            self.assertEqual({"key1": CacheDictionaryValue(value=b"value1")}, set_response.value())
+            self.assertEqual(dictionary, set_response.value())
 
             # Test key as bytes
+            dictionary={b"key1": "value1"}
             set_response = simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash2", dictionary={b"key1": "value1"})
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash2", dictionary=dictionary)
             self.assertEqual("myhash2", set_response.key())
-            self.assertEqual({b"key1": CacheDictionaryValue(value=b"value1")}, set_response.value())
+            self.assertEqual(dictionary, set_response.value())
 
     def test_dictionary_set_and_dictionary_get_missing_key(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
@@ -89,6 +91,9 @@ class TestMomento(unittest.TestCase):
 
             expected = dict_to_stored_hash(
                 convert_dict_values_to_bytes(dictionary))
+            self.assertEqual(expected, get_all_response.value(keys_as_bytes=True))
+
+            expected = {k.decode("utf-8"): v for k, v in expected.items()}
             self.assertEqual(expected, get_all_response.value())
 
 
