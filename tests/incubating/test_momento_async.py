@@ -5,10 +5,7 @@ import warnings
 
 from momento.cache_operation_types import CacheGetStatus
 import momento.incubating.aio.simple_cache_client as simple_cache_client
-from momento.incubating.cache_operation_types import CacheDictionaryValue
-from momento.incubating.aio.utils import (
-    convert_dict_values_to_bytes,
-    dict_to_stored_hash)
+from momento.incubating.aio.utils import convert_dict_items_to_bytes
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
 _AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
@@ -89,11 +86,10 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6")
             self.assertEqual(CacheGetStatus.HIT, get_all_response.status())
 
-            expected = dict_to_stored_hash(
-                convert_dict_values_to_bytes(dictionary))
-            self.assertEqual(expected, get_all_response.value(keys_as_bytes=True))
+            expected = convert_dict_items_to_bytes(dictionary)
+            self.assertEqual(expected, get_all_response.value_as_bytes())
 
-            expected = {k.decode("utf-8"): v for k, v in expected.items()}
+            expected = dictionary
             self.assertEqual(expected, get_all_response.value())
 
 

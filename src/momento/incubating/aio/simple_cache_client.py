@@ -1,4 +1,3 @@
-import pickle
 from typing import cast, Optional
 import warnings
 
@@ -11,11 +10,16 @@ from ..cache_operation_types import (
     CacheDictionaryGetResponse,
     CacheDictionarySetResponse,
     CacheDictionaryGetAllResponse,
+    BytesDictionary,
     DictionaryKey,
     Dictionary,
 )
 from ..._utilities._data_validation import _validate_request_timeout
-from .utils import convert_dict_values_to_bytes, deserialize_stored_hash
+from .utils import (
+    convert_dict_items_to_bytes,
+    deserialize_dictionary,
+    serialize_dictionary,
+)
 
 
 class SimpleCacheClientIncubating(SimpleCacheClient):
@@ -50,17 +54,16 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             CacheDictionarySetResponse: data stored in the cache
         """
         dictionary_get_response = await self.get(cache_name, dictionary_name)
-        cached_dictionary = {}
+        cached_dictionary: BytesDictionary = {}
         if dictionary_get_response.status() == CacheGetStatus.HIT:
-            cached_dictionary = cast(
-                Dictionary,
-                pickle.loads(cast(bytes, dictionary_get_response.value_as_bytes())),
+            cached_dictionary = deserialize_dictionary(
+                cast(bytes, dictionary_get_response.value_as_bytes())
             )
 
-        cached_dictionary.update(convert_dict_values_to_bytes(dictionary))
+        cached_dictionary.update(convert_dict_items_to_bytes(dictionary))
 
         set_response = await self.set(
-            cache_name, dictionary_name, pickle.dumps(cached_dictionary)
+            cache_name, dictionary_name, serialize_dictionary(cached_dictionary)
         )
         return CacheDictionarySetResponse(key=set_response._key, value=dictionary)
 
@@ -84,7 +87,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         if dictionary_get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
 
-        dictionary: Dictionary = pickle.loads(
+        dictionary: BytesDictionary = deserialize_dictionary(
             cast(bytes, dictionary_get_response.value_as_bytes())
         )
 
@@ -111,7 +114,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         if get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetAllResponse(value=None, result=CacheGetStatus.MISS)
 
-        value = deserialize_stored_hash(cast(bytes, get_response.value_as_bytes()))
+        value = deserialize_dictionary(cast(bytes, get_response.value_as_bytes()))
         return CacheDictionaryGetAllResponse(value=value, result=CacheGetStatus.HIT)
 
 
