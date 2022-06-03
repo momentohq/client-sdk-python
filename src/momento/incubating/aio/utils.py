@@ -1,23 +1,22 @@
 import pickle
 from typing import cast
 
-from ..cache_operation_types import CacheDictionaryValue, Dictionary, StoredDictionary
+from ..cache_operation_types import BytesDictionary, Dictionary
 from ..._utilities._data_validation import _as_bytes
 
 
-def convert_dict_values_to_bytes(dict_: Dictionary) -> Dictionary:
+def convert_dict_items_to_bytes(dictionary: Dictionary) -> BytesDictionary:
     return {
         _as_bytes(k, "Unsupported type for key: "): _as_bytes(
             v, "Unsupported type for value: "
         )
-        for k, v in dict_.items()
+        for k, v in dictionary.items()
     }
 
 
-def dict_to_stored_hash(dict_: Dictionary) -> StoredDictionary:
-    return {k: CacheDictionaryValue(v) for k, v in dict_.items()}
+def deserialize_dictionary(pickled_dictionary: bytes) -> BytesDictionary:
+    return cast(BytesDictionary, pickle.loads(pickled_dictionary))
 
 
-def deserialize_stored_hash(pickled_dict: bytes) -> StoredDictionary:
-    d = cast(Dictionary, pickle.loads(pickled_dict))
-    return dict_to_stored_hash(d)
+def serialize_dictionary(dictionary: BytesDictionary) -> bytes:
+    return pickle.dumps(dictionary)
