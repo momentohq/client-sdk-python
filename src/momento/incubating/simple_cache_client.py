@@ -37,6 +37,9 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         cache_name: str,
         dictionary_name: str,
         dictionary: Dictionary,
+        ttl_seconds: Optional[int] = None,
+        *,
+        refresh_ttl: bool
     ) -> CacheDictionarySetResponse:
         """Store dictionary items (key-value pairs) in the cache.
 
@@ -47,12 +50,19 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             cache_name (str): Name of the cache to store the dictionary in.
             dictionary_name (str): The name of the dictionary in the cache.
             dictionary (Dictionary): The items (key-value pairs) to be stored.
+            refresh_ttl (bool): If, when performing an update, to refresh the ttl.
+            ttl_seconds (Optional[int], optional): Time to live in seconds for the dictionary
+            as a whole.
 
         Returns:
             CacheDictionarySetResponse: data stored in the cache
         """
         coroutine = self._momento_async_client.dictionary_set(
-            cache_name, dictionary_name, dictionary
+            cache_name,
+            dictionary_name,
+            dictionary,
+            ttl_seconds,
+            refresh_ttl=refresh_ttl,
         )
         return wait_for_coroutine(self._loop, coroutine)
 

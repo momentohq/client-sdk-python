@@ -31,21 +31,21 @@ class TestMomento(unittest.TestCase):
             # Test with key as string
             dictionary = {"key1": "value1"}
             set_response = simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", dictionary=dictionary)
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", dictionary=dictionary, refresh_ttl=False)
             self.assertEqual("myhash", set_response.key())
             self.assertEqual(dictionary, set_response.value())
 
             # Test key as bytes
             dictionary={b"key1": "value1"}
             set_response = simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash2", dictionary=dictionary)
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash2", dictionary=dictionary, refresh_ttl=False)
             self.assertEqual("myhash2", set_response.key())
             self.assertEqual(dictionary, set_response.value())
 
     def test_dictionary_set_and_dictionary_get_missing_key(self):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", dictionary={"key1": "value1"})
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", dictionary={"key1": "value1"}, refresh_ttl=False)
             get_response = simple_cache.dictionary_get(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", key="key2")
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
@@ -64,7 +64,7 @@ class TestMomento(unittest.TestCase):
                 dictionary_name = f"myhash4-{i}"
 
                 simple_cache.dictionary_set(
-                    cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, dictionary=dictionary)
+                    cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, dictionary=dictionary, refresh_ttl=False)
                 get_response = simple_cache.dictionary_get(
                     cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key)
                 self.assertEqual(CacheGetStatus.HIT, get_response.status())
@@ -80,7 +80,7 @@ class TestMomento(unittest.TestCase):
         with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
             dictionary = {"key1": "value1", "key2": "value2"}
             simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6", dictionary=dictionary
+                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6", dictionary=dictionary, refresh_ttl=False
             )
             get_all_response = simple_cache.dictionary_get_all(
                 cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6")
