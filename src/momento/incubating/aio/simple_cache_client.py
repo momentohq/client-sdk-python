@@ -1,4 +1,4 @@
-from typing import cast, Optional
+from typing import cast, Optional, List, Union
 import warnings
 
 from .. import INCUBATING_WARNING_MSG
@@ -7,11 +7,13 @@ from ..._utilities._data_validation import _as_bytes
 
 from ..cache_operation_types import (
     CacheGetStatus,
-    CacheDictionaryGetResponse,
+    CacheDictionaryGetUnaryResponse,
+    CacheDictionaryGetMultiResponse,
     CacheDictionarySetResponse,
     CacheDictionaryGetAllResponse,
     BytesDictionary,
     DictionaryKey,
+    DictionaryValue,
     Dictionary,
 )
 from ..._utilities._data_validation import _validate_request_timeout
@@ -41,7 +43,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         dictionary: Dictionary,
         ttl_seconds: Optional[int] = None,
         *,
-        refresh_ttl: bool
+        refresh_ttl: bool,
     ) -> CacheDictionarySetResponse:
         """Store dictionary items (key-value pairs) in the cache.
 
@@ -77,32 +79,54 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        key: DictionaryKey,
-    ) -> CacheDictionaryGetResponse:
+        *keys: DictionaryKey,
+    ) -> Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
         """Retrieve a dictionary value from the cache.
 
         Args:
             cache_name (str): Name of the cache to get the dictionary from.
             dictionary_name (str): Name of the dictionary to query.
-            key (DictionaryKey): The item to index in the dictionary.
+            keys (DictionaryKey): The item(s) to index in the dictionary.
 
         Returns:
-            CacheDictionaryGetResponse: Value (if present) and status (HIT or MISS).
+            Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
+            For a single key, a wrapper for the value (if present) and
+            status (HIT or MISS).
+
+            For multiple keys, a wrapper over a list of values and statuses.
         """
+        if len(keys) == 0:
+            raise ValueError("Argument keys must be non-empty")
+
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
-            return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
+            if len(keys) == 1:
+                return CacheDictionaryGetUnaryResponse(
+                    value=None, result=CacheGetStatus.MISS
+                )
+            return CacheDictionaryGetMultiResponse(
+                values=[None for _ in range(len(keys))],
+                results=[CacheGetStatus.MISS for _ in range(len(keys))],
+            )
 
         dictionary: BytesDictionary = deserialize_dictionary(
             cast(bytes, dictionary_get_response.value_as_bytes())
         )
 
-        try:
-            value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
-        except KeyError:
-            return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
+        values: List[Optional[DictionaryValue]] = []
+        results: List[CacheGetStatus] = []
+        for key in keys:
+            try:
+                value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
+                values.append(value)
+                results.append(CacheGetStatus.HIT)
+            except KeyError:
+                values.append(None)
+                results.append(CacheGetStatus.MISS)
 
-        return CacheDictionaryGetResponse(value=value, result=CacheGetStatus.HIT)
+        if len(keys) == 1:
+            return CacheDictionaryGetUnaryResponse(value=values[0], result=results[0])
+        return CacheDictionaryGetMultiResponse(values=values, results=results)
 
     async def dictionary_get_all(
         self, cache_name: str, dictionary_name: str

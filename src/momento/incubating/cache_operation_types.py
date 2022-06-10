@@ -1,4 +1,4 @@
-from typing import cast, Dict, Optional, Union
+from typing import cast, Any, Dict, List, Optional, Union
 
 from ..cache_operation_types import CacheGetStatus
 
@@ -11,7 +11,7 @@ BytesDictionary = Dict[bytes, bytes]
 Dictionary = Union[StringDictionary, BytesDictionary]
 
 
-class CacheDictionaryGetResponse:
+class CacheDictionaryGetUnaryResponse:
     def __init__(self, value: Optional[DictionaryValue], result: CacheGetStatus):
         self._value = value
         self._result = result
@@ -29,6 +29,13 @@ class CacheDictionaryGetResponse:
     def status(self) -> CacheGetStatus:
         return self._result
 
+    def __eq__(self, other: Any):
+        return (
+            isinstance(other, CacheDictionaryGetUnaryResponse)
+            and self._value == other._value
+            and self._result == other._result
+        )
+
     def __str__(self) -> str:
         return self.__repr__()
 
@@ -39,7 +46,50 @@ class CacheDictionaryGetResponse:
         except UnicodeDecodeError:
             value = str(value)
 
-        return f"CacheDictionaryGetResponse(value={value!r}, result={self._result!r})"
+        return (
+            f"CacheDictionaryGetUnaryResponse(value={value!r}, result={self._result!r})"
+        )
+
+
+class CacheDictionaryGetMultiResponse:
+    def __init__(
+        self, values: List[Optional[DictionaryValue]], results: List[CacheGetStatus]
+    ):
+        self._values = values
+        self._results = results
+
+    def to_list(self) -> List[CacheDictionaryGetUnaryResponse]:
+        return [
+            CacheDictionaryGetUnaryResponse(value, result)
+            for value, result in zip(self._values, self._results)
+        ]
+
+    def values(self) -> List[Optional[str]]:
+        return [
+            cast(bytes, value).decode("utf-8") if result == CacheGetStatus.HIT else None
+            for value, result in zip(self._values, self._results)
+        ]
+
+    def values_as_bytes(self) -> List[Optional[bytes]]:
+        return [
+            cast(bytes, value) if result == CacheGetStatus.HIT else None
+            for value, result in zip(self._values, self._results)
+        ]
+
+    def status(self) -> List[CacheGetStatus]:
+        return self._results
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        values = self._values
+        try:
+            values = self.values()  # type: ignore
+        except UnicodeDecodeError:
+            values = [str(v) for v in values]
+
+        return f"CacheDictionaryGetMultiResponse(values={values!r}, results={self._results!r})"
 
 
 class CacheDictionarySetResponse:

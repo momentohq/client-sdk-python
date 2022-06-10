@@ -1,11 +1,12 @@
-from typing import Optional
+from typing import Optional, Union
 import warnings
 
 from . import INCUBATING_WARNING_MSG
 from .aio import simple_cache_client as aio
 from .._async_utils import wait_for_coroutine
 from .cache_operation_types import (
-    CacheDictionaryGetResponse,
+    CacheDictionaryGetUnaryResponse,
+    CacheDictionaryGetMultiResponse,
     CacheDictionarySetResponse,
     CacheDictionaryGetAllResponse,
     DictionaryKey,
@@ -70,8 +71,8 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        key: DictionaryKey,
-    ) -> CacheDictionaryGetResponse:
+        *keys: DictionaryKey,
+    ) -> Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
         """Retrieve a dictionary value from the cache.
 
         Args:
@@ -80,10 +81,14 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             key (DictionaryKey): The item to index in the dictionary.
 
         Returns:
-            CacheDictionaryGetResponse: Value (if present) and status (HIT or MISS).
+            Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
+            For a single key, a wrapper for the value (if present) and
+            status (HIT or MISS).
+
+            For multiple keys, a wrapper over a list of values and statuses.
         """
         coroutine = self._momento_async_client.dictionary_get(
-            cache_name, dictionary_name, key
+            cache_name, dictionary_name, *keys
         )
         return wait_for_coroutine(self._loop, coroutine)
 
