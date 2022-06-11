@@ -10,6 +10,7 @@ from .cache_operation_types import (
     CacheDictionarySetResponse,
     CacheDictionaryGetAllResponse,
     DictionaryKey,
+    DictionaryValue,
     Dictionary,
 )
 from ..simple_cache_client import SimpleCacheClient
@@ -37,23 +38,35 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        dictionary: Dictionary,
+        key: Optional[DictionaryKey] = None,
+        value: Optional[DictionaryValue] = None,
+        dictionary: Optional[Dictionary] = None,
         ttl_seconds: Optional[int] = None,
         *,
-        refresh_ttl: bool
+        refresh_ttl: bool,
     ) -> CacheDictionarySetResponse:
         """Store dictionary items (key-value pairs) in the cache.
 
         Inserts items from `dictionary` into a dictionary `dictionary_name`.
         Updates (overwrites) values if the key already exists.
 
+        Items may be set in one of two ways:
+        - the function may be run with either a single item to set, `key` and `value, or
+        - multiple items with the `dictionary` argument which accepts a `Dictionary`.
+
+        To illustrate:
+        >>> client.dictionary_set(cache_name, dictionary_name, key="key" value="value")
+        >>> client.dictionary_set(cache_name, dictionary_name, dictionary={"key1": "value1", "key2": "value2"})
+
         Args:
             cache_name (str): Name of the cache to store the dictionary in.
             dictionary_name (str): The name of the dictionary in the cache.
-            dictionary (Dictionary): The items (key-value pairs) to be stored.
-            refresh_ttl (bool): If, when performing an update, to refresh the ttl.
+            key (Optional[DictionaryKey], optional): The key to set (unary set). Defaults to None.
+            value (Optional[DictionaryValue], optional): The value to set (unary set). Defaults to None.
+            dictionary (Optional[Dictionary], optional): The items (key-value pairs) to be stored (multi set). Defaults to None.
             ttl_seconds (Optional[int], optional): Time to live in seconds for the dictionary
             as a whole.
+            refresh_ttl (bool): If, when performing an update, to refresh the ttl.
 
         Returns:
             CacheDictionarySetResponse: data stored in the cache
@@ -61,6 +74,8 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         coroutine = self._momento_async_client.dictionary_set(
             cache_name,
             dictionary_name,
+            key,
+            value,
             dictionary,
             ttl_seconds,
             refresh_ttl=refresh_ttl,
