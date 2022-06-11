@@ -79,7 +79,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             raise ValueError("One of key or dictionary must be set")
 
         if dictionary is None:
-            dictionary = {key: value}
+            dictionary = {key: value}  # type: ignore
 
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         cached_dictionary: BytesDictionary = {}
@@ -88,12 +88,12 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
                 cast(bytes, dictionary_get_response.value_as_bytes())
             )
 
-        cached_dictionary.update(convert_dict_items_to_bytes(dictionary))
+        cached_dictionary.update(convert_dict_items_to_bytes(dictionary))  # type: ignore
 
         set_response = await self.set(
             cache_name, dictionary_name, serialize_dictionary(cached_dictionary)
         )
-        return CacheDictionarySetResponse(key=set_response._key, value=dictionary)
+        return CacheDictionarySetResponse(key=set_response._key, value=dictionary)  # type: ignore
 
     async def dictionary_get(
         self,

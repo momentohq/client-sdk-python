@@ -1,4 +1,4 @@
-from typing import cast, Any, Dict, List, Optional, Union
+from typing import cast, Dict, List, Optional, Union
 
 from ..cache_operation_types import CacheGetStatus
 
@@ -29,7 +29,7 @@ class CacheDictionaryGetUnaryResponse:
     def status(self) -> CacheGetStatus:
         return self._result
 
-    def __eq__(self, other: Any):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, CacheDictionaryGetUnaryResponse)
             and self._value == other._value
