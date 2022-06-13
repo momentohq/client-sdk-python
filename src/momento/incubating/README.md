@@ -1,4 +1,5 @@
 # Incubating
+
 The `momento.incubating` package has work-in-progress features that may or may be be in the final version.
 
 ## Dictionary Methods
@@ -6,25 +7,62 @@ The `momento.incubating` package has work-in-progress features that may or may b
 This demonstrates the methods and response types for a dictionary data type in the cache.
 
 1. Initialize the cache
-```
+
+```python
 >>> import momento.incubating.simple_cache_client as scc
 >>> client = scc.init(auth_token=AUTH_TOKEN, item_default_ttl_seconds=DEFAULT_TTL)
 ```
 
-2. Set a dictionary
-```
->>> client.dictionary_set(cache_name="my-example-cache", dictionary_name="my-dictionary", dictionary={"key1": "value1", "key2": "value2"})
-CacheDictionarySetResponse(key='my-dictionary', value={'key1': 'value1', 'key2': 'value2'})
+2. Set one item in a dictionary
+
+```python
+>>> client.dictionary_set(cache_name="my-example-cache", dictionary_name="my-dictionary", key="key1", value="value1", refresh_ttl=False)
+CacheDictionarySetUnaryResponse(dictionary_name='my-dictionary', key='key1', value='value1')
 ```
 
-3. Get a value from a dictionary
-```
->>> client.dictionary_get(cache_name="my-example-cache", dictionary_name="my-dictionary", key="key1")
-CacheDictionaryGetResponse(value='value1', result=<CacheGetStatus.HIT: 1>)
+3. Set multiple items in a dictionary
+
+```python
+>>> client.dictionary_set(cache_name="my-example-cache", dictionary_name="my-dictionary", dictionary={"key2": "value2", "key3": "value3"}, refresh_ttl=False)
+CacheDictionarySetResponse(dictionary_name='my-dictionary', dictionary={'key2': 'value2', 'key3': 'value3'})
 ```
 
-4. Get the entire dictionary
+4. Get one value from a dictionary
+
+```python
+>>> get_response = client.dictionary_get("my-example-cache", "my-dictionary", "key1")
+>>> get_response
+CacheDictionaryGetUnaryResponse(value='value1', result=<CacheGetStatus.HIT: 1>)
+
+>>> get_response.status()
+<CacheGetStatus.HIT: 1>
+
+>>> get_response.value()
+'value2'
 ```
+
+5. Get multiple values from a dictionary
+
+```python
+>>> get_response = client.dictionary_get("my-example-cache", "my-dictionary", "key1", "key2", "key7")
+>>> get_response
+CacheDictionaryGetMultiResponse(values=['value1', 'value2', None], results=[<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>])
+
+>>> get_response.to_list()
+[CacheDictionaryGetUnaryResponse(value='value1', result=<CacheGetStatus.HIT: 1>),
+ CacheDictionaryGetUnaryResponse(value='value2', result=<CacheGetStatus.HIT: 1>),
+ CacheDictionaryGetUnaryResponse(value=None, result=<CacheGetStatus.MISS: 2>)]
+
+ >>> get_response.status()
+ [<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>]
+
+ >>> get_response.values()
+['value1', 'value2', None]
+```
+
+6. Get the entire dictionary
+
+```python
 >>> dictionary_get_all_response = client.dictionary_get_all(cache_name="my-example-cache", dictionary_name="my-dictionary")
 >>> dictionary_get_all_response
 CacheDictionaryGetAllResponse(value={b'key1': b'value1', b'key2': b'value2'}, result=<CacheGetStatus.HIT: 1>)
@@ -36,8 +74,9 @@ CacheDictionaryGetAllResponse(value={b'key1': b'value1', b'key2': b'value2'}, re
 {b'key1': b'value1', b'key2': b'value2'}
 ```
 
-5. Interact with a returned dictionary
-```
+7. Interact with a returned dictionary
+
+```python
 >>> my_dictionary = dictionary_get_all_response.value()
 >>> my_dictionary["key1"]
 'value1'

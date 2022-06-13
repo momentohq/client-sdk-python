@@ -11,6 +11,9 @@ from ..cache_operation_types import (
 )
 
 
+DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
+
+
 def _make_metadata(cache_name: str) -> Metadata:
     return Metadata(("cache", cache_name))  # type: ignore[misc]
 
@@ -32,7 +35,10 @@ def _validate_cache_name(cache_name: str) -> None:
         raise errors.InvalidArgumentError("Cache name must be a non-empty string")
 
 
-def _as_bytes(data: Union[str, bytes], error_message: str) -> bytes:
+def _as_bytes(
+    data: Union[str, bytes],
+    error_message: Optional[str] = DEFAULT_STRING_CONVERSION_ERROR,
+) -> bytes:
     if isinstance(data, str):
         return data.encode("utf-8")
     if isinstance(data, bytes):

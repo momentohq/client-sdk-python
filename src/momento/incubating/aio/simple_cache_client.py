@@ -9,7 +9,8 @@ from ..cache_operation_types import (
     CacheGetStatus,
     CacheDictionaryGetUnaryResponse,
     CacheDictionaryGetMultiResponse,
-    CacheDictionarySetResponse,
+    CacheDictionarySetUnaryResponse,
+    CacheDictionarySetMultiResponse,
     CacheDictionaryGetAllResponse,
     BytesDictionary,
     DictionaryKey,
@@ -46,7 +47,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         ttl_seconds: Optional[int] = None,
         *,
         refresh_ttl: bool,
-    ) -> CacheDictionarySetResponse:
+    ) -> Union[CacheDictionarySetUnaryResponse, CacheDictionarySetMultiResponse]:
         """Store dictionary items (key-value pairs) in the cache.
 
         Inserts items from `dictionary` into a dictionary `dictionary_name`.
@@ -72,12 +73,14 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             refresh_ttl (bool): If, when performing an update, to refresh the ttl.
 
         Returns:
-            CacheDictionarySetResponse: data stored in the cache
+            Union[CacheDictionarySetUnaryResponse, CacheDictionarySetMultiResponse]: data stored in the cache
         """
         if (key is None and dictionary is None) or (
-            key is not None and dictionary is not None
+            (key is not None or value is not None) and dictionary is not None
         ):
-            raise ValueError("One of key or dictionary must be set")
+            raise ValueError(
+                "Key and dictionary cannot both be set. Either only provide a key-value or provide a dictionary"
+            )
 
         if dictionary is None:
             dictionary = {key: value}  # type: ignore
@@ -89,12 +92,19 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
                 cast(bytes, dictionary_get_response.value_as_bytes())
             )
 
-        cached_dictionary.update(convert_dict_items_to_bytes(dictionary))  # type: ignore
+        bytes_dictionary = convert_dict_items_to_bytes(dictionary)  # type: ignore
+        cached_dictionary.update(bytes_dictionary)
 
         set_response = await self.set(
             cache_name, dictionary_name, serialize_dictionary(cached_dictionary)
         )
-        return CacheDictionarySetResponse(key=set_response._key, value=dictionary)  # type: ignore
+        if key is not None:
+            return CacheDictionarySetUnaryResponse(
+                dictionary_name=set_response._key,
+                key=_as_bytes(key),
+                value=_as_bytes(cast(DictionaryValue, value)),
+            )
+        return CacheDictionarySetMultiResponse(dictionary_name=set_response._key, dictionary=bytes_dictionary)  # type: ignore
 
     async def dictionary_get(
         self,

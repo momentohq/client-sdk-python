@@ -7,7 +7,8 @@ from .._async_utils import wait_for_coroutine
 from .cache_operation_types import (
     CacheDictionaryGetUnaryResponse,
     CacheDictionaryGetMultiResponse,
-    CacheDictionarySetResponse,
+    CacheDictionarySetUnaryResponse,
+    CacheDictionarySetMultiResponse,
     CacheDictionaryGetAllResponse,
     DictionaryKey,
     DictionaryValue,
@@ -44,7 +45,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         ttl_seconds: Optional[int] = None,
         *,
         refresh_ttl: bool,
-    ) -> CacheDictionarySetResponse:
+    ) -> Union[CacheDictionarySetUnaryResponse, CacheDictionarySetMultiResponse]:
         """Store dictionary items (key-value pairs) in the cache.
 
         Inserts items from `dictionary` into a dictionary `dictionary_name`.
@@ -70,7 +71,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             refresh_ttl (bool): If, when performing an update, to refresh the ttl.
 
         Returns:
-            CacheDictionarySetResponse: data stored in the cache
+            Union[CacheDictionarySetUnaryResponse, CacheDictionarySetMultiResponse]: data stored in the cache
         """
         coroutine = self._momento_async_client.dictionary_set(
             cache_name,
