@@ -63,9 +63,10 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             dictionary_name (str): The name of the dictionary in the cache.
             key (Optional[DictionaryKey], optional): The key to set (unary set). Defaults to None.
             value (Optional[DictionaryValue], optional): The value to set (unary set). Defaults to None.
-            dictionary (Optional[Dictionary], optional): The items (key-value pairs) to be stored (multi set). Defaults to None.
+            dictionary (Optional[Dictionary], optional): The items (key-value pairs) to be stored (multi set).
+                Defaults to None.
             ttl_seconds (Optional[int], optional): Time to live in seconds for the dictionary
-            as a whole.
+                as a whole.
             refresh_ttl (bool): If, when performing an update, to refresh the ttl.
 
         Returns:
@@ -97,10 +98,10 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
 
         Returns:
             Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
-            For a single key, a wrapper for the value (if present) and
-            status (HIT or MISS).
+                For a single key, a wrapper for the value (if present) and
+                status (HIT or MISS).
 
-            For multiple keys, a wrapper over a list of values and statuses.
+                For multiple keys, a wrapper over a list of values and statuses.
         """
         coroutine = self._momento_async_client.dictionary_get(
             cache_name, dictionary_name, *keys
