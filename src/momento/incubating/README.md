@@ -16,21 +16,21 @@ This demonstrates the methods and response types for a dictionary data type in t
 2. Set one item in a dictionary
 
 ```python
->>> client.dictionary_set(cache_name="my-example-cache", dictionary_name="my-dictionary", key="key1", value="value1", refresh_ttl=False)
+>>> client.dictionary_set(cache_name="my-cache", dictionary_name="my-dictionary", key="key1", value="value1", refresh_ttl=False)
 CacheDictionarySetUnaryResponse(dictionary_name='my-dictionary', key=b'key1', value=b'value1')
 ```
 
 3. Set multiple items in a dictionary
 
 ```python
->>> client.dictionary_set(cache_name="my-example-cache", dictionary_name="my-dictionary", dictionary={"key2": "value2", "key3": "value3"}, refresh_ttl=False)
+>>> client.dictionary_set(cache_name="my-cache", dictionary_name="my-dictionary", dictionary={"key2": "value2", "key3": "value3"}, refresh_ttl=False)
 CacheDictionarySetResponse(dictionary_name='my-dictionary', dictionary={b'key2': b'value2', b'key3': b'value3'})
 ```
 
 4. Get one value from a dictionary
 
 ```python
->>> get_response = client.dictionary_get("my-example-cache", "my-dictionary", "key1")
+>>> get_response = client.dictionary_get("my-cache", "my-dictionary", "key1")
 >>> get_response
 CacheDictionaryGetUnaryResponse(value=b'value1', result=<CacheGetStatus.HIT: 1>)
 
@@ -44,7 +44,7 @@ CacheDictionaryGetUnaryResponse(value=b'value1', result=<CacheGetStatus.HIT: 1>)
 5. Get multiple values from a dictionary
 
 ```python
->>> get_response = client.dictionary_get("my-example-cache", "my-dictionary", "key1", "key2", "key7")
+>>> get_response = client.dictionary_get("my-cache", "my-dictionary", "key1", "key2", "key7")
 >>> get_response
 CacheDictionaryGetMultiResponse(values=[b'value1', b'value2', None], results=[<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>])
 
@@ -63,7 +63,7 @@ CacheDictionaryGetMultiResponse(values=[b'value1', b'value2', None], results=[<C
 6. Get the entire dictionary
 
 ```python
->>> dictionary_get_all_response = client.dictionary_get_all(cache_name="my-example-cache", dictionary_name="my-dictionary")
+>>> dictionary_get_all_response = client.dictionary_get_all(cache_name="my-cache", dictionary_name="my-dictionary")
 >>> dictionary_get_all_response
 CacheDictionaryGetAllResponse(value={b'key1': b'value1', b'key2': b'value2'}, result=<CacheGetStatus.HIT: 1>)
 
