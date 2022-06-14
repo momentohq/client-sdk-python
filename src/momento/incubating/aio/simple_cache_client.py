@@ -1,4 +1,4 @@
-from typing import cast, Optional, List, Union
+from typing import cast, Optional, List
 import warnings
 
 from .. import INCUBATING_WARNING_MSG
@@ -128,9 +128,45 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        *keys: DictionaryKey,
-    ) -> Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
+        key: DictionaryKey,
+    ) -> CacheDictionaryGetUnaryResponse:
         """Retrieve a dictionary value from the cache.
+
+        Args:
+            cache_name (str): Name of the cache to get the dictionary from.
+            dictionary_name (str): Name of the dictionary to query.
+            key (DictionaryKey): The key to index in the dictionary.
+
+        Returns:
+            CacheDictionaryGetUnaryResponse: A wrapper for the value (if present)
+                and status (HIT or MISS).
+        """
+        dictionary_get_response = await self.get(cache_name, dictionary_name)
+        if dictionary_get_response.status() == CacheGetStatus.MISS:
+            return CacheDictionaryGetUnaryResponse(
+                value=None, result=CacheGetStatus.MISS
+            )
+
+        dictionary: BytesDictionary = deserialize_dictionary(
+            cast(bytes, dictionary_get_response.value_as_bytes())
+        )
+
+        try:
+            value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
+        except KeyError:
+            return CacheDictionaryGetUnaryResponse(
+                value=None, result=CacheGetStatus.MISS
+            )
+
+        return CacheDictionaryGetUnaryResponse(value=value, result=CacheGetStatus.HIT)
+
+    async def dictionary_multi_get(
+        self,
+        cache_name: str,
+        dictionary_name: str,
+        *keys: DictionaryKey,
+    ) -> CacheDictionaryGetMultiResponse:
+        """Retrieve dictionary values from the cache.
 
         Args:
             cache_name (str): Name of the cache to get the dictionary from.
@@ -138,21 +174,14 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             keys (DictionaryKey): The item(s) to index in the dictionary.
 
         Returns:
-            Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
-                For a single key, a wrapper for the value (if present) and
-                status (HIT or MISS).
-
-                For multiple keys, a wrapper over a list of values and statuses.
+            CacheDictionaryGetMultiResponse: a wrapper over a list of values
+                and statuses.
         """
         if len(keys) == 0:
             raise ValueError("Argument keys must be non-empty")
 
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
-            if len(keys) == 1:
-                return CacheDictionaryGetUnaryResponse(
-                    value=None, result=CacheGetStatus.MISS
-                )
             return CacheDictionaryGetMultiResponse(
                 values=[None for _ in range(len(keys))],
                 results=[CacheGetStatus.MISS for _ in range(len(keys))],
@@ -173,8 +202,6 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
                 values.append(None)
                 results.append(CacheGetStatus.MISS)
 
-        if len(keys) == 1:
-            return CacheDictionaryGetUnaryResponse(value=values[0], result=results[0])
         return CacheDictionaryGetMultiResponse(values=values, results=results)
 
     async def dictionary_get_all(

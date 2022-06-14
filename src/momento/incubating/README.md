@@ -30,7 +30,7 @@ CacheDictionarySetResponse(dictionary_name='my-dictionary', dictionary={b'key2':
 4. Get one value from a dictionary
 
 ```python
->>> get_response = client.dictionary_get("my-cache", "my-dictionary", "key1")
+>>> get_response = client.dictionary_get(cache_name="my-cache", dictionary_name="my-dictionary", key="key1")
 >>> get_response
 CacheDictionaryGetUnaryResponse(value=b'value1', result=<CacheGetStatus.HIT: 1>)
 
@@ -44,7 +44,7 @@ CacheDictionaryGetUnaryResponse(value=b'value1', result=<CacheGetStatus.HIT: 1>)
 5. Get multiple values from a dictionary
 
 ```python
->>> get_response = client.dictionary_get("my-cache", "my-dictionary", "key1", "key2", "key7")
+>>> get_response = client.dictionary_multi_get("my-cache", "my-dictionary", "key1", "key2", "key7")
 >>> get_response
 CacheDictionaryGetMultiResponse(values=[b'value1', b'value2', None], results=[<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>])
 

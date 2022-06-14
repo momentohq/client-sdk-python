@@ -110,23 +110,42 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        *keys: DictionaryKey,
-    ) -> Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
+        key: DictionaryKey,
+    ) -> CacheDictionaryGetUnaryResponse:
         """Retrieve a dictionary value from the cache.
 
         Args:
             cache_name (str): Name of the cache to get the dictionary from.
             dictionary_name (str): Name of the dictionary to query.
-            key (DictionaryKey): The item to index in the dictionary.
+            key (DictionaryKey): The key to index in the dictionary.
 
         Returns:
-            Union[CacheDictionaryGetUnaryResponse, CacheDictionaryGetMultiResponse]:
-                For a single key, a wrapper for the value (if present) and
-                status (HIT or MISS).
-
-                For multiple keys, a wrapper over a list of values and statuses.
+            CacheDictionaryGetUnaryResponse: A wrapper for the value (if present)
+                and status (HIT or MISS).
         """
         coroutine = self._momento_async_client.dictionary_get(
+            cache_name, dictionary_name, key
+        )
+        return wait_for_coroutine(self._loop, coroutine)
+
+    def dictionary_multi_get(
+        self,
+        cache_name: str,
+        dictionary_name: str,
+        *keys: DictionaryKey,
+    ) -> CacheDictionaryGetMultiResponse:
+        """Retrieve dictionary values from the cache.
+
+        Args:
+            cache_name (str): Name of the cache to get the dictionary from.
+            dictionary_name (str): Name of the dictionary to query.
+            keys (DictionaryKey): The item(s) to index in the dictionary.
+
+        Returns:
+            CacheDictionaryGetMultiResponse: a wrapper over a list of values
+                and statuses.
+        """
+        coroutine = self._momento_async_client.dictionary_multi_get(
             cache_name, dictionary_name, *keys
         )
         return wait_for_coroutine(self._loop, coroutine)

@@ -26,7 +26,7 @@ class TestMomento(unittest.TestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             get_response = simple_cache.dictionary_get(
-                _TEST_CACHE_NAME, "hello world", "key"
+                cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key"
             )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
@@ -34,7 +34,7 @@ class TestMomento(unittest.TestCase):
         with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
-            get_response = simple_cache.dictionary_get(
+            get_response = simple_cache.dictionary_multi_get(
                 _TEST_CACHE_NAME, "hello world", "key1", "key2", "key3"
             )
             self.assertEqual(3, len(get_response.to_list()))
@@ -93,7 +93,7 @@ class TestMomento(unittest.TestCase):
             self.assertEqual(value, set_response.value())
 
             get_response = simple_cache.dictionary_get(
-                _TEST_CACHE_NAME, dictionary_name, key
+                cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key
             )
             self.assertEqual(value, get_response.value())
 
@@ -108,7 +108,7 @@ class TestMomento(unittest.TestCase):
                 refresh_ttl=False,
             )
             get_response = simple_cache.dictionary_get(
-                _TEST_CACHE_NAME, "mydict3", "key2"
+                cache_name=_TEST_CACHE_NAME, dictionary_name="mydict3", key="key2"
             )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
@@ -117,7 +117,9 @@ class TestMomento(unittest.TestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             with self.assertRaises(ValueError):
-                simple_cache.dictionary_get(_TEST_CACHE_NAME, "my-dictionary", *[])
+                simple_cache.dictionary_multi_get(
+                    _TEST_CACHE_NAME, "my-dictionary", *[]
+                )
 
     def test_dictionary_get_hit(self):
         with simple_cache_client.init(
@@ -143,7 +145,9 @@ class TestMomento(unittest.TestCase):
                     refresh_ttl=False,
                 )
                 get_response = simple_cache.dictionary_get(
-                    _TEST_CACHE_NAME, dictionary_name, key
+                    cache_name=_TEST_CACHE_NAME,
+                    dictionary_name=dictionary_name,
+                    key=key,
                 )
                 self.assertEqual(CacheGetStatus.HIT, get_response.status())
                 self.assertEqual(
@@ -166,7 +170,7 @@ class TestMomento(unittest.TestCase):
                 dictionary=dictionary,
                 refresh_ttl=False,
             )
-            get_response = simple_cache.dictionary_get(
+            get_response = simple_cache.dictionary_multi_get(
                 _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key3"
             )
 
@@ -185,7 +189,7 @@ class TestMomento(unittest.TestCase):
             ]
             self.assertEqual(get_response.to_list(), individual_responses)
 
-            get_response = simple_cache.dictionary_get(
+            get_response = simple_cache.dictionary_multi_get(
                 _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key5"
             )
             self.assertTrue(
