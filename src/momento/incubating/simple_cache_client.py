@@ -39,45 +39,67 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
-        key: Optional[DictionaryKey] = None,
-        value: Optional[DictionaryValue] = None,
-        dictionary: Optional[Dictionary] = None,
+        key: DictionaryKey,
+        value: DictionaryValue,
         ttl_seconds: Optional[int] = None,
         *,
         refresh_ttl: bool,
-    ) -> Union[CacheDictionarySetUnaryResponse, CacheDictionarySetMultiResponse]:
-        """Store dictionary items (key-value pairs) in the cache.
+    ) -> CacheDictionarySetUnaryResponse:
+        """Store a dictionary item in the cache.
 
-        Inserts items from `dictionary` into a dictionary `dictionary_name`.
+        Inserts a `value` for `key` in into a dictionary `dictionary_name`.
         Updates (overwrites) values if the key already exists.
-
-        Items may be set in one of two ways:
-        - the function may be run with either a single item to set, `key` and `value, or
-        - multiple items with the `dictionary` argument which accepts a `Dictionary`.
-
-        To illustrate:
-        >>> client.dictionary_set(cache_name, dictionary_name, key="key" value="value")
-        >>> client.dictionary_set(cache_name, dictionary_name, dictionary={"key1": "value1", "key2": "value2"})
 
         Args:
             cache_name (str): Name of the cache to store the dictionary in.
             dictionary_name (str): The name of the dictionary in the cache.
-            key (Optional[DictionaryKey], optional): The key to set (unary set). Defaults to None.
-            value (Optional[DictionaryValue], optional): The value to set (unary set). Defaults to None.
-            dictionary (Optional[Dictionary], optional): The items (key-value pairs) to be stored (multi set).
-                Defaults to None.
+            key (DictionaryKey): The key to set.
+            value (DictionaryValue): The value to store.
             ttl_seconds (Optional[int], optional): Time to live in seconds for the dictionary
                 as a whole.
             refresh_ttl (bool): If, when performing an update, to refresh the ttl.
 
         Returns:
-            Union[CacheDictionarySetUnaryResponse, CacheDictionarySetMultiResponse]: data stored in the cache
+            CacheDictionarySetUnaryResponse: data stored in the cache
         """
         coroutine = self._momento_async_client.dictionary_set(
             cache_name,
             dictionary_name,
             key,
             value,
+            ttl_seconds,
+            refresh_ttl=refresh_ttl,
+        )
+        return wait_for_coroutine(self._loop, coroutine)
+
+    def dictionary_multi_set(
+        self,
+        cache_name: str,
+        dictionary_name: str,
+        dictionary: Dictionary,
+        ttl_seconds: Optional[int] = None,
+        *,
+        refresh_ttl: bool,
+    ) -> CacheDictionarySetMultiResponse:
+        """Store dictionary items (key-value pairs) in the cache.
+
+        Inserts items from `dictionary` into a dictionary `dictionary_name`.
+        Updates (overwrites) values if the key already exists.
+
+        Args:
+            cache_name (str): Name of the cache to store the dictionary in.
+            dictionary_name (str): The name of the dictionary in the cache.
+            dictionary (Dictionary): The items (key-value pairs) to be stored.
+            ttl_seconds (Optional[int], optional): Time to live in seconds for the dictionary
+                as a whole.
+            refresh_ttl (bool): If, when performing an update, to refresh the ttl.
+
+        Returns:
+            CacheDictionarySetMultiResponse: data stored in the cache
+        """
+        coroutine = self._momento_async_client.dictionary_multi_set(
+            cache_name,
+            dictionary_name,
             dictionary,
             ttl_seconds,
             refresh_ttl=refresh_ttl,

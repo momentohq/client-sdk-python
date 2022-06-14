@@ -23,7 +23,7 @@ CacheDictionarySetUnaryResponse(dictionary_name='my-dictionary', key=b'key1', va
 3. Set multiple items in a dictionary
 
 ```python
->>> client.dictionary_set(cache_name="my-cache", dictionary_name="my-dictionary", dictionary={"key2": "value2", "key3": "value3"}, refresh_ttl=False)
+>>> client.dictionary_multi_set(cache_name="my-cache", dictionary_name="my-dictionary", dictionary={"key2": "value2", "key3": "value3"}, refresh_ttl=False)
 CacheDictionarySetResponse(dictionary_name='my-dictionary', dictionary={b'key2': b'value2', b'key3': b'value3'})
 ```
 
