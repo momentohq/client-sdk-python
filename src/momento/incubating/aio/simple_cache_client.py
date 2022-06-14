@@ -100,11 +100,13 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         )
         if key is not None:
             return CacheDictionarySetUnaryResponse(
-                dictionary_name=set_response._key,
+                dictionary_name=dictionary_name,
                 key=_as_bytes(key),
                 value=_as_bytes(cast(DictionaryValue, value)),
             )
-        return CacheDictionarySetMultiResponse(dictionary_name=set_response._key, dictionary=bytes_dictionary)  # type: ignore
+        return CacheDictionarySetMultiResponse(
+            dictionary_name=dictionary_name, dictionary=bytes_dictionary
+        )
 
     async def dictionary_get(
         self,

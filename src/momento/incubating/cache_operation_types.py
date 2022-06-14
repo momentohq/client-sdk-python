@@ -41,15 +41,7 @@ class CacheDictionaryGetUnaryResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        value = self._value
-        try:
-            value = self.value()
-        except UnicodeDecodeError:
-            value = str(value)
-
-        return (
-            f"CacheDictionaryGetUnaryResponse(value={value!r}, result={self._result!r})"
-        )
+        return f"CacheDictionaryGetUnaryResponse(value={self._value!r}, result={self._result!r})"
 
 
 class CacheDictionaryGetMultiResponse:
@@ -86,24 +78,17 @@ class CacheDictionaryGetMultiResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        values = self._values
-        try:
-            values = self.values()  # type: ignore
-        except UnicodeDecodeError:
-            values = [str(v) for v in values]
-
-        return f"CacheDictionaryGetMultiResponse(values={values!r}, results={self._results!r})"
+        return f"CacheDictionaryGetMultiResponse(values={self._values!r}, results={self._results!r})"
 
 
 class CacheDictionarySetUnaryResponse:
-    def __init__(self, dictionary_name: bytes, key: bytes, value: bytes):
+    def __init__(self, dictionary_name: str, key: bytes, value: bytes):
         self._dictionary_name = dictionary_name
         self._key = key
         self._value = value
 
     def dictionary_name(self) -> str:
-        """Decodes key of item set in cache to a utf-8 string."""
-        return _bytes_to_string(self._dictionary_name)
+        return self._dictionary_name
 
     def key(self) -> str:
         return _bytes_to_string(self._key)
@@ -121,17 +106,16 @@ class CacheDictionarySetUnaryResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionarySetUnaryResponse(dictionary_name={self.dictionary_name()!r}, key={self._key!r}, value={self._value!r})"
+        return f"CacheDictionarySetUnaryResponse(dictionary_name={self._dictionary_name!r}, key={self._key!r}, value={self._value!r})"
 
 
 class CacheDictionarySetMultiResponse:
-    def __init__(self, dictionary_name: bytes, dictionary: BytesDictionary):
+    def __init__(self, dictionary_name: str, dictionary: BytesDictionary):
         self._dictionary_name = dictionary_name
         self._dictionary = dictionary
 
     def dictionary_name(self) -> str:
-        """Decodes key of item set in cache to a utf-8 string."""
-        return _bytes_to_string(self._dictionary_name)
+        return self._dictionary_name
 
     def dictionary(self) -> StringDictionary:
         return _bytes_dict_to_string_dict(self._dictionary)
@@ -143,7 +127,7 @@ class CacheDictionarySetMultiResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionarySetMultiResponse(dictionary_name={self.dictionary_name()!r}, dictionary={self._dictionary!r})"
+        return f"CacheDictionarySetMultiResponse(dictionary_name={self._dictionary_name!r}, dictionary={self._dictionary!r})"
 
 
 class CacheDictionaryGetAllResponse:
