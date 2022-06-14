@@ -1,7 +1,7 @@
 from typing import cast, Dict, List, Optional, Union
 
 from ..cache_operation_types import CacheGetStatus
-from .._utilities._serialization import _bytes_to_string, _bytes_dict_to_string_dict
+from ._utilities._serialization import _bytes_to_string, _bytes_dict_to_string_dict
 
 
 # Dictionary related responses
