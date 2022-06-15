@@ -1,6 +1,7 @@
-from typing import cast, Dict, Optional, Union
+from typing import cast, Dict, List, Optional, Union
 
 from ..cache_operation_types import CacheGetStatus
+from ._utilities._serialization import _bytes_to_string, _bytes_dict_to_string_dict
 
 
 # Dictionary related responses
@@ -11,7 +12,7 @@ BytesDictionary = Dict[bytes, bytes]
 Dictionary = Union[StringDictionary, BytesDictionary]
 
 
-class CacheDictionaryGetResponse:
+class CacheDictionaryGetUnaryResponse:
     def __init__(self, value: Optional[DictionaryValue], result: CacheGetStatus):
         self._value = value
         self._result = result
@@ -19,7 +20,7 @@ class CacheDictionaryGetResponse:
     def value(self) -> Optional[str]:
         if self.status() == CacheGetStatus.MISS:
             return None
-        return cast(bytes, self._value).decode("utf-8")
+        return _bytes_to_string(cast(bytes, self._value))
 
     def value_as_bytes(self) -> Optional[bytes]:
         if self.status() == CacheGetStatus.MISS:
@@ -29,45 +30,104 @@ class CacheDictionaryGetResponse:
     def status(self) -> CacheGetStatus:
         return self._result
 
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, CacheDictionaryGetUnaryResponse)
+            and self._value == other._value
+            and self._result == other._result
+        )
+
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        value = self._value
-        try:
-            value = self.value()
-        except UnicodeDecodeError:
-            value = str(value)
-
-        return f"CacheDictionaryGetResponse(value={value!r}, result={self._result!r})"
+        return f"CacheDictionaryGetUnaryResponse(value={self._value!r}, result={self._result!r})"
 
 
-class CacheDictionarySetResponse:
-    def __init__(self, key: bytes, value: Dictionary):
+class CacheDictionaryGetMultiResponse:
+    def __init__(
+        self, values: List[Optional[DictionaryValue]], results: List[CacheGetStatus]
+    ):
+        self._values = values
+        self._results = results
+
+    def to_list(self) -> List[CacheDictionaryGetUnaryResponse]:
+        return [
+            CacheDictionaryGetUnaryResponse(value, result)
+            for value, result in zip(self._values, self._results)
+        ]
+
+    def values(self) -> List[Optional[str]]:
+        return [
+            _bytes_to_string(cast(bytes, value))
+            if result == CacheGetStatus.HIT
+            else None
+            for value, result in zip(self._values, self._results)
+        ]
+
+    def values_as_bytes(self) -> List[Optional[bytes]]:
+        return [
+            cast(bytes, value) if result == CacheGetStatus.HIT else None
+            for value, result in zip(self._values, self._results)
+        ]
+
+    def status(self) -> List[CacheGetStatus]:
+        return self._results
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CacheDictionaryGetMultiResponse(values={self._values!r}, results={self._results!r})"
+
+
+class CacheDictionarySetUnaryResponse:
+    def __init__(self, dictionary_name: str, key: bytes, value: bytes):
+        self._dictionary_name = dictionary_name
         self._key = key
         self._value = value
 
-    def value(self) -> Dictionary:
-        return self._value
+    def dictionary_name(self) -> str:
+        return self._dictionary_name
 
     def key(self) -> str:
-        """Decodes key of item set in cache to a utf-8 string."""
-        return self._key.decode("utf-8")
+        return _bytes_to_string(self._key)
 
     def key_as_bytes(self) -> bytes:
-        """Returns key of item stored in cache as bytes."""
         return self._key
+
+    def value(self) -> str:
+        return _bytes_to_string(self._value)
+
+    def value_as_bytes(self) -> bytes:
+        return self._value
 
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        try:
-            key = self.key()
-        except UnicodeDecodeError:
-            key = self.key_as_bytes()  # type: ignore
+        return f"CacheDictionarySetUnaryResponse(dictionary_name={self._dictionary_name!r}, key={self._key!r}, value={self._value!r})"
 
-        return f"CacheDictionarySetResponse(key={key!r}, value={self._value!r})"
+
+class CacheDictionarySetMultiResponse:
+    def __init__(self, dictionary_name: str, dictionary: BytesDictionary):
+        self._dictionary_name = dictionary_name
+        self._dictionary = dictionary
+
+    def dictionary_name(self) -> str:
+        return self._dictionary_name
+
+    def dictionary(self) -> StringDictionary:
+        return _bytes_dict_to_string_dict(self._dictionary)
+
+    def dictionary_as_bytes(self) -> BytesDictionary:
+        return self._dictionary
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CacheDictionarySetMultiResponse(dictionary_name={self._dictionary_name!r}, dictionary={self._dictionary!r})"
 
 
 class CacheDictionaryGetAllResponse:
@@ -84,10 +144,7 @@ class CacheDictionaryGetAllResponse:
         if self.status() != CacheGetStatus.HIT:
             return None
 
-        return {
-            k.decode("utf-8"): v.decode("utf-8")
-            for k, v in cast(BytesDictionary, self._value).items()
-        }
+        return _bytes_dict_to_string_dict(cast(BytesDictionary, self._value))
 
     def value_as_bytes(self) -> Optional[BytesDictionary]:
         """Get the dictionary as stored in the cache.

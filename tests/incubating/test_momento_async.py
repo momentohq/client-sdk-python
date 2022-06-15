@@ -4,12 +4,13 @@ import unittest
 import warnings
 
 from momento.cache_operation_types import CacheGetStatus
+from momento.incubating.cache_operation_types import CacheDictionaryGetUnaryResponse
 import momento.incubating.aio.simple_cache_client as simple_cache_client
 from momento.incubating.aio.utils import convert_dict_items_to_bytes
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
 
-_AUTH_TOKEN = os.getenv('TEST_AUTH_TOKEN')
-_TEST_CACHE_NAME = os.getenv('TEST_CACHE_NAME')
+_AUTH_TOKEN = os.getenv("TEST_AUTH_TOKEN")
+_TEST_CACHE_NAME = os.getenv("TEST_CACHE_NAME")
 _DEFAULT_TTL_SECONDS = 60
 
 
@@ -20,40 +21,115 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS):
                 pass
 
-    async def test_get_dictionary_miss(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+    async def test_dictionary_get_miss(self):
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
             get_response = await simple_cache.dictionary_get(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key")
+                cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key"
+            )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
+
+    async def test_dictionary_get_multi_miss(self):
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
+            get_response = await simple_cache.dictionary_multi_get(
+                _TEST_CACHE_NAME, "hello world", "key1", "key2", "key3"
+            )
+            self.assertEqual(3, len(get_response.to_list()))
+            self.assertTrue(
+                all(result == CacheGetStatus.MISS for result in get_response.status())
+            )
+            self.assertEqual(3, len(get_response.values()))
+            self.assertTrue(all(value is None for value in get_response.values()))
+            self.assertEqual(3, len(get_response.values_as_bytes()))
+            self.assertTrue(
+                all(value is None for value in get_response.values_as_bytes())
+            )
 
     async def test_dictionary_set_response(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
             # Test with key as string
             dictionary = {"key1": "value1"}
-            set_response = await simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash", dictionary=dictionary)
-            self.assertEqual("myhash", set_response.key())
-            self.assertEqual(dictionary, set_response.value())
+            set_response = await simple_cache.dictionary_multi_set(
+                cache_name=_TEST_CACHE_NAME,
+                dictionary_name="mydict",
+                dictionary=dictionary,
+                refresh_ttl=False,
+            )
+            self.assertEqual("mydict", set_response.dictionary_name())
+            self.assertEqual(dictionary, set_response.dictionary())
 
-            # Test key as bytes
-            dictionary = dictionary={b"key1": "value1"}
+            # Test as bytes
+            dictionary = dictionary = {b"key1": b"value1"}
+            set_response = await simple_cache.dictionary_multi_set(
+                cache_name=_TEST_CACHE_NAME,
+                dictionary_name="mydict2",
+                dictionary=dictionary,
+                refresh_ttl=False,
+            )
+            self.assertEqual("mydict2", set_response.dictionary_name())
+            self.assertEqual(dictionary, set_response.dictionary_as_bytes())
+
+    async def test_dictionary_set_unary(self):
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
+            dictionary_name = "mydict20"
+            key, value = "my-key", "my-value"
             set_response = await simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash2", dictionary=dictionary)
-            self.assertEqual("myhash2", set_response.key())
-            self.assertEqual(dictionary, set_response.value())
+                cache_name=_TEST_CACHE_NAME,
+                dictionary_name=dictionary_name,
+                key=key,
+                value=value,
+                refresh_ttl=False,
+            )
+
+            self.assertEqual(dictionary_name, set_response.dictionary_name())
+            self.assertEqual(key, set_response.key())
+            self.assertEqual(value, set_response.value())
+
+            get_response = await simple_cache.dictionary_get(
+                cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key
+            )
+            self.assertEqual(value, get_response.value())
 
     async def test_dictionary_set_and_dictionary_get_missing_key(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
             await simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", dictionary={"key1": "value1"})
+                cache_name=_TEST_CACHE_NAME,
+                dictionary_name="mydict3",
+                key="key1",
+                value="value1",
+                refresh_ttl=False,
+            )
             get_response = await simple_cache.dictionary_get(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash3", key="key2")
+                cache_name=_TEST_CACHE_NAME, dictionary_name="mydict3", key="key2"
+            )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
+    async def test_dictionary_get_zero_length_keys(self):
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
+            with self.assertRaises(ValueError):
+                await simple_cache.dictionary_multi_get(
+                    _TEST_CACHE_NAME, "my-dictionary", *[]
+                )
+
     async def test_dictionary_get_hit(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
             # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
-            for i, (key_is_str, value_is_str) in enumerate(itertools.product((True, False), (True, False))):
+            for i, (key_is_str, value_is_str) in enumerate(
+                itertools.product((True, False), (True, False))
+            ):
                 key, value = "key1", "value1"
                 if not key_is_str:
                     key = key.encode()
@@ -61,29 +137,94 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                     value = value.encode()
                 dictionary = {key: value}
                 # Use distinct hash names to avoid collisions with already finished tests
-                dictionary_name = f"myhash4-{i}"
+                dictionary_name = f"mydict4-{i}"
 
-                await simple_cache.dictionary_set(
-                    cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, dictionary=dictionary)
+                await simple_cache.dictionary_multi_set(
+                    cache_name=_TEST_CACHE_NAME,
+                    dictionary_name=dictionary_name,
+                    dictionary=dictionary,
+                    refresh_ttl=False,
+                )
                 get_response = await simple_cache.dictionary_get(
-                    cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key)
+                    cache_name=_TEST_CACHE_NAME,
+                    dictionary_name=dictionary_name,
+                    key=key,
+                )
                 self.assertEqual(CacheGetStatus.HIT, get_response.status())
-                self.assertEqual(value, get_response.value() if value_is_str else get_response.value_as_bytes())
+                self.assertEqual(
+                    value,
+                    get_response.value()
+                    if value_is_str
+                    else get_response.value_as_bytes(),
+                )
+
+    async def test_dictionary_get_multi_hit(self):
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
+            dictionary_name = "mydict10"
+            dictionary = {"key1": "value1", "key2": "value2", "key3": "value3"}
+
+            await simple_cache.dictionary_multi_set(
+                cache_name=_TEST_CACHE_NAME,
+                dictionary_name=dictionary_name,
+                dictionary=dictionary,
+                refresh_ttl=False,
+            )
+            get_response = await simple_cache.dictionary_multi_get(
+                _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key3"
+            )
+
+            values = ["value1", "value2", "value3"]
+            self.assertEqual(get_response.values(), values)
+            self.assertEqual(
+                get_response.values_as_bytes(), [b"value1", b"value2", b"value3"]
+            )
+
+            results = [CacheGetStatus.HIT] * 3
+            self.assertTrue(get_response.status(), results)
+
+            individual_responses = [
+                CacheDictionaryGetUnaryResponse(value.encode("utf-8"), result)
+                for value, result in zip(values, results)
+            ]
+            self.assertEqual(get_response.to_list(), individual_responses)
+
+            get_response = await simple_cache.dictionary_multi_get(
+                _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key5"
+            )
+            self.assertTrue(
+                get_response.status(),
+                [CacheGetStatus.HIT, CacheGetStatus.HIT, CacheGetStatus.MISS],
+            )
+            self.assertTrue(get_response.values(), ["value1", "value2", None])
+            self.assertTrue(
+                get_response.values_as_bytes(), [b"value1", b"value2", None]
+            )
 
     async def test_dictionary_get_all_miss(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
             get_response = await simple_cache.dictionary_get_all(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash5")
+                cache_name=_TEST_CACHE_NAME, dictionary_name="mydict5"
+            )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
     async def test_dictionary_get_all_hit(self):
-        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as simple_cache:
+        async with simple_cache_client.init(
+            _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
+        ) as simple_cache:
             dictionary = {"key1": "value1", "key2": "value2"}
-            await simple_cache.dictionary_set(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6", dictionary=dictionary
+            await simple_cache.dictionary_multi_set(
+                cache_name=_TEST_CACHE_NAME,
+                dictionary_name="mydict6",
+                dictionary=dictionary,
+                refresh_ttl=False,
             )
             get_all_response = await simple_cache.dictionary_get_all(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="myhash6")
+                cache_name=_TEST_CACHE_NAME, dictionary_name="mydict6"
+            )
             self.assertEqual(CacheGetStatus.HIT, get_all_response.status())
 
             expected = convert_dict_items_to_bytes(dictionary)
@@ -93,6 +234,5 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             self.assertEqual(expected, get_all_response.value())
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

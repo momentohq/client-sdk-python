@@ -1,4 +1,4 @@
-from typing import cast, Optional
+from typing import cast, Optional, List
 import warnings
 
 from .. import INCUBATING_WARNING_MSG
@@ -7,11 +7,14 @@ from ..._utilities._data_validation import _as_bytes
 
 from ..cache_operation_types import (
     CacheGetStatus,
-    CacheDictionaryGetResponse,
-    CacheDictionarySetResponse,
+    CacheDictionaryGetUnaryResponse,
+    CacheDictionaryGetMultiResponse,
+    CacheDictionarySetUnaryResponse,
+    CacheDictionarySetMultiResponse,
     CacheDictionaryGetAllResponse,
     BytesDictionary,
     DictionaryKey,
+    DictionaryValue,
     Dictionary,
 )
 from ..._utilities._data_validation import _validate_request_timeout
@@ -38,8 +41,56 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         cache_name: str,
         dictionary_name: str,
+        key: DictionaryKey,
+        value: DictionaryValue,
+        ttl_seconds: Optional[int] = None,
+        *,
+        refresh_ttl: bool,
+    ) -> CacheDictionarySetUnaryResponse:
+        """Store a dictionary item in the cache.
+
+        Inserts a `value` for `key` in into a dictionary `dictionary_name`.
+        Updates (overwrites) values if the key already exists.
+
+        Args:
+            cache_name (str): Name of the cache to store the dictionary in.
+            dictionary_name (str): The name of the dictionary in the cache.
+            key (DictionaryKey): The key to set.
+            value (DictionaryValue): The value to store.
+            ttl_seconds (Optional[int], optional): Time to live in seconds for the dictionary
+                as a whole.
+            refresh_ttl (bool): If, when performing an update, to refresh the ttl.
+
+        Returns:
+            CacheDictionarySetUnaryResponse: data stored in the cache
+        """
+        dictionary_get_response = await self.get(cache_name, dictionary_name)
+        cached_dictionary: BytesDictionary = {}
+        if dictionary_get_response.status() == CacheGetStatus.HIT:
+            cached_dictionary = deserialize_dictionary(
+                cast(bytes, dictionary_get_response.value_as_bytes())
+            )
+
+        bytes_key = _as_bytes(key)
+        bytes_value = _as_bytes(value)
+        cached_dictionary[bytes_key] = bytes_value
+
+        await self.set(
+            cache_name, dictionary_name, serialize_dictionary(cached_dictionary)
+        )
+        return CacheDictionarySetUnaryResponse(
+            dictionary_name=dictionary_name, key=bytes_key, value=bytes_value
+        )
+
+    async def dictionary_multi_set(
+        self,
+        cache_name: str,
+        dictionary_name: str,
         dictionary: Dictionary,
-    ) -> CacheDictionarySetResponse:
+        ttl_seconds: Optional[int] = None,
+        *,
+        refresh_ttl: bool,
+    ) -> CacheDictionarySetMultiResponse:
         """Store dictionary items (key-value pairs) in the cache.
 
         Inserts items from `dictionary` into a dictionary `dictionary_name`.
@@ -49,9 +100,12 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             cache_name (str): Name of the cache to store the dictionary in.
             dictionary_name (str): The name of the dictionary in the cache.
             dictionary (Dictionary): The items (key-value pairs) to be stored.
+            ttl_seconds (Optional[int], optional): Time to live in seconds for the dictionary
+                as a whole.
+            refresh_ttl (bool): If, when performing an update, to refresh the ttl.
 
         Returns:
-            CacheDictionarySetResponse: data stored in the cache
+            CacheDictionarySetMultiResponse: data stored in the cache
         """
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         cached_dictionary: BytesDictionary = {}
@@ -60,32 +114,38 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
                 cast(bytes, dictionary_get_response.value_as_bytes())
             )
 
-        cached_dictionary.update(convert_dict_items_to_bytes(dictionary))
+        bytes_dictionary = convert_dict_items_to_bytes(dictionary)
+        cached_dictionary.update(bytes_dictionary)
 
-        set_response = await self.set(
+        await self.set(
             cache_name, dictionary_name, serialize_dictionary(cached_dictionary)
         )
-        return CacheDictionarySetResponse(key=set_response._key, value=dictionary)
+        return CacheDictionarySetMultiResponse(
+            dictionary_name=dictionary_name, dictionary=bytes_dictionary
+        )
 
     async def dictionary_get(
         self,
         cache_name: str,
         dictionary_name: str,
         key: DictionaryKey,
-    ) -> CacheDictionaryGetResponse:
+    ) -> CacheDictionaryGetUnaryResponse:
         """Retrieve a dictionary value from the cache.
 
         Args:
             cache_name (str): Name of the cache to get the dictionary from.
             dictionary_name (str): Name of the dictionary to query.
-            key (DictionaryKey): The item to index in the dictionary.
+            key (DictionaryKey): The key to index in the dictionary.
 
         Returns:
-            CacheDictionaryGetResponse: Value (if present) and status (HIT or MISS).
+            CacheDictionaryGetUnaryResponse: A wrapper for the value (if present)
+                and status (HIT or MISS).
         """
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
-            return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
+            return CacheDictionaryGetUnaryResponse(
+                value=None, result=CacheGetStatus.MISS
+            )
 
         dictionary: BytesDictionary = deserialize_dictionary(
             cast(bytes, dictionary_get_response.value_as_bytes())
@@ -94,9 +154,55 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         try:
             value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
         except KeyError:
-            return CacheDictionaryGetResponse(value=None, result=CacheGetStatus.MISS)
+            return CacheDictionaryGetUnaryResponse(
+                value=None, result=CacheGetStatus.MISS
+            )
 
-        return CacheDictionaryGetResponse(value=value, result=CacheGetStatus.HIT)
+        return CacheDictionaryGetUnaryResponse(value=value, result=CacheGetStatus.HIT)
+
+    async def dictionary_multi_get(
+        self,
+        cache_name: str,
+        dictionary_name: str,
+        *keys: DictionaryKey,
+    ) -> CacheDictionaryGetMultiResponse:
+        """Retrieve dictionary values from the cache.
+
+        Args:
+            cache_name (str): Name of the cache to get the dictionary from.
+            dictionary_name (str): Name of the dictionary to query.
+            keys (DictionaryKey): The item(s) to index in the dictionary.
+
+        Returns:
+            CacheDictionaryGetMultiResponse: a wrapper over a list of values
+                and statuses.
+        """
+        if len(keys) == 0:
+            raise ValueError("Argument keys must be non-empty")
+
+        dictionary_get_response = await self.get(cache_name, dictionary_name)
+        if dictionary_get_response.status() == CacheGetStatus.MISS:
+            return CacheDictionaryGetMultiResponse(
+                values=[None for _ in range(len(keys))],
+                results=[CacheGetStatus.MISS for _ in range(len(keys))],
+            )
+
+        dictionary: BytesDictionary = deserialize_dictionary(
+            cast(bytes, dictionary_get_response.value_as_bytes())
+        )
+
+        values: List[Optional[DictionaryValue]] = []
+        results: List[CacheGetStatus] = []
+        for key in keys:
+            try:
+                value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
+                values.append(value)
+                results.append(CacheGetStatus.HIT)
+            except KeyError:
+                values.append(None)
+                results.append(CacheGetStatus.MISS)
+
+        return CacheDictionaryGetMultiResponse(values=values, results=results)
 
     async def dictionary_get_all(
         self, cache_name: str, dictionary_name: str
