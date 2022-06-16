@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 import warnings
 
 from . import INCUBATING_WARNING_MSG

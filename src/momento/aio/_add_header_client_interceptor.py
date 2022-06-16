@@ -36,7 +36,7 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             client_call_details.metadata = Metadata()
         for header in self.headers_to_add_every_time:
             client_call_details.metadata.add(header.name, header.value)
-        if AddHeaderClientInterceptor.are_only_once_headers_sent == False:
+        if not AddHeaderClientInterceptor.are_only_once_headers_sent:
             for header in self._headers_to_add_once:
                 client_call_details.metadata.add(header.name, header.value)
             AddHeaderClientInterceptor.are_only_once_headers_sent = True

@@ -1,8 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import cast, Any, Optional, List, Union
-from dataclasses import dataclass
+from typing import Any, Optional, List, Mapping
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 from . import _cache_service_errors_converter as error_converter
@@ -46,52 +45,30 @@ class CacheSetResponse:
         return self._key
 
 
-@dataclass
-class CacheMultiSetFailureResponse:
-    key: bytes
-    value: bytes
-    ttl_seconds: int
-    failure: Exception
-
-
-@dataclass
-class CacheMultiGetFailureResponse:
-    key: bytes
-    failure: Exception
-
-
 class CacheMultiSetResponse:
-    def __init__(
-        self,
-        successful_responses: List[CacheSetResponse],
-        failed_responses: List[CacheMultiSetFailureResponse],
-    ):
-        self._success_responses = successful_responses
-        self._failed_responses = failed_responses
+    def __init__(self, items: Mapping[bytes, bytes]):
+        self._items = items
 
-    def get_successful_responses(self) -> List[CacheSetResponse]:
-        """Returns list of responses of items successfully stored in cache"""
-        return self._success_responses
+    def items(self) -> Mapping[str, str]:
+        return {
+            key.decode("utf-8"): value.decode("utf-8")
+            for key, value in self._items.items()
+        }
 
-    def get_failed_responses(self) -> List[CacheMultiSetFailureResponse]:
-        """Returns list of set responses of items that an error occurred while trying to store in cache"""
-        return self._failed_responses
+    def items_as_bytes(self) -> Mapping[bytes, bytes]:
+        return self._items
 
-
-@dataclass
-class CacheMultiSetOperation:
-    key: Union[str, bytes]
-    value: Union[str, bytes]
-    ttl_seconds: Optional[int] = None
-
-
-@dataclass
-class CacheMultiGetOperation:
-    key: Union[str, bytes]
+    def __repr__(self) -> str:
+        return f"CacheMultiSetResponse(items={self._items!r})"
 
 
 class CacheGetResponse:
-    def __init__(self, grpc_get_response: Any):  # type: ignore[misc]
+    def __init__(self, value: bytes, result: CacheGetStatus):
+        self._value = value
+        self._result = result
+
+    @staticmethod
+    def from_grpc_response(grpc_get_response: Any) -> "CacheGetResponse":  # type: ignore[misc]
         """Initializes CacheGetResponse to handle gRPC get response.
 
         Args:
@@ -100,12 +77,12 @@ class CacheGetResponse:
         Raises:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        self._value: bytes = grpc_get_response.cache_body  # type: ignore[misc]
+        value: bytes = grpc_get_response.cache_body  # type: ignore[misc]
 
         if grpc_get_response.result == cache_client_types.Hit:  # type: ignore[misc]
-            self._result = CacheGetStatus.HIT
+            result = CacheGetStatus.HIT
         elif grpc_get_response.result == cache_client_types.Miss:  # type: ignore[misc]
-            self._result = CacheGetStatus.MISS
+            result = CacheGetStatus.MISS
         else:
             _momento_logger.debug(
                 f"Get received unsupported ECacheResult: {grpc_get_response.result}"  # type: ignore[misc]
@@ -113,6 +90,7 @@ class CacheGetResponse:
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, "GET"  # type: ignore[misc]
             )
+        return CacheGetResponse(value=value, result=result)
 
     def value(self) -> Optional[str]:
         """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
@@ -130,37 +108,30 @@ class CacheGetResponse:
         """Returns get operation result such as HIT or MISS."""
         return self._result
 
+    def __repr__(self) -> str:
+        return f"CacheGetResponse(value={self._value!r}, result={self._result!r})"
+
 
 class CacheMultiGetResponse:
-    def __init__(
-        self,
-        successful_responses: List[CacheGetResponse],
-        failed_responses: List[CacheMultiGetFailureResponse],
-    ):
-        self._success_responses = successful_responses
-        self._failed_responses = failed_responses
+    def __init__(self, responses: List[CacheGetResponse]):
+        self._responses = responses
 
-    def get_successful_responses(self) -> List[CacheGetResponse]:
-        """Returns list of responses of items successfully fetched from cache"""
-        return self._success_responses
-
-    def get_failed_responses(self) -> List[CacheMultiGetFailureResponse]:
-        """Returns list of set responses of items that an error occurred while trying to store in cache"""
-        return self._failed_responses
+    def status(self) -> List[CacheGetStatus]:
+        return [response.status() for response in self._responses]
 
     def values(self) -> List[Optional[str]]:
         """Returns list of values as utf-8 string for each Hit. Each item in list is None if was a Miss."""
-        r_values = []
-        for r in self._success_responses:
-            r_values.append(r.value())
-        return r_values
+        return [response.value() for response in self._responses]
 
     def values_as_bytes(self) -> List[Optional[bytes]]:
         """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
-        r_values = []
-        for r in self._success_responses:
-            r_values.append(r.value_as_bytes())
-        return r_values
+        return [response.value_as_bytes() for response in self._responses]
+
+    def to_list(self) -> List[CacheGetResponse]:
+        return self._responses
+
+    def __repr__(self) -> str:
+        return f"CacheMultiGetResponse(responses={self._responses!r})"
 
 
 class CacheDeleteResponse:

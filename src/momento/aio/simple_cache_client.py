@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Optional, Union, Type, List
+from typing import Optional, Mapping, Type, Union
 
 try:
     from ._scs_control_client import _ScsControlClient
@@ -36,12 +36,8 @@ from ..cache_operation_types import (
     CacheSetResponse,
     CacheGetResponse,
     CacheDeleteResponse,
-    CacheMultiSetOperation,
-    CacheMultiGetOperation,
-    CacheMultiSetFailureResponse,
     CacheMultiSetResponse,
     CacheMultiGetResponse,
-    CacheMultiGetFailureResponse,
 )
 
 
@@ -181,17 +177,18 @@ class SimpleCacheClient:
     async def multi_set(
         self,
         cache_name: str,
-        ops: Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]],
+        items: Union[Mapping[str, str], Mapping[bytes, bytes]],
+        ttl_seconds: Optional[int] = None,
     ) -> CacheMultiSetResponse:
-        """Executes a list of passed Set operations in parallel.
+        """Store items in the cache.
 
         Args:
             cache_name: Name of the cache to store the item in.
-            ops: (Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]]): List of set operations to
-                execute.
+            items: (Union[Mapping[str, str], Mapping[bytes, bytes]]): The items to store.
+            ttl_seconds: (Optional[int]): The TTL to apply to each item. Defaults to None.
 
         Returns:
-            CacheMultiGetResponse
+            CacheMultiSetResponse
 
         Raises:
             InvalidArgumentError: If validation fails for the provided method arguments.
@@ -200,7 +197,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return await self._data_client.multi_set(cache_name, ops)
+        return await self._data_client.multi_set(cache_name, items, ttl_seconds)
 
     async def set(
         self,
@@ -231,16 +228,13 @@ class SimpleCacheClient:
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
 
     async def multi_get(
-        self,
-        cache_name: str,
-        ops: Union[List[CacheMultiGetOperation], List[CacheMultiGetFailureResponse]],
+        self, cache_name: str, *keys: Union[str, bytes]
     ) -> CacheMultiGetResponse:
-        """Executes a list of passed Get operations in parallel.
+        """Retrieve multiple items from the cache.
 
         Args:
-            cache_name: Name of the cache to get the item from.
-            ops: (Union[List[CacheMultiGetOperation], List[CacheMultiGetFailureResponse]]): List of get operations to
-                execute.
+            cache_name (str): Name of the cache to get the item from.
+            keys: (Union[str, bytes]): The keys used to retrieve the items.
 
         Returns:
             CacheMultiGetResponse
@@ -252,7 +246,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return await self._data_client.multi_get(cache_name, ops)
+        return await self._data_client.multi_get(cache_name, *keys)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache

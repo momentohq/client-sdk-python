@@ -1,4 +1,3 @@
-from time import time
 from typing import Optional
 
 from momento_wire_types.controlclient_pb2 import _CreateCacheRequest
