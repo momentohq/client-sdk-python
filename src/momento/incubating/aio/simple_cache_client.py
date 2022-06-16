@@ -144,7 +144,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetUnaryResponse(
-                value=None, result=CacheGetStatus.MISS
+                value=None, status=CacheGetStatus.MISS
             )
 
         dictionary: BytesDictionary = deserialize_dictionary(
@@ -155,10 +155,10 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
         except KeyError:
             return CacheDictionaryGetUnaryResponse(
-                value=None, result=CacheGetStatus.MISS
+                value=None, status=CacheGetStatus.MISS
             )
 
-        return CacheDictionaryGetUnaryResponse(value=value, result=CacheGetStatus.HIT)
+        return CacheDictionaryGetUnaryResponse(value=value, status=CacheGetStatus.HIT)
 
     async def dictionary_multi_get(
         self,
@@ -184,7 +184,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         if dictionary_get_response.status() == CacheGetStatus.MISS:
             return CacheDictionaryGetMultiResponse(
                 values=[None for _ in range(len(keys))],
-                results=[CacheGetStatus.MISS for _ in range(len(keys))],
+                status=[CacheGetStatus.MISS for _ in range(len(keys))],
             )
 
         dictionary: BytesDictionary = deserialize_dictionary(
@@ -202,7 +202,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
                 values.append(None)
                 results.append(CacheGetStatus.MISS)
 
-        return CacheDictionaryGetMultiResponse(values=values, results=results)
+        return CacheDictionaryGetMultiResponse(values=values, status=results)
 
     async def dictionary_get_all(
         self, cache_name: str, dictionary_name: str
@@ -218,10 +218,10 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         """
         get_response = await self.get(cache_name, dictionary_name)
         if get_response.status() == CacheGetStatus.MISS:
-            return CacheDictionaryGetAllResponse(value=None, result=CacheGetStatus.MISS)
+            return CacheDictionaryGetAllResponse(value=None, status=CacheGetStatus.MISS)
 
         value = deserialize_dictionary(cast(bytes, get_response.value_as_bytes()))
-        return CacheDictionaryGetAllResponse(value=value, result=CacheGetStatus.HIT)
+        return CacheDictionaryGetAllResponse(value=value, status=CacheGetStatus.HIT)
 
 
 def init(

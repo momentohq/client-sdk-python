@@ -13,9 +13,9 @@ Dictionary = Union[StringDictionary, BytesDictionary]
 
 
 class CacheDictionaryGetUnaryResponse:
-    def __init__(self, value: Optional[DictionaryValue], result: CacheGetStatus):
+    def __init__(self, value: Optional[DictionaryValue], status: CacheGetStatus):
         self._value = value
-        self._result = result
+        self._status = status
 
     def value(self) -> Optional[str]:
         if self.status() == CacheGetStatus.MISS:
@@ -28,57 +28,57 @@ class CacheDictionaryGetUnaryResponse:
         return cast(bytes, self._value)
 
     def status(self) -> CacheGetStatus:
-        return self._result
+        return self._status
 
     def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, CacheDictionaryGetUnaryResponse)
             and self._value == other._value
-            and self._result == other._result
+            and self._status == other._status
         )
 
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionaryGetUnaryResponse(value={self._value!r}, result={self._result!r})"
+        return f"CacheDictionaryGetUnaryResponse(value={self._value!r}, status={self._status!r})"
 
 
 class CacheDictionaryGetMultiResponse:
     def __init__(
-        self, values: List[Optional[DictionaryValue]], results: List[CacheGetStatus]
+        self, values: List[Optional[DictionaryValue]], status: List[CacheGetStatus]
     ):
         self._values = values
-        self._results = results
+        self._status = status
 
     def to_list(self) -> List[CacheDictionaryGetUnaryResponse]:
         return [
-            CacheDictionaryGetUnaryResponse(value, result)
-            for value, result in zip(self._values, self._results)
+            CacheDictionaryGetUnaryResponse(value, status)
+            for value, status in zip(self._values, self._status)
         ]
 
     def values(self) -> List[Optional[str]]:
         return [
             _bytes_to_string(cast(bytes, value))
-            if result == CacheGetStatus.HIT
+            if status == CacheGetStatus.HIT
             else None
-            for value, result in zip(self._values, self._results)
+            for value, status in zip(self._values, self._status)
         ]
 
     def values_as_bytes(self) -> List[Optional[bytes]]:
         return [
-            cast(bytes, value) if result == CacheGetStatus.HIT else None
-            for value, result in zip(self._values, self._results)
+            cast(bytes, value) if status == CacheGetStatus.HIT else None
+            for value, status in zip(self._values, self._status)
         ]
 
     def status(self) -> List[CacheGetStatus]:
-        return self._results
+        return self._status
 
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionaryGetMultiResponse(values={self._values!r}, results={self._results!r})"
+        return f"CacheDictionaryGetMultiResponse(values={self._values!r}, status={self._status!r})"
 
 
 class CacheDictionarySetUnaryResponse:
@@ -131,9 +131,9 @@ class CacheDictionarySetMultiResponse:
 
 
 class CacheDictionaryGetAllResponse:
-    def __init__(self, value: Optional[BytesDictionary], result: CacheGetStatus):
+    def __init__(self, value: Optional[BytesDictionary], status: CacheGetStatus):
         self._value = value
-        self._result = result
+        self._status = status
 
     def value(self) -> Optional[StringDictionary]:
         """Get the dictionary as stored in the cache.
@@ -158,10 +158,10 @@ class CacheDictionaryGetAllResponse:
         return self._value
 
     def status(self) -> CacheGetStatus:
-        return self._result
+        return self._status
 
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionaryGetAllResponse(value={self._value!r}, result={self._result!r})"
+        return f"CacheDictionaryGetAllResponse(value={self._value!r}, status={self._status!r})"

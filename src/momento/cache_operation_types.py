@@ -63,9 +63,9 @@ class CacheMultiSetResponse:
 
 
 class CacheGetResponse:
-    def __init__(self, value: bytes, result: CacheGetStatus):
+    def __init__(self, value: bytes, status: CacheGetStatus):
         self._value = value
-        self._result = result
+        self._status = status
 
     @staticmethod
     def from_grpc_response(grpc_get_response: Any) -> "CacheGetResponse":  # type: ignore[misc]
@@ -80,9 +80,9 @@ class CacheGetResponse:
         value: bytes = grpc_get_response.cache_body  # type: ignore[misc]
 
         if grpc_get_response.result == cache_client_types.Hit:  # type: ignore[misc]
-            result = CacheGetStatus.HIT
+            status = CacheGetStatus.HIT
         elif grpc_get_response.result == cache_client_types.Miss:  # type: ignore[misc]
-            result = CacheGetStatus.MISS
+            status = CacheGetStatus.MISS
         else:
             _momento_logger.debug(
                 f"Get received unsupported ECacheResult: {grpc_get_response.result}"  # type: ignore[misc]
@@ -90,26 +90,26 @@ class CacheGetResponse:
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, "GET"  # type: ignore[misc]
             )
-        return CacheGetResponse(value=value, result=result)
+        return CacheGetResponse(value=value, status=status)
 
     def value(self) -> Optional[str]:
         """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
-        if self._result == CacheGetStatus.HIT:
+        if self._status == CacheGetStatus.HIT:
             return self._value.decode("utf-8")
         return None
 
     def value_as_bytes(self) -> Optional[bytes]:
         """Returns value stored in cache as bytes if there was Hit. Returns None otherwise."""
-        if self._result == CacheGetStatus.HIT:
+        if self._status == CacheGetStatus.HIT:
             return self._value
         return None
 
     def status(self) -> CacheGetStatus:
         """Returns get operation result such as HIT or MISS."""
-        return self._result
+        return self._status
 
     def __repr__(self) -> str:
-        return f"CacheGetResponse(value={self._value!r}, result={self._result!r})"
+        return f"CacheGetResponse(value={self._value!r}, status={self._status!r})"
 
 
 class CacheMultiGetResponse:
