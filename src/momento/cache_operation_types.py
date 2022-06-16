@@ -1,8 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import cast, Any, Optional, List, Mapping, Union
-from dataclasses import dataclass
+from typing import Any, Optional, List, Mapping
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 from . import _cache_service_errors_converter as error_converter
@@ -46,20 +45,6 @@ class CacheSetResponse:
         return self._key
 
 
-@dataclass
-class CacheMultiSetFailureResponse:
-    key: bytes
-    value: bytes
-    ttl_seconds: int
-    failure: Exception
-
-
-@dataclass
-class CacheMultiGetFailureResponse:
-    key: bytes
-    failure: Exception
-
-
 class CacheMultiSetResponse:
     def __init__(self, items: Mapping[bytes, bytes]):
         self._items = items
@@ -72,18 +57,6 @@ class CacheMultiSetResponse:
 
     def items_as_bytes(self) -> Mapping[bytes, bytes]:
         return self._items
-
-
-@dataclass
-class CacheMultiSetOperation:
-    key: Union[str, bytes]
-    value: Union[str, bytes]
-    ttl_seconds: Optional[int] = None
-
-
-@dataclass
-class CacheMultiGetOperation:
-    key: Union[str, bytes]
 
 
 class CacheGetResponse:

@@ -1,6 +1,5 @@
 import asyncio
-import functools
-from typing import Union, Optional, List, Mapping
+from typing import Union, Optional, Mapping
 from momento_wire_types.cacheclient_pb2 import _GetRequest, _SetRequest, _DeleteRequest
 
 from .. import cache_operation_types as cache_sdk_ops
@@ -12,7 +11,6 @@ from .._utilities._data_validation import (
     _validate_ttl,
     _make_metadata,
     _validate_cache_name,
-    _validate_multi_op_list,
 )
 
 _DEFAULT_DEADLINE_SECONDS = 5.0  # 5 seconds

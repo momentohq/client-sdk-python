@@ -5,11 +5,7 @@ import time
 
 import momento.simple_cache_client as simple_cache_client
 import momento.errors as errors
-from momento.cache_operation_types import (
-    CacheGetStatus,
-    CacheMultiSetOperation,
-    CacheMultiGetOperation,
-)
+from momento.cache_operation_types import CacheGetStatus
 
 
 _AUTH_TOKEN = os.getenv("TEST_AUTH_TOKEN")

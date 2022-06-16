@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Optional, Mapping, Type, Union, Type
+from typing import Optional, Mapping, Type, Union
 
 try:
     from ._scs_control_client import _ScsControlClient
@@ -36,12 +36,8 @@ from ..cache_operation_types import (
     CacheSetResponse,
     CacheGetResponse,
     CacheDeleteResponse,
-    CacheMultiSetOperation,
-    CacheMultiGetOperation,
-    CacheMultiSetFailureResponse,
     CacheMultiSetResponse,
     CacheMultiGetResponse,
-    CacheMultiGetFailureResponse,
 )
 
 

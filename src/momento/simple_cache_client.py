@@ -1,6 +1,6 @@
 import asyncio
 from types import TracebackType
-from typing import Optional, Mapping, Union, Type, List
+from typing import Optional, Mapping, Union, Type
 
 from .aio import simple_cache_client as aio
 from ._async_utils import wait_for_coroutine
@@ -13,11 +13,7 @@ from .cache_operation_types import (
     DeleteCacheResponse,
     ListCachesResponse,
     CacheMultiGetResponse,
-    CacheMultiGetOperation,
-    CacheMultiSetOperation,
     CacheMultiSetResponse,
-    CacheMultiSetFailureResponse,
-    CacheMultiGetFailureResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )

@@ -1,5 +1,4 @@
 import json
-import urllib
 from enum import Enum
 from typing import Optional, Dict
 from jwt.api_jwk import PyJWK

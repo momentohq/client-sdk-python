@@ -1,14 +1,8 @@
-from typing import Optional, Union, List
+from typing import Optional, Union
 
 from grpc.aio import Metadata
 
 from .. import errors
-from ..cache_operation_types import (
-    CacheMultiSetOperation,
-    CacheMultiGetOperation,
-    CacheMultiSetFailureResponse,
-    CacheMultiGetFailureResponse,
-)
 
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
@@ -16,18 +10,6 @@ DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 
 def _make_metadata(cache_name: str) -> Metadata:
     return Metadata(("cache", cache_name))  # type: ignore[misc]
-
-
-def _validate_multi_op_list(
-    values: Union[
-        List[CacheMultiSetOperation],
-        List[CacheMultiGetOperation],
-        List[CacheMultiSetFailureResponse],
-        List[CacheMultiGetFailureResponse],
-    ]
-) -> None:
-    if len(values) < 1:
-        raise errors.InvalidArgumentError("empty op list passed to multi operation")
 
 
 def _validate_cache_name(cache_name: str) -> None:
