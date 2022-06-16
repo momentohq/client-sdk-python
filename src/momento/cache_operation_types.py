@@ -112,7 +112,7 @@ class CacheMultiGetResponse:
         """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
         return [result.value_as_bytes() for result in self._results]
 
-    def results(self) -> List[CacheGetResponse]:
+    def to_list(self) -> List[CacheGetResponse]:
         return self._results
 
 
