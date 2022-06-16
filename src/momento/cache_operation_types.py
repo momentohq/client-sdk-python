@@ -132,35 +132,19 @@ class CacheGetResponse:
 
 
 class CacheMultiGetResponse:
-    def __init__(
-        self,
-        successful_responses: List[CacheGetResponse],
-        failed_responses: List[CacheMultiGetFailureResponse],
-    ):
-        self._success_responses = successful_responses
-        self._failed_responses = failed_responses
-
-    def get_successful_responses(self) -> List[CacheGetResponse]:
-        """Returns list of responses of items successfully fetched from cache"""
-        return self._success_responses
-
-    def get_failed_responses(self) -> List[CacheMultiGetFailureResponse]:
-        """Returns list of set responses of items that an error occurred while trying to store in cache"""
-        return self._failed_responses
+    def __init__(self, results: List[CacheGetResponse]):
+        self._results = results
 
     def values(self) -> List[Optional[str]]:
         """Returns list of values as utf-8 string for each Hit. Each item in list is None if was a Miss."""
-        r_values = []
-        for r in self._success_responses:
-            r_values.append(r.value())
-        return r_values
+        return [result.value() for result in self._results]
 
     def values_as_bytes(self) -> List[Optional[bytes]]:
         """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
-        r_values = []
-        for r in self._success_responses:
-            r_values.append(r.value_as_bytes())
-        return r_values
+        return [result.value_as_bytes() for result in self._results]
+
+    def results(self) -> List[CacheGetResponse]:
+        return self._results
 
 
 class CacheDeleteResponse:

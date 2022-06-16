@@ -347,22 +347,46 @@ class TestMomento(unittest.TestCase):
         set_resp = self.client.multi_set(
             cache_name=_TEST_CACHE_NAME,
             ops=[
-                CacheMultiSetOperation(key="foo1", value="bar1", ttl_seconds=None),
-                CacheMultiSetOperation(key="foo2", value="bar2", ttl_seconds=None),
+                CacheMultiSetOperation(key="foo1", value="bar1"),
+                CacheMultiSetOperation(key="foo2", value="bar2"),
+                CacheMultiSetOperation(key="foo3", value="bar3"),
+                CacheMultiSetOperation(key="foo4", value="bar4"),
+                CacheMultiSetOperation(key="foo5", value="bar5"),
             ]
         )
         self.assertEqual(0, len(set_resp.get_failed_responses()))
-        self.assertEqual(2, len(set_resp.get_successful_responses()))
-        self.assertEqual('foo2', set_resp.get_successful_responses()[1].key())
+        self.assertEqual(5, len(set_resp.get_successful_responses()))
         get_resp = self.client.multi_get(
-            cache_name=_TEST_CACHE_NAME,
-            ops=[
-                CacheMultiGetOperation(key="foo1"),
-                CacheMultiGetOperation(key="foo2")
-            ]
-        )
-        self.assertEqual("bar1", get_resp.values()[0])
-        self.assertEqual("bar2", get_resp.values()[1])
+            _TEST_CACHE_NAME,
+            "foo5", "foo1", "foo2", "foo3")
+        values = get_resp.values()
+        self.assertEqual("bar5", values[0])
+        self.assertEqual("bar1", values[1])
+        self.assertEqual("bar2", values[2])
+        self.assertEqual("bar3", values[3])
+
+    def test_multi_get_failure(self):
+        # Start with a cache client with impossibly small request timeout to force failures
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
+            with self.assertRaises(errors.TimeoutError):
+                simple_cache.multi_get(
+                    _TEST_CACHE_NAME,
+                    "key1", "key2", "key3", "key4", "key5", "key6"
+                )
+
+    def test_multi_set_failure(self):
+        # Start with a cache client with impossibly small request timeout to force failures
+        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
+            set_resp = simple_cache.multi_set(
+                cache_name=_TEST_CACHE_NAME,
+                ops=[
+                    CacheMultiSetOperation(key="fizz1", value="buzz1"),
+                    CacheMultiSetOperation(key="fizz2", value="buzz2"),
+                    CacheMultiSetOperation(key="fizz3", value="buzz3"),
+                    CacheMultiSetOperation(key="fizz4", value="buzz4"),
+                    CacheMultiSetOperation(key="fizz5", value="buzz5"),
+                ]
+            )
 
     # Test delete for key that doesn't exist
     def test_delete_key_doesnt_exist(self):

@@ -362,22 +362,24 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         self.assertEqual(0, len(set_resp.get_failed_responses()))
         self.assertEqual(5, len(set_resp.get_successful_responses()))
         get_resp = await self.client.multi_get(
-            cache_name=_TEST_CACHE_NAME,
-            ops=[
-                CacheMultiGetOperation(key="foo5"),
-                CacheMultiGetOperation(key="foo1"),
-                CacheMultiGetOperation(key="foo2"),
-                CacheMultiGetOperation(key="foo3")
-            ]
-        )
-        self.assertEqual("bar5", get_resp.values()[0])
-        self.assertEqual("bar1", get_resp.values()[1])
-        self.assertEqual("bar2", get_resp.values()[2])
-        self.assertEqual("bar3", get_resp.values()[3])
+            _TEST_CACHE_NAME,
+            "foo5", "foo1", "foo2", "foo3")
+        values = get_resp.values()
+        self.assertEqual("bar5", values[0])
+        self.assertEqual("bar1", values[1])
+        self.assertEqual("bar2", values[2])
+        self.assertEqual("bar3", values[3])
 
-    # Multi op failure retry test
-    async def test_multi_set_failure_retry(self):
+    async def test_multi_get_failure(self):
+        # Start with a cache client with impossibly small request timeout to force failures
+        async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
+            with self.assertRaises(errors.TimeoutError):
+                await simple_cache.multi_get(
+                    _TEST_CACHE_NAME,
+                    "key1", "key2", "key3", "key4", "key5", "key6"
+                )
 
+    async def test_multi_set_failure(self):
         # Start with a cache client with impossibly small request timeout to force failures
         async with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1) as simple_cache:
             set_resp = await simple_cache.multi_set(
@@ -390,31 +392,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                     CacheMultiSetOperation(key="fizz5", value="buzz5"),
                 ]
             )
-            get_resp = await simple_cache.multi_get(
-                cache_name=_TEST_CACHE_NAME,
-                ops=[
-                    CacheMultiGetOperation(key="fizz4"),
-                    CacheMultiGetOperation(key="fizz5")
-                ]
-            )
-
-            self.assertEqual(0, len(set_resp.get_successful_responses()))
-            self.assertEqual(5, len(set_resp.get_failed_responses()))
-            self.assertEqual(0, len(get_resp.get_successful_responses()))
-            self.assertEqual(2, len(get_resp.get_failed_responses()))
-
-            # Now switch over to normal test client and re-drive failed transactions make sure it works
-            set_resp = await self.client.multi_set(cache_name=_TEST_CACHE_NAME, ops=set_resp.get_failed_responses())
-            get_resp = await self.client.multi_get(cache_name=_TEST_CACHE_NAME, ops=get_resp.get_failed_responses())
-
-            # we should only have success now and no errors after re-driving all the failed ops
-            self.assertEqual(5, len(set_resp.get_successful_responses()))
-            self.assertEqual(2, len(get_resp.get_successful_responses()))
-            self.assertEqual(0, len(set_resp.get_failed_responses()))
-            self.assertEqual(0, len(get_resp.get_failed_responses()))
-
-            # Make sure were getting values we expect back
-            self.assertEqual("buzz5", get_resp.values()[1])
 
     # Test delete for key that doesn't exist
     async def test_delete_key_doesnt_exist(self):

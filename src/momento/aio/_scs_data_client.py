@@ -179,59 +179,26 @@ class _ScsDataClient:
     async def multi_get(
         self,
         cache_name: str,
-        get_operations: Union[
-            List[cache_sdk_ops.CacheMultiGetOperation],
-            List[cache_sdk_ops.CacheMultiGetFailureResponse],
-        ],
+        *keys: Union[str, bytes],
     ) -> cache_sdk_ops.CacheMultiGetResponse:
-        _validate_multi_op_list(get_operations)
         _validate_cache_name(cache_name)
         try:
-            request_promises = list()
-            requests: List[_GetRequest] = list()
-            for op in get_operations:
-                get_request = _GetRequest()
-                get_request.cache_key = _as_bytes(op.key, "Unsupported type for key: ")
-                requests.append(get_request)
-                request_promises.append(
-                    self._grpc_manager.async_stub().Get(
-                        get_request,
-                        metadata=_make_metadata(cache_name),
-                        timeout=self._default_deadline_seconds,
-                    )
-                )
+            request_promises = [self.get(cache_name, key) for key in keys]
 
-            success_responses: List[cache_sdk_ops.CacheGetResponse] = []
-            failed_responses: List[cache_sdk_ops.CacheMultiGetFailureResponse] = []
+            # A note on `return_exceptions=True`: because we're gathering the results,
+            # if an individual promise raises an exception, we want the others to finish gracefully.
             results = await asyncio.gather(
                 *request_promises,
                 return_exceptions=True,
-                # When set to True exceptions are treated the same as successful results, and aggregated in the
-                # result list. We want to try and make sure all requests have chance to finish.
             )
-            for request, result in zip(requests, results):
+            for result in results:
                 if isinstance(result, Exception):
-                    failed_responses.append(
-                        cache_sdk_ops.CacheMultiGetFailureResponse(
-                            key=request.cache_key,
-                            failure=_cache_service_errors_converter.convert(result),
-                        )
-                    )
-                else:
-                    success_responses.append(cache_sdk_ops.CacheGetResponse(result))
-
-            _momento_logger.debug(
-                f"multi_get succeeded "
-                f"success_count={len(success_responses)} "
-                f"failure_count={len(failed_responses)} "
-            )
-            return cache_sdk_ops.CacheMultiGetResponse(
-                successful_responses=success_responses,
-                failed_responses=failed_responses,
-            )
+                    raise result
         except Exception as e:
             _momento_logger.debug(f"multi_get failed with response: {e}")
             raise _cache_service_errors_converter.convert(e)
+
+        return cache_sdk_ops.CacheMultiGetResponse(results=results)
 
     async def delete(
         self, cache_name: str, key: Union[str, bytes]
