@@ -294,7 +294,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             await self.client.set(cache_name, "foo", "bar")
 
     async def test_set_with_null_cache_name_throws_exception(self):
-        cache_name = str(uuid.uuid4())
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             await self.client.set(None, "foo", "bar")
         self.assertEqual(
@@ -302,7 +301,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         )
 
     async def test_set_with_empty_cache_name_throws_exception(self):
-        cache_name = str(uuid.uuid4())
         with self.assertRaises(errors.BadRequestError) as cm:
             await self.client.set("", "foo", "bar")
         self.assertEqual("{}".format(cm.exception), "Cache header is empty")
@@ -365,7 +363,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             await self.client.get(cache_name, "foo")
 
     async def test_get_with_null_cache_name_throws_exception(self):
-        cache_name = str(uuid.uuid4())
         with self.assertRaises(errors.InvalidArgumentError) as cm:
             await self.client.get(None, "foo")
         self.assertEqual(
@@ -373,7 +370,6 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         )
 
     async def test_get_with_empty_cache_name_throws_exception(self):
-        cache_name = str(uuid.uuid4())
         with self.assertRaises(errors.BadRequestError) as cm:
             await self.client.get("", "foo")
         self.assertEqual("{}".format(cm.exception), "Cache header is empty")

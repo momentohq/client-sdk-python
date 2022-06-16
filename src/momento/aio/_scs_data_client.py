@@ -86,17 +86,18 @@ class _ScsDataClient:
 
             # A note on `return_exceptions=True`: because we're gathering the results,
             # if an individual promise raises an exception, we want the others to finish gracefully.
-            results = await asyncio.gather(
+            responses = await asyncio.gather(
                 *request_promises,
                 return_exceptions=True,
             )
 
-            for result in results:
-                if isinstance(result, Exception):
-                    raise result
+            for response in responses:
+                if isinstance(response, Exception):
+                    raise response
 
             items_as_bytes = {
-                item.key_as_bytes(): item.value_as_bytes() for item in results
+                response.key_as_bytes(): response.value_as_bytes()
+                for response in responses
             }
             return cache_sdk_ops.CacheMultiSetResponse(items=items_as_bytes)
         except Exception as e:
@@ -119,7 +120,7 @@ class _ScsDataClient:
                 timeout=self._default_deadline_seconds,
             )
             _momento_logger.debug(f"Received a get response for {str(key)}")
-            return cache_sdk_ops.CacheGetResponse(response)
+            return cache_sdk_ops.CacheGetResponse.from_grpc_response(response)
         except Exception as e:
             _momento_logger.debug(f"Get failed for {str(key)} with response: {e}")
             raise _cache_service_errors_converter.convert(e)
@@ -135,18 +136,18 @@ class _ScsDataClient:
 
             # A note on `return_exceptions=True`: because we're gathering the results,
             # if an individual promise raises an exception, we want the others to finish gracefully.
-            results = await asyncio.gather(
+            responses = await asyncio.gather(
                 *request_promises,
                 return_exceptions=True,
             )
-            for result in results:
-                if isinstance(result, Exception):
-                    raise result
+            for response in responses:
+                if isinstance(response, Exception):
+                    raise response
         except Exception as e:
             _momento_logger.debug(f"multi_get failed with response: {e}")
             raise _cache_service_errors_converter.convert(e)
 
-        return cache_sdk_ops.CacheMultiGetResponse(results=results)
+        return cache_sdk_ops.CacheMultiGetResponse(responses=responses)
 
     async def delete(
         self, cache_name: str, key: Union[str, bytes]

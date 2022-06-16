@@ -58,9 +58,17 @@ class CacheMultiSetResponse:
     def items_as_bytes(self) -> Mapping[bytes, bytes]:
         return self._items
 
+    def __repr__(self) -> str:
+        return f"CacheMultiSetResponse(items={self._items!r})"
+
 
 class CacheGetResponse:
-    def __init__(self, grpc_get_response: Any):  # type: ignore[misc]
+    def __init__(self, value: bytes, result: CacheGetStatus):
+        self._value = value
+        self._result = result
+
+    @staticmethod
+    def from_grpc_response(grpc_get_response: Any) -> "CacheGetResponse":  # type: ignore[misc]
         """Initializes CacheGetResponse to handle gRPC get response.
 
         Args:
@@ -69,12 +77,12 @@ class CacheGetResponse:
         Raises:
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        self._value: bytes = grpc_get_response.cache_body  # type: ignore[misc]
+        value: bytes = grpc_get_response.cache_body  # type: ignore[misc]
 
         if grpc_get_response.result == cache_client_types.Hit:  # type: ignore[misc]
-            self._result = CacheGetStatus.HIT
+            result = CacheGetStatus.HIT
         elif grpc_get_response.result == cache_client_types.Miss:  # type: ignore[misc]
-            self._result = CacheGetStatus.MISS
+            result = CacheGetStatus.MISS
         else:
             _momento_logger.debug(
                 f"Get received unsupported ECacheResult: {grpc_get_response.result}"  # type: ignore[misc]
@@ -82,6 +90,7 @@ class CacheGetResponse:
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, "GET"  # type: ignore[misc]
             )
+        return CacheGetResponse(value=value, result=result)
 
     def value(self) -> Optional[str]:
         """Returns value stored in cache as utf-8 string if there was Hit. Returns None otherwise."""
@@ -99,21 +108,30 @@ class CacheGetResponse:
         """Returns get operation result such as HIT or MISS."""
         return self._result
 
+    def __repr__(self) -> str:
+        return f"CacheGetResponse(value={self._value!r}, result={self._result!r})"
+
 
 class CacheMultiGetResponse:
-    def __init__(self, results: List[CacheGetResponse]):
-        self._results = results
+    def __init__(self, responses: List[CacheGetResponse]):
+        self._responses = responses
+
+    def status(self) -> List[CacheGetStatus]:
+        return [response.status() for response in self._responses]
 
     def values(self) -> List[Optional[str]]:
         """Returns list of values as utf-8 string for each Hit. Each item in list is None if was a Miss."""
-        return [result.value() for result in self._results]
+        return [response.value() for response in self._responses]
 
     def values_as_bytes(self) -> List[Optional[bytes]]:
         """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
-        return [result.value_as_bytes() for result in self._results]
+        return [response.value_as_bytes() for response in self._responses]
 
     def to_list(self) -> List[CacheGetResponse]:
-        return self._results
+        return self._responses
+
+    def __repr__(self) -> str:
+        return f"CacheMultiGetResponse(responses={self._responses!r})"
 
 
 class CacheDeleteResponse:
