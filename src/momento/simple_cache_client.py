@@ -1,6 +1,6 @@
 import asyncio
 from types import TracebackType
-from typing import Optional, Union, Type, List
+from typing import Optional, Mapping, Union, Type, List
 
 from .aio import simple_cache_client as aio
 from ._async_utils import wait_for_coroutine
@@ -204,16 +204,18 @@ class SimpleCacheClient:
     def multi_set(
         self,
         cache_name: str,
-        ops: Union[List[CacheMultiSetOperation], List[CacheMultiSetFailureResponse]],
+        items: Union[Mapping[str, str], Mapping[bytes, bytes]],
+        ttl_seconds: Optional[int] = None,
     ) -> CacheMultiSetResponse:
-        """Executes a list of passed Set operations in parallel.
+        """Store items in the cache.
 
         Args:
             cache_name: Name of the cache to store the item in.
-            ops: (List[CacheMultiSetOperation]): List of set operations to execute.
+            items: (Union[Mapping[str, str], Mapping[bytes, bytes]]): The items to store.
+            ttl_seconds: (Optional[int]): The TTL to apply to each item. Defaults to None.
 
         Returns:
-            CacheMultiGetResponse
+            CacheMultiSetResponse
 
         Raises:
             InvalidArgumentError: If validation fails for the provided method arguments.
@@ -222,7 +224,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        coroutine = self._momento_async_client.multi_set(cache_name, ops)
+        coroutine = self._momento_async_client.multi_set(cache_name, items, ttl_seconds)
         return wait_for_coroutine(self._loop, coroutine)
 
     def get(self, cache_name: str, key: str) -> CacheGetResponse:

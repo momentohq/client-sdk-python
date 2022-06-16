@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import cast, Any, Optional, List, Union
+from typing import cast, Any, Optional, List, Mapping, Union
 from dataclasses import dataclass
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
@@ -61,21 +61,17 @@ class CacheMultiGetFailureResponse:
 
 
 class CacheMultiSetResponse:
-    def __init__(
-        self,
-        successful_responses: List[CacheSetResponse],
-        failed_responses: List[CacheMultiSetFailureResponse],
-    ):
-        self._success_responses = successful_responses
-        self._failed_responses = failed_responses
+    def __init__(self, items: Mapping[bytes, bytes]):
+        self._items = items
 
-    def get_successful_responses(self) -> List[CacheSetResponse]:
-        """Returns list of responses of items successfully stored in cache"""
-        return self._success_responses
+    def items(self) -> Mapping[str, str]:
+        return {
+            key.decode("utf-8"): value.decode("utf-8")
+            for key, value in self._items.items()
+        }
 
-    def get_failed_responses(self) -> List[CacheMultiSetFailureResponse]:
-        """Returns list of set responses of items that an error occurred while trying to store in cache"""
-        return self._failed_responses
+    def items_as_bytes(self) -> Mapping[bytes, bytes]:
+        return self._items
 
 
 @dataclass
