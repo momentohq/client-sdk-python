@@ -64,7 +64,7 @@ class _ScsDataClient:
             )
             _momento_logger.debug(f"Set succeeded for key: {str(key)}")
             return cache_sdk_ops.CacheSetResponse(
-                response, set_request.cache_key, set_request.cache_body
+                set_request.cache_key, set_request.cache_body
             )
         except Exception as e:
             _momento_logger.debug(f"Set failed for {str(key)} with response: {e}")
@@ -163,7 +163,7 @@ class _ScsDataClient:
                 timeout=self._default_deadline_seconds,
             )
             _momento_logger.debug(f"Received a delete response for {str(key)}")
-            return cache_sdk_ops.CacheDeleteResponse(response)
+            return cache_sdk_ops.CacheDeleteResponse.from_grpc_response(response)
         except Exception as e:
             _momento_logger.debug(f"Delete failed for {str(key)} with response: {e}")
             raise _cache_service_errors_converter.convert(e)

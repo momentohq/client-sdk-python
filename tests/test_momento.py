@@ -161,7 +161,6 @@ class TestMomento(unittest.TestCase):
                 simple_cache.create_cache(str(uuid.uuid4()))
 
     # list_caches
-
     def test_list_caches_succeeds(self):
         cache_name = str(uuid.uuid4())
 

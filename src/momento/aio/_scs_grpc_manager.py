@@ -1,5 +1,5 @@
 import grpc
-import pkg_resources
+import pkg_resources  # type: ignore
 
 import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.controlclient_pb2_grpc as control_client

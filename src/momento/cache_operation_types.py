@@ -14,11 +14,10 @@ class CacheGetStatus(Enum):
 
 
 class CacheSetResponse:
-    def __init__(self, grpc_set_response: Any, key: bytes, value: bytes):  # type: ignore[misc]
+    def __init__(self, key: bytes, value: bytes):
         """Initializes CacheSetResponse to handle gRPC set response.
 
         Args:
-            grpc_set_response: Protobuf based response returned by Scs.
             key (bytes): The value of the key of item that was stored in cache..
             value (bytes): The value of item that was stored in the cache.
 
@@ -44,6 +43,12 @@ class CacheSetResponse:
         """Returns key of item stored in cache as bytes."""
         return self._key
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CacheSetResponse(key={self._key!r}, value={self._value!r})"
+
 
 class CacheMultiSetResponse:
     def __init__(self, items: Mapping[bytes, bytes]):
@@ -57,6 +62,9 @@ class CacheMultiSetResponse:
 
     def items_as_bytes(self) -> Mapping[bytes, bytes]:
         return self._items
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
     def __repr__(self) -> str:
         return f"CacheMultiSetResponse(items={self._items!r})"
@@ -108,6 +116,9 @@ class CacheGetResponse:
         """Returns get operation result such as HIT or MISS."""
         return self._status
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
     def __repr__(self) -> str:
         return f"CacheGetResponse(value={self._value!r}, status={self._status!r})"
 
@@ -130,54 +141,97 @@ class CacheMultiGetResponse:
     def to_list(self) -> List[CacheGetResponse]:
         return self._responses
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
     def __repr__(self) -> str:
         return f"CacheMultiGetResponse(responses={self._responses!r})"
 
 
 class CacheDeleteResponse:
-    def __init__(self, grpc_create_cache_response: Any):  # type: ignore[misc]
+    def __init__(self) -> None:
         pass
+
+    @staticmethod
+    def from_grpc_response(grpc_create_cache_response: Any) -> "CacheDeleteResponse":  # type: ignore[misc]
+        return CacheDeleteResponse()
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CacheDeleteResponse()"
 
 
 class CreateCacheResponse:
-    def __init__(self, grpc_create_cache_response: Any):  # type: ignore[misc]
+    def __init__(self) -> None:
         pass
+
+    @staticmethod
+    def from_grpc_response(grpc_create_cache_response: Any) -> "CreateCacheResponse":  # type: ignore[misc]
+        return CreateCacheResponse()
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CreateCacheResponse()"
 
 
 class DeleteCacheResponse:
-    def __init__(self, grpc_delete_cache_response: Any):  # type: ignore[misc]
+    def __init__(self) -> None:
         pass
+
+    @staticmethod
+    def from_grpc_response(grpc_create_cache_response: Any) -> "DeleteCacheResponse":  # type: ignore[misc]
+        return DeleteCacheResponse()
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"DeleteCacheResponse()"
 
 
 class CacheInfo:
-    def __init__(self, grpc_listed_cache: Any):  # type: ignore[misc]
+    def __init__(self, name: str):
+        """Initializes CacheInfo to handle caches returned from list cache operation.
+
+        Args:
+            name (str): Name of the cache.
+        """
+        self._name = name
+
+    def name(self) -> str:
+        """Returns the cache's name."""
+        return self._name
+
+    @staticmethod
+    def from_grpc_response(grpc_listed_cache: Any) -> "CacheInfo":  # type: ignore[misc]
         """Initializes CacheInfo to handle caches returned from list cache operation.
 
         Args:
             grpc_listed_cache: Protobuf based response returned by Scs.
         """
-        self._name: str = grpc_listed_cache.cache_name  # type: ignore[misc]
+        return CacheInfo(name=grpc_listed_cache.cache_name)  # type: ignore[misc]
 
-    def name(self) -> str:
-        """Returns all cache's name."""
-        return self._name
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CacheInfo(name={self._name!r})"
 
 
 class ListCachesResponse:
-    def __init__(self, grpc_list_cache_response: Any):  # type: ignore[misc]
+    def __init__(self, next_token: Optional[str], caches: List[CacheInfo]):
         """Initializes ListCacheResponse to handle list cache response.
 
         Args:
-            grpc_list_cache_response: Protobuf based response returned by Scs.
+            next_token (Optional[str]): Next list caches page token.
+            caches (List[CacheInfo]): Cache info from this page of results.
         """
-        self._next_token: Optional[str] = (
-            grpc_list_cache_response.next_token  # type: ignore[misc]
-            if grpc_list_cache_response.next_token != ""  # type: ignore[misc]
-            else None
-        )
-        self._caches = []
-        for cache in grpc_list_cache_response.cache:  # type: ignore[misc]
-            self._caches.append(CacheInfo(cache))  # type: ignore[misc]
+        self._next_token = next_token
+        self._caches = caches
 
     def next_token(self) -> Optional[str]:
         """Returns next token."""
@@ -187,20 +241,39 @@ class ListCachesResponse:
         """Returns all caches."""
         return self._caches
 
+    @staticmethod
+    def from_grpc_response(grpc_list_cache_response: Any) -> "ListCachesResponse":  # type: ignore[misc]
+        """Initializes ListCacheResponse to handle list cache response.
+
+        Args:
+            grpc_list_cache_response: Protobuf based response returned by Scs.
+        """
+        next_token: Optional[str] = (
+            grpc_list_cache_response.next_token  # type: ignore[misc]
+            if grpc_list_cache_response.next_token != ""  # type: ignore[misc]
+            else None
+        )
+        caches = [CacheInfo.from_grpc_response(cache) for cache in grpc_list_cache_response.cache]  # type: ignore[misc]
+        return ListCachesResponse(next_token=next_token, caches=caches)
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"ListCachesResponse(next_token={self._next_token!r}, caches={self._caches!r})"
+
 
 class CreateSigningKeyResponse:
-    def __init__(self, grpc_create_signing_key_response: Any, endpoint: str):  # type: ignore[misc]
+    def __init__(self, key_id: str, endpoint: str, key: str, expires_at: datetime):
         """Initializes CreateSigningKeyResponse to handle create signing key response.
 
         Args:
             grpc_create_signing_key_response: Protobuf based response returned by Scs.
         """
-        self._key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]  # type: ignore[misc]
-        self._endpoint: str = endpoint
-        self._key: str = grpc_create_signing_key_response.key  # type: ignore[misc]
-        self._expires_at: datetime = datetime.fromtimestamp(
-            grpc_create_signing_key_response.expires_at  # type: ignore[misc]
-        )
+        self._key_id = key_id
+        self._endpoint = endpoint
+        self._key = key
+        self._expires_at = expires_at
 
     def key_id(self) -> str:
         """Returns the id of the signing key"""
@@ -218,24 +291,47 @@ class CreateSigningKeyResponse:
         """Returns the datetime representation of when the key expires"""
         return self._expires_at
 
+    @staticmethod
+    def from_grpc_response(grpc_create_signing_key_response: Any, endpoint: str) -> "CreateSigningKeyResponse":  # type: ignore[misc]
+        key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]  # type: ignore[misc]
+        key: str = grpc_create_signing_key_response.key  # type: ignore[misc]
+        expires_at: datetime = datetime.fromtimestamp(
+            grpc_create_signing_key_response.expires_at  # type: ignore[misc]
+        )
+        return CreateSigningKeyResponse(key_id, endpoint, key, expires_at)
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CreateSigningKeyResponse(key_id={self._key_id!r}, endpoint={self._endpoint!r}, key={self._key!r}, expires_at={self._expires_at!r})"
+
 
 class RevokeSigningKeyResponse:
-    def __init__(self, grpc_revoke_signing_key_response: Any):  # type: ignore[misc]
+    def __init__(self) -> None:
         pass
+
+    @staticmethod
+    def from_grpc_response(grpc_revoke_signing_key_response: Any) -> "RevokeSigningKeyResponse":  # type: ignore[misc]
+        return RevokeSigningKeyResponse()
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"RevokeSigningKeyResponse()"
 
 
 class SigningKey:
-    def __init__(self, grpc_listed_signing_key: Any, endpoint: str):  # type: ignore[misc]
+    def __init__(self, key_id: str, expires_at: datetime, endpoint: str):
         """Initializes SigningKey to handle signing keys returned from list signing keys operation.
 
         Args:
             grpc_listed_signing_key: Protobuf based response returned by Scs.
         """
-        self._key_id: str = grpc_listed_signing_key.key_id  # type: ignore[misc]
-        self._expires_at: datetime = datetime.fromtimestamp(
-            grpc_listed_signing_key.expires_at  # type: ignore[misc]
-        )
-        self._endpoint: str = endpoint
+        self._key_id = key_id
+        self._expires_at = expires_at
+        self._endpoint = endpoint
 
     def key_id(self) -> str:
         """Returns the id of the Momento signing key"""
@@ -249,23 +345,30 @@ class SigningKey:
         """Returns the endpoint of the Momento signing key"""
         return self._endpoint
 
+    @staticmethod
+    def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> "SigningKey":  # type: ignore[misc]
+        key_id: str = grpc_listed_signing_key.key_id  # type: ignore[misc]
+        expires_at: datetime = datetime.fromtimestamp(
+            grpc_listed_signing_key.expires_at  # type: ignore[misc]
+        )
+        return SigningKey(key_id, expires_at, endpoint)
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"SigningKey(key_id={self._key_id!r}, expires_at={self._expires_at!r}, endpoint={self._endpoint!r})"
+
 
 class ListSigningKeysResponse:
-    def __init__(self, grpc_list_signing_keys_response: Any, endpoint: str):  # type: ignore[misc]
+    def __init__(self, next_token: Optional[str], signing_keys: List[SigningKey]):
         """Initializes ListSigningKeysResponse to handle list signing keys response.
 
         Args:
             grpc_list_signing_keys_response: Protobuf based response returned by Scs.
         """
-        self._next_token: Optional[str] = (
-            grpc_list_signing_keys_response.next_token  # type: ignore[misc]
-            if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]
-            else None
-        )
-        self._signing_keys: List[SigningKey] = [  # type: ignore[misc]
-            SigningKey(signing_key, endpoint)  # type: ignore[misc]
-            for signing_key in grpc_list_signing_keys_response.signing_key  # type: ignore[misc]
-        ]
+        self._next_token = next_token
+        self._signing_keys = signing_keys
 
     def next_token(self) -> Optional[str]:
         """Returns next token."""
@@ -274,3 +377,22 @@ class ListSigningKeysResponse:
     def signing_keys(self) -> List[SigningKey]:
         """Returns all signing keys."""
         return self._signing_keys
+
+    @staticmethod
+    def from_grpc_response(grpc_list_signing_keys_response: Any, endpoint: str) -> "ListSigningKeysResponse":  # type: ignore[misc]
+        next_token: Optional[str] = (
+            grpc_list_signing_keys_response.next_token  # type: ignore[misc]
+            if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]
+            else None
+        )
+        signing_keys: List[SigningKey] = [  # type: ignore[misc]
+            SigningKey.from_grpc_response(signing_key, endpoint)  # type: ignore[misc]
+            for signing_key in grpc_list_signing_keys_response.signing_key  # type: ignore[misc]
+        ]
+        return ListSigningKeysResponse(next_token, signing_keys)
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"ListSigningKeysResponse(next_token={self._next_token!r}, signing_keys={self._signing_keys!r})"

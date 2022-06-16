@@ -37,7 +37,7 @@ class _ScsControlClient:
             _momento_logger.debug(f"Creating cache with name: {cache_name}")
             request = _CreateCacheRequest()
             request.cache_name = cache_name
-            return CreateCacheResponse(
+            return CreateCacheResponse.from_grpc_response(
                 await self._grpc_manager.async_stub().CreateCache(
                     request, timeout=_DEADLINE_SECONDS
                 )
@@ -54,7 +54,7 @@ class _ScsControlClient:
             _momento_logger.debug(f"Deleting cache with name: {cache_name}")
             request = _DeleteCacheRequest()
             request.cache_name = cache_name
-            return DeleteCacheResponse(
+            return DeleteCacheResponse.from_grpc_response(
                 await self._grpc_manager.async_stub().DeleteCache(
                     request, timeout=_DEADLINE_SECONDS
                 )
@@ -71,7 +71,7 @@ class _ScsControlClient:
             list_caches_request.next_token = (
                 next_token if next_token is not None else ""
             )
-            return ListCachesResponse(
+            return ListCachesResponse.from_grpc_response(
                 await self._grpc_manager.async_stub().ListCaches(
                     list_caches_request, timeout=_DEADLINE_SECONDS
                 )
@@ -89,7 +89,7 @@ class _ScsControlClient:
             )
             create_signing_key_request = _CreateSigningKeyRequest()
             create_signing_key_request.ttl_minutes = ttl_minutes
-            return CreateSigningKeyResponse(
+            return CreateSigningKeyResponse.from_grpc_response(
                 await self._grpc_manager.async_stub().CreateSigningKey(
                     create_signing_key_request, timeout=_DEADLINE_SECONDS
                 ),
@@ -104,7 +104,7 @@ class _ScsControlClient:
             _momento_logger.debug(f"Revoking signing key with key_id {key_id}")
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
-            return RevokeSigningKeyResponse(
+            return RevokeSigningKeyResponse.from_grpc_response(
                 await self._grpc_manager.async_stub().RevokeSigningKey(
                     request, timeout=_DEADLINE_SECONDS
                 )
@@ -123,7 +123,7 @@ class _ScsControlClient:
             list_signing_keys_request.next_token = (
                 next_token if next_token is not None else ""
             )
-            return ListSigningKeysResponse(
+            return ListSigningKeysResponse.from_grpc_response(
                 await self._grpc_manager.async_stub().ListSigningKeys(
                     list_signing_keys_request, timeout=_DEADLINE_SECONDS
                 ),
