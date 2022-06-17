@@ -32,7 +32,7 @@ CacheDictionarySetResponse(dictionary_name='my-dictionary', dictionary={b'key2':
 ```python
 >>> get_response = client.dictionary_get(cache_name="my-cache", dictionary_name="my-dictionary", key="key1")
 >>> get_response
-CacheDictionaryGetUnaryResponse(value=b'value1', result=<CacheGetStatus.HIT: 1>)
+CacheDictionaryGetUnaryResponse(value=b'value1', status=<CacheGetStatus.HIT: 1>)
 
 >>> get_response.status()
 <CacheGetStatus.HIT: 1>
@@ -46,12 +46,12 @@ CacheDictionaryGetUnaryResponse(value=b'value1', result=<CacheGetStatus.HIT: 1>)
 ```python
 >>> get_response = client.dictionary_multi_get("my-cache", "my-dictionary", "key1", "key2", "key7")
 >>> get_response
-CacheDictionaryGetMultiResponse(values=[b'value1', b'value2', None], results=[<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>])
+CacheDictionaryGetMultiResponse(values=[b'value1', b'value2', None], status=[<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>])
 
 >>> get_response.to_list()
-[CacheDictionaryGetUnaryResponse(value=b'value1', result=<CacheGetStatus.HIT: 1>),
- CacheDictionaryGetUnaryResponse(value=b'value2', result=<CacheGetStatus.HIT: 1>),
- CacheDictionaryGetUnaryResponse(value=None, result=<CacheGetStatus.MISS: 2>)]
+[CacheDictionaryGetUnaryResponse(value=b'value1', status=<CacheGetStatus.HIT: 1>),
+ CacheDictionaryGetUnaryResponse(value=b'value2', status=<CacheGetStatus.HIT: 1>),
+ CacheDictionaryGetUnaryResponse(value=None, status=<CacheGetStatus.MISS: 2>)]
 
  >>> get_response.status()
  [<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>]
@@ -65,7 +65,7 @@ CacheDictionaryGetMultiResponse(values=[b'value1', b'value2', None], results=[<C
 ```python
 >>> dictionary_get_all_response = client.dictionary_get_all(cache_name="my-cache", dictionary_name="my-dictionary")
 >>> dictionary_get_all_response
-CacheDictionaryGetAllResponse(value={b'key1': b'value1', b'key2': b'value2'}, result=<CacheGetStatus.HIT: 1>)
+CacheDictionaryGetAllResponse(value={b'key1': b'value1', b'key2': b'value2'}, status=<CacheGetStatus.HIT: 1>)
 
 >>> dictionary_get_all_response.value()
 {'key1': 'value1', 'key2': 'value2'}
