@@ -20,9 +20,6 @@ class CacheSetResponse:
         Args:
             key (bytes): The value of the key of item that was stored in cache..
             value (bytes): The value of item that was stored in the cache.
-
-        Raises:
-            InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         self._value = value
         self._key = key
