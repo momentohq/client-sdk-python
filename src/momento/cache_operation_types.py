@@ -149,10 +149,6 @@ class CacheDeleteResponse:
     def __init__(self) -> None:
         pass
 
-    @staticmethod
-    def from_grpc_response(grpc_create_cache_response: Any) -> "CacheDeleteResponse":  # type: ignore[misc]
-        return CacheDeleteResponse()
-
     def __str__(self) -> str:
         return self.__repr__()
 
@@ -164,10 +160,6 @@ class CreateCacheResponse:
     def __init__(self) -> None:
         pass
 
-    @staticmethod
-    def from_grpc_response(grpc_create_cache_response: Any) -> "CreateCacheResponse":  # type: ignore[misc]
-        return CreateCacheResponse()
-
     def __str__(self) -> str:
         return self.__repr__()
 
@@ -178,10 +170,6 @@ class CreateCacheResponse:
 class DeleteCacheResponse:
     def __init__(self) -> None:
         pass
-
-    @staticmethod
-    def from_grpc_response(grpc_create_cache_response: Any) -> "DeleteCacheResponse":  # type: ignore[misc]
-        return DeleteCacheResponse()
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -307,10 +295,6 @@ class CreateSigningKeyResponse:
 class RevokeSigningKeyResponse:
     def __init__(self) -> None:
         pass
-
-    @staticmethod
-    def from_grpc_response(grpc_revoke_signing_key_response: Any) -> "RevokeSigningKeyResponse":  # type: ignore[misc]
-        return RevokeSigningKeyResponse()
 
     def __str__(self) -> str:
         return self.__repr__()

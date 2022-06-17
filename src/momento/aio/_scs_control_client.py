@@ -37,11 +37,10 @@ class _ScsControlClient:
             _momento_logger.debug(f"Creating cache with name: {cache_name}")
             request = _CreateCacheRequest()
             request.cache_name = cache_name
-            return CreateCacheResponse.from_grpc_response(
-                await self._grpc_manager.async_stub().CreateCache(
-                    request, timeout=_DEADLINE_SECONDS
-                )
+            await self._grpc_manager.async_stub().CreateCache(
+                request, timeout=_DEADLINE_SECONDS
             )
+            return CreateCacheResponse()
         except Exception as e:
             _momento_logger.debug(
                 f"Failed to create cache: {cache_name} with exception:{e}"
@@ -54,11 +53,10 @@ class _ScsControlClient:
             _momento_logger.debug(f"Deleting cache with name: {cache_name}")
             request = _DeleteCacheRequest()
             request.cache_name = cache_name
-            return DeleteCacheResponse.from_grpc_response(
-                await self._grpc_manager.async_stub().DeleteCache(
-                    request, timeout=_DEADLINE_SECONDS
-                )
+            await self._grpc_manager.async_stub().DeleteCache(
+                request, timeout=_DEADLINE_SECONDS
             )
+            return DeleteCacheResponse()
         except Exception as e:
             _momento_logger.debug(
                 f"Failed to delete cache: {cache_name} with exception:{e}"
@@ -104,11 +102,10 @@ class _ScsControlClient:
             _momento_logger.debug(f"Revoking signing key with key_id {key_id}")
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
-            return RevokeSigningKeyResponse.from_grpc_response(
-                await self._grpc_manager.async_stub().RevokeSigningKey(
-                    request, timeout=_DEADLINE_SECONDS
-                )
+            await self._grpc_manager.async_stub().RevokeSigningKey(
+                request, timeout=_DEADLINE_SECONDS
             )
+            return RevokeSigningKeyResponse()
         except Exception as e:
             _momento_logger.debug(
                 f"Failed to revoke signing key with key_id {key_id} exception: {e}"
