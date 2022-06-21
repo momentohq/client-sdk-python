@@ -225,7 +225,9 @@ class CacheExistsResponse:
         Returns:
             List[Union[str, bytes]]: List of queried keys that do not exist.
         """
-        return [key for key, does_exist in zip(self._keys, self._results) if not does_exist]
+        return [
+            key for key, does_exist in zip(self._keys, self._results) if not does_exist
+        ]
 
     def present_keys(self) -> List[Union[str, bytes]]:
         """List the keys that exist.
