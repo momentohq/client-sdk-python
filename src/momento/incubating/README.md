@@ -129,8 +129,8 @@ This demonstrates the methods and response features for testing the existence of
 6. Iterate over all keys
 
 ```python
->>> for key, exists in client.exists("my-cache", *keys).zip_keys_and_results():
-... 	print(f"{=key} {=exists}")
+>>> for key, does_exist in client.exists("my-cache", *keys).zip_keys_and_results():
+... 	print(f"{=key} {=does_exist}")
 ```
 
 7. A full example

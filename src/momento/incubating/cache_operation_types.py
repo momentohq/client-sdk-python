@@ -208,7 +208,7 @@ class CacheExistsResponse:
         >>> repsonse = client.exists("my-cache", *keys)
         >>> if not response.all():
         ...     mask = response.results()
-        ...     missing = [key for key, exists in zip(keys, mask) if not exists]
+        ...     missing = [key for key, does_exist in zip(keys, mask) if not does_exist]
         ...     log.info(f"The following keys are missing: {missing}")
 
         Note the above example illustrates using the existence mask.
@@ -225,7 +225,7 @@ class CacheExistsResponse:
         Returns:
             List[Union[str, bytes]]: List of queried keys that do not exist.
         """
-        return [key for key, exists in zip(self._keys, self._results) if not exists]
+        return [key for key, does_exist in zip(self._keys, self._results) if not does_exist]
 
     def present_keys(self) -> List[Union[str, bytes]]:
         """List the keys that exist.
@@ -233,7 +233,7 @@ class CacheExistsResponse:
         Returns:
             List[Union[str, bytes]]: List of queried keys that exist.
         """
-        return [key for key, exists in zip(self._keys, self._results) if exists]
+        return [key for key, does_exist in zip(self._keys, self._results) if does_exist]
 
     def zip_keys_and_results(self) -> Iterable[Tuple[Union[str, bytes], bool]]:
         """Zip the keys and existence mask.
