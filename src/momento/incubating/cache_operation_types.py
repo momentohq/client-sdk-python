@@ -165,3 +165,72 @@ class CacheDictionaryGetAllResponse:
 
     def __repr__(self) -> str:
         return f"CacheDictionaryGetAllResponse(value={self._value!r}, status={self._status!r})"
+
+
+class CacheExistsResponse:
+    def __init__(self, results: List[bool]):
+        self._results = results
+
+    def all(self) -> bool:
+        """Test if all the keys exist.
+
+        Examples:
+        >>> if not client.exists("my-cache", "key1", "key2", "key3").all():
+        ...     log.info("Some key(s) are missing.")
+        >>> response = client.exists("my-cache", *keys)
+        >>> if response.all()
+        ...     log.info("All the keys exist")
+
+        Returns:
+            bool: True if all the keys exist. False is at least one does not.
+        """
+        return all(self._results)
+
+    def num_exists(self) -> int:
+        """Count the number of keys that exist.
+
+        Example:
+        >>> response = client.exists("my-cache", *keys))
+        >>> if response.num_exists() != len(keys):
+        ...     log.info("Missing some keys")
+
+        Returns:
+            int: The number of keys that exist.
+        """
+        return sum(self._results)
+
+    def results(self) -> List[bool]:
+        """Get a boolean array where each element indicates if the
+        corresponding input key exists.
+
+        Example:
+        >>> repsonse = client.exists("my-cache", *keys)
+        >>> if not response.all():
+        ...     mask = response.results()
+        ...     missing = [key for key, exists in zip(keys, mask) if not exists]
+        ...     log.info(f"The following keys are missing: {missing}")
+
+        Returns:
+            List[bool]: The existence mask.
+        """
+        return self._results
+
+    def __bool__(self) -> bool:
+        """Test if all the keys exist.
+
+        This is helpful for using the response object in an if
+        expression:
+
+        >>> if client.exists("my-cache", "key"):
+        ...     # Business logic
+
+        Returns:
+            bool: _description_
+        """
+        return self.all()
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f"CacheExistsResponse(results={self._results!r})"
