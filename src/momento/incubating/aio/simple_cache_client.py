@@ -237,15 +237,18 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         >>> if client.exists("my-cache", "key"):
         ...     print("key is present")
 
+        Examples:
+        >>> if client.exists("my-cache", "key"):
+        ...     print("key is present")
+
         >>> keys = ["key1", "key2", "key3"]
         ... response = client.exists("my-cache", *keys)
         ... if response.all():
         ...     print("All keys are present")
         ... else:
-        ...     num_missing = len(keys) - response.num_exists()
-        ...     print(f"{=num_missing}")
-        ...     missing_keys = [key for key, exists in zip(keys, response.results())
-        ...                     if exists]
+        ...     missing_keys = response.missing_keys()
+        ...     print(f"num_missing={len(missing_keys)}; num_exists={response.num_exists()}")
+        ...     print(f"{=missing_keys}")
 
         Returns:
             CacheExistsResponse: Wrapper object containing the results
@@ -253,7 +256,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         """
         multi_get_response = await self.multi_get(cache_name, *keys)
         mask = [status == CacheGetStatus.HIT for status in multi_get_response.status()]
-        return CacheExistsResponse(mask)
+        return CacheExistsResponse(keys, mask)
 
 
 def init(

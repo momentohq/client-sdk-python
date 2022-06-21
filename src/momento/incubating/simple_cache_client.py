@@ -168,9 +168,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         )
         return wait_for_coroutine(self._loop, coroutine)
 
-    def exists(
-        self, cache_name: str, *keys: Union[str, bytes]
-    ) -> CacheExistsResponse:
+    def exists(self, cache_name: str, *keys: Union[str, bytes]) -> CacheExistsResponse:
         """Test if `keys` exist in the cache.
 
         Args:
@@ -186,10 +184,9 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         ... if response.all():
         ...     print("All keys are present")
         ... else:
-        ...     num_missing = len(keys) - response.num_exists()
-        ...     print(f"{=num_missing}")
-        ...     missing_keys = [key for key, exists in zip(keys, response.results())
-        ...                     if exists]
+        ...     missing_keys = response.missing_keys()
+        ...     print(f"num_missing={len(missing_keys)}; num_exists={response.num_exists()}")
+        ...     print(f"{=missing_keys}")
 
         Returns:
             CacheExistsResponse: Wrapper object containing the results

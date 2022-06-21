@@ -1,4 +1,4 @@
-from typing import cast, Dict, List, Optional, Union
+from typing import cast, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..cache_operation_types import CacheGetStatus
 from ._utilities._serialization import _bytes_to_string, _bytes_dict_to_string_dict
@@ -168,7 +168,8 @@ class CacheDictionaryGetAllResponse:
 
 
 class CacheExistsResponse:
-    def __init__(self, results: List[bool]):
+    def __init__(self, keys: Tuple[Union[str, bytes], ...], results: List[bool]):
+        self._keys = keys
         self._results = results
 
     def all(self) -> bool:
@@ -210,22 +211,53 @@ class CacheExistsResponse:
         ...     missing = [key for key, exists in zip(keys, mask) if not exists]
         ...     log.info(f"The following keys are missing: {missing}")
 
+        Note the above example illustrates using the existence mask.
+        Alternatively one could invoke `missing_keys` to get the missing keys.
+
         Returns:
             List[bool]: The existence mask.
         """
         return self._results
 
+    def missing_keys(self) -> List[Union[str, bytes]]:
+        """List the keys that do not exist.
+
+        Returns:
+            List[Union[str, bytes]]: List of queried keys that do not exist.
+        """
+        return [key for key, exists in zip(self._keys, self._results) if not exists]
+
+    def present_keys(self) -> List[Union[str, bytes]]:
+        """List the keys that exist.
+
+        Returns:
+            List[Union[str, bytes]]: List of queried keys that exist.
+        """
+        return [key for key, exists in zip(self._keys, self._results) if exists]
+
+    def zip_keys_and_results(self) -> Iterable[Tuple[Union[str, bytes], bool]]:
+        """Zip the keys and existence mask.
+
+        Example:
+        >>> for key, status in client.exists("my-cache", *keys).zip_keys_and_results():
+        ...     print(f"{=key} {=status}")
+
+        Returns:
+            Iterable[Tuple[Union[str, bytes], bool]]: An iterator of tuples `(key, exist)`
+                where `exist` indicates whether the key exists or not.
+        """
+        return zip(self._keys, self._results)
+
     def __bool__(self) -> bool:
         """Test if all the keys exist.
 
-        This is helpful for using the response object in an if
-        expression:
+        This is helpful for using the response object in an if-expression:
 
         >>> if client.exists("my-cache", "key"):
         ...     # Business logic
 
         Returns:
-            bool: _description_
+            bool: True if all the keys exist else False
         """
         return self.all()
 
@@ -233,4 +265,4 @@ class CacheExistsResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheExistsResponse(results={self._results!r})"
+        return f"CacheExistsResponse(keys={self._keys!r}, results={self._results!r})"
