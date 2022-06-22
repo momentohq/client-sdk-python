@@ -1,4 +1,4 @@
-from typing import cast, Optional, List
+from typing import cast, Optional, List, Union
 import warnings
 
 from .. import INCUBATING_WARNING_MSG
@@ -12,6 +12,7 @@ from ..cache_operation_types import (
     CacheDictionarySetUnaryResponse,
     CacheDictionarySetMultiResponse,
     CacheDictionaryGetAllResponse,
+    CacheExistsResponse,
     BytesDictionary,
     DictionaryKey,
     DictionaryValue,
@@ -222,6 +223,40 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
 
         value = deserialize_dictionary(cast(bytes, get_response.value_as_bytes()))
         return CacheDictionaryGetAllResponse(value=value, status=CacheGetStatus.HIT)
+
+    async def exists(
+        self, cache_name: str, *keys: Union[str, bytes]
+    ) -> CacheExistsResponse:
+        """Test if `keys` exist in the cache.
+
+        Args:
+            cache_name (str): Name of the cache to query for the keys.
+            keys (str): Key(s) to test for existence.
+
+        Examples:
+        >>> if client.exists("my-cache", "key"):
+        ...     print("key is present")
+
+        Examples:
+        >>> if client.exists("my-cache", "key"):
+        ...     print("key is present")
+
+        >>> keys = ["key1", "key2", "key3"]
+        ... response = client.exists("my-cache", *keys)
+        ... if response.all():
+        ...     print("All keys are present")
+        ... else:
+        ...     missing_keys = response.missing_keys()
+        ...     print(f"num_missing={len(missing_keys)}; num_exists={response.num_exists()}")
+        ...     print(f"{=missing_keys}")
+
+        Returns:
+            CacheExistsResponse: Wrapper object containing the results
+                of the exists test.
+        """
+        multi_get_response = await self.multi_get(cache_name, *keys)
+        mask = [status == CacheGetStatus.HIT for status in multi_get_response.status()]
+        return CacheExistsResponse(keys, mask)
 
 
 def init(

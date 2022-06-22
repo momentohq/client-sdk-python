@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 import warnings
 
 from . import INCUBATING_WARNING_MSG
@@ -10,6 +10,7 @@ from .cache_operation_types import (
     CacheDictionarySetUnaryResponse,
     CacheDictionarySetMultiResponse,
     CacheDictionaryGetAllResponse,
+    CacheExistsResponse,
     DictionaryKey,
     DictionaryValue,
     Dictionary,
@@ -165,6 +166,33 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         coroutine = self._momento_async_client.dictionary_get_all(
             cache_name, dictionary_name
         )
+        return wait_for_coroutine(self._loop, coroutine)
+
+    def exists(self, cache_name: str, *keys: Union[str, bytes]) -> CacheExistsResponse:
+        """Test if `keys` exist in the cache.
+
+        Args:
+            cache_name (str): Name of the cache to query for the keys.
+            keys (str): Key(s) to test for existence.
+
+        Examples:
+        >>> if client.exists("my-cache", "key"):
+        ...     print("key is present")
+
+        >>> keys = ["key1", "key2", "key3"]
+        ... response = client.exists("my-cache", *keys)
+        ... if response.all():
+        ...     print("All keys are present")
+        ... else:
+        ...     missing_keys = response.missing_keys()
+        ...     print(f"num_missing={len(missing_keys)}; num_exists={response.num_exists()}")
+        ...     print(f"{=missing_keys}")
+
+        Returns:
+            CacheExistsResponse: Wrapper object containing the results
+                of the exists test.
+        """
+        coroutine = self._momento_async_client.exists(cache_name, *keys)
         return wait_for_coroutine(self._loop, coroutine)
 
 
