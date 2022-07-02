@@ -70,12 +70,12 @@ class _ScsDataClient:
             _momento_logger.debug(f"Set failed for {str(key)} with response: {e}")
             raise _cache_service_errors_converter.convert(e)
 
-    async def multi_set(
+    async def set_multi(
         self,
         cache_name: str,
         items: Union[Mapping[str, str], Mapping[bytes, bytes]],
         ttl_seconds: Optional[int] = None,
-    ) -> cache_sdk_ops.CacheMultiSetResponse:
+    ) -> cache_sdk_ops.CacheSetMultiResponse:
         _validate_cache_name(cache_name)
 
         try:
@@ -99,7 +99,7 @@ class _ScsDataClient:
                 response.key_as_bytes(): response.value_as_bytes()
                 for response in responses
             }
-            return cache_sdk_ops.CacheMultiSetResponse(items=items_as_bytes)
+            return cache_sdk_ops.CacheSetMultiResponse(items=items_as_bytes)
         except Exception as e:
             _momento_logger.debug(f"multi-set failed with error: {e}")
             # re-raise any error caught here is fatal error with overall handling of request objects
@@ -125,11 +125,11 @@ class _ScsDataClient:
             _momento_logger.debug(f"Get failed for {str(key)} with response: {e}")
             raise _cache_service_errors_converter.convert(e)
 
-    async def multi_get(
+    async def get_multi(
         self,
         cache_name: str,
         *keys: Union[str, bytes],
-    ) -> cache_sdk_ops.CacheMultiGetResponse:
+    ) -> cache_sdk_ops.CacheGetMultiResponse:
         _validate_cache_name(cache_name)
         try:
             request_promises = [self.get(cache_name, key) for key in keys]
@@ -144,10 +144,10 @@ class _ScsDataClient:
                 if isinstance(response, Exception):
                     raise response
         except Exception as e:
-            _momento_logger.debug(f"multi_get failed with response: {e}")
+            _momento_logger.debug(f"get_multi failed with response: {e}")
             raise _cache_service_errors_converter.convert(e)
 
-        return cache_sdk_ops.CacheMultiGetResponse(responses=responses)
+        return cache_sdk_ops.CacheGetMultiResponse(responses=responses)
 
     async def delete(
         self, cache_name: str, key: Union[str, bytes]

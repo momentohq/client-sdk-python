@@ -12,8 +12,8 @@ from .cache_operation_types import (
     CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
-    CacheMultiGetResponse,
-    CacheMultiSetResponse,
+    CacheGetMultiResponse,
+    CacheSetMultiResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
@@ -197,12 +197,12 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.set(cache_name, key, value, ttl_seconds)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def multi_set(
+    def set_multi(
         self,
         cache_name: str,
         items: Union[Mapping[str, str], Mapping[bytes, bytes]],
         ttl_seconds: Optional[int] = None,
-    ) -> CacheMultiSetResponse:
+    ) -> CacheSetMultiResponse:
         """Store items in the cache.
 
         Args:
@@ -211,7 +211,7 @@ class SimpleCacheClient:
             ttl_seconds: (Optional[int]): The TTL to apply to each item. Defaults to None.
 
         Returns:
-            CacheMultiSetResponse
+            CacheSetMultiResponse
 
         Raises:
             InvalidArgumentError: If validation fails for the provided method arguments.
@@ -220,7 +220,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        coroutine = self._momento_async_client.multi_set(cache_name, items, ttl_seconds)
+        coroutine = self._momento_async_client.set_multi(cache_name, items, ttl_seconds)
         return wait_for_coroutine(self._loop, coroutine)
 
     def get(self, cache_name: str, key: str) -> CacheGetResponse:
@@ -243,9 +243,9 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.get(cache_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def multi_get(
+    def get_multi(
         self, cache_name: str, *keys: Union[str, bytes]
-    ) -> CacheMultiGetResponse:
+    ) -> CacheGetMultiResponse:
         """Retrieve multiple items from the cache.
 
         Args:
@@ -253,7 +253,7 @@ class SimpleCacheClient:
             keys: (Union[str, bytes]): The keys used to retrieve the items.
 
         Returns:
-            CacheMultiGetResponse
+            CacheGetMultiResponse
 
         Raises:
             InvalidArgumentError: If validation fails for the provided method arguments.
@@ -262,7 +262,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        coroutine = self._momento_async_client.multi_get(cache_name, *keys)
+        coroutine = self._momento_async_client.get_multi(cache_name, *keys)
         return wait_for_coroutine(self._loop, coroutine)
 
     def delete(self, cache_name: str, key: str) -> CacheDeleteResponse:

@@ -34,7 +34,7 @@ class TestMomento(unittest.TestCase):
         with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
-            get_response = simple_cache.dictionary_multi_get(
+            get_response = simple_cache.dictionary_get_multi(
                 _TEST_CACHE_NAME, "hello world", "key1", "key2", "key3"
             )
             self.assertEqual(3, len(get_response.to_list()))
@@ -54,7 +54,7 @@ class TestMomento(unittest.TestCase):
         ) as simple_cache:
             # Test with key as string
             dictionary = {"key1": "value1"}
-            set_response = simple_cache.dictionary_multi_set(
+            set_response = simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
                 dictionary_name="mydict",
                 dictionary=dictionary,
@@ -65,7 +65,7 @@ class TestMomento(unittest.TestCase):
 
             # Test as bytes
             dictionary = {b"key1": b"value1"}
-            set_response = simple_cache.dictionary_multi_set(
+            set_response = simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
                 dictionary_name="mydict2",
                 dictionary=dictionary,
@@ -101,7 +101,7 @@ class TestMomento(unittest.TestCase):
         with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
-            simple_cache.dictionary_multi_set(
+            simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
                 dictionary_name="mydict3",
                 dictionary={"key1": "value1"},
@@ -117,7 +117,7 @@ class TestMomento(unittest.TestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             with self.assertRaises(ValueError):
-                simple_cache.dictionary_multi_get(
+                simple_cache.dictionary_get_multi(
                     _TEST_CACHE_NAME, "my-dictionary", *[]
                 )
 
@@ -138,7 +138,7 @@ class TestMomento(unittest.TestCase):
                 # Use distinct hash names to avoid collisions with already finished tests
                 dictionary_name = f"mydict4-{i}"
 
-                simple_cache.dictionary_multi_set(
+                simple_cache.dictionary_set_multi(
                     cache_name=_TEST_CACHE_NAME,
                     dictionary_name=dictionary_name,
                     dictionary=dictionary,
@@ -164,13 +164,13 @@ class TestMomento(unittest.TestCase):
             dictionary_name = "mydict10"
             dictionary = {"key1": "value1", "key2": "value2", "key3": "value3"}
 
-            simple_cache.dictionary_multi_set(
+            simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
                 dictionary_name=dictionary_name,
                 dictionary=dictionary,
                 refresh_ttl=False,
             )
-            get_response = simple_cache.dictionary_multi_get(
+            get_response = simple_cache.dictionary_get_multi(
                 _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key3"
             )
 
@@ -189,7 +189,7 @@ class TestMomento(unittest.TestCase):
             ]
             self.assertEqual(get_response.to_list(), individual_responses)
 
-            get_response = simple_cache.dictionary_multi_get(
+            get_response = simple_cache.dictionary_get_multi(
                 _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key5"
             )
             self.assertTrue(
@@ -215,7 +215,7 @@ class TestMomento(unittest.TestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             dictionary = {"key1": "value1", "key2": "value2"}
-            simple_cache.dictionary_multi_set(
+            simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
                 dictionary_name="mydict6",
                 dictionary=dictionary,

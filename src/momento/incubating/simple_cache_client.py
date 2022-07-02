@@ -73,7 +73,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         )
         return wait_for_coroutine(self._loop, coroutine)
 
-    def dictionary_multi_set(
+    def dictionary_set_multi(
         self,
         cache_name: str,
         dictionary_name: str,
@@ -98,7 +98,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         Returns:
             CacheDictionarySetMultiResponse: data stored in the cache
         """
-        coroutine = self._momento_async_client.dictionary_multi_set(
+        coroutine = self._momento_async_client.dictionary_set_multi(
             cache_name,
             dictionary_name,
             dictionary,
@@ -129,7 +129,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         )
         return wait_for_coroutine(self._loop, coroutine)
 
-    def dictionary_multi_get(
+    def dictionary_get_multi(
         self,
         cache_name: str,
         dictionary_name: str,
@@ -146,7 +146,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             CacheDictionaryGetMultiResponse: a wrapper over a list of values
                 and statuses.
         """
-        coroutine = self._momento_async_client.dictionary_multi_get(
+        coroutine = self._momento_async_client.dictionary_get_multi(
             cache_name, dictionary_name, *keys
         )
         return wait_for_coroutine(self._loop, coroutine)

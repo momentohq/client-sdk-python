@@ -382,7 +382,7 @@ class TestMomento(unittest.TestCase):
             with self.assertRaises(errors.TimeoutError):
                 simple_cache.get(_TEST_CACHE_NAME, "foo")
 
-    def test_multi_get_and_set(self):
+    def test_get_multi_and_set(self):
         items = {
             "foo1": "bar1",
             "foo2": "bar2",
@@ -390,10 +390,10 @@ class TestMomento(unittest.TestCase):
             "foo4": "bar4",
             "foo5": "bar5",
         }
-        set_resp = self.client.multi_set(cache_name=_TEST_CACHE_NAME, items=items)
+        set_resp = self.client.set_multi(cache_name=_TEST_CACHE_NAME, items=items)
         self.assertEqual(items, set_resp.items())
 
-        get_resp = self.client.multi_get(
+        get_resp = self.client.get_multi(
             _TEST_CACHE_NAME, "foo5", "foo1", "foo2", "foo3"
         )
         values = get_resp.values()
@@ -402,23 +402,23 @@ class TestMomento(unittest.TestCase):
         self.assertEqual("bar2", values[2])
         self.assertEqual("bar3", values[3])
 
-    def test_multi_get_failure(self):
+    def test_get_multi_failure(self):
         # Start with a cache client with impossibly small request timeout to force failures
         with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
         ) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
-                simple_cache.multi_get(
+                simple_cache.get_multi(
                     _TEST_CACHE_NAME, "key1", "key2", "key3", "key4", "key5", "key6"
                 )
 
-    def test_multi_set_failure(self):
+    def test_set_multi_failure(self):
         # Start with a cache client with impossibly small request timeout to force failures
         with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
         ) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
-                simple_cache.multi_set(
+                simple_cache.set_multi(
                     cache_name=_TEST_CACHE_NAME,
                     items={
                         "fizz1": "buzz1",
