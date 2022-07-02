@@ -47,7 +47,7 @@ class CacheSetResponse:
         return f"CacheSetResponse(key={self._key!r}, value={self._value!r})"
 
 
-class CacheMultiSetResponse:
+class CacheSetMultiResponse:
     def __init__(self, items: Mapping[bytes, bytes]):
         self._items = items
 
@@ -64,7 +64,7 @@ class CacheMultiSetResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheMultiSetResponse(items={self._items!r})"
+        return f"CacheSetMultiResponse(items={self._items!r})"
 
 
 class CacheGetResponse:
@@ -120,7 +120,7 @@ class CacheGetResponse:
         return f"CacheGetResponse(value={self._value!r}, status={self._status!r})"
 
 
-class CacheMultiGetResponse:
+class CacheGetMultiResponse:
     def __init__(self, responses: List[CacheGetResponse]):
         self._responses = responses
 
@@ -142,7 +142,7 @@ class CacheMultiGetResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheMultiGetResponse(responses={self._responses!r})"
+        return f"CacheGetMultiResponse(responses={self._responses!r})"
 
 
 class CacheDeleteResponse:

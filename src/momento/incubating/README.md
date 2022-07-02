@@ -25,8 +25,8 @@ CacheDictionarySetUnaryResponse(dictionary_name='my-dictionary', key=b'key1', va
 2. Set multiple items in a dictionary
 
 ```python
->>> client.dictionary_multi_set(cache_name="my-cache", dictionary_name="my-dictionary", dictionary={"key2": "value2", "key3": "value3"}, refresh_ttl=False)
-CacheDictionarySetResponse(dictionary_name='my-dictionary', dictionary={b'key2': b'value2', b'key3': b'value3'})
+>>> client.dictionary_set_multi(cache_name="my-cache", dictionary_name="my-dictionary", dictionary={"key2": "value2", "key3": "value3"}, refresh_ttl=False)
+CacheDictionarySetMultiResponse(dictionary_name='my-dictionary', dictionary={b'key2': b'value2', b'key3': b'value3'})
 ```
 
 3. Get one value from a dictionary
@@ -46,7 +46,7 @@ CacheDictionaryGetUnaryResponse(value=b'value1', status=<CacheGetStatus.HIT: 1>)
 4. Get multiple values from a dictionary
 
 ```python
->>> get_response = client.dictionary_multi_get("my-cache", "my-dictionary", "key1", "key2", "key7")
+>>> get_response = client.dictionary_get_multi("my-cache", "my-dictionary", "key1", "key2", "key7")
 >>> get_response
 CacheDictionaryGetMultiResponse(values=[b'value1', b'value2', None], status=[<CacheGetStatus.HIT: 1>, <CacheGetStatus.HIT: 1>, <CacheGetStatus.MISS: 2>])
 

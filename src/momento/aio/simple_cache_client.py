@@ -36,8 +36,8 @@ from ..cache_operation_types import (
     CacheSetResponse,
     CacheGetResponse,
     CacheDeleteResponse,
-    CacheMultiSetResponse,
-    CacheMultiGetResponse,
+    CacheSetMultiResponse,
+    CacheGetMultiResponse,
 )
 
 
@@ -174,12 +174,12 @@ class SimpleCacheClient:
             self._data_client.get_endpoint(), next_token
         )
 
-    async def multi_set(
+    async def set_multi(
         self,
         cache_name: str,
         items: Union[Mapping[str, str], Mapping[bytes, bytes]],
         ttl_seconds: Optional[int] = None,
-    ) -> CacheMultiSetResponse:
+    ) -> CacheSetMultiResponse:
         """Store items in the cache.
 
         Args:
@@ -188,7 +188,7 @@ class SimpleCacheClient:
             ttl_seconds: (Optional[int]): The TTL to apply to each item. Defaults to None.
 
         Returns:
-            CacheMultiSetResponse
+            CacheSetMultiResponse
 
         Raises:
             InvalidArgumentError: If validation fails for the provided method arguments.
@@ -197,7 +197,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return await self._data_client.multi_set(cache_name, items, ttl_seconds)
+        return await self._data_client.set_multi(cache_name, items, ttl_seconds)
 
     async def set(
         self,
@@ -227,9 +227,9 @@ class SimpleCacheClient:
         """
         return await self._data_client.set(cache_name, key, value, ttl_seconds)
 
-    async def multi_get(
+    async def get_multi(
         self, cache_name: str, *keys: Union[str, bytes]
-    ) -> CacheMultiGetResponse:
+    ) -> CacheGetMultiResponse:
         """Retrieve multiple items from the cache.
 
         Args:
@@ -237,7 +237,7 @@ class SimpleCacheClient:
             keys: (Union[str, bytes]): The keys used to retrieve the items.
 
         Returns:
-            CacheMultiGetResponse
+            CacheGetMultiResponse
 
         Raises:
             InvalidArgumentError: If validation fails for the provided method arguments.
@@ -246,7 +246,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return await self._data_client.multi_get(cache_name, *keys)
+        return await self._data_client.get_multi(cache_name, *keys)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache

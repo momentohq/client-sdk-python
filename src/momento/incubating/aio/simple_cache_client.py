@@ -83,7 +83,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             dictionary_name=dictionary_name, key=bytes_key, value=bytes_value
         )
 
-    async def dictionary_multi_set(
+    async def dictionary_set_multi(
         self,
         cache_name: str,
         dictionary_name: str,
@@ -161,7 +161,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
 
         return CacheDictionaryGetUnaryResponse(value=value, status=CacheGetStatus.HIT)
 
-    async def dictionary_multi_get(
+    async def dictionary_get_multi(
         self,
         cache_name: str,
         dictionary_name: str,
@@ -254,8 +254,8 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             CacheExistsResponse: Wrapper object containing the results
                 of the exists test.
         """
-        multi_get_response = await self.multi_get(cache_name, *keys)
-        mask = [status == CacheGetStatus.HIT for status in multi_get_response.status()]
+        get_multi_response = await self.get_multi(cache_name, *keys)
+        mask = [status == CacheGetStatus.HIT for status in get_multi_response.status()]
         return CacheExistsResponse(keys, mask)
 
 

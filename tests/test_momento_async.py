@@ -407,7 +407,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                 await simple_cache.get(_TEST_CACHE_NAME, "foo")
 
     # Multi op tests
-    async def test_multi_get_and_set(self):
+    async def test_get_multi_and_set(self):
         items = {
             "foo1": "bar1",
             "foo2": "bar2",
@@ -415,10 +415,10 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             "foo4": "bar4",
             "foo5": "bar5",
         }
-        set_resp = await self.client.multi_set(cache_name=_TEST_CACHE_NAME, items=items)
+        set_resp = await self.client.set_multi(cache_name=_TEST_CACHE_NAME, items=items)
         self.assertEqual(items, set_resp.items())
 
-        get_resp = await self.client.multi_get(
+        get_resp = await self.client.get_multi(
             _TEST_CACHE_NAME, "foo5", "foo1", "foo2", "foo3"
         )
         values = get_resp.values()
@@ -427,23 +427,23 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         self.assertEqual("bar2", values[2])
         self.assertEqual("bar3", values[3])
 
-    async def test_multi_get_failure(self):
+    async def test_get_multi_failure(self):
         # Start with a cache client with impossibly small request timeout to force failures
         async with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
         ) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
-                await simple_cache.multi_get(
+                await simple_cache.get_multi(
                     _TEST_CACHE_NAME, "key1", "key2", "key3", "key4", "key5", "key6"
                 )
 
-    async def test_multi_set_failure(self):
+    async def test_set_multi_failure(self):
         # Start with a cache client with impossibly small request timeout to force failures
         async with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
         ) as simple_cache:
             with self.assertRaises(errors.TimeoutError):
-                await simple_cache.multi_set(
+                await simple_cache.set_multi(
                     cache_name=_TEST_CACHE_NAME,
                     items={
                         "fizz1": "buzz1",
