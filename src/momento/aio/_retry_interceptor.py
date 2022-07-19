@@ -10,6 +10,8 @@ import grpc
 # https://github.com/momentohq/dev-eco-issue-tracker/issues/85
 # For now, for convenience during development, you can toggle this hard-coded
 # variable to enable/disable it.
+import momento.errors
+
 RETRIES_ENABLED = True
 MAX_ATTEMPTS = 3
 
@@ -90,3 +92,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 try_i,
                 MAX_ATTEMPTS,
             )
+
+        raise momento.errors.ClientSdkError(
+            "Failed to return from RetryInterceptor!  This is a bug."
+        )

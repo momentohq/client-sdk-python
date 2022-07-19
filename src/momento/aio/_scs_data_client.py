@@ -1,5 +1,6 @@
 import asyncio
 from typing import Union, Optional, Mapping
+
 from momento_wire_types.cacheclient_pb2 import _GetRequest, _SetRequest, _DeleteRequest
 
 from .. import cache_operation_types as cache_sdk_ops
@@ -52,7 +53,7 @@ class _ScsDataClient:
     ) -> cache_sdk_ops.CacheSetResponse:
         _validate_cache_name(cache_name)
         try:
-            self._logger.trace("Issuing a set request with key %s", str(key))
+            self._logger.log(logs.TRACE, "Issuing a set request with key %s", str(key))
             item_ttl_seconds = (
                 self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
             )
@@ -66,12 +67,14 @@ class _ScsDataClient:
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            self._logger.trace("Set succeeded for key: %s", str(key))
+            self._logger.log(logs.TRACE, "Set succeeded for key: %s", str(key))
             return cache_sdk_ops.CacheSetResponse(
                 set_request.cache_key, set_request.cache_body
             )
         except Exception as e:
-            self._logger.trace("Set failed for %s with response: %s", str(key), e)
+            self._logger.log(
+                logs.TRACE, "Set failed for %s with response: %s", str(key), e
+            )
             raise _cache_service_errors_converter.convert(e)
 
     async def set_multi(
@@ -115,7 +118,7 @@ class _ScsDataClient:
 
         _validate_cache_name(cache_name)
         try:
-            self._logger.trace("Issuing a get request with key %s", str(key))
+            self._logger.log(logs.TRACE, "Issuing a get request with key %s", str(key))
             get_request = _GetRequest()
             get_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
             response = await self._grpc_manager.async_stub().Get(
@@ -123,10 +126,12 @@ class _ScsDataClient:
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            self._logger.trace("Received a get response for %s", str(key))
+            self._logger.log(logs.TRACE, "Received a get response for %s", str(key))
             return cache_sdk_ops.CacheGetResponse.from_grpc_response(response)
         except Exception as e:
-            self._logger.trace("Get failed for %s with response: %s", str(key), e)
+            self._logger.log(
+                logs.TRACE, "Get failed for %s with response: %s", str(key), e
+            )
             raise _cache_service_errors_converter.convert(e)
 
     async def get_multi(
@@ -158,7 +163,9 @@ class _ScsDataClient:
     ) -> cache_sdk_ops.CacheDeleteResponse:
         _validate_cache_name(cache_name)
         try:
-            self._logger.trace("Issuing a delete request with key %s", str(key))
+            self._logger.log(
+                logs.TRACE, "Issuing a delete request with key %s", str(key)
+            )
             delete_request = _DeleteRequest()
             delete_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
             response = await self._grpc_manager.async_stub().Delete(
@@ -166,7 +173,7 @@ class _ScsDataClient:
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            self._logger.trace("Received a delete response for %s", str(key))
+            self._logger.log(logs.TRACE, "Received a delete response for %s", str(key))
             return cache_sdk_ops.CacheDeleteResponse()
         except Exception as e:
             self._logger.debug("Delete failed for %s with response: %s", str(key), e)

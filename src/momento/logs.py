@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 logger = logging.getLogger("momentosdk")
 
@@ -11,7 +12,9 @@ info = logger.info
 debug = logger.debug
 
 
-def add_logging_level(level_name, level_num, method_name=None):
+def add_logging_level(
+    level_name: str, level_num: int, method_name: Optional[str] = None
+) -> None:
     """
     Comprehensively adds a new logging level to the `logging` module and the
     currently configured logging class.
@@ -49,18 +52,21 @@ def add_logging_level(level_name, level_num, method_name=None):
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
     # http://stackoverflow.com/a/13638084/2988730
-    def logForLevel(self, message, *args, **kwargs):
-        if self.isEnabledFor(level_num):
-            self._log(level_num, message, args, **kwargs)
+    def logForLevel(self, message, *args, **kwargs):  # type: ignore[no-untyped-def]
+        if self.isEnabledFor(level_num):  # type: ignore[misc]
+            self._log(level_num, message, args, **kwargs)  # type: ignore[misc]
 
-    def logToRoot(message, *args, **kwargs):
-        logging.log(level_num, message, *args, **kwargs)
+    def logToRoot(message, *args, **kwargs):  # type: ignore[no-untyped-def]
+        logging.log(level_num, message, *args, **kwargs)  # type: ignore[misc]
 
     logging.addLevelName(level_num, level_name)
     setattr(logging, level_name, level_num)
-    setattr(logging.getLoggerClass(), method_name, logForLevel)
-    setattr(logging, method_name, logToRoot)
+    setattr(logging.getLoggerClass(), method_name, logForLevel)  # type: ignore[misc]
+    setattr(logging, method_name, logToRoot)  # type: ignore[misc]
 
 
-def initialize_momento_logging():
-    add_logging_level("TRACE", logging.DEBUG - 5)
+TRACE = logging.DEBUG - 5
+
+
+def initialize_momento_logging() -> None:
+    add_logging_level("TRACE", TRACE)
