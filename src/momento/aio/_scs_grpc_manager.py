@@ -1,3 +1,5 @@
+from typing import List
+
 import grpc
 import pkg_resources
 
@@ -6,6 +8,7 @@ import momento_wire_types.controlclient_pb2_grpc as control_client
 
 from ._add_header_client_interceptor import AddHeaderClientInterceptor
 from ._add_header_client_interceptor import Header
+from ._retry_interceptor import get_retry_interceptor_if_enabled
 
 
 class _ControlGrpcManager:
@@ -14,14 +17,10 @@ class _ControlGrpcManager:
     version = pkg_resources.get_distribution("momento").version
 
     def __init__(self, auth_token: str, endpoint: str):
-        headers = [
-            Header("authorization", auth_token),
-            Header("agent", f"python:{_ControlGrpcManager.version}"),
-        ]
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=[AddHeaderClientInterceptor(headers)],
+            interceptors=_interceptors(auth_token),
         )
 
     async def close(self) -> None:
@@ -37,14 +36,10 @@ class _DataGrpcManager:
     version = pkg_resources.get_distribution("momento").version
 
     def __init__(self, auth_token: str, endpoint: str):
-        headers = [
-            Header("authorization", auth_token),
-            Header("agent", f"python:{_ControlGrpcManager.version}"),
-        ]
         self._secure_channel = grpc.aio.secure_channel(
             target=endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=[AddHeaderClientInterceptor(headers)],
+            interceptors=_interceptors(auth_token),
         )
 
     async def close(self) -> None:
@@ -52,3 +47,23 @@ class _DataGrpcManager:
 
     def async_stub(self) -> cache_client.ScsStub:
         return cache_client.ScsStub(self._secure_channel)
+
+
+def _interceptors(auth_token: str) -> List[grpc.aio.ClientInterceptor]:
+    headers = [
+        Header("authorization", auth_token),
+        Header("agent", f"python:{_ControlGrpcManager.version}"),
+    ]
+    interceptors = [
+        AddHeaderClientInterceptor(headers),
+        *get_retry_interceptor_if_enabled(),
+    ]
+    for interceptor in interceptors:
+        print(f"CHECKING INTERCEPTOR: {interceptor} ({interceptor.__class__})")
+        print(
+            f"IS UNARYUNARY: {isinstance(interceptor, grpc.UnaryUnaryClientInterceptor)}"
+        )
+        print(
+            f"IS AIO UNARYUNARY: {isinstance(interceptor, grpc.aio.UnaryUnaryClientInterceptor)}"
+        )
+    return interceptors

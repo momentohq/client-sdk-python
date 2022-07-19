@@ -19,7 +19,7 @@ from ..cache_operation_types import ListCachesResponse
 from ..cache_operation_types import CreateSigningKeyResponse
 
 from .. import _cache_service_errors_converter
-from .. import _momento_logger
+from .. import logs
 from . import _scs_grpc_manager
 
 _DEADLINE_SECONDS = 60.0  # 1 minute
@@ -29,12 +29,16 @@ class _ScsControlClient:
     """Momento Internal."""
 
     def __init__(self, auth_token: str, endpoint: str):
+        self._logger = logs.logger
+        self._logger.debug(
+            "Simple cache control client instantiated with endpoint: %s", endpoint
+        )
         self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(auth_token, endpoint)
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         _validate_cache_name(cache_name)
         try:
-            _momento_logger.debug(f"Creating cache with name: {cache_name}")
+            self._logger.info(f"Creating cache with name: {cache_name}")
             request = _CreateCacheRequest()
             request.cache_name = cache_name
             await self._grpc_manager.async_stub().CreateCache(
@@ -42,15 +46,15 @@ class _ScsControlClient:
             )
             return CreateCacheResponse()
         except Exception as e:
-            _momento_logger.debug(
-                f"Failed to create cache: {cache_name} with exception:{e}"
+            self._logger.debug(
+                "Failed to create cache: %s with exception: %s", cache_name, e
             )
             raise _cache_service_errors_converter.convert(e) from None
 
     async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         _validate_cache_name(cache_name)
         try:
-            _momento_logger.debug(f"Deleting cache with name: {cache_name}")
+            self._logger.info(f"Deleting cache with name: {cache_name}")
             request = _DeleteCacheRequest()
             request.cache_name = cache_name
             await self._grpc_manager.async_stub().DeleteCache(
@@ -58,8 +62,8 @@ class _ScsControlClient:
             )
             return DeleteCacheResponse()
         except Exception as e:
-            _momento_logger.debug(
-                f"Failed to delete cache: {cache_name} with exception:{e}"
+            self._logger.debug(
+                "Failed to delete cache: %s with exception: %s", cache_name, e
             )
             raise _cache_service_errors_converter.convert(e) from None
 
@@ -82,7 +86,7 @@ class _ScsControlClient:
     ) -> CreateSigningKeyResponse:
         _validate_ttl_minutes(ttl_minutes)
         try:
-            _momento_logger.debug(
+            self._logger.info(
                 f"Creating signing key with ttl (in minutes): {ttl_minutes}"
             )
             create_signing_key_request = _CreateSigningKeyRequest()
@@ -94,12 +98,12 @@ class _ScsControlClient:
                 endpoint,
             )
         except Exception as e:
-            _momento_logger.debug(f"Failed to create signing key with exception: {e}")
+            self._logger.warning(f"Failed to create signing key with exception: {e}")
             raise _cache_service_errors_converter.convert(e)
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         try:
-            _momento_logger.debug(f"Revoking signing key with key_id {key_id}")
+            self._logger.info(f"Revoking signing key with key_id {key_id}")
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
             await self._grpc_manager.async_stub().RevokeSigningKey(
@@ -107,7 +111,7 @@ class _ScsControlClient:
             )
             return RevokeSigningKeyResponse()
         except Exception as e:
-            _momento_logger.debug(
+            self._logger.warning(
                 f"Failed to revoke signing key with key_id {key_id} exception: {e}"
             )
             raise _cache_service_errors_converter.convert(e)
