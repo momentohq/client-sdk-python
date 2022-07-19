@@ -54,16 +54,7 @@ def _interceptors(auth_token: str) -> List[grpc.aio.ClientInterceptor]:
         Header("authorization", auth_token),
         Header("agent", f"python:{_ControlGrpcManager.version}"),
     ]
-    interceptors = [
+    return [
         AddHeaderClientInterceptor(headers),
         *get_retry_interceptor_if_enabled(),
     ]
-    for interceptor in interceptors:
-        print(f"CHECKING INTERCEPTOR: {interceptor} ({interceptor.__class__})")
-        print(
-            f"IS UNARYUNARY: {isinstance(interceptor, grpc.UnaryUnaryClientInterceptor)}"
-        )
-        print(
-            f"IS AIO UNARYUNARY: {isinstance(interceptor, grpc.aio.UnaryUnaryClientInterceptor)}"
-        )
-    return interceptors
