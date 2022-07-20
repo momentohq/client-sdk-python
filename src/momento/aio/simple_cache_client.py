@@ -88,7 +88,8 @@ class SimpleCacheClient:
         traceback: Optional[TracebackType],
     ) -> None:
         await self._control_client.close()
-        await self._get_next_client().close()
+        for data_client in self._data_clients:
+            await data_client.close()
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a new cache in your Momento account.
