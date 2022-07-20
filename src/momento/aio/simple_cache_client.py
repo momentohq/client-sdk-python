@@ -309,7 +309,6 @@ class SimpleCacheClient:
         return await self._get_next_client().delete(cache_name, key)
 
     def _get_next_client(self) -> _ScsDataClient:
-        # print(f"Using client {self._next_client_index}")
         client = self._data_clients[self._next_client_index]
         self._next_client_index = (self._next_client_index + 1) % len(
             self._data_clients
