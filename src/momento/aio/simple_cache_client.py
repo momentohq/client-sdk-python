@@ -1,6 +1,8 @@
 from types import TracebackType
 from typing import Optional, Mapping, Type, Union
 
+from .. import logs
+
 try:
     from ._scs_control_client import _ScsControlClient
     from ._scs_data_client import _ScsDataClient
@@ -50,6 +52,7 @@ class SimpleCacheClient:
         default_ttl_seconds: int,
         data_client_operation_timeout_ms: Optional[int],
     ):
+        self._logger = logs.logger
         endpoints = _momento_endpoint_resolver.resolve(auth_token)
         self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
         self._data_client = _ScsDataClient(

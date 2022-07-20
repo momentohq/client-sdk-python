@@ -2,7 +2,7 @@ from typing import Any
 
 import grpc
 from . import errors
-from . import _momento_logger
+from . import logs
 
 __rpc_to_error = {
     grpc.StatusCode.INVALID_ARGUMENT: errors.BadRequestError,
@@ -40,7 +40,7 @@ def convert(exception: Exception) -> Exception:
 
 
 def convert_ecache_result(ecache_result: Any, message: str, operation_name: str) -> errors.InternalServerError:  # type: ignore[misc]
-    _momento_logger.debug(f"Converting ECacheResult: {ecache_result} to error.")
+    logs.debug("Converting ECacheResult: %s to error.", ecache_result)
     return errors.InternalServerError(
         f"CacheService returned an unexpected result: {ecache_result}"
         + f" for operation: {operation_name} with message: {message}"

@@ -5,7 +5,7 @@ from typing import Any, Optional, List, Mapping
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 from . import _cache_service_errors_converter as error_converter
-from . import _momento_logger
+from . import logs
 
 
 class CacheGetStatus(Enum):
@@ -89,8 +89,8 @@ class CacheGetResponse:
         elif grpc_get_response.result == cache_client_types.Miss:  # type: ignore[misc]
             status = CacheGetStatus.MISS
         else:
-            _momento_logger.debug(
-                f"Get received unsupported ECacheResult: {grpc_get_response.result}"  # type: ignore[misc]
+            logs.debug(
+                "Get received unsupported ECacheResult: %s", grpc_get_response.result  # type: ignore[misc]
             )
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, "GET"  # type: ignore[misc]
