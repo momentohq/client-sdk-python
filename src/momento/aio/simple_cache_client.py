@@ -46,6 +46,18 @@ from ..cache_operation_types import (
 class SimpleCacheClient:
     """async Simple Cache client"""
 
+    # For high load, we might get better performance with multiple clients, because the server is
+    # configured to allow a max of 100 streams per connection.  In the javascript SDK, multiple
+    # clients resulted in an obvious performance improvement.  However, in the python SDK I have
+    # not yet been able to observe a clear benefit.  So for now, we are putting the plumbing in
+    # place so that we can more easily test performance with multiple connections in the future,
+    # but we are leaving the default value set to 1.
+    #
+    # We are hard-coding the value for now, because we haven't yet designed the API for
+    # users to use to configure tunables:
+    # https://github.com/momentohq/dev-eco-issue-tracker/issues/85
+    _NUM_CLIENTS = 1
+
     def __init__(
         self,
         auth_token: str,
@@ -53,14 +65,18 @@ class SimpleCacheClient:
         data_client_operation_timeout_ms: Optional[int],
     ):
         self._logger = logs.logger
+        self._next_client_index = 0
         endpoints = _momento_endpoint_resolver.resolve(auth_token)
         self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
-        self._data_client = _ScsDataClient(
-            auth_token,
-            endpoints.cache_endpoint,
-            default_ttl_seconds,
-            data_client_operation_timeout_ms,
-        )
+        self._data_clients = [
+            _ScsDataClient(
+                auth_token,
+                endpoints.cache_endpoint,
+                default_ttl_seconds,
+                data_client_operation_timeout_ms,
+            )
+            for _ in range(SimpleCacheClient._NUM_CLIENTS)
+        ]
 
     async def __aenter__(self) -> "SimpleCacheClient":
         return self
@@ -72,7 +88,7 @@ class SimpleCacheClient:
         traceback: Optional[TracebackType],
     ) -> None:
         await self._control_client.close()
-        await self._data_client.close()
+        await self._get_next_client().close()
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a new cache in your Momento account.
@@ -140,7 +156,7 @@ class SimpleCacheClient:
             ClientSdkError: For any SDK checks that fail.
         """
         return await self._control_client.create_signing_key(
-            ttl_minutes, self._data_client.get_endpoint()
+            ttl_minutes, self._get_next_client().get_endpoint()
         )
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
@@ -174,7 +190,7 @@ class SimpleCacheClient:
             ClientSdkError: For any SDK checks that fail.
         """
         return await self._control_client.list_signing_keys(
-            self._data_client.get_endpoint(), next_token
+            self._get_next_client().get_endpoint(), next_token
         )
 
     async def set_multi(
@@ -200,7 +216,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return await self._data_client.set_multi(cache_name, items, ttl_seconds)
+        return await self._get_next_client().set_multi(cache_name, items, ttl_seconds)
 
     async def set(
         self,
@@ -228,7 +244,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
-        return await self._data_client.set(cache_name, key, value, ttl_seconds)
+        return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
 
     async def get_multi(
         self, cache_name: str, *keys: Union[str, bytes]
@@ -249,7 +265,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return await self._data_client.get_multi(cache_name, *keys)
+        return await self._get_next_client().get_multi(cache_name, *keys)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
@@ -268,7 +284,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to retrieve the item.
         """
-        return await self._data_client.get(cache_name, key)
+        return await self._get_next_client().get(cache_name, key)
 
     async def delete(self, cache_name: str, key: str) -> CacheDeleteResponse:
         """Delete an item from the cache.
@@ -289,7 +305,15 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to delete the item.
         """
-        return await self._data_client.delete(cache_name, key)
+        return await self._get_next_client().delete(cache_name, key)
+
+    def _get_next_client(self) -> _ScsDataClient:
+        # print(f"Using client {self._next_client_index}")
+        client = self._data_clients[self._next_client_index]
+        self._next_client_index = (self._next_client_index + 1) % len(
+            self._data_clients
+        )
+        return client
 
 
 def init(
