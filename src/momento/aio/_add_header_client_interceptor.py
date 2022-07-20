@@ -16,7 +16,7 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
     are_only_once_headers_sent = False
 
     def __init__(self, headers: List[Header]):
-        self._headers_to_add_once = list(
+        self._headers_to_add_once: List[Header] = list(
             filter(lambda header: header.name in header.once_only_headers, headers)
         )
         self.headers_to_add_every_time = list(
