@@ -6,21 +6,12 @@ on:
     branches: [main]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.x"
-      - run: |
-          pip install tox
-          tox -e lint
-
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        # linting is configured in tox.ini and will run as
+        # part of the 3.10 suite
         python-version: ["3.7", "3.8", "3.9", "3.10"]
     env:
       TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
@@ -34,8 +25,5 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: x64
       - run: |
-          PYTHON_VERSION="${{ matrix.python-version }}"
-          TOXENV="py${PYTHON_VERSION//./}"
-          echo "Running tests for TOXENV: $TOXENV"
-          pip install tox
-          tox -e $TOXENV
+          pip install tox tox-gh-actions
+          tox
