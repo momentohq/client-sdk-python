@@ -62,7 +62,7 @@ class _ScsDataClient:
             set_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
             set_request.cache_body = _as_bytes(value, "Unsupported type for value: ")
             set_request.ttl_milliseconds = item_ttl_seconds * 1000
-            _ = await self._grpc_manager.async_stub().Set(
+            await self._grpc_manager.async_stub().Set(
                 set_request,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
