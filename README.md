@@ -68,8 +68,6 @@ provide it. The env `TEST_CACHE_NAME` is also required, but for now any string v
 Example of running tests:
 
 ```
-pip install -r requirements.txt
-python -m build
 pip install -e .
 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> python -m unittest discover
 ```
