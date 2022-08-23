@@ -39,7 +39,9 @@ def convert(exception: Exception) -> Exception:
     return errors.ClientSdkError("Operation failed with error: " + str(exception))
 
 
-def convert_ecache_result(ecache_result: Any, message: str, operation_name: str) -> errors.InternalServerError:  # type: ignore[misc]
+def convert_ecache_result(  # type: ignore[misc]
+    ecache_result: Any, message: str, operation_name: str
+) -> errors.InternalServerError:
     logs.debug("Converting ECacheResult: %s to error.", ecache_result)
     return errors.InternalServerError(
         f"CacheService returned an unexpected result: {ecache_result}"

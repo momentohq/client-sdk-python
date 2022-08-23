@@ -65,21 +65,16 @@ cache_client.delete_cache(_CACHE_NAME)
 Integration tests require an auth token for testing. Set the env var `TEST_AUTH_TOKEN` to
 provide it. The env `TEST_CACHE_NAME` is also required, but for now any string value works.
 
-Example of running tests against all python versions:
+Example of running tests:
 
 ```
-TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
-```
-
-Example of running tests against one specific python version:
-
-```
-TOXENV=py39 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
+pip install -e .
+TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> python -m unittest discover
 ```
 
 ## For M1 Users
 There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387
 TO WORK AROUND, please install Rosetta 2 and re-run with:
 ```
-arch -x86_64 TOXENV=py39 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
+arch -x86_64 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> python -m unittest discover
 ```

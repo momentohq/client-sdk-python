@@ -12,7 +12,8 @@ except ImportError as e:
         import sys
 
         print(
-            "There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387",
+            "There is an issue on M1 macs between GRPC native packaging and Python wheel tags. "
+            "See https://github.com/grpc/grpc/issues/28387",
             file=sys.stderr,
         )
         print("-".join("" for _ in range(99)), file=sys.stderr)
