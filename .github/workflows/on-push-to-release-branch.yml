@@ -52,6 +52,7 @@ jobs:
       - name: Build package
         run: |
           pip install -r requirements.txt
+          python -m build
 
       - name: Run tests
         run: python -m unittest discover -v
