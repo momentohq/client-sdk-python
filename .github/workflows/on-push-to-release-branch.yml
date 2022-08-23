@@ -82,7 +82,7 @@ jobs:
 
       - name: Run linters
         id: linters
-        uses: ./.github/linters
+        uses: ./.github/actions/linters
 
       - name: Flag Job Failure
         if: ${{ steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
