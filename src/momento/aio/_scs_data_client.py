@@ -168,7 +168,7 @@ class _ScsDataClient:
             )
             delete_request = _DeleteRequest()
             delete_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            _ = await self._grpc_manager.async_stub().Delete(
+            await self._grpc_manager.async_stub().Delete(
                 delete_request,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
