@@ -153,7 +153,7 @@ class CacheDeleteResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDeleteResponse()"
+        return "CacheDeleteResponse()"
 
 
 class CreateCacheResponse:
@@ -164,7 +164,7 @@ class CreateCacheResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CreateCacheResponse()"
+        return "CreateCacheResponse()"
 
 
 class DeleteCacheResponse:
@@ -175,7 +175,7 @@ class DeleteCacheResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"DeleteCacheResponse()"
+        return "DeleteCacheResponse()"
 
 
 class CacheInfo:
@@ -277,7 +277,9 @@ class CreateSigningKeyResponse:
         return self._expires_at
 
     @staticmethod
-    def from_grpc_response(grpc_create_signing_key_response: Any, endpoint: str) -> "CreateSigningKeyResponse":  # type: ignore[misc]
+    def from_grpc_response(  # type: ignore[misc]
+        grpc_create_signing_key_response: Any, endpoint: str
+    ) -> "CreateSigningKeyResponse":
         key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]  # type: ignore[misc]
         key: str = grpc_create_signing_key_response.key  # type: ignore[misc]
         expires_at: datetime = datetime.fromtimestamp(
@@ -289,7 +291,10 @@ class CreateSigningKeyResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CreateSigningKeyResponse(key_id={self._key_id!r}, endpoint={self._endpoint!r}, key={self._key!r}, expires_at={self._expires_at!r})"
+        return (
+            f"CreateSigningKeyResponse(key_id={self._key_id!r}, endpoint={self._endpoint!r}, "
+            f"key={self._key!r}, expires_at={self._expires_at!r})"
+        )
 
 
 class RevokeSigningKeyResponse:
@@ -300,7 +305,7 @@ class RevokeSigningKeyResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"RevokeSigningKeyResponse()"
+        return "RevokeSigningKeyResponse()"
 
 
 class SigningKey:
@@ -360,7 +365,9 @@ class ListSigningKeysResponse:
         return self._signing_keys
 
     @staticmethod
-    def from_grpc_response(grpc_list_signing_keys_response: Any, endpoint: str) -> "ListSigningKeysResponse":  # type: ignore[misc]
+    def from_grpc_response(  # type: ignore[misc]
+        grpc_list_signing_keys_response: Any, endpoint: str
+    ) -> "ListSigningKeysResponse":
         next_token: Optional[str] = (
             grpc_list_signing_keys_response.next_token  # type: ignore[misc]
             if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]

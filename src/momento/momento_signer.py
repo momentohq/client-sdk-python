@@ -30,7 +30,7 @@ class SigningRequest:
             cache_operation: The operation performed on the item in the cache.
             expiry_epoch_seconds: The timestamp that the pre-signed URL is valid until.
             ttl_seconds: Time to Live for the item in Cache. This is an optional property that will only be used for CacheOperation.SET.
-        """
+        """  # noqa
         self._cache_name = cache_name
         self._cache_key = cache_key
         self._cache_operation = cache_operation
@@ -139,7 +139,10 @@ class MomentoSigner:
             ttl_seconds = signing_request.ttl_seconds()
             if ttl_seconds is None:
                 raise InvalidArgumentError("ttl_seconds is required for SET operation.")
-            url = f"https://rest.{hostname}/cache/set/{cache_name}/{cache_key}?token={token}&ttl_milliseconds={ttl_seconds * 1000}"
+            url = (
+                f"https://rest.{hostname}/cache/set/{cache_name}/{cache_key}"
+                f"?token={token}&ttl_milliseconds={ttl_seconds * 1000}"
+            )
             return url
         else:
             raise NotImplementedError(

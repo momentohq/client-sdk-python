@@ -5,7 +5,6 @@ import pkg_resources
 
 import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.controlclient_pb2_grpc as control_client
-from grpc import experimental
 
 from ._add_header_client_interceptor import AddHeaderClientInterceptor
 from ._add_header_client_interceptor import Header

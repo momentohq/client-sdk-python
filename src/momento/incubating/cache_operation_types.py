@@ -106,7 +106,10 @@ class CacheDictionarySetUnaryResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionarySetUnaryResponse(dictionary_name={self._dictionary_name!r}, key={self._key!r}, value={self._value!r})"
+        return (
+            f"CacheDictionarySetUnaryResponse(dictionary_name={self._dictionary_name!r}, "
+            f"key={self._key!r}, value={self._value!r})"
+        )
 
 
 class CacheDictionarySetMultiResponse:
@@ -127,7 +130,10 @@ class CacheDictionarySetMultiResponse:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f"CacheDictionarySetMultiResponse(dictionary_name={self._dictionary_name!r}, dictionary={self._dictionary!r})"
+        return (
+            f"CacheDictionarySetMultiResponse(dictionary_name={self._dictionary_name!r}, "
+            f"dictionary={self._dictionary!r})"
+        )
 
 
 class CacheDictionaryGetAllResponse:
