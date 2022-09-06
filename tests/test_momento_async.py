@@ -7,6 +7,8 @@ import momento.aio.simple_cache_client as simple_cache_client
 import momento.errors as errors
 from momento.cache_operation_types import CacheGetStatus
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
+from tests.utils import uuid_bytes, uuid_str, str_to_bytes
+
 
 _AUTH_TOKEN = os.getenv("TEST_AUTH_TOKEN")
 _TEST_CACHE_NAME = os.getenv("TEST_CACHE_NAME")
@@ -16,7 +18,7 @@ _DEFAULT_TTL_SECONDS = 60
 
 class TestMomentoAsync(IsolatedAsyncioTestCase):
     @classmethod
-    async def asyncSetUp(self) -> None:
+    async def asyncSetUp(self):
         if not _AUTH_TOKEN:
             raise RuntimeError(
                 "Integration tests require TEST_AUTH_TOKEN env var; see README for more details."
@@ -46,9 +48,9 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
     # basic happy path test
     async def test_create_cache_get_set_values_and_delete_cache(self):
-        cache_name = str(uuid.uuid4())
-        key = str(uuid.uuid4())
-        value = str(uuid.uuid4())
+        cache_name = uuid_str()
+        key = uuid_str()
+        value = uuid_str()
 
         await self.client.create_cache(cache_name)
 
@@ -125,11 +127,11 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
-                await simple_cache.create_cache(str(uuid.uuid4()))
+                await simple_cache.create_cache(uuid_str())
 
     # delete_cache
     async def test_delete_cache_succeeds(self):
-        cache_name = str(uuid.uuid4())
+        cache_name = uuid_str()
 
         await self.client.create_cache(cache_name)
         with self.assertRaises(errors.AlreadyExistsError):
@@ -139,7 +141,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             await self.client.delete_cache(cache_name)
 
     async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(self):
-        cache_name = str(uuid.uuid4())
+        cache_name = uuid_str()
         with self.assertRaises(errors.NotFoundError):
             await self.client.delete_cache(cache_name)
 
@@ -163,12 +165,12 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             with self.assertRaises(errors.AuthenticationError):
-                await simple_cache.create_cache(str(uuid.uuid4()))
+                await simple_cache.create_cache(uuid_str())
 
     # list_caches
 
     async def test_list_caches_succeeds(self):
-        cache_name = str(uuid.uuid4())
+        cache_name = uuid_str()
 
         caches = (await self.client.list_caches()).caches()
         cache_names = [cache.name() for cache in caches]
@@ -215,21 +217,21 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
     # setting and getting
 
     async def test_set_and_get_with_hit(self):
-        key = str(uuid.uuid4())
-        value = str(uuid.uuid4())
+        key = uuid_str()
+        value = uuid_str()
 
         set_resp = await self.client.set(_TEST_CACHE_NAME, key, value)
         self.assertEqual(set_resp.value(), value)
-        self.assertEqual(set_resp.value_as_bytes(), bytes(value, "utf-8"))
+        self.assertEqual(set_resp.value_as_bytes(), str_to_bytes(value))
 
         get_resp = await self.client.get(_TEST_CACHE_NAME, key)
         self.assertEqual(get_resp.status(), CacheGetStatus.HIT)
         self.assertEqual(get_resp.value(), value)
-        self.assertEqual(get_resp.value_as_bytes(), bytes(value, "utf-8"))
+        self.assertEqual(get_resp.value_as_bytes(), str_to_bytes(value))
 
     async def test_set_and_get_with_byte_key_values(self):
-        key = uuid.uuid4().bytes
-        value = uuid.uuid4().bytes
+        key = uuid_bytes()
+        value = uuid_bytes()
 
         set_resp = await self.client.set(_TEST_CACHE_NAME, key, value)
         self.assertEqual(set_resp.value_as_bytes(), value)
@@ -239,7 +241,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         self.assertEqual(get_resp.value_as_bytes(), value)
 
     async def test_get_returns_miss(self):
-        key = str(uuid.uuid4())
+        key = uuid_str()
 
         get_resp = await self.client.get(_TEST_CACHE_NAME, key)
         self.assertEqual(get_resp.status(), CacheGetStatus.MISS)
@@ -247,8 +249,8 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         self.assertEqual(get_resp.value(), None)
 
     async def test_expires_items_after_ttl(self):
-        key = str(uuid.uuid4())
-        val = str(uuid.uuid4())
+        key = uuid_str()
+        val = uuid_str()
         async with simple_cache_client.init(_AUTH_TOKEN, 2) as simple_cache:
             await simple_cache.set(_TEST_CACHE_NAME, key, val)
 
@@ -264,8 +266,8 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             )
 
     async def test_set_with_different_ttl(self):
-        key1 = str(uuid.uuid4())
-        key2 = str(uuid.uuid4())
+        key1 = uuid_str()
+        key2 = uuid_str()
 
         await self.client.set(_TEST_CACHE_NAME, key1, "1", 2)
         await self.client.set(_TEST_CACHE_NAME, key2, "2")
@@ -289,7 +291,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
     # set
 
     async def test_set_with_non_existent_cache_name_throws_not_found(self):
-        cache_name = str(uuid.uuid4())
+        cache_name = uuid_str()
         with self.assertRaises(errors.NotFoundError):
             await self.client.set(cache_name, "foo", "bar")
 
@@ -358,7 +360,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
     # get
 
     async def test_get_with_non_existent_cache_name_throws_not_found(self):
-        cache_name = str(uuid.uuid4())
+        cache_name = uuid_str()
         with self.assertRaises(errors.NotFoundError):
             await self.client.get(cache_name, "foo")
 
@@ -408,24 +410,21 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
     # Multi op tests
     async def test_get_multi_and_set(self):
-        items = {
-            "foo1": "bar1",
-            "foo2": "bar2",
-            "foo3": "bar3",
-            "foo4": "bar4",
-            "foo5": "bar5",
-        }
-        set_resp = await self.client.set_multi(cache_name=_TEST_CACHE_NAME, items=items)
-        self.assertEqual(items, set_resp.items())
+        items = [(uuid_str(), uuid_str()) for _ in range(5)]
+        set_resp = await self.client.set_multi(
+            cache_name=_TEST_CACHE_NAME, items=dict(items)
+        )
+        self.assertEqual(dict(items), set_resp.items())
 
         get_resp = await self.client.get_multi(
-            _TEST_CACHE_NAME, "foo5", "foo1", "foo2", "foo3"
+            _TEST_CACHE_NAME, items[4][0], items[0][0], items[1][0], items[2][0]
         )
+
         values = get_resp.values()
-        self.assertEqual("bar5", values[0])
-        self.assertEqual("bar1", values[1])
-        self.assertEqual("bar2", values[2])
-        self.assertEqual("bar3", values[3])
+        self.assertEqual(items[4][1], values[0])
+        self.assertEqual(items[0][1], values[1])
+        self.assertEqual(items[1][1], values[2])
+        self.assertEqual(items[2][1], values[3])
 
     async def test_get_multi_failure(self):
         # Start with a cache client with impossibly small request timeout to force failures
@@ -456,7 +455,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
 
     # Test delete for key that doesn't exist
     async def test_delete_key_doesnt_exist(self):
-        key = "a key that isnt there"
+        key = uuid_str()
         self.assertEqual(
             CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status()
         )
@@ -468,11 +467,11 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
     # Test delete
     async def test_delete(self):
         # Set an item to then delete...
-        key = "key1"
+        key, value = uuid_str(), uuid_str()
         self.assertEqual(
             CacheGetStatus.MISS, (await self.client.get(_TEST_CACHE_NAME, key)).status()
         )
-        await self.client.set(_TEST_CACHE_NAME, key, "value1")
+        await self.client.set(_TEST_CACHE_NAME, key, value)
         self.assertEqual(
             CacheGetStatus.HIT, (await self.client.get(_TEST_CACHE_NAME, key)).status()
         )
