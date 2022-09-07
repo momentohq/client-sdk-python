@@ -1,6 +1,31 @@
+[tool.poetry]
+name = "momento"
+version = "0.0.0"  # TODO: poetry version $CI_COMMIT_TAG
+
+description = "SDK for Momento"
+authors = ["Momento"] # TODO email
+
+license = "Apache-2.0"
+
+readme = "README.md" # TODO this replaces the long description
+homepage = "https://gomomento.com"
+repository = "https://github.com/momentohq/client-sdk-python"
+documentation = "https://docs.momentohq.com/" # TODO should be generated readthedocs
+
+keywords = [] # TODO
+classifiers = [] # TODO
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+momento-wire-types = "^0.29.1"
+grpcio = "^1.48.1"
+PyJWT = {extras = ["crypto"], version = "^2.4.0"}
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.971"
+flake8 = "^5.0.4"
+black = "^22.8.0"
+
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

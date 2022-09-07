@@ -3,15 +3,11 @@
 **/__pycache__
 
 # Setuptools distribution folder.
-/dist/
-
-# Python egg metadata, regenerated from source files by setuptools.
-src/*.egg-info
+dist/
 
 # Don't checkin the pyenv/tox files
 .tox
 .python-version
 
-build
 .idea
 .vscode
