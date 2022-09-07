@@ -8,6 +8,7 @@ from momento.incubating.cache_operation_types import CacheDictionaryGetUnaryResp
 import momento.incubating.aio.simple_cache_client as simple_cache_client
 from momento.incubating.aio.utils import convert_dict_items_to_bytes
 from momento.vendor.python.unittest.async_case import IsolatedAsyncioTestCase
+from tests.utils import uuid_str, uuid_bytes, str_to_bytes
 
 _AUTH_TOKEN = os.getenv("TEST_AUTH_TOKEN")
 _TEST_CACHE_NAME = os.getenv("TEST_CACHE_NAME")
@@ -26,7 +27,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             get_response = await simple_cache.dictionary_get(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="hello world", key="key"
+                cache_name=_TEST_CACHE_NAME, dictionary_name=uuid_str(), key=uuid_str()
             )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
@@ -35,7 +36,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             get_response = await simple_cache.dictionary_get_multi(
-                _TEST_CACHE_NAME, "hello world", "key1", "key2", "key3"
+                _TEST_CACHE_NAME, uuid_str(), uuid_str(), uuid_str(), uuid_str()
             )
             self.assertEqual(3, len(get_response.to_list()))
             self.assertTrue(
@@ -53,33 +54,35 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             # Test with key as string
-            dictionary = {"key1": "value1"}
+            dictionary = {uuid_str(): uuid_str()}
+            dictionary_name = uuid_str()
             set_response = await simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
-                dictionary_name="mydict",
+                dictionary_name=dictionary_name,
                 dictionary=dictionary,
                 refresh_ttl=False,
             )
-            self.assertEqual("mydict", set_response.dictionary_name())
+            self.assertEqual(dictionary_name, set_response.dictionary_name())
             self.assertEqual(dictionary, set_response.dictionary())
 
             # Test as bytes
-            dictionary = dictionary = {b"key1": b"value1"}
+            dictionary = {uuid_bytes(): uuid_bytes()}
+            dictionary_name = uuid_str()
             set_response = await simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
-                dictionary_name="mydict2",
+                dictionary_name=dictionary_name,
                 dictionary=dictionary,
                 refresh_ttl=False,
             )
-            self.assertEqual("mydict2", set_response.dictionary_name())
+            self.assertEqual(dictionary_name, set_response.dictionary_name())
             self.assertEqual(dictionary, set_response.dictionary_as_bytes())
 
     async def test_dictionary_set_unary(self):
         async with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
-            dictionary_name = "mydict20"
-            key, value = "my-key", "my-value"
+            dictionary_name = uuid_str()
+            key, value = uuid_str(), uuid_str()
             set_response = await simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME,
                 dictionary_name=dictionary_name,
@@ -101,15 +104,18 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         async with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
+            dictionary_name = uuid_str()
             await simple_cache.dictionary_set(
                 cache_name=_TEST_CACHE_NAME,
-                dictionary_name="mydict3",
-                key="key1",
-                value="value1",
+                dictionary_name=dictionary_name,
+                key=uuid_str(),
+                value=uuid_str(),
                 refresh_ttl=False,
             )
             get_response = await simple_cache.dictionary_get(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="mydict3", key="key2"
+                cache_name=_TEST_CACHE_NAME,
+                dictionary_name=dictionary_name,
+                key=uuid_str(),
             )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
@@ -119,7 +125,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         ) as simple_cache:
             with self.assertRaises(ValueError):
                 await simple_cache.dictionary_get_multi(
-                    _TEST_CACHE_NAME, "my-dictionary", *[]
+                    _TEST_CACHE_NAME, uuid_str(), *[]
                 )
 
     async def test_dictionary_get_hit(self):
@@ -130,15 +136,13 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             for i, (key_is_str, value_is_str) in enumerate(
                 itertools.product((True, False), (True, False))
             ):
-                key, value = "key1", "value1"
+                key, value = uuid_str(), uuid_str()
                 if not key_is_str:
                     key = key.encode()
                 if not value_is_str:
                     value = value.encode()
                 dictionary = {key: value}
-                # Use distinct hash names to avoid collisions with already finished tests
-                dictionary_name = f"mydict4-{i}"
-
+                dictionary_name = uuid_str()
                 await simple_cache.dictionary_set_multi(
                     cache_name=_TEST_CACHE_NAME,
                     dictionary_name=dictionary_name,
@@ -162,8 +166,10 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         async with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
-            dictionary_name = "mydict10"
-            dictionary = {"key1": "value1", "key2": "value2", "key3": "value3"}
+            dictionary_name = uuid_str()
+            keys = [uuid_str() for _ in range(3)]
+            values = [uuid_str() for _ in range(3)]
+            dictionary = {k: v for k, v in zip(keys, values)}
 
             await simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
@@ -172,13 +178,12 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
                 refresh_ttl=False,
             )
             get_response = await simple_cache.dictionary_get_multi(
-                _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key3"
+                _TEST_CACHE_NAME, dictionary_name, *keys
             )
 
-            values = ["value1", "value2", "value3"]
             self.assertEqual(get_response.values(), values)
             self.assertEqual(
-                get_response.values_as_bytes(), [b"value1", b"value2", b"value3"]
+                get_response.values_as_bytes(), [str_to_bytes(i) for i in values]
             )
 
             results = [CacheGetStatus.HIT] * 3
@@ -191,15 +196,16 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             self.assertEqual(get_response.to_list(), individual_responses)
 
             get_response = await simple_cache.dictionary_get_multi(
-                _TEST_CACHE_NAME, dictionary_name, "key1", "key2", "key5"
+                _TEST_CACHE_NAME, dictionary_name, keys[0], keys[1], uuid_str()
             )
             self.assertTrue(
                 get_response.status(),
                 [CacheGetStatus.HIT, CacheGetStatus.HIT, CacheGetStatus.MISS],
             )
-            self.assertTrue(get_response.values(), ["value1", "value2", None])
+            self.assertTrue(get_response.values(), [values[0], values[1], None])
             self.assertTrue(
-                get_response.values_as_bytes(), [b"value1", b"value2", None]
+                get_response.values_as_bytes(),
+                [str_to_bytes(values[0]), str_to_bytes(values[1]), None],
             )
 
     async def test_dictionary_get_all_miss(self):
@@ -207,7 +213,7 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
             get_response = await simple_cache.dictionary_get_all(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="mydict5"
+                cache_name=_TEST_CACHE_NAME, dictionary_name=uuid_str()
             )
             self.assertEqual(CacheGetStatus.MISS, get_response.status())
 
@@ -215,15 +221,16 @@ class TestMomentoAsync(IsolatedAsyncioTestCase):
         async with simple_cache_client.init(
             _AUTH_TOKEN, _DEFAULT_TTL_SECONDS
         ) as simple_cache:
-            dictionary = {"key1": "value1", "key2": "value2"}
+            dictionary_name = uuid_str()
+            dictionary = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}
             await simple_cache.dictionary_set_multi(
                 cache_name=_TEST_CACHE_NAME,
-                dictionary_name="mydict6",
+                dictionary_name=dictionary_name,
                 dictionary=dictionary,
                 refresh_ttl=False,
             )
             get_all_response = await simple_cache.dictionary_get_all(
-                cache_name=_TEST_CACHE_NAME, dictionary_name="mydict6"
+                cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name
             )
             self.assertEqual(CacheGetStatus.HIT, get_all_response.status())
 
