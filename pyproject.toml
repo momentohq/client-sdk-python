@@ -1,31 +1,33 @@
 [tool.poetry]
 name = "momento"
-version = "0.0.0"  # TODO: poetry version $CI_COMMIT_TAG
+version = "0.0.0" # TODO: poetry version $CI_COMMIT_TAG
 
-description = "SDK for Momento"
 authors = ["Momento"] # TODO email
+description = "SDK for Momento"
 
 license = "Apache-2.0"
 
-readme = "README.md" # TODO this replaces the long description
-homepage = "https://gomomento.com"
-repository = "https://github.com/momentohq/client-sdk-python"
 documentation = "https://docs.momentohq.com/" # TODO should be generated readthedocs
+homepage = "https://gomomento.com"
+readme = "README.md"
+repository = "https://github.com/momentohq/client-sdk-python"
 
-keywords = [] # TODO
 classifiers = [] # TODO
+keywords = [] # TODO
 
 [tool.poetry.dependencies]
-python = ">=3.7"
-momento-wire-types = "^0.29.1"
-grpcio = "^1.48.1"
 PyJWT = {extras = ["crypto"], version = "^2.4.0"}
+grpcio = "^1.48.1"
+momento-wire-types = "^0.29.1"
+python = ">=3.7,<3.11"
 
-[tool.poetry.dev-dependencies]
-mypy = "^0.971"
+[tool.poetry.group.lint.dependencies]
 flake8 = "^5.0.4"
+mypy = "^0.971"
+
+[tool.poetry.group.format.dependencies]
 black = "^22.8.0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
