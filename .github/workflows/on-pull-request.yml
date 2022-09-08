@@ -1,7 +1,6 @@
-name: PR / Push
+name: On Pull Request
 
 on:
-  push:
   pull_request:
     branches: [main]
 
