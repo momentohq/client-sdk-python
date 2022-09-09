@@ -2,7 +2,7 @@
 name = "momento"
 version = "0.0.0"
 
-authors = ["Momento <open-source@momentohq.com>"]
+authors = ["Momento <hello@momentohq.com>"]
 description = "SDK for Momento"
 
 license = "Apache-2.0"
