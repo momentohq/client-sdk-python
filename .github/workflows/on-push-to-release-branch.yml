@@ -96,4 +96,4 @@ jobs:
       - name: Publish package
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYTHON_CUSTOMER_SDK_PYPI_TOKEN }}
-        run: poetry publish --dry-run
+        run: poetry publish
