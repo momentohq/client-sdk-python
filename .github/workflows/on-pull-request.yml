@@ -1,0 +1,47 @@
+name: On Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_CACHE_NAME: python-integration-test-cache
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Bootstrap poetry
+        run: |
+          curl -sL https://install.python-poetry.org | python - -y
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run mypy
+        # mypy has inconsistencies between 3.7 and the rest; default to lowest common denominator
+        if: matrix.python-version == '3.7'
+        run: poetry run mypy src/
+
+      - name: Run flake8
+        run: poetry run flake8 src/
+
+      - name: Run black
+        run: poetry run black --check --diff src/
+
+      - name: Run tests
+        run: poetry run python -m unittest discover -v

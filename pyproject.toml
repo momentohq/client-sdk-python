@@ -1,6 +1,45 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+[tool.poetry]
+name = "momento"
+version = "0.0.0"
+
+authors = ["Momento <hello@momentohq.com>"]
+description = "SDK for Momento"
+
+license = "Apache-2.0"
+
+documentation = "https://docs.momentohq.com/"
+homepage = "https://gomomento.com"
+readme = "README.md"
+repository = "https://github.com/momentohq/client-sdk-python"
+
+keywords = ["Momento", "caching", "key-value store", "serverless"]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Operating System :: OS Independent",
+  "Framework :: AsnycIO",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Topic :: Internet",
+  "Natural Language :: English",
+  "Typing :: Typed",
 ]
-build-backend = "setuptools.build_meta"
+
+[tool.poetry.dependencies]
+python = ">=3.7,<3.11"
+
+PyJWT = {extras = ["crypto"], version = "^2.4.0"}
+grpcio = "^1.48.1"
+momento-wire-types = "^0.29.1"
+
+[tool.poetry.group.lint.dependencies]
+flake8 = "^5.0.4"
+mypy = "^0.971"
+types-setuptools = "^65.3.0"
+
+[tool.poetry.group.format.dependencies]
+black = "^22.8.0"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
