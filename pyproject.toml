@@ -12,7 +12,7 @@ homepage = "https://gomomento.com"
 readme = "README.md"
 repository = "https://github.com/momentohq/client-sdk-python"
 
-keywords = ["Momento", "caching", "key-value store"]
+keywords = ["Momento", "caching", "key-value store", "serverless"]
 
 classifiers = [
   "Development Status :: 3 - Alpha",
