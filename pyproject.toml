@@ -1,25 +1,36 @@
 [tool.poetry]
 name = "momento"
-version = "0.0.0" # TODO: poetry version $CI_COMMIT_TAG
+version = "0.0.0"
 
-authors = ["Momento"] # TODO email
+authors = ["Momento <open-source@momentohq.com>"]
 description = "SDK for Momento"
 
 license = "Apache-2.0"
 
-documentation = "https://docs.momentohq.com/" # TODO should be generated readthedocs
+documentation = "https://docs.momentohq.com/"
 homepage = "https://gomomento.com"
 readme = "README.md"
 repository = "https://github.com/momentohq/client-sdk-python"
 
-classifiers = [] # TODO
-keywords = [] # TODO
+keywords = ["Momento", "caching", "key-value store"]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Operating System :: OS Independent",
+  "Framework :: AsnycIO",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Topic :: Internet",
+  "Natural Language :: English",
+  "Typing :: Typed",
+]
 
 [tool.poetry.dependencies]
+python = ">=3.7,<3.11"
+
 PyJWT = {extras = ["crypto"], version = "^2.4.0"}
 grpcio = "^1.48.1"
 momento-wire-types = "^0.29.1"
-python = ">=3.7,<3.11"
 
 [tool.poetry.group.lint.dependencies]
 flake8 = "^5.0.4"
