@@ -258,10 +258,12 @@ async def test_expires_items_after_ttl(client: SimpleCacheClient):
     val = uuid_str()
 
     await client.set(_TEST_CACHE_NAME, key, val, 2)
-    assert (await client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.HIT
+    get_response = await client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.HIT
 
     time.sleep(4)
-    assert (await client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = await client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS
 
 
 async def test_set_with_different_ttl(client: SimpleCacheClient):
@@ -271,12 +273,19 @@ async def test_set_with_different_ttl(client: SimpleCacheClient):
     await client.set(_TEST_CACHE_NAME, key1, "1", 2)
     await client.set(_TEST_CACHE_NAME, key2, "2")
 
-    assert (await client.get(_TEST_CACHE_NAME, key1)).status() == CacheGetStatus.HIT
-    assert (await client.get(_TEST_CACHE_NAME, key2)).status() == CacheGetStatus.HIT
+    # Before
+    get_response = await client.get(_TEST_CACHE_NAME, key1)
+    assert get_response.status() == CacheGetStatus.HIT
+    get_response = await client.get(_TEST_CACHE_NAME, key2)
+    assert get_response.status() == CacheGetStatus.HIT
 
     time.sleep(4)
-    assert (await client.get(_TEST_CACHE_NAME, key1)).status() == CacheGetStatus.MISS
-    assert (await client.get(_TEST_CACHE_NAME, key2)).status() == CacheGetStatus.HIT
+
+    # After
+    get_response = await client.get(_TEST_CACHE_NAME, key1)
+    assert get_response.status() == CacheGetStatus.MISS
+    get_response = await client.get(_TEST_CACHE_NAME, key2)
+    assert get_response.status() == CacheGetStatus.HIT
 
 
 # Set
@@ -452,22 +461,28 @@ async def test_set_multi_failure(client: SimpleCacheClient):
 # Test delete for key that doesn't exist
 async def test_delete_key_doesnt_exist(client: SimpleCacheClient):
     key = uuid_str()
-    assert (await client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = await client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS
 
     await client.delete(_TEST_CACHE_NAME, key)
-    assert (await client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = await client.get(_TEST_CACHE_NAME, key)
+    get_response.status() == CacheGetStatus.MISS
 
 
 # Test delete
 async def test_delete(client: SimpleCacheClient):
     # Set an item to then delete...
     key, value = uuid_str(), uuid_str()
-    assert (await client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = await client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS
     await client.set(_TEST_CACHE_NAME, key, value)
-    assert (await client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.HIT
+
+    get_response = await client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.HIT
 
     # Delete
     await client.delete(_TEST_CACHE_NAME, key)
 
     # Verify deleted
-    assert (await client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = await client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS

@@ -252,10 +252,12 @@ def test_expires_items_after_ttl(client: SimpleCacheClient):
     val = uuid_str()
 
     client.set(_TEST_CACHE_NAME, key, val, 2)
-    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.HIT
+    get_response = client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.HIT
 
     time.sleep(4)
-    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS
 
 
 def test_set_with_different_ttl(client: SimpleCacheClient):
@@ -265,12 +267,19 @@ def test_set_with_different_ttl(client: SimpleCacheClient):
     client.set(_TEST_CACHE_NAME, key1, "1", 2)
     client.set(_TEST_CACHE_NAME, key2, "2")
 
-    assert (client.get(_TEST_CACHE_NAME, key1)).status() == CacheGetStatus.HIT
-    assert (client.get(_TEST_CACHE_NAME, key2)).status() == CacheGetStatus.HIT
+    # Before
+    get_response = client.get(_TEST_CACHE_NAME, key1)
+    assert get_response.status() == CacheGetStatus.HIT
+    get_response = client.get(_TEST_CACHE_NAME, key2)
+    assert get_response.status() == CacheGetStatus.HIT
 
     time.sleep(4)
-    assert (client.get(_TEST_CACHE_NAME, key1)).status() == CacheGetStatus.MISS
-    assert (client.get(_TEST_CACHE_NAME, key2)).status() == CacheGetStatus.HIT
+
+    # After
+    get_response = client.get(_TEST_CACHE_NAME, key1)
+    assert get_response.status() == CacheGetStatus.MISS
+    get_response = client.get(_TEST_CACHE_NAME, key2)
+    assert get_response.status() == CacheGetStatus.HIT
 
 
 # Set
@@ -442,22 +451,28 @@ def test_set_multi_failure(client: SimpleCacheClient):
 # Test delete for key that doesn't exist
 def test_delete_key_doesnt_exist(client: SimpleCacheClient):
     key = uuid_str()
-    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS
 
     client.delete(_TEST_CACHE_NAME, key)
-    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = client.get(_TEST_CACHE_NAME, key)
+    get_response.status() == CacheGetStatus.MISS
 
 
 # Test delete
 def test_delete(client: SimpleCacheClient):
     # Set an item to then delete...
     key, value = uuid_str(), uuid_str()
-    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS
     client.set(_TEST_CACHE_NAME, key, value)
-    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.HIT
+
+    get_response = client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.HIT
 
     # Delete
     client.delete(_TEST_CACHE_NAME, key)
 
     # Verify deleted
-    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
+    get_response = client.get(_TEST_CACHE_NAME, key)
+    assert get_response.status() == CacheGetStatus.MISS
