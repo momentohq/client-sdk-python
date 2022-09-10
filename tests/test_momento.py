@@ -1,6 +1,7 @@
-import pytest
 import os
 import time
+
+import pytest
 
 import momento.simple_cache_client as simple_cache_client
 from momento.simple_cache_client import SimpleCacheClient
@@ -111,9 +112,9 @@ def test_create_cache_with_bad_cache_name_throws_exception(client: SimpleCacheCl
 def test_create_cache_throws_authentication_exception_for_bad_token():
     with simple_cache_client.init(
         _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.AuthenticationError):
-            simple_cache.create_cache(uuid_str())
+            client.create_cache(uuid_str())
 
 
 # Delete cache
@@ -156,12 +157,12 @@ def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient):
 def test_delete_cache_throws_authentication_exception_for_bad_token():
     with simple_cache_client.init(
         _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.AuthenticationError):
-            simple_cache.delete_cache(uuid_str())
+            client.delete_cache(uuid_str())
 
 
-# list_caches
+# List caches
 def test_list_caches_succeeds(client: SimpleCacheClient):
     cache_name = uuid_str()
 
@@ -184,9 +185,9 @@ def test_list_caches_succeeds(client: SimpleCacheClient):
 def test_list_caches_throws_authentication_exception_for_bad_token():
     with simple_cache_client.init(
         _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.AuthenticationError):
-            simple_cache.list_caches()
+            client.list_caches()
 
 
 def test_list_caches_with_next_token_works(client: SimpleCacheClient):
@@ -328,17 +329,17 @@ def test_set_with_bad_value_throws_exception(client: SimpleCacheClient):
 def test_set_throws_authentication_exception_for_bad_token():
     with simple_cache_client.init(
         _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.AuthenticationError):
-            simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
+            client.set(_TEST_CACHE_NAME, "foo", "bar")
 
 
 def test_set_throws_timeout_error_for_short_request_timeout():
     with simple_cache_client.init(
         _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.TimeoutError):
-            simple_cache.set(_TEST_CACHE_NAME, "foo", "bar")
+            client.set(_TEST_CACHE_NAME, "foo", "bar")
 
 
 # Get
@@ -380,17 +381,17 @@ def test_get_with_bad_key_throws_exception(client: SimpleCacheClient):
 def test_get_throws_authentication_exception_for_bad_token():
     with simple_cache_client.init(
         _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.AuthenticationError):
-            simple_cache.get(_TEST_CACHE_NAME, "foo")
+            client.get(_TEST_CACHE_NAME, "foo")
 
 
 def test_get_throws_timeout_error_for_short_request_timeout():
     with simple_cache_client.init(
         _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.TimeoutError):
-            simple_cache.get(_TEST_CACHE_NAME, "foo")
+            client.get(_TEST_CACHE_NAME, "foo")
 
 
 # Multi op tests
@@ -413,9 +414,9 @@ def test_get_multi_failure():
     # Start with a cache client with impossibly small request timeout to force failures
     with simple_cache_client.init(
         _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.TimeoutError):
-            simple_cache.get_multi(
+            client.get_multi(
                 _TEST_CACHE_NAME, "key1", "key2", "key3", "key4", "key5", "key6"
             )
 
@@ -424,9 +425,9 @@ def test_set_multi_failure(client: SimpleCacheClient):
     # Start with a cache client with impossibly small request timeout to force failures
     with simple_cache_client.init(
         _AUTH_TOKEN, _DEFAULT_TTL_SECONDS, request_timeout_ms=1
-    ) as simple_cache:
+    ) as client:
         with pytest.raises(errors.TimeoutError):
-            simple_cache.set_multi(
+            client.set_multi(
                 cache_name=_TEST_CACHE_NAME,
                 items={
                     "fizz1": "buzz1",
