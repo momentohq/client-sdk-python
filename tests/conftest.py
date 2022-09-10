@@ -20,6 +20,11 @@ from momento.incubating.simple_cache_client import (
 )
 
 
+#######################
+# Integration test data
+#######################
+
+
 TEST_AUTH_TOKEN: str = os.getenv("TEST_AUTH_TOKEN")
 if not TEST_AUTH_TOKEN:
     raise RuntimeError(
@@ -34,6 +39,11 @@ if not TEST_CACHE_NAME:
 
 DEFAULT_TTL_SECONDS: int = 60
 BAD_AUTH_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"
+
+
+#############################################
+# Integration test fixtures: data and clients
+#############################################
 
 
 @pytest.fixture(scope="session")

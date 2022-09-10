@@ -1,7 +1,14 @@
 #!/bin/bash
 
-# Use this script to generate synchronous client tests
-# from async tests.
+# Since the synchronous client delegates all functionality
+# to the asynchronous client, we generate the tests for the
+# sychronous client from the asynchronous ones.
+#
+# Why bother with synchronous tests at all then? Because there
+# is still room for error (typos for example) when delegating.
+# Synchronous tests will catch that.
+# 
+# Yes, this has happened before.
 # 
 # Usage: ./sync_from_async.sh
 
