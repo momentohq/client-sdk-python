@@ -90,7 +90,9 @@ def test_create_cache_throws_already_exists_when_creating_existing_cache(
         client.create_cache(_TEST_CACHE_NAME)
 
 
-def test_create_cache_throws_exception_for_empty_cache_name(client: SimpleCacheClient):
+def test_create_cache_throws_exception_for_empty_cache_name(
+    client: SimpleCacheClient,
+):
     with pytest.raises(errors.BadRequestError):
         client.create_cache("")
 
@@ -103,16 +105,16 @@ def test_create_cache_throws_validation_exception_for_null_cache_name(
         assert cm.exception == "Cache name must be a non-empty string"
 
 
-def test_create_cache_with_bad_cache_name_throws_exception(client: SimpleCacheClient):
+def test_create_cache_with_bad_cache_name_throws_exception(
+    client: SimpleCacheClient,
+):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         client.create_cache(1)
         assert cm.exception == "Cache name must be a non-empty string"
 
 
 def test_create_cache_throws_authentication_exception_for_bad_token():
-    with simple_cache_client.init(
-        _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as client:
+    with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as client:
         with pytest.raises(errors.AuthenticationError):
             client.create_cache(uuid_str())
 
@@ -143,7 +145,9 @@ def test_delete_cache_throws_invalid_input_for_null_cache_name(
         client.delete_cache(None)
 
 
-def test_delete_cache_throws_exception_for_empty_cache_name(client: SimpleCacheClient):
+def test_delete_cache_throws_exception_for_empty_cache_name(
+    client: SimpleCacheClient,
+):
     with pytest.raises(errors.BadRequestError):
         client.delete_cache("")
 
@@ -155,9 +159,7 @@ def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient):
 
 
 def test_delete_cache_throws_authentication_exception_for_bad_token():
-    with simple_cache_client.init(
-        _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as client:
+    with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as client:
         with pytest.raises(errors.AuthenticationError):
             client.delete_cache(uuid_str())
 
@@ -166,7 +168,7 @@ def test_delete_cache_throws_authentication_exception_for_bad_token():
 def test_list_caches_succeeds(client: SimpleCacheClient):
     cache_name = uuid_str()
 
-    caches = client.list_caches().caches()
+    caches = (client.list_caches()).caches()
     cache_names = [cache.name() for cache in caches]
     assert cache_name not in cache_names
 
@@ -183,9 +185,7 @@ def test_list_caches_succeeds(client: SimpleCacheClient):
 
 
 def test_list_caches_throws_authentication_exception_for_bad_token():
-    with simple_cache_client.init(
-        _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as client:
+    with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as client:
         with pytest.raises(errors.AuthenticationError):
             client.list_caches()
 
@@ -252,10 +252,10 @@ def test_expires_items_after_ttl(client: SimpleCacheClient):
     val = uuid_str()
 
     client.set(_TEST_CACHE_NAME, key, val, 2)
-    assert client.get(_TEST_CACHE_NAME, key).status() == CacheGetStatus.HIT
+    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.HIT
 
     time.sleep(4)
-    assert client.get(_TEST_CACHE_NAME, key).status() == CacheGetStatus.MISS
+    assert (client.get(_TEST_CACHE_NAME, key)).status() == CacheGetStatus.MISS
 
 
 def test_set_with_different_ttl(client: SimpleCacheClient):
@@ -265,16 +265,18 @@ def test_set_with_different_ttl(client: SimpleCacheClient):
     client.set(_TEST_CACHE_NAME, key1, "1", 2)
     client.set(_TEST_CACHE_NAME, key2, "2")
 
-    assert client.get(_TEST_CACHE_NAME, key1).status() == CacheGetStatus.HIT
-    assert client.get(_TEST_CACHE_NAME, key2).status() == CacheGetStatus.HIT
+    assert (client.get(_TEST_CACHE_NAME, key1)).status() == CacheGetStatus.HIT
+    assert (client.get(_TEST_CACHE_NAME, key2)).status() == CacheGetStatus.HIT
 
     time.sleep(4)
-    assert client.get(_TEST_CACHE_NAME, key1).status() == CacheGetStatus.MISS
-    assert client.get(_TEST_CACHE_NAME, key2).status() == CacheGetStatus.HIT
+    assert (client.get(_TEST_CACHE_NAME, key1)).status() == CacheGetStatus.MISS
+    assert (client.get(_TEST_CACHE_NAME, key2)).status() == CacheGetStatus.HIT
 
 
 # Set
-def test_set_with_non_existent_cache_name_throws_not_found(client: SimpleCacheClient):
+def test_set_with_non_existent_cache_name_throws_not_found(
+    client: SimpleCacheClient,
+):
     cache_name = uuid_str()
     with pytest.raises(errors.NotFoundError):
         client.set(cache_name, "foo", "bar")
@@ -327,9 +329,7 @@ def test_set_with_bad_value_throws_exception(client: SimpleCacheClient):
 
 
 def test_set_throws_authentication_exception_for_bad_token():
-    with simple_cache_client.init(
-        _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as client:
+    with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as client:
         with pytest.raises(errors.AuthenticationError):
             client.set(_TEST_CACHE_NAME, "foo", "bar")
 
@@ -343,7 +343,9 @@ def test_set_throws_timeout_error_for_short_request_timeout():
 
 
 # Get
-def test_get_with_non_existent_cache_name_throws_not_found(client: SimpleCacheClient):
+def test_get_with_non_existent_cache_name_throws_not_found(
+    client: SimpleCacheClient,
+):
     cache_name = uuid_str()
     with pytest.raises(errors.NotFoundError):
         client.get(cache_name, "foo")
@@ -379,9 +381,7 @@ def test_get_with_bad_key_throws_exception(client: SimpleCacheClient):
 
 
 def test_get_throws_authentication_exception_for_bad_token():
-    with simple_cache_client.init(
-        _BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS
-    ) as client:
+    with simple_cache_client.init(_BAD_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as client:
         with pytest.raises(errors.AuthenticationError):
             client.get(_TEST_CACHE_NAME, "foo")
 
