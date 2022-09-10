@@ -1,60 +1,39 @@
 import itertools
-import os
 import warnings
 
 import pytest
 
 from momento.cache_operation_types import CacheGetStatus
-import momento.errors as errors
 from momento.incubating.cache_operation_types import CacheDictionaryGetUnaryResponse
 import momento.incubating.simple_cache_client as simple_cache_client
 from momento.incubating.simple_cache_client import SimpleCacheClient
 from momento.incubating.aio.utils import convert_dict_items_to_bytes
 from tests.utils import uuid_str, uuid_bytes, str_to_bytes
 
-_AUTH_TOKEN = os.getenv("TEST_AUTH_TOKEN")
-_TEST_CACHE_NAME = os.getenv("TEST_CACHE_NAME")
-_DEFAULT_TTL_SECONDS = 60
 
-
-@pytest.fixture
-def client() -> SimpleCacheClient:
-    if not _AUTH_TOKEN:
-        raise RuntimeError(
-            "Integration tests require TEST_AUTH_TOKEN env var; see README for more details."
-        )
-    if not _TEST_CACHE_NAME:
-        raise RuntimeError(
-            "Integration tests require TEST_CACHE_NAME env var; see README for more details."
-        )
-
-    with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS) as _client:
-        # Ensure test cache exists
-        try:
-            _client.create_cache(_TEST_CACHE_NAME)
-        except errors.AlreadyExistsError:
-            pass
-
-        yield _client
-
-
-def test_incubating_warning(client: SimpleCacheClient):
+def test_incubating_warning(
+    incubating_client: SimpleCacheClient,
+    auth_token: str,
+    default_ttl_seconds: int,
+):
     with pytest.warns(UserWarning):
         warnings.simplefilter("always")
-        with simple_cache_client.init(_AUTH_TOKEN, _DEFAULT_TTL_SECONDS):
+        with simple_cache_client.init(auth_token, default_ttl_seconds):
             pass
 
 
-def test_dictionary_get_miss(client: SimpleCacheClient):
-    get_response = client.dictionary_get(
-        cache_name=_TEST_CACHE_NAME, dictionary_name=uuid_str(), key=uuid_str()
+def test_dictionary_get_miss(incubating_client: SimpleCacheClient, cache_name: str):
+    get_response = incubating_client.dictionary_get(
+        cache_name=cache_name, dictionary_name=uuid_str(), key=uuid_str()
     )
     assert get_response.status() == CacheGetStatus.MISS
 
 
-def test_dictionary_get_multi_miss(client: SimpleCacheClient):
-    get_response = client.dictionary_get_multi(
-        _TEST_CACHE_NAME, uuid_str(), uuid_str(), uuid_str(), uuid_str()
+def test_dictionary_get_multi_miss(
+    incubating_client: SimpleCacheClient, cache_name: str
+):
+    get_response = incubating_client.dictionary_get_multi(
+        cache_name, uuid_str(), uuid_str(), uuid_str(), uuid_str()
     )
     assert len(get_response.to_list()) == 3
     assert all(result == CacheGetStatus.MISS for result in get_response.status())
@@ -64,12 +43,12 @@ def test_dictionary_get_multi_miss(client: SimpleCacheClient):
     assert all(value is None for value in get_response.values_as_bytes())
 
 
-def test_dictionary_set_response(client: SimpleCacheClient):
+def test_dictionary_set_response(incubating_client: SimpleCacheClient, cache_name: str):
     # Test with key as string
     dictionary = {uuid_str(): uuid_str()}
     dictionary_name = uuid_str()
-    set_response = client.dictionary_set_multi(
-        cache_name=_TEST_CACHE_NAME,
+    set_response = incubating_client.dictionary_set_multi(
+        cache_name=cache_name,
         dictionary_name=dictionary_name,
         dictionary=dictionary,
         refresh_ttl=False,
@@ -80,8 +59,8 @@ def test_dictionary_set_response(client: SimpleCacheClient):
     # Test as bytes
     dictionary = {uuid_bytes(): uuid_bytes()}
     dictionary_name = uuid_str()
-    set_response = client.dictionary_set_multi(
-        cache_name=_TEST_CACHE_NAME,
+    set_response = incubating_client.dictionary_set_multi(
+        cache_name=cache_name,
         dictionary_name=dictionary_name,
         dictionary=dictionary,
         refresh_ttl=False,
@@ -90,11 +69,11 @@ def test_dictionary_set_response(client: SimpleCacheClient):
     assert set_response.dictionary_as_bytes() == dictionary
 
 
-def test_dictionary_set_unary(client: SimpleCacheClient):
+def test_dictionary_set_unary(incubating_client: SimpleCacheClient, cache_name: str):
     dictionary_name = uuid_str()
     key, value = uuid_str(), uuid_str()
-    set_response = client.dictionary_set(
-        cache_name=_TEST_CACHE_NAME,
+    set_response = incubating_client.dictionary_set(
+        cache_name=cache_name,
         dictionary_name=dictionary_name,
         key=key,
         value=value,
@@ -104,35 +83,39 @@ def test_dictionary_set_unary(client: SimpleCacheClient):
     assert set_response.key() == key
     assert set_response.value() == value
 
-    get_response = client.dictionary_get(
-        cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name, key=key
+    get_response = incubating_client.dictionary_get(
+        cache_name=cache_name, dictionary_name=dictionary_name, key=key
     )
     assert get_response.value() == value
 
 
-def test_dictionary_set_and_dictionary_get_missing_key(client: SimpleCacheClient):
+def test_dictionary_set_and_dictionary_get_missing_key(
+    incubating_client: SimpleCacheClient, cache_name: str
+):
     dictionary_name = uuid_str()
-    client.dictionary_set(
-        cache_name=_TEST_CACHE_NAME,
+    incubating_client.dictionary_set(
+        cache_name=cache_name,
         dictionary_name=dictionary_name,
         key=uuid_str(),
         value=uuid_str(),
         refresh_ttl=False,
     )
-    get_response = client.dictionary_get(
-        cache_name=_TEST_CACHE_NAME,
+    get_response = incubating_client.dictionary_get(
+        cache_name=cache_name,
         dictionary_name=dictionary_name,
         key=uuid_str(),
     )
     assert get_response.status() == CacheGetStatus.MISS
 
 
-def test_dictionary_get_zero_length_keys(client: SimpleCacheClient):
+def test_dictionary_get_zero_length_keys(
+    incubating_client: SimpleCacheClient, cache_name: str
+):
     with pytest.raises(ValueError):
-        client.dictionary_get_multi(_TEST_CACHE_NAME, uuid_str(), *[])
+        incubating_client.dictionary_get_multi(cache_name, uuid_str(), *[])
 
 
-def test_dictionary_get_hit(client: SimpleCacheClient):
+def test_dictionary_get_hit(incubating_client: SimpleCacheClient, cache_name: str):
     # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
     for i, (key_is_str, value_is_str) in enumerate(
         itertools.product((True, False), (True, False))
@@ -144,14 +127,14 @@ def test_dictionary_get_hit(client: SimpleCacheClient):
             value = value.encode()
         dictionary = {key: value}
         dictionary_name = uuid_str()
-        client.dictionary_set_multi(
-            cache_name=_TEST_CACHE_NAME,
+        incubating_client.dictionary_set_multi(
+            cache_name=cache_name,
             dictionary_name=dictionary_name,
             dictionary=dictionary,
             refresh_ttl=False,
         )
-        get_response = client.dictionary_get(
-            cache_name=_TEST_CACHE_NAME,
+        get_response = incubating_client.dictionary_get(
+            cache_name=cache_name,
             dictionary_name=dictionary_name,
             key=key,
         )
@@ -161,18 +144,22 @@ def test_dictionary_get_hit(client: SimpleCacheClient):
         ) == value
 
 
-def test_dictionary_get_multi_hit(client: SimpleCacheClient):
+def test_dictionary_get_multi_hit(
+    incubating_client: SimpleCacheClient, cache_name: str
+):
     dictionary_name = uuid_str()
     keys = [uuid_str() for _ in range(3)]
     values = [uuid_str() for _ in range(3)]
     dictionary = {k: v for k, v in zip(keys, values)}
-    client.dictionary_set_multi(
-        cache_name=_TEST_CACHE_NAME,
+    incubating_client.dictionary_set_multi(
+        cache_name=cache_name,
         dictionary_name=dictionary_name,
         dictionary=dictionary,
         refresh_ttl=False,
     )
-    get_response = client.dictionary_get_multi(_TEST_CACHE_NAME, dictionary_name, *keys)
+    get_response = incubating_client.dictionary_get_multi(
+        cache_name, dictionary_name, *keys
+    )
 
     assert get_response.values() == values
     assert get_response.values_as_bytes() == [str_to_bytes(i) for i in values]
@@ -186,8 +173,8 @@ def test_dictionary_get_multi_hit(client: SimpleCacheClient):
     ]
     assert get_response.to_list() == individual_responses
 
-    get_response = client.dictionary_get_multi(
-        _TEST_CACHE_NAME, dictionary_name, keys[0], keys[1], uuid_str()
+    get_response = incubating_client.dictionary_get_multi(
+        cache_name, dictionary_name, keys[0], keys[1], uuid_str()
     )
     assert get_response.status() == [
         CacheGetStatus.HIT,
@@ -202,24 +189,24 @@ def test_dictionary_get_multi_hit(client: SimpleCacheClient):
     ]
 
 
-def test_dictionary_get_all_miss(client: SimpleCacheClient):
-    get_response = client.dictionary_get_all(
-        cache_name=_TEST_CACHE_NAME, dictionary_name=uuid_str()
+def test_dictionary_get_all_miss(incubating_client: SimpleCacheClient, cache_name: str):
+    get_response = incubating_client.dictionary_get_all(
+        cache_name=cache_name, dictionary_name=uuid_str()
     )
     assert get_response.status() == CacheGetStatus.MISS
 
 
-def test_dictionary_get_all_hit(client: SimpleCacheClient):
+def test_dictionary_get_all_hit(incubating_client: SimpleCacheClient, cache_name: str):
     dictionary_name = uuid_str()
     dictionary = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}
-    client.dictionary_set_multi(
-        cache_name=_TEST_CACHE_NAME,
+    incubating_client.dictionary_set_multi(
+        cache_name=cache_name,
         dictionary_name=dictionary_name,
         dictionary=dictionary,
         refresh_ttl=False,
     )
-    get_all_response = client.dictionary_get_all(
-        cache_name=_TEST_CACHE_NAME, dictionary_name=dictionary_name
+    get_all_response = incubating_client.dictionary_get_all(
+        cache_name=cache_name, dictionary_name=dictionary_name
     )
     assert get_all_response.status() == CacheGetStatus.HIT
 
