@@ -195,6 +195,21 @@ def test_list_caches_with_next_token_works(client: SimpleCacheClient):
     pass
 
 
+# Signing keys
+def test_create_list_revoke_signing_keys(client: SimpleCacheClient):
+    create_resp = client.create_signing_key(30)
+    list_resp = client.list_signing_keys()
+    assert create_resp.key_id() in [
+        signing_key.key_id() for signing_key in list_resp.signing_keys()
+    ]
+
+    client.revoke_signing_key(create_resp.key_id())
+    list_resp = client.list_signing_keys()
+    assert create_resp.key_id() not in [
+        signing_key.key_id() for signing_key in list_resp.signing_keys()
+    ]
+
+
 # Setting and Getting
 def test_set_and_get_with_hit(client: SimpleCacheClient):
     key = uuid_str()
@@ -378,6 +393,7 @@ def test_get_throws_timeout_error_for_short_request_timeout():
             simple_cache.get(_TEST_CACHE_NAME, "foo")
 
 
+# Multi op tests
 def test_get_multi_and_set(client: SimpleCacheClient):
     items = [(uuid_str(), uuid_str()) for _ in range(5)]
     set_resp = client.set_multi(cache_name=_TEST_CACHE_NAME, items=dict(items))
