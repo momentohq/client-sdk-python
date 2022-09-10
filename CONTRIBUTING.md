@@ -121,7 +121,7 @@ virtualenv created by `tox`. These live in the `.tox` dir; e.g.
 To test your changes in a python shell, just use poetry:
 
 ```
-poetry run python pytest
+poetry run pytest
 ```
 
 <br/>
@@ -162,7 +162,16 @@ provide it. The env `TEST_CACHE_NAME` is also required, but for now any string v
 Example of running tests against all python versions:
 
 ```
-TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run python pytest
+TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest
+```
+
+### For M1 Users
+
+There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387
+TO WORK AROUND, please install Rosetta 2 and re-run with:
+
+```
+arch -x86_64 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest
 ```
 
 ### Developing new test cases?
