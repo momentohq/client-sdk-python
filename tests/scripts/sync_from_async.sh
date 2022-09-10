@@ -13,4 +13,5 @@ cp $async_file $sync_file
 sed -i -e 's/async //g' $sync_file
 sed -i -e 's/await //g' $sync_file
 sed -i -e 's/momento.aio./momento./g' $sync_file
+sed -i -e 's/momento.incubating.aio.simple/momento.incubating.simple/g' $sync_file
 black $sync_file
