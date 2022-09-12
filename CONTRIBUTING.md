@@ -121,7 +121,7 @@ virtualenv created by `tox`. These live in the `.tox` dir; e.g.
 To test your changes in a python shell, just use poetry:
 
 ```
-poetry run python -m unittest discover
+poetry run pytest
 ```
 
 <br/>
@@ -162,7 +162,26 @@ provide it. The env `TEST_CACHE_NAME` is also required, but for now any string v
 Example of running tests against all python versions:
 
 ```
-TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run python -m unittest discover
+TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest
 ```
+
+### For M1 Users
+
+There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387
+TO WORK AROUND, please install Rosetta 2 and re-run with:
+
+```
+arch -x86_64 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest
+```
+
+### Developing new test cases?
+
+Because we have both an asyncio and a synchronous client, we develop tests for both.
+Fear not! This is not twice the work. Since the synchronous client delegates behavior
+to the asynchronous one, we can re-use the async test cases.
+
+When developing new test cases, only write tests for the async client in the appropriate
+`test_*_async.py` file. Then run `tests/scripts/sync_from_async.sh` to generate
+the synchronous client tests.
 
 <br/>

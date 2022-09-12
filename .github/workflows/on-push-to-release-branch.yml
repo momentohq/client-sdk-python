@@ -69,7 +69,7 @@ jobs:
         run: poetry run black --check --diff src/
 
       - name: Run tests
-        run: poetry run python -m unittest discover -v
+        run: poetry run pytest -p no:sugar -q
 
   publish:
     runs-on: ubuntu-latest
