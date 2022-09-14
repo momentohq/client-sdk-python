@@ -3,6 +3,7 @@ import os
 from typing import cast, Optional
 
 import pytest
+import pytest_asyncio
 
 import momento.errors as errors
 from momento.simple_cache_client import SimpleCacheClient
@@ -65,7 +66,11 @@ def bad_auth_token() -> str:
 
 @pytest.fixture(scope="session")
 def event_loop() -> asyncio.AbstractEventLoop:
-    return asyncio.get_event_loop()
+    """cf https://github.com/pytest-dev/pytest-asyncio#event_loop"""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="session")
@@ -80,7 +85,7 @@ def client() -> SimpleCacheClient:
         yield _client
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def client_async() -> SimpleCacheClientAsync:
     async with SimpleCacheClientAsync(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
@@ -92,7 +97,19 @@ async def client_async() -> SimpleCacheClientAsync:
         yield _client
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
+def incubating_client() -> IncubatingSimpleCacheClient:
+    with IncubatingSimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
+        # Ensure test cache exists
+        try:
+            client.create_cache(TEST_CACHE_NAME)
+        except errors.AlreadyExistsError:
+            pass
+
+        yield client
+
+
+@pytest_asyncio.fixture(scope="session")
 async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
     async with IncubatingSimpleCacheClientAsync(
         TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
@@ -100,18 +117,6 @@ async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
         # Ensure test cache exists
         try:
             await client.create_cache(TEST_CACHE_NAME)
-        except errors.AlreadyExistsError:
-            pass
-
-        yield client
-
-
-@pytest.fixture(scope="session")
-def incubating_client() -> IncubatingSimpleCacheClient:
-    with IncubatingSimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
-        # Ensure test cache exists
-        try:
-            client.create_cache(TEST_CACHE_NAME)
         except errors.AlreadyExistsError:
             pass
 

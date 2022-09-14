@@ -45,7 +45,7 @@ from ..cache_operation_types import (
 
 
 class SimpleCacheClient:
-    """async Simple Cache client"""
+    """Async Simple Cache Client"""
 
     # For high load, we might get better performance with multiple clients, because the server is
     # configured to allow a max of 100 streams per connection.  In the javascript SDK, multiple
