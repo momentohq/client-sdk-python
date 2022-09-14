@@ -5,9 +5,7 @@ from typing import cast, Optional
 import pytest
 
 import momento.errors as errors
-import momento.simple_cache_client as simple_cache_client
 from momento.simple_cache_client import SimpleCacheClient
-import momento.aio.simple_cache_client as simple_cache_client_async
 from momento.aio.simple_cache_client import (
     SimpleCacheClient as SimpleCacheClientAsync,
 )
@@ -74,7 +72,7 @@ def event_loop() -> asyncio.AbstractEventLoop:
 
 @pytest.fixture(scope="session")
 def client() -> SimpleCacheClient:
-    with simple_cache_client.init(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
+    with SimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         try:
             _client.create_cache(TEST_CACHE_NAME)
@@ -86,9 +84,7 @@ def client() -> SimpleCacheClient:
 
 @pytest.fixture(scope="session")
 async def client_async() -> SimpleCacheClientAsync:
-    async with simple_cache_client_async.init(
-        TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
-    ) as _client:
+    async with SimpleCacheClientAsync(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         try:
             await _client.create_cache(TEST_CACHE_NAME)
