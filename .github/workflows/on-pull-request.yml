@@ -17,6 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Commitlint and Other Shared Build Steps
+        uses: momentohq/standards-and-practices/github-actions/shared-build@gh-actions-v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
