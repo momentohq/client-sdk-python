@@ -35,7 +35,7 @@ class SimpleCacheClient:
                 possible to override this setting when calling the set method.
             request_timeout_ms (Optional[int], optional): An optional timeout in milliseconds to allow for Get and Set
                 operations to complete. The request will be terminated if it takes longer than this value and will
-                result in TimeoutError. Defaults to None, in which case a 5ms timeout is used.
+                result in TimeoutError. Defaults to None, in which case a 5 second timeout is used.
         Raises:
             IllegalArgumentError: If method arguments fail validations.
         """

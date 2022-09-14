@@ -18,7 +18,6 @@ from ..cache_operation_types import (
     DictionaryValue,
     Dictionary,
 )
-from ..._utilities._data_validation import _validate_request_timeout
 from .utils import (
     convert_dict_items_to_bytes,
     deserialize_dictionary,
@@ -31,12 +30,23 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         auth_token: str,
         default_ttl_seconds: int,
-        data_client_operation_timeout_ms: Optional[int],
+        request_timeout_ms: Optional[int] = None,
     ):
+        """Creates a SimpleCacheClientIncubating.
+        !! Includes non-final, experimental features and APIs subject to change  !!
+
+        Args:
+            auth_token: Momento Token to authenticate the requests with Simple Cache Service
+            default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
+                possible to override this setting when calling the set method.
+            request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
+                Defaults to None, in which case 5 seconds is used. The request will be terminated if it takes longer
+                than this value and will result in TimeoutError.
+        Raises:
+            IllegalArgumentError: If method arguments fail validations
+        """
         warnings.warn(INCUBATING_WARNING_MSG)
-        super().__init__(
-            auth_token, default_ttl_seconds, data_client_operation_timeout_ms
-        )
+        super().__init__(auth_token, default_ttl_seconds, request_timeout_ms)
 
     async def dictionary_set(
         self,
@@ -257,29 +267,3 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         get_multi_response = await self.get_multi(cache_name, *keys)
         mask = [status == CacheGetStatus.HIT for status in get_multi_response.status()]
         return CacheExistsResponse(keys, mask)
-
-
-def init(
-    auth_token: str,
-    item_default_ttl_seconds: int,
-    request_timeout_ms: Optional[int] = None,
-) -> SimpleCacheClientIncubating:
-    """Creates a SimpleCacheClientIncubating.
-    !! Includes non-final, experimental features and APIs subject to change  !!
-
-    Args:
-        auth_token: Momento Token to authenticate the requests with Simple Cache Service
-        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
-            possible to override this setting when calling the set method.
-        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
-            Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result
-            in TimeoutError.
-    Returns:
-        SimpleCacheClientIncubating
-    Raises:
-        IllegalArgumentError: If method arguments fail validations
-    """
-    _validate_request_timeout(request_timeout_ms)
-    return SimpleCacheClientIncubating(
-        auth_token, item_default_ttl_seconds, request_timeout_ms
-    )

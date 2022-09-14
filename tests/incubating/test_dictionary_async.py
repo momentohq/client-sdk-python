@@ -5,25 +5,23 @@ import pytest
 
 from momento.cache_operation_types import CacheGetStatus
 from momento.incubating.cache_operation_types import CacheDictionaryGetUnaryResponse
-import momento.incubating.aio.simple_cache_client as simple_cache_client
-from momento.incubating.aio.simple_cache_client import SimpleCacheClient
+from momento.incubating.aio.simple_cache_client import SimpleCacheClientIncubating
 from momento.incubating.aio.utils import convert_dict_items_to_bytes
 from tests.utils import uuid_str, uuid_bytes, str_to_bytes
 
 
 async def test_incubating_warning(
-    incubating_client_async: SimpleCacheClient,
     auth_token: str,
     default_ttl_seconds: int,
 ):
     with pytest.warns(UserWarning):
         warnings.simplefilter("always")
-        async with simple_cache_client.init(auth_token, default_ttl_seconds):
+        async with SimpleCacheClientIncubating(auth_token, default_ttl_seconds):
             pass
 
 
 async def test_dictionary_get_miss(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     get_response = await incubating_client_async.dictionary_get(
         cache_name=cache_name, dictionary_name=uuid_str(), key=uuid_str()
@@ -32,7 +30,7 @@ async def test_dictionary_get_miss(
 
 
 async def test_dictionary_get_multi_miss(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     get_response = await incubating_client_async.dictionary_get_multi(
         cache_name, uuid_str(), uuid_str(), uuid_str(), uuid_str()
@@ -46,7 +44,7 @@ async def test_dictionary_get_multi_miss(
 
 
 async def test_dictionary_set_response(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     # Test with key as string
     dictionary = {uuid_str(): uuid_str()}
@@ -74,7 +72,7 @@ async def test_dictionary_set_response(
 
 
 async def test_dictionary_set_unary(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     dictionary_name = uuid_str()
     key, value = uuid_str(), uuid_str()
@@ -96,7 +94,7 @@ async def test_dictionary_set_unary(
 
 
 async def test_dictionary_set_and_dictionary_get_missing_key(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     dictionary_name = uuid_str()
     await incubating_client_async.dictionary_set(
@@ -115,14 +113,14 @@ async def test_dictionary_set_and_dictionary_get_missing_key(
 
 
 async def test_dictionary_get_zero_length_keys(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     with pytest.raises(ValueError):
         await incubating_client_async.dictionary_get_multi(cache_name, uuid_str(), *[])
 
 
 async def test_dictionary_get_hit(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
     for i, (key_is_str, value_is_str) in enumerate(
@@ -153,7 +151,7 @@ async def test_dictionary_get_hit(
 
 
 async def test_dictionary_get_multi_hit(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     dictionary_name = uuid_str()
     keys = [uuid_str() for _ in range(3)]
@@ -198,7 +196,7 @@ async def test_dictionary_get_multi_hit(
 
 
 async def test_dictionary_get_all_miss(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     get_response = await incubating_client_async.dictionary_get_all(
         cache_name=cache_name, dictionary_name=uuid_str()
@@ -207,7 +205,7 @@ async def test_dictionary_get_all_miss(
 
 
 async def test_dictionary_get_all_hit(
-    incubating_client_async: SimpleCacheClient, cache_name: str
+    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
 ):
     dictionary_name = uuid_str()
     dictionary = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}

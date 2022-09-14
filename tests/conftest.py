@@ -9,13 +9,11 @@ from momento.simple_cache_client import SimpleCacheClient
 from momento.aio.simple_cache_client import (
     SimpleCacheClient as SimpleCacheClientAsync,
 )
-import momento.incubating.aio.simple_cache_client as incubating_simple_cache_client_async
 from momento.incubating.aio.simple_cache_client import (
-    SimpleCacheClient as IncubatingSimpleCacheClientAsync,
+    SimpleCacheClientIncubating as IncubatingSimpleCacheClientAsync,
 )
-import momento.incubating.simple_cache_client as incubating_simple_cache_client
 from momento.incubating.simple_cache_client import (
-    SimpleCacheClient as IncubatingSimpleCacheClient,
+    SimpleCacheClientIncubating as IncubatingSimpleCacheClient,
 )
 
 
@@ -96,7 +94,7 @@ async def client_async() -> SimpleCacheClientAsync:
 
 @pytest.fixture(scope="session")
 async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
-    async with incubating_simple_cache_client_async.init(
+    async with IncubatingSimpleCacheClientAsync(
         TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
     ) as client:
         # Ensure test cache exists
@@ -110,9 +108,7 @@ async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
 
 @pytest.fixture(scope="session")
 def incubating_client() -> IncubatingSimpleCacheClient:
-    with incubating_simple_cache_client.init(
-        TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
-    ) as client:
+    with IncubatingSimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
         # Ensure test cache exists
         try:
             client.create_cache(TEST_CACHE_NAME)
