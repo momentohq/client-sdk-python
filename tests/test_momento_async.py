@@ -186,9 +186,7 @@ async def test_list_caches_with_next_token_works(
 
 
 # Signing keys
-async def test_create_list_revoke_signing_keys(
-    client_async: SimpleCacheClient, cache_name: str
-):
+async def test_create_list_revoke_signing_keys(client_async: SimpleCacheClient):
     create_resp = await client_async.create_signing_key(30)
     list_resp = await client_async.list_signing_keys()
     assert create_resp.key_id() in [
@@ -295,7 +293,7 @@ async def test_set_with_null_cache_name_throws_exception(
 
 
 async def test_set_with_empty_cache_name_throws_exception(
-    client_async: SimpleCacheClient, cache_name: str
+    client_async: SimpleCacheClient,
 ):
     with pytest.raises(errors.BadRequestError) as cm:
         await client_async.set("", "foo", "bar")
@@ -325,7 +323,7 @@ async def test_set_negative_ttl_throws_exception(
 
 
 async def test_set_with_bad_cache_name_throws_exception(
-    client_async: SimpleCacheClient, cache_name: str
+    client_async: SimpleCacheClient,
 ):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         await client_async.set(1, "foo", "bar")
@@ -376,7 +374,7 @@ async def test_get_with_non_existent_cache_name_throws_not_found(
 
 
 async def test_get_with_null_cache_name_throws_exception(
-    client_async: SimpleCacheClient, cache_name: str
+    client_async: SimpleCacheClient,
 ):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         await client_async.get(None, "foo")
@@ -384,7 +382,7 @@ async def test_get_with_null_cache_name_throws_exception(
 
 
 async def test_get_with_empty_cache_name_throws_exception(
-    client_async: SimpleCacheClient, cache_name: str
+    client_async: SimpleCacheClient,
 ):
     with pytest.raises(errors.BadRequestError) as cm:
         await client_async.get("", "foo")
@@ -399,7 +397,7 @@ async def test_get_with_null_key_throws_exception(
 
 
 async def test_get_with_bad_cache_name_throws_exception(
-    client_async: SimpleCacheClient, cache_name: str
+    client_async: SimpleCacheClient,
 ):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         await client_async.get(1, "foo")

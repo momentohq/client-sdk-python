@@ -184,7 +184,7 @@ def test_list_caches_with_next_token_works(client: SimpleCacheClient, cache_name
 
 
 # Signing keys
-def test_create_list_revoke_signing_keys(client: SimpleCacheClient, cache_name: str):
+def test_create_list_revoke_signing_keys(client: SimpleCacheClient):
     create_resp = client.create_signing_key(30)
     list_resp = client.list_signing_keys()
     assert create_resp.key_id() in [
@@ -287,7 +287,7 @@ def test_set_with_null_cache_name_throws_exception(
 
 
 def test_set_with_empty_cache_name_throws_exception(
-    client: SimpleCacheClient, cache_name: str
+    client: SimpleCacheClient,
 ):
     with pytest.raises(errors.BadRequestError) as cm:
         client.set("", "foo", "bar")
@@ -313,7 +313,7 @@ def test_set_negative_ttl_throws_exception(client: SimpleCacheClient, cache_name
 
 
 def test_set_with_bad_cache_name_throws_exception(
-    client: SimpleCacheClient, cache_name: str
+    client: SimpleCacheClient,
 ):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         client.set(1, "foo", "bar")
@@ -362,7 +362,7 @@ def test_get_with_non_existent_cache_name_throws_not_found(
 
 
 def test_get_with_null_cache_name_throws_exception(
-    client: SimpleCacheClient, cache_name: str
+    client: SimpleCacheClient,
 ):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         client.get(None, "foo")
@@ -370,7 +370,7 @@ def test_get_with_null_cache_name_throws_exception(
 
 
 def test_get_with_empty_cache_name_throws_exception(
-    client: SimpleCacheClient, cache_name: str
+    client: SimpleCacheClient,
 ):
     with pytest.raises(errors.BadRequestError) as cm:
         client.get("", "foo")
@@ -383,7 +383,7 @@ def test_get_with_null_key_throws_exception(client: SimpleCacheClient, cache_nam
 
 
 def test_get_with_bad_cache_name_throws_exception(
-    client: SimpleCacheClient, cache_name: str
+    client: SimpleCacheClient,
 ):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         client.get(1, "foo")
