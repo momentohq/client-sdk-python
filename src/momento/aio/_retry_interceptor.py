@@ -1,8 +1,7 @@
 import logging
-from typing import List, Callable, Union
+from typing import Callable, List, Union
 
 import grpc
-
 
 # TODO: Retry interceptor behavior should be configurable, but we need to
 # align on basic API design first:
@@ -95,6 +94,4 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 MAX_ATTEMPTS,
             )
 
-        raise momento.errors.ClientSdkError(
-            "Failed to return from RetryInterceptor!  This is a bug."
-        )
+        raise momento.errors.ClientSdkError("Failed to return from RetryInterceptor!  This is a bug.")

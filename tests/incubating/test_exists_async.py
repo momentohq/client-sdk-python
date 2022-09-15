@@ -2,9 +2,7 @@ from momento.incubating.aio.simple_cache_client import SimpleCacheClientIncubati
 from tests.utils import uuid_str
 
 
-async def test_exists_unary_missing(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_exists_unary_missing(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     key = uuid_str()
     response = await incubating_client_async.exists(cache_name, key)
     assert not response
@@ -15,9 +13,7 @@ async def test_exists_unary_missing(
     assert list(response.zip_keys_and_results()) == [(key, False)]
 
 
-async def test_exists_unary_exists(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_exists_unary_exists(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     key, value = uuid_str(), uuid_str()
     await incubating_client_async.set(cache_name, key, value)
 
@@ -31,9 +27,7 @@ async def test_exists_unary_exists(
     assert list(response.zip_keys_and_results()) == [(key, True)]
 
 
-async def test_exists_multi(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_exists_multi(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     keys = []
     for i in range(3):
         key = uuid_str()

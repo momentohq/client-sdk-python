@@ -1,23 +1,23 @@
 import asyncio
 from types import TracebackType
-from typing import Optional, Mapping, Union, Type
+from typing import Mapping, Optional, Type, Union
 
-from .aio import simple_cache_client as aio
 from ._async_utils import wait_for_coroutine
+from ._utilities._data_validation import _validate_request_timeout
+from .aio import simple_cache_client as aio
 from .cache_operation_types import (
-    CacheGetResponse,
-    CacheSetResponse,
     CacheDeleteResponse,
+    CacheGetMultiResponse,
+    CacheGetResponse,
+    CacheSetMultiResponse,
+    CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
-    CacheGetMultiResponse,
-    CacheSetMultiResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from ._utilities._data_validation import _validate_request_timeout
 
 
 class SimpleCacheClient:
@@ -164,9 +164,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.revoke_signing_key(key_id)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def list_signing_keys(
-        self, next_token: Optional[str] = None
-    ) -> ListSigningKeysResponse:
+    def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
 
         Args:
@@ -257,9 +255,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.get(cache_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def get_multi(
-        self, cache_name: str, *keys: Union[str, bytes]
-    ) -> CacheGetMultiResponse:
+    def get_multi(self, cache_name: str, *keys: Union[str, bytes]) -> CacheGetMultiResponse:
         """Retrieve multiple items from the cache.
 
         Args:

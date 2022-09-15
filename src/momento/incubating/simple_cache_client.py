@@ -1,22 +1,22 @@
-from typing import Optional, Union
 import warnings
+from typing import Optional, Union
 
+from .._async_utils import wait_for_coroutine
+from .._utilities._data_validation import _validate_request_timeout
+from ..simple_cache_client import SimpleCacheClient
 from . import INCUBATING_WARNING_MSG
 from .aio import simple_cache_client as aio
-from .._async_utils import wait_for_coroutine
 from .cache_operation_types import (
-    CacheDictionaryGetUnaryResponse,
-    CacheDictionaryGetMultiResponse,
-    CacheDictionarySetUnaryResponse,
-    CacheDictionarySetMultiResponse,
     CacheDictionaryGetAllResponse,
+    CacheDictionaryGetMultiResponse,
+    CacheDictionaryGetUnaryResponse,
+    CacheDictionarySetMultiResponse,
+    CacheDictionarySetUnaryResponse,
     CacheExistsResponse,
+    Dictionary,
     DictionaryKey,
     DictionaryValue,
-    Dictionary,
 )
-from ..simple_cache_client import SimpleCacheClient
-from .._utilities._data_validation import _validate_request_timeout
 
 
 class SimpleCacheClientIncubating(SimpleCacheClient):
@@ -42,12 +42,10 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
 
         warnings.warn(INCUBATING_WARNING_MSG)
         self._init_loop()
-        self._momento_async_client: aio.SimpleCacheClientIncubating = (
-            aio.SimpleCacheClientIncubating(
-                auth_token=auth_token,
-                default_ttl_seconds=default_ttl_seconds,
-                request_timeout_ms=request_timeout_ms,
-            )
+        self._momento_async_client: aio.SimpleCacheClientIncubating = aio.SimpleCacheClientIncubating(
+            auth_token=auth_token,
+            default_ttl_seconds=default_ttl_seconds,
+            request_timeout_ms=request_timeout_ms,
         )
 
     def dictionary_set(
@@ -138,9 +136,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             CacheDictionaryGetUnaryResponse: A wrapper for the value (if present)
                 and status (HIT or MISS).
         """
-        coroutine = self._momento_async_client.dictionary_get(
-            cache_name, dictionary_name, key
-        )
+        coroutine = self._momento_async_client.dictionary_get(cache_name, dictionary_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
     def dictionary_get_multi(
@@ -160,14 +156,10 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
             CacheDictionaryGetMultiResponse: a wrapper over a list of values
                 and statuses.
         """
-        coroutine = self._momento_async_client.dictionary_get_multi(
-            cache_name, dictionary_name, *keys
-        )
+        coroutine = self._momento_async_client.dictionary_get_multi(cache_name, dictionary_name, *keys)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def dictionary_get_all(
-        self, cache_name: str, dictionary_name: str
-    ) -> CacheDictionaryGetAllResponse:
+    def dictionary_get_all(self, cache_name: str, dictionary_name: str) -> CacheDictionaryGetAllResponse:
         """Retrieve the entire dictionary from the cache.
 
         Args:
@@ -177,9 +169,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         Returns:
             CacheDictionaryGetAllResponse: Value (the mapping, if present) and status (HIT or MISS).
         """
-        coroutine = self._momento_async_client.dictionary_get_all(
-            cache_name, dictionary_name
-        )
+        coroutine = self._momento_async_client.dictionary_get_all(cache_name, dictionary_name)
         return wait_for_coroutine(self._loop, coroutine)
 
     def exists(self, cache_name: str, *keys: Union[str, bytes]) -> CacheExistsResponse:
@@ -231,6 +221,4 @@ def init(
         IllegalArgumentError: If method arguments fail validations
     """
     _validate_request_timeout(request_timeout_ms)
-    return SimpleCacheClientIncubating(
-        auth_token, item_default_ttl_seconds, request_timeout_ms
-    )
+    return SimpleCacheClientIncubating(auth_token, item_default_ttl_seconds, request_timeout_ms)

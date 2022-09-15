@@ -12,9 +12,7 @@ info = logger.info
 debug = logger.debug
 
 
-def add_logging_level(
-    level_name: str, level_num: int, method_name: Optional[str] = None
-) -> None:
+def add_logging_level(level_name: str, level_num: int, method_name: Optional[str] = None) -> None:
     """
     Comprehensively adds a new logging level to the `logging` module and the
     currently configured logging class.

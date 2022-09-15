@@ -4,11 +4,10 @@ import warnings
 import pytest
 
 from momento.cache_operation_types import CacheGetStatus
-from momento.incubating.cache_operation_types import CacheDictionaryGetUnaryResponse
 from momento.incubating.aio.simple_cache_client import SimpleCacheClientIncubating
-
 from momento.incubating.aio.utils import convert_dict_items_to_bytes
-from tests.utils import uuid_str, uuid_bytes, str_to_bytes
+from momento.incubating.cache_operation_types import CacheDictionaryGetUnaryResponse
+from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
 
 async def test_incubating_warning(
@@ -21,18 +20,14 @@ async def test_incubating_warning(
             pass
 
 
-async def test_dictionary_get_miss(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_get_miss(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     get_response = await incubating_client_async.dictionary_get(
         cache_name=cache_name, dictionary_name=uuid_str(), key=uuid_str()
     )
     assert get_response.status() == CacheGetStatus.MISS
 
 
-async def test_dictionary_get_multi_miss(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_get_multi_miss(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     get_response = await incubating_client_async.dictionary_get_multi(
         cache_name, uuid_str(), uuid_str(), uuid_str(), uuid_str()
     )
@@ -44,9 +39,7 @@ async def test_dictionary_get_multi_miss(
     assert all(value is None for value in get_response.values_as_bytes())
 
 
-async def test_dictionary_set_response(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_set_response(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     # Test with key as string
     dictionary = {uuid_str(): uuid_str()}
     dictionary_name = uuid_str()
@@ -72,9 +65,7 @@ async def test_dictionary_set_response(
     assert set_response.dictionary_as_bytes() == dictionary
 
 
-async def test_dictionary_set_unary(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_set_unary(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     dictionary_name = uuid_str()
     key, value = uuid_str(), uuid_str()
     set_response = await incubating_client_async.dictionary_set(
@@ -113,20 +104,14 @@ async def test_dictionary_set_and_dictionary_get_missing_key(
     assert get_response.status() == CacheGetStatus.MISS
 
 
-async def test_dictionary_get_zero_length_keys(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_get_zero_length_keys(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     with pytest.raises(ValueError):
         await incubating_client_async.dictionary_get_multi(cache_name, uuid_str(), *[])
 
 
-async def test_dictionary_get_hit(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_get_hit(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     # Test all combinations of type(key) in {str, bytes} and type(value) in {str, bytes}
-    for i, (key_is_str, value_is_str) in enumerate(
-        itertools.product((True, False), (True, False))
-    ):
+    for i, (key_is_str, value_is_str) in enumerate(itertools.product((True, False), (True, False))):
         key, value = uuid_str(), uuid_str()
         if not key_is_str:
             key = key.encode()
@@ -146,14 +131,10 @@ async def test_dictionary_get_hit(
             key=key,
         )
         assert get_response.status() == CacheGetStatus.HIT
-        assert (
-            get_response.value() if value_is_str else get_response.value_as_bytes()
-        ) == value
+        assert (get_response.value() if value_is_str else get_response.value_as_bytes()) == value
 
 
-async def test_dictionary_get_multi_hit(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_get_multi_hit(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     dictionary_name = uuid_str()
     keys = [uuid_str() for _ in range(3)]
     values = [uuid_str() for _ in range(3)]
@@ -164,9 +145,7 @@ async def test_dictionary_get_multi_hit(
         dictionary=dictionary,
         refresh_ttl=False,
     )
-    get_response = await incubating_client_async.dictionary_get_multi(
-        cache_name, dictionary_name, *keys
-    )
+    get_response = await incubating_client_async.dictionary_get_multi(cache_name, dictionary_name, *keys)
 
     assert get_response.values() == values
     assert get_response.values_as_bytes() == [str_to_bytes(i) for i in values]
@@ -175,8 +154,7 @@ async def test_dictionary_get_multi_hit(
     assert get_response.status() == results
 
     individual_responses = [
-        CacheDictionaryGetUnaryResponse(value.encode("utf-8"), result)
-        for value, result in zip(values, results)
+        CacheDictionaryGetUnaryResponse(value.encode("utf-8"), result) for value, result in zip(values, results)
     ]
     assert get_response.to_list() == individual_responses
 
@@ -196,18 +174,12 @@ async def test_dictionary_get_multi_hit(
     ]
 
 
-async def test_dictionary_get_all_miss(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
-    get_response = await incubating_client_async.dictionary_get_all(
-        cache_name=cache_name, dictionary_name=uuid_str()
-    )
+async def test_dictionary_get_all_miss(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
+    get_response = await incubating_client_async.dictionary_get_all(cache_name=cache_name, dictionary_name=uuid_str())
     assert get_response.status() == CacheGetStatus.MISS
 
 
-async def test_dictionary_get_all_hit(
-    incubating_client_async: SimpleCacheClientIncubating, cache_name: str
-):
+async def test_dictionary_get_all_hit(incubating_client_async: SimpleCacheClientIncubating, cache_name: str):
     dictionary_name = uuid_str()
     dictionary = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}
     await incubating_client_async.dictionary_set_multi(

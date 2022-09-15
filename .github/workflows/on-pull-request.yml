@@ -46,7 +46,10 @@ jobs:
         run: poetry run flake8 src/
 
       - name: Run black
-        run: poetry run black --check --diff src/
+        run: poetry run black src tests --check --diff
+
+      - name: Run isort
+        run: poetry run isort . --check --diff
 
       - name: Run tests
         run: poetry run pytest -p no:sugar -q
