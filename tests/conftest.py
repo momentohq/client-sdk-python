@@ -3,21 +3,18 @@ import os
 from typing import cast, Optional
 
 import pytest
+import pytest_asyncio
 
 import momento.errors as errors
-import momento.simple_cache_client as simple_cache_client
 from momento.simple_cache_client import SimpleCacheClient
-import momento.aio.simple_cache_client as simple_cache_client_async
 from momento.aio.simple_cache_client import (
     SimpleCacheClient as SimpleCacheClientAsync,
 )
-import momento.incubating.aio.simple_cache_client as incubating_simple_cache_client_async
 from momento.incubating.aio.simple_cache_client import (
-    SimpleCacheClient as IncubatingSimpleCacheClientAsync,
+    SimpleCacheClientIncubating as IncubatingSimpleCacheClientAsync,
 )
-import momento.incubating.simple_cache_client as incubating_simple_cache_client
 from momento.incubating.simple_cache_client import (
-    SimpleCacheClient as IncubatingSimpleCacheClient,
+    SimpleCacheClientIncubating as IncubatingSimpleCacheClient,
 )
 
 
@@ -69,12 +66,16 @@ def bad_auth_token() -> str:
 
 @pytest.fixture(scope="session")
 def event_loop() -> asyncio.AbstractEventLoop:
-    return asyncio.get_event_loop()
+    """cf https://github.com/pytest-dev/pytest-asyncio#event_loop"""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="session")
 def client() -> SimpleCacheClient:
-    with simple_cache_client.init(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
+    with SimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         try:
             _client.create_cache(TEST_CACHE_NAME)
@@ -84,11 +85,9 @@ def client() -> SimpleCacheClient:
         yield _client
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def client_async() -> SimpleCacheClientAsync:
-    async with simple_cache_client_async.init(
-        TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
-    ) as _client:
+    async with SimpleCacheClientAsync(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         try:
             await _client.create_cache(TEST_CACHE_NAME)
@@ -98,28 +97,27 @@ async def client_async() -> SimpleCacheClientAsync:
         yield _client
 
 
-@pytest.fixture(scope="session")
-async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
-    async with incubating_simple_cache_client_async.init(
-        TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
-    ) as client:
+# TODO: Test fails when this is session scope. Because of a race when closing the event loop?
+@pytest.fixture(scope="module")
+def incubating_client() -> IncubatingSimpleCacheClient:
+    with IncubatingSimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
         # Ensure test cache exists
         try:
-            await client.create_cache(TEST_CACHE_NAME)
+            client.create_cache(TEST_CACHE_NAME)
         except errors.AlreadyExistsError:
             pass
 
         yield client
 
 
-@pytest.fixture(scope="session")
-def incubating_client() -> IncubatingSimpleCacheClient:
-    with incubating_simple_cache_client.init(
+@pytest_asyncio.fixture(scope="session")
+async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
+    async with IncubatingSimpleCacheClientAsync(
         TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
     ) as client:
         # Ensure test cache exists
         try:
-            client.create_cache(TEST_CACHE_NAME)
+            await client.create_cache(TEST_CACHE_NAME)
         except errors.AlreadyExistsError:
             pass
 

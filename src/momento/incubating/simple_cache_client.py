@@ -24,15 +24,29 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         auth_token: str,
         default_ttl_seconds: int,
-        data_client_operation_timeout_ms: Optional[int],
+        request_timeout_ms: Optional[int] = None,
     ):
+        """Creates a SimpleCacheClientIncubating.
+        !! Includes non-final, experimental features and APIs subject to change  !!
+
+        Args:
+            auth_token: Momento Token to authenticate the requests with Simple Cache Service
+            default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
+                possible to override this setting when calling the set method.
+            request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
+                Defaults to None, in which case 5 seconds is used. The request will be terminated if it takes longer
+                than this value and will result in TimeoutError.
+        Raises:
+            IllegalArgumentError: If method arguments fail validations
+        """
+
         warnings.warn(INCUBATING_WARNING_MSG)
         self._init_loop()
         self._momento_async_client: aio.SimpleCacheClientIncubating = (
             aio.SimpleCacheClientIncubating(
                 auth_token=auth_token,
                 default_ttl_seconds=default_ttl_seconds,
-                data_client_operation_timeout_ms=data_client_operation_timeout_ms,
+                request_timeout_ms=request_timeout_ms,
             )
         )
 
