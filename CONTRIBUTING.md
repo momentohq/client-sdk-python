@@ -124,7 +124,7 @@ To test your changes in a python shell, just use poetry:
 poetry run pytest
 ```
 
-We've also project a `Makefile` for convenience. Install `make` then run `make help`
+We also have a project `Makefile` for convenience. Install `make` then run `make help`
 to see options. Use `make test` to run unit tests and `make` to run formatting, linting,
 and testing.
 <br/>
