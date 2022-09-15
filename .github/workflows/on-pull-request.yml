@@ -46,7 +46,7 @@ jobs:
         run: poetry run flake8 src/
 
       - name: Run black
-        run: poetry run black --check --diff
+        run: poetry run black src tests --check --diff
 
       - name: Run isort
         run: poetry run isort . --check --diff
