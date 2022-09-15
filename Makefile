@@ -20,6 +20,11 @@ lint:
 	@poetry run mypy src
 	@poetry run flake8 src
 
+.PHONY: gen-test
+## Generate synchronous test scripts from async test scripts. 
+gen-test:
+	@bash tests/scripts/sync_from_async.sh
+
 .PHONY: test
 ## Run unit and integration tests with pytest
 test:
@@ -27,7 +32,7 @@ test:
 
 .PHONY: precommit
 ## Run format, lint, and test as a step before committing.
-precommit: format lint test
+precommit: gen-test format lint test
 	@echo.
 
 .PHONY: clean
