@@ -97,6 +97,7 @@ async def client_async() -> SimpleCacheClientAsync:
         yield _client
 
 
+# TODO: Test fails when this is session scope. Because of a race when closing the event loop?
 @pytest.fixture(scope="module")
 def incubating_client() -> IncubatingSimpleCacheClient:
     with IncubatingSimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
