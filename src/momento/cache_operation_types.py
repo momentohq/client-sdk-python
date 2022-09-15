@@ -365,7 +365,7 @@ class ListSigningKeysResponse:
             if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]
             else None
         )
-        signing_keys: List[SigningKey] = [
+        signing_keys: List[SigningKey] = [  # type: ignore[misc]
             SigningKey.from_grpc_response(signing_key, endpoint)  # type: ignore[misc]
             for signing_key in grpc_list_signing_keys_response.signing_key  # type: ignore[misc]
         ]
