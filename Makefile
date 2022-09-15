@@ -25,6 +25,11 @@ lint:
 test:
 	@poetry run pytest
 
+.PHONY: precommit
+## Run format, lint, and test as a step before committing.
+precommit: format lint test
+	@echo.
+
 .PHONY: clean
 ## Remove intermediate files
 clean:
