@@ -57,6 +57,7 @@ exclude = """
 /(
   \\.git
   | \\.mypy_cache
+  | \\.pytest_cache
   | \\.venv
   | dist
 )
