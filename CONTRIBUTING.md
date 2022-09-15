@@ -99,20 +99,20 @@ poetry install
 ### Setting up IDE
 
 The only trick to setting up your IDE is to point it to your preferred
-virtualenv created by `tox`. These live in the `.tox` dir; e.g.
-`.tox/py39/bin/python`.
+virtualenv created by `poetry`. These live in the `.venv` dir; e.g.
+`.venv/bin/python` if you use in-project `venv` (see above).
 
 - Visual Studio Code
 
   Use `Cmd` + `Shift` + `P` to search for `Python: Interpreter` and select:
-  `.venv/py37/bin/python`
+  `.venv/bin/python`
 
 - IntelliJ
 
   `File`->`New Project`->`Python`; when you get to the screen where it lets you
   choose your python SDK, you may need to click `Edit`, then the `+` button
   to register a new Python SDK, then choose the `Existing` radio button, then
-  navigate to e.g. `.venv/py37/bin/python`.
+  navigate to e.g. `.venv/bin/python`.
 
 <br />
 
@@ -124,6 +124,9 @@ To test your changes in a python shell, just use poetry:
 poetry run pytest
 ```
 
+We've also project a `Makefile` for convenience. Install `make` then run `make help`
+to see options. Use `make test` to run unit tests and `make` to run formatting, linting,
+and testing.
 <br/>
 
 ## Linting :flashlight:
