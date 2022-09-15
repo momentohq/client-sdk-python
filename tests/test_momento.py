@@ -2,10 +2,10 @@ import time
 
 import pytest
 
-from momento.simple_cache_client import SimpleCacheClient
 import momento.errors as errors
 from momento.cache_operation_types import CacheGetStatus
-from tests.utils import uuid_str, uuid_bytes, str_to_bytes
+from momento.simple_cache_client import SimpleCacheClient
+from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
 
 def test_create_cache_get_set_values_and_delete_cache(client: SimpleCacheClient, cache_name: str):

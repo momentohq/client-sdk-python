@@ -1,12 +1,12 @@
 from types import TracebackType
-from typing import Optional, Mapping, Type, Union
+from typing import Mapping, Optional, Type, Union
 
 from .. import logs
 
 try:
+    from .._utilities._data_validation import _validate_request_timeout
     from ._scs_control_client import _ScsControlClient
     from ._scs_data_client import _ScsDataClient
-    from .._utilities._data_validation import _validate_request_timeout
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -30,17 +30,17 @@ except ImportError as e:
 
 from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
+    CacheDeleteResponse,
+    CacheGetMultiResponse,
+    CacheGetResponse,
+    CacheSetMultiResponse,
+    CacheSetResponse,
     CreateCacheResponse,
+    CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
-    CreateSigningKeyResponse,
-    RevokeSigningKeyResponse,
     ListSigningKeysResponse,
-    CacheSetResponse,
-    CacheGetResponse,
-    CacheDeleteResponse,
-    CacheSetMultiResponse,
-    CacheGetMultiResponse,
+    RevokeSigningKeyResponse,
 )
 
 

@@ -1,4 +1,4 @@
-from typing import Callable, Union, List
+from typing import Callable, List, Union
 
 import grpc
 from grpc.aio import Metadata

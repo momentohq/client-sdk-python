@@ -1,22 +1,19 @@
 import asyncio
 import os
-from typing import cast, Optional
+from typing import Optional, cast
 
 import pytest
 import pytest_asyncio
 
 import momento.errors as errors
-from momento.simple_cache_client import SimpleCacheClient
-from momento.aio.simple_cache_client import (
-    SimpleCacheClient as SimpleCacheClientAsync,
-)
+from momento.aio.simple_cache_client import SimpleCacheClient as SimpleCacheClientAsync
 from momento.incubating.aio.simple_cache_client import (
     SimpleCacheClientIncubating as IncubatingSimpleCacheClientAsync,
 )
 from momento.incubating.simple_cache_client import (
     SimpleCacheClientIncubating as IncubatingSimpleCacheClient,
 )
-
+from momento.simple_cache_client import SimpleCacheClient
 
 #######################
 # Integration test data

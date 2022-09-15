@@ -1,8 +1,7 @@
 import logging
-from typing import List, Callable, Union
+from typing import Callable, List, Union
 
 import grpc
-
 
 # TODO: Retry interceptor behavior should be configurable, but we need to
 # align on basic API design first:

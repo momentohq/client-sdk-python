@@ -1,8 +1,8 @@
 from typing import Any
 
 import grpc
-from . import errors
-from . import logs
+
+from . import errors, logs
 
 __rpc_to_error = {
     grpc.StatusCode.INVALID_ARGUMENT: errors.BadRequestError,

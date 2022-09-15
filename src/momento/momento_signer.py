@@ -1,9 +1,10 @@
 import json
 from enum import Enum
-from typing import Optional, Dict
-from jwt.api_jwk import PyJWK
+from typing import Dict, Optional
 from urllib.parse import quote
+
 import jwt
+from jwt.api_jwk import PyJWK
 
 from .errors import InvalidArgumentError
 
