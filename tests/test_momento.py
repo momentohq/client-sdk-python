@@ -8,9 +8,7 @@ from momento.cache_operation_types import CacheGetStatus
 from tests.utils import uuid_str, uuid_bytes, str_to_bytes
 
 
-def test_create_cache_get_set_values_and_delete_cache(
-    client: SimpleCacheClient, cache_name: str
-):
+def test_create_cache_get_set_values_and_delete_cache(client: SimpleCacheClient, cache_name: str):
     random_cache_name = uuid_str()
     key = uuid_str()
     value = uuid_str()
@@ -45,26 +43,20 @@ def test_init_throws_exception_for_non_jwt_token(default_ttl_seconds: int):
         assert cm.exception == "Invalid Auth token."
 
 
-def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
-    auth_token: str, default_ttl_seconds: int
-):
+def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(auth_token: str, default_ttl_seconds: int):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         SimpleCacheClient(auth_token, default_ttl_seconds, -1)
         assert cm.exception == "Request timeout must be greater than zero."
 
 
-def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
-    auth_token: str, default_ttl_seconds: int
-):
+def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(auth_token: str, default_ttl_seconds: int):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         SimpleCacheClient(auth_token, default_ttl_seconds, 0)
         assert cm.exception == "Request timeout must be greater than zero."
 
 
 # Create cache
-def test_create_cache_throws_already_exists_when_creating_existing_cache(
-    client: SimpleCacheClient, cache_name: str
-):
+def test_create_cache_throws_already_exists_when_creating_existing_cache(client: SimpleCacheClient, cache_name: str):
     with pytest.raises(errors.AlreadyExistsError):
         client.create_cache(cache_name)
 
@@ -92,9 +84,7 @@ def test_create_cache_with_bad_cache_name_throws_exception(
         assert cm.exception == "Cache name must be a non-empty string"
 
 
-def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, default_ttl_seconds: int
-):
+def test_create_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
     with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.create_cache(uuid_str())
@@ -133,17 +123,13 @@ def test_delete_cache_throws_exception_for_empty_cache_name(
         client.delete_cache("")
 
 
-def test_delete_with_bad_cache_name_throws_exception(
-    client: SimpleCacheClient, cache_name: str
-):
+def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient, cache_name: str):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         client.delete_cache(1)
         assert cm.exception == "Cache name must be a non-empty string"
 
 
-def test_delete_cache_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, default_ttl_seconds: int
-):
+def test_delete_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
     with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.delete_cache(uuid_str())
@@ -169,9 +155,7 @@ def test_list_caches_succeeds(client: SimpleCacheClient, cache_name: str):
         client.delete_cache(cache_name)
 
 
-def test_list_caches_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, default_ttl_seconds: int
-):
+def test_list_caches_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
     with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.list_caches()
@@ -187,15 +171,11 @@ def test_list_caches_with_next_token_works(client: SimpleCacheClient, cache_name
 def test_create_list_revoke_signing_keys(client: SimpleCacheClient):
     create_resp = client.create_signing_key(30)
     list_resp = client.list_signing_keys()
-    assert create_resp.key_id() in [
-        signing_key.key_id() for signing_key in list_resp.signing_keys()
-    ]
+    assert create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
 
     client.revoke_signing_key(create_resp.key_id())
     list_resp = client.list_signing_keys()
-    assert create_resp.key_id() not in [
-        signing_key.key_id() for signing_key in list_resp.signing_keys()
-    ]
+    assert create_resp.key_id() not in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
 
 
 # Setting and Getting
@@ -278,9 +258,7 @@ def test_set_with_non_existent_cache_name_throws_not_found(
         client.set(cache_name, "foo", "bar")
 
 
-def test_set_with_null_cache_name_throws_exception(
-    client: SimpleCacheClient, cache_name: str
-):
+def test_set_with_null_cache_name_throws_exception(client: SimpleCacheClient, cache_name: str):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         client.set(None, "foo", "bar")
         assert cm.exception == "Cache name must be a non-empty string"
@@ -299,9 +277,7 @@ def test_set_with_null_key_throws_exception(client: SimpleCacheClient, cache_nam
         client.set(cache_name, None, "bar")
 
 
-def test_set_with_null_value_throws_exception(
-    client: SimpleCacheClient, cache_name: str
-):
+def test_set_with_null_value_throws_exception(client: SimpleCacheClient, cache_name: str):
     with pytest.raises(errors.InvalidArgumentError):
         client.set(cache_name, "foo", None)
 
@@ -326,9 +302,7 @@ def test_set_with_bad_key_throws_exception(client: SimpleCacheClient, cache_name
         assert cm.exception == "Unsupported type for key: <class 'int'>"
 
 
-def test_set_with_bad_value_throws_exception(
-    client: SimpleCacheClient, cache_name: str
-):
+def test_set_with_bad_value_throws_exception(client: SimpleCacheClient, cache_name: str):
     with pytest.raises(errors.InvalidArgumentError) as cm:
         client.set(cache_name, "foo", 1)
         assert cm.exception == "Unsupported type for value: <class 'int'>"
@@ -342,12 +316,8 @@ def test_set_throws_authentication_exception_for_bad_token(
             client.set(cache_name, "foo", "bar")
 
 
-def test_set_throws_timeout_error_for_short_request_timeout(
-    auth_token: str, cache_name: str, default_ttl_seconds: int
-):
-    with SimpleCacheClient(
-        auth_token, default_ttl_seconds, request_timeout_ms=1
-    ) as client:
+def test_set_throws_timeout_error_for_short_request_timeout(auth_token: str, cache_name: str, default_ttl_seconds: int):
+    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
         with pytest.raises(errors.TimeoutError):
             client.set(cache_name, "foo", "bar")
 
@@ -404,12 +374,8 @@ def test_get_throws_authentication_exception_for_bad_token(
             client.get(cache_name, "foo")
 
 
-def test_get_throws_timeout_error_for_short_request_timeout(
-    auth_token: str, cache_name: str, default_ttl_seconds: int
-):
-    with SimpleCacheClient(
-        auth_token, default_ttl_seconds, request_timeout_ms=1
-    ) as client:
+def test_get_throws_timeout_error_for_short_request_timeout(auth_token: str, cache_name: str, default_ttl_seconds: int):
+    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
         with pytest.raises(errors.TimeoutError):
             client.get(cache_name, "foo")
 
@@ -420,9 +386,7 @@ def test_get_multi_and_set(client: SimpleCacheClient, cache_name: str):
     set_resp = client.set_multi(cache_name=cache_name, items=dict(items))
     assert dict(items) == set_resp.items()
 
-    get_resp = client.get_multi(
-        cache_name, items[4][0], items[0][0], items[1][0], items[2][0]
-    )
+    get_resp = client.get_multi(cache_name, items[4][0], items[0][0], items[1][0], items[2][0])
     values = get_resp.values()
     assert items[4][1] == values[0]
     assert items[0][1] == values[1]
@@ -432,9 +396,7 @@ def test_get_multi_and_set(client: SimpleCacheClient, cache_name: str):
 
 def test_get_multi_failure(auth_token: str, cache_name: str, default_ttl_seconds: int):
     # Start with a cache client with impossibly small request timeout to force failures
-    with SimpleCacheClient(
-        auth_token, default_ttl_seconds, request_timeout_ms=1
-    ) as client:
+    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
         with pytest.raises(errors.TimeoutError):
             client.get_multi(cache_name, "key1", "key2", "key3", "key4", "key5", "key6")
 
@@ -446,9 +408,7 @@ def test_set_multi_failure(
     default_ttl_seconds: int,
 ):
     # Start with a cache client with impossibly small request timeout to force failures
-    with SimpleCacheClient(
-        auth_token, default_ttl_seconds, request_timeout_ms=1
-    ) as client:
+    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
         with pytest.raises(errors.TimeoutError):
             client.set_multi(
                 cache_name=cache_name,

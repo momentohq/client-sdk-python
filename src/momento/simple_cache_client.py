@@ -164,9 +164,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.revoke_signing_key(key_id)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def list_signing_keys(
-        self, next_token: Optional[str] = None
-    ) -> ListSigningKeysResponse:
+    def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
 
         Args:
@@ -257,9 +255,7 @@ class SimpleCacheClient:
         coroutine = self._momento_async_client.get(cache_name, key)
         return wait_for_coroutine(self._loop, coroutine)
 
-    def get_multi(
-        self, cache_name: str, *keys: Union[str, bytes]
-    ) -> CacheGetMultiResponse:
+    def get_multi(self, cache_name: str, *keys: Union[str, bytes]) -> CacheGetMultiResponse:
         """Retrieve multiple items from the cache.
 
         Args:

@@ -170,9 +170,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.create_signing_key(
-            ttl_minutes, self._get_next_client().get_endpoint()
-        )
+        return await self._control_client.create_signing_key(ttl_minutes, self._get_next_client().get_endpoint())
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         """Revokes a Momento signing key, all tokens signed by which will be invalid
@@ -189,9 +187,7 @@ class SimpleCacheClient:
         """
         return await self._control_client.revoke_signing_key(key_id)
 
-    async def list_signing_keys(
-        self, next_token: Optional[str] = None
-    ) -> ListSigningKeysResponse:
+    async def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
 
         Args:
@@ -204,9 +200,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.list_signing_keys(
-            self._get_next_client().get_endpoint(), next_token
-        )
+        return await self._control_client.list_signing_keys(self._get_next_client().get_endpoint(), next_token)
 
     async def set_multi(
         self,
@@ -261,9 +255,7 @@ class SimpleCacheClient:
         """
         return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
 
-    async def get_multi(
-        self, cache_name: str, *keys: Union[str, bytes]
-    ) -> CacheGetMultiResponse:
+    async def get_multi(self, cache_name: str, *keys: Union[str, bytes]) -> CacheGetMultiResponse:
         """Retrieve multiple items from the cache.
 
         Args:
@@ -324,7 +316,5 @@ class SimpleCacheClient:
 
     def _get_next_client(self) -> _ScsDataClient:
         client = self._data_clients[self._next_client_index]
-        self._next_client_index = (self._next_client_index + 1) % len(
-            self._data_clients
-        )
+        self._next_client_index = (self._next_client_index + 1) % len(self._data_clients)
         return client

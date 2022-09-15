@@ -66,9 +66,7 @@ class MomentoSigner:
         try:
             self._jwk_json: Dict[str, str] = json.loads(jwk_json_string)
         except json.decoder.JSONDecodeError as e:
-            raise InvalidArgumentError(
-                f"Invalid JWK Json String: {jwk_json_string}"
-            ) from e
+            raise InvalidArgumentError(f"Invalid JWK Json String: {jwk_json_string}") from e
 
         try:
             self._jwk: PyJWK = PyJWK.from_dict(self._jwk_json)  # type: ignore[no-untyped-call, misc]
@@ -107,9 +105,7 @@ class MomentoSigner:
                 raise InvalidArgumentError("ttl_seconds is required for SET operation.")
             claims["ttl"] = signing_request.ttl_seconds()
         else:
-            raise NotImplementedError(
-                f"Unrecognized Operation: {signing_request.cache_operation()}"
-            )
+            raise NotImplementedError(f"Unrecognized Operation: {signing_request.cache_operation()}")
 
         # jwt.encode will automatically insert "typ" and "alg" into the header for us.
         # We still need to specify "kid" to be included in the header however.
@@ -117,9 +113,7 @@ class MomentoSigner:
             claims, self._jwk.key, algorithm=self._alg, headers={"kid": self._jwk.key_id}  # type: ignore[misc]
         )
 
-    def create_presigned_url(
-        self, hostname: str, signing_request: SigningRequest
-    ) -> str:
+    def create_presigned_url(self, hostname: str, signing_request: SigningRequest) -> str:
         """Creates a pre-signed HTTPS URL.
 
         Args:
@@ -145,9 +139,7 @@ class MomentoSigner:
             )
             return url
         else:
-            raise NotImplementedError(
-                f"Unrecognized Operation: {signing_request.cache_operation()}"
-            )
+            raise NotImplementedError(f"Unrecognized Operation: {signing_request.cache_operation()}")
 
     # Logic stolen from https://github.com/jpadilla/pyjwt/blob/master/jwt/api_jwk.py#L19
     # to handle the case when alg is missing from JWK.

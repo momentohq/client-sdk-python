@@ -32,9 +32,7 @@ def test_rsa256():
             expiry_epoch_seconds=4079276098,
         )
     )
-    verified_claims = jwt.decode(
-        token, PyJWK.from_json(_RSA_256_JWK_PUB).key, algorithms=["RS256"]
-    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_RSA_256_JWK_PUB).key, algorithms=["RS256"])
 
     assert verified_claims == {
         "exp": 4079276098,
@@ -56,9 +54,7 @@ def test_rsa_no_alg():
             expiry_epoch_seconds=4079276098,
         )
     )
-    verified_claims = jwt.decode(
-        token, PyJWK.from_json(_RSA_NO_ALG_JWK_PUB).key, algorithms=["RS256"]
-    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_RSA_NO_ALG_JWK_PUB).key, algorithms=["RS256"])
 
     assert verified_claims == {
         "exp": 4079276098,
@@ -80,9 +76,7 @@ def test_rsa384():
             expiry_epoch_seconds=4079276098,
         )
     )
-    verified_claims = jwt.decode(
-        token, PyJWK.from_json(_RSA_384_JWK_PUB).key, algorithms=["RS384"]
-    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_RSA_384_JWK_PUB).key, algorithms=["RS384"])
 
     assert verified_claims == {
         "exp": 4079276098,
@@ -104,9 +98,7 @@ def test_es256():
             expiry_epoch_seconds=4079276098,
         )
     )
-    verified_claims = jwt.decode(
-        token, PyJWK.from_json(_ES_256_JWK_PUB).key, algorithms=["ES256"]
-    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_ES_256_JWK_PUB).key, algorithms=["ES256"])
 
     assert verified_claims == {
         "exp": 4079276098,
@@ -128,9 +120,7 @@ def test_es_no_alg():
             expiry_epoch_seconds=4079276098,
         )
     )
-    verified_claims = jwt.decode(
-        token, PyJWK.from_json(_ES_NO_ALG_JWK_PUB).key, algorithms=["ES256"]
-    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_ES_NO_ALG_JWK_PUB).key, algorithms=["ES256"])
 
     assert verified_claims == {
         "exp": 4079276098,

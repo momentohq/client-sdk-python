@@ -45,23 +45,16 @@ class CacheDictionaryGetUnaryResponse:
 
 
 class CacheDictionaryGetMultiResponse:
-    def __init__(
-        self, values: List[Optional[DictionaryValue]], status: List[CacheGetStatus]
-    ):
+    def __init__(self, values: List[Optional[DictionaryValue]], status: List[CacheGetStatus]):
         self._values = values
         self._status = status
 
     def to_list(self) -> List[CacheDictionaryGetUnaryResponse]:
-        return [
-            CacheDictionaryGetUnaryResponse(value, status)
-            for value, status in zip(self._values, self._status)
-        ]
+        return [CacheDictionaryGetUnaryResponse(value, status) for value, status in zip(self._values, self._status)]
 
     def values(self) -> List[Optional[str]]:
         return [
-            _bytes_to_string(cast(bytes, value))
-            if status == CacheGetStatus.HIT
-            else None
+            _bytes_to_string(cast(bytes, value)) if status == CacheGetStatus.HIT else None
             for value, status in zip(self._values, self._status)
         ]
 
@@ -231,9 +224,7 @@ class CacheExistsResponse:
         Returns:
             List[Union[str, bytes]]: List of queried keys that do not exist.
         """
-        return [
-            key for key, does_exist in zip(self._keys, self._results) if not does_exist
-        ]
+        return [key for key, does_exist in zip(self._keys, self._results) if not does_exist]
 
     def present_keys(self) -> List[Union[str, bytes]]:
         """List the keys that exist.

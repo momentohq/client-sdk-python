@@ -25,15 +25,11 @@ from momento.incubating.simple_cache_client import (
 
 TEST_AUTH_TOKEN: Optional[str] = os.getenv("TEST_AUTH_TOKEN")
 if not TEST_AUTH_TOKEN:
-    raise RuntimeError(
-        "Integration tests require TEST_AUTH_TOKEN env var; see README for more details."
-    )
+    raise RuntimeError("Integration tests require TEST_AUTH_TOKEN env var; see README for more details.")
 
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
 if not TEST_CACHE_NAME:
-    raise RuntimeError(
-        "Integration tests require TEST_CACHE_NAME env var; see README for more details."
-    )
+    raise RuntimeError("Integration tests require TEST_CACHE_NAME env var; see README for more details.")
 
 DEFAULT_TTL_SECONDS: int = 60
 BAD_AUTH_TOKEN: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"  # noqa: E501
@@ -112,9 +108,7 @@ def incubating_client() -> IncubatingSimpleCacheClient:
 
 @pytest_asyncio.fixture(scope="session")
 async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
-    async with IncubatingSimpleCacheClientAsync(
-        TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS
-    ) as client:
+    async with IncubatingSimpleCacheClientAsync(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
         # Ensure test cache exists
         try:
             await client.create_cache(TEST_CACHE_NAME)
