@@ -1,0 +1,48 @@
+name: "Linters"
+outputs:
+  mypy:
+    description: "Mypy Result"
+    value: ${{ steps.set-outputs.outputs.mypy }}
+  black:
+    description: "Black Result"
+    value: ${{ steps.set-outputs.outputs.black }}
+  flake8:
+    description: "Flake8 Result"
+    value: ${{ steps.set-outputs.outputs.flake8 }}
+runs:
+  using: "composite"
+  steps:
+    - name: Mypy linting
+      id: mypy
+      continue-on-error: true
+      run: |
+        pushd python
+          pipenv install mypy
+          pipenv run mypy .
+        popd
+      shell: bash
+    - name: Black linting
+      id: black
+      continue-on-error: true
+      run: |
+        pushd python
+          pipenv install black
+          pipenv run black --check --diff .
+        popd
+      shell: bash
+    - name: Flake8 linting
+      id: flake8
+      continue-on-error: true
+      run: |
+        pushd python
+          pipenv install flake8
+          pipenv run flake8
+        popd
+      shell: bash
+    - name: Set Outputs
+      id: set-outputs
+      run: |
+        echo "::set-output name=mypy::${{ steps.mypy.outcome }}"
+        echo "::set-output name=black::${{ steps.black.outcome }}"
+        echo "::set-output name=flake8::${{ steps.flake8.outcome }}"
+      shell: bash
