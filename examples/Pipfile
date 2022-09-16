@@ -1,0 +1,11 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+colorlog = "==6.6.0"
+hdrhistogram = "*"
+momento = "==0.14.0"
+
+[dev-packages]

@@ -25,7 +25,7 @@ Python SDK for Momento, a serverless cache that automatically scales without any
 
 ### Installing Momento and Running the Example
 
-Check out our [Python SDK example repo](https://github.com/momentohq/client-sdk-examples/tree/main/python)!
+Check out our [Python SDK example](/examples/)!
 
 <br/>
 
