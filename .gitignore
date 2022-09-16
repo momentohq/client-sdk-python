@@ -11,3 +11,5 @@ dist/
 
 .idea
 .vscode
+
+momento-examples-env/
