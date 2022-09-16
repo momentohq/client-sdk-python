@@ -2,6 +2,7 @@ import logging
 import os
 
 import colorlog
+
 from momento.logs import initialize_momento_logging
 
 

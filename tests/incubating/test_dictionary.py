@@ -21,12 +21,16 @@ def test_incubating_warning(
 
 
 def test_dictionary_get_miss(incubating_client: SimpleCacheClientIncubating, cache_name: str):
-    get_response = incubating_client.dictionary_get(cache_name=cache_name, dictionary_name=uuid_str(), key=uuid_str())
+    get_response = incubating_client.dictionary_get(
+        cache_name=cache_name, dictionary_name=uuid_str(), key=uuid_str()
+    )
     assert get_response.status() == CacheGetStatus.MISS
 
 
 def test_dictionary_get_multi_miss(incubating_client: SimpleCacheClientIncubating, cache_name: str):
-    get_response = incubating_client.dictionary_get_multi(cache_name, uuid_str(), uuid_str(), uuid_str(), uuid_str())
+    get_response = incubating_client.dictionary_get_multi(
+        cache_name, uuid_str(), uuid_str(), uuid_str(), uuid_str()
+    )
     assert len(get_response.to_list()) == 3
     assert all(result == CacheGetStatus.MISS for result in get_response.status())
     assert len(get_response.values()) == 3
@@ -75,11 +79,15 @@ def test_dictionary_set_unary(incubating_client: SimpleCacheClientIncubating, ca
     assert set_response.key() == key
     assert set_response.value() == value
 
-    get_response = incubating_client.dictionary_get(cache_name=cache_name, dictionary_name=dictionary_name, key=key)
+    get_response = incubating_client.dictionary_get(
+        cache_name=cache_name, dictionary_name=dictionary_name, key=key
+    )
     assert get_response.value() == value
 
 
-def test_dictionary_set_and_dictionary_get_missing_key(incubating_client: SimpleCacheClientIncubating, cache_name: str):
+def test_dictionary_set_and_dictionary_get_missing_key(
+    incubating_client: SimpleCacheClientIncubating, cache_name: str
+):
     dictionary_name = uuid_str()
     incubating_client.dictionary_set(
         cache_name=cache_name,
@@ -150,7 +158,9 @@ def test_dictionary_get_multi_hit(incubating_client: SimpleCacheClientIncubating
     ]
     assert get_response.to_list() == individual_responses
 
-    get_response = incubating_client.dictionary_get_multi(cache_name, dictionary_name, keys[0], keys[1], uuid_str())
+    get_response = incubating_client.dictionary_get_multi(
+        cache_name, dictionary_name, keys[0], keys[1], uuid_str()
+    )
     assert get_response.status() == [
         CacheGetStatus.HIT,
         CacheGetStatus.HIT,
@@ -178,7 +188,9 @@ def test_dictionary_get_all_hit(incubating_client: SimpleCacheClientIncubating, 
         dictionary=dictionary,
         refresh_ttl=False,
     )
-    get_all_response = incubating_client.dictionary_get_all(cache_name=cache_name, dictionary_name=dictionary_name)
+    get_all_response = incubating_client.dictionary_get_all(
+        cache_name=cache_name, dictionary_name=dictionary_name
+    )
     assert get_all_response.status() == CacheGetStatus.HIT
 
     expected = convert_dict_items_to_bytes(dictionary)

@@ -4,16 +4,17 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from time import perf_counter_ns
-from typing import Optional, TypeVar, Callable, Coroutine, Tuple
+from typing import Callable, Coroutine, Optional, Tuple, TypeVar
 
 import colorlog
 from hdrh.histogram import HdrHistogram
+
 import momento.errors
 from momento.aio import simple_cache_client
 from momento.cache_operation_types import (
-    CacheSetResponse,
     CacheGetResponse,
     CacheGetStatus,
+    CacheSetResponse,
 )
 from momento.logs import initialize_momento_logging
 
