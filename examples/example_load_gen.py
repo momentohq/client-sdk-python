@@ -73,9 +73,7 @@ class BasicPythonLoadGen:
             raise ValueError("Missing required environment variable MOMENTO_AUTH_TOKEN")
         self.request_timeout_ms = request_timeout_ms
         self.number_of_concurrent_requests = number_of_concurrent_requests
-        self.total_number_of_operations_to_execute = (
-            total_number_of_operations_to_execute
-        )
+        self.total_number_of_operations_to_execute = total_number_of_operations_to_execute
         self.cache_value = "x" * cache_item_payload_bytes
 
     async def run(self) -> None:
@@ -86,13 +84,10 @@ class BasicPythonLoadGen:
             try:
                 await cache_client.create_cache(BasicPythonLoadGen.cache_name)
             except momento.errors.AlreadyExistsError:
-                self.logger.info(
-                    f"Cache with name: {BasicPythonLoadGen.cache_name} already exists."
-                )
+                self.logger.info(f"Cache with name: {BasicPythonLoadGen.cache_name} already exists.")
 
             num_operations_per_worker = round(
-                self.total_number_of_operations_to_execute
-                / self.number_of_concurrent_requests
+                self.total_number_of_operations_to_execute / self.number_of_concurrent_requests
             )
             load_gen_context = BasicPythonLoadGenContext(
                 start_time=perf_counter_ns(),
@@ -127,11 +122,7 @@ class BasicPythonLoadGen:
         for i in range(num_operations):
             await self.issue_async_set_get(client, context, worker_id, i + 1)
 
-            if (
-                context.global_request_count
-                % BasicPythonLoadGen.print_summary_every_n_requests
-                == 0
-            ):
+            if context.global_request_count % BasicPythonLoadGen.print_summary_every_n_requests == 0:
                 self.logger.info(
                     f"""
 cumulative stats:
@@ -159,9 +150,7 @@ cumulative get latencies:
     ) -> None:
         cache_key = f"worker{worker_id}operation{operation_id}"
         set_start_time = perf_counter_ns()
-        result: Optional[
-            CacheSetResponse
-        ] = await self.execute_request_and_update_context_counts(
+        result: Optional[CacheSetResponse] = await self.execute_request_and_update_context_counts(
             context, lambda: client.set(self.cache_name, cache_key, self.cache_value)
         )
         if result:
@@ -169,9 +158,7 @@ cumulative get latencies:
             context.set_latencies.record_value(set_duration)
 
         get_start_time = perf_counter_ns()
-        get_result: Optional[
-            CacheGetResponse
-        ] = await self.execute_request_and_update_context_counts(
+        get_result: Optional[CacheGetResponse] = await self.execute_request_and_update_context_counts(
             context, lambda: client.get(self.cache_name, cache_key)
         )
         if get_result:
@@ -183,11 +170,7 @@ cumulative get latencies:
             else:
                 value_string = "n/a"
 
-            if (
-                context.global_request_count
-                % BasicPythonLoadGen.print_summary_every_n_requests
-                == 0
-            ):
+            if context.global_request_count % BasicPythonLoadGen.print_summary_every_n_requests == 0:
                 self.logger.info(
                     f"worker: {worker_id}, worker request: {operation_id}, "
                     f"global request: {context.global_request_count}, status: {get_result.status()}, "
@@ -223,18 +206,14 @@ cumulative get latencies:
             return AsyncSetGetResult.DEADLINE_EXCEEDED, None
         except momento.errors.LimitExceededError:
             if context.global_throttle_count % 5_000 == 0:
-                self.logger.warning(
-                    "Received limit exceeded responses from the server."
-                )
+                self.logger.warning("Received limit exceeded responses from the server.")
                 self.logger.warning(
                     "Default limit is 100tps; please contact support@momentohq.com for a limit increase!"
                 )
             return AsyncSetGetResult.THROTTLE, None
 
     @staticmethod
-    def update_context_counts_for_request(
-        context: BasicPythonLoadGenContext, result: AsyncSetGetResult
-    ):
+    def update_context_counts_for_request(context: BasicPythonLoadGenContext, result: AsyncSetGetResult):
         context.global_request_count += 1
         if result == AsyncSetGetResult.SUCCESS:
             context.global_success_count += 1
@@ -248,9 +227,7 @@ cumulative get latencies:
             raise ValueError(f"Unsupported result type: {result}")
 
     def tps(self, context: BasicPythonLoadGenContext, request_count: int) -> int:
-        return round(
-            (request_count * 1000) / self.get_elapsed_millis(context.start_time)
-        )
+        return round((request_count * 1000) / self.get_elapsed_millis(context.start_time))
 
     @staticmethod
     def percent_requests(context: BasicPythonLoadGenContext, count: int) -> float:
