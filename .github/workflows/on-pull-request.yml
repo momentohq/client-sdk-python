@@ -53,3 +53,49 @@ jobs:
 
       - name: Run tests
         run: poetry run pytest -p no:sugar -q
+
+  test-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+    env:
+      # TODO: remove token stored as secret in favor of using a
+      # momento-local instance that can be spun up for testing
+      MOMENTO_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Python SDK sample
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run samples for python ${{ matrix.python-version }}
+        id: validation
+        continue-on-error: true
+        run: |
+          pushd examples
+            python -m pip install --user pipenv
+            pipenv install --python ${{ matrix.python-version }}
+            pipenv run python example.py
+            pipenv run python example_async.py
+          popd
+      - name: Run Linters
+        id: linters
+        if: ${{ matrix.python-version == '3.7' }}
+        uses: ./.github/actions/linters
+      - name: Send CI failure mail
+        if: ${{ steps.validation.outcome == 'failure' || steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        uses: momentohq/standards-and-practices/github-actions/error-email-action@gh-actions-v1
+        with:
+          username: ${{secrets.MOMENTO_ROBOT_GMAIL_USERNAME}}
+          password: ${{secrets.MOMENTO_ROBOT_GMAIL_PASSWORD}}
+      - name: Flag Job Failure
+        if: ${{ steps.validation.outcome == 'failure' || steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        run: |
+          echo "Job statuses"
+          echo "============"
+          echo "sample scripts: ${{ steps.validation.outcome }}"
+          echo "mypy: ${{ steps.linters.outputs.mypy }}"
+          echo "black: ${{ steps.linters.outputs.black }}"
+          echo "flake8: ${{ steps.linters.outputs.flake8 }}"
+          exit 1
