@@ -30,7 +30,7 @@ python = ">=3.7,<3.11"
 
 momento-wire-types = "0.31.1"
 grpcio = "1.50.0"
-PyJWT = {extras = ["crypto"], version = "2.6.0"}
+PyJWT = {extras = ["crypto"], version = "2.4.0"} # note if you bump this presigned url test need be updated
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.1.3"
