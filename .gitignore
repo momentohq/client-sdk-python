@@ -13,3 +13,6 @@ dist/
 .vscode
 
 momento-examples-env/
+
+*.egg-info
+build
