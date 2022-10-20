@@ -50,7 +50,7 @@ def _list_caches(cache_client: scc.SimpleCacheClient) -> None:
 if __name__ == "__main__":
     initialize_logging()
     _print_start_banner()
-    with scc.init(_MOMENTO_AUTH_TOKEN, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    with scc.SimpleCacheClient(_MOMENTO_AUTH_TOKEN, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         _create_cache(cache_client, _CACHE_NAME)
         _list_caches(cache_client)
 
