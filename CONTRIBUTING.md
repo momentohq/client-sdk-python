@@ -22,29 +22,23 @@ requires support for `3.6` then we can revisit at that time.
 ## Requirements :eyes:
 
 - [pyenv](https://github.com/pyenv/pyenv)
-- [Working knowledge of python vitualenv](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#installing-virtualenv)
+- [poetry](https://python-poetry.org/docs/)
 
 <br/>
 
 ## First-time setup :wrench:
 
-We use [tox](https://tox.wiki/en/latest/) to run linting, tests, etc. Tox
-allows us to easily test against multiple versions of python as well as
-providing a simple way to organize build tasks (akin to a Makefile).
-
-Our tox config is modeled on:
-
-- [pytest project](https://github.com/pytest-dev/pytest/blob/12b288d84af798c36842fb4c973c144068e5c6d0/tox.ini)
-- [twisted python](https://github.com/twisted/twisted/blob/171fd5c3331d1d2a8cc8cca2c96d04ea654712bc/tox.ini)
+We use [poetry](https://python-poetry.org/docs/) to manage dependencies and packaging.
+This allows us to cleanly separate release vs development dependencies, as well as
+streamline deployment.
 
 <br/>
 
 ### Make sure you have the required python runtimes
 
-At the top of our [tox.ini](./tox.ini) file, you will see a list of the
-different python versions that we currently test against. For whichever
-subset of these you wish to use locally, you will need to make sure that
-you have a `pyenv` installation of that version. For example:
+We currently test against multiple python versions: 3.7, 3.8, 3.9, and 3.10.
+For whichever subset of these you wish to use locally, you will need to make sure
+that you have a `pyenv` installation of that version. For example:
 
 ```
 pyenv install 3.7.13
@@ -58,53 +52,46 @@ but the patch version ("13" in "3.7.13") can be the latest one.
 
 <be/>
 
-### Make the pyenv python runtimes visible to tox
+### Configure poetry to use your particular python version
+
+We recommend developing against python 3.7 as it is the lowest common
+denominator.
 
 You need to run `pyenv local ...` once to configure this directory with
 the list of pyenv python versions that you want tox to be able to use.
 
-e.g.:
+e.g. from the SDK root directory:
 
 ```
-pyenv local 3.7.13 3.8.13 3.9.12 3.10.4
+pyenv local 3.7.13
 ```
 
 This will create a file called `.python-version` containing the desired
 version numbers, and from now on whenever you `cd` into this directory,
-`pyenv` and `tox` will automatically know which python versions you
-want to use.
+`pyenv` will automatically know which python versions you want to use.
 
 <br />
 
-### First run of `tox` to set up tox virtual envs
+### Install dependencies with Poetry
 
-If you haven't installed tox yet:
+If you haven't installed poetry yet, follow the instructions on the [website](https://python-poetry.org/docs/#installation).
 
-```
-pip install tox
-```
-
-If you want to test with all of the versions of python that we have listed
-in our `tox.ini`, and you have already run `pyenv local` to register all
-of the versions, run this command to do the initial setup of virtual envs
-for all the python versions:
+Tell poetry to use your desired python version:
 
 ```
-tox --notest
+poetry env use $(which python)
 ```
 
-If you only intend to develop with one specific version of python, you can
-do either of the following to limit `tox` to one version (in these examples,
-python 3.9):
+As a matter of preference, you may like having the virtual environment in the project folder:
 
 ```
-TOXENV=py39 tox --notest
+poetry config virtualenvs.in-project true
 ```
 
-or:
+Finally install the project dependencies as specified in `pyproject.toml`:
 
 ```
-tox -e py39 --notest
+poetry install
 ```
 
 <br />
@@ -112,33 +99,34 @@ tox -e py39 --notest
 ### Setting up IDE
 
 The only trick to setting up your IDE is to point it to your preferred
-virtualenv created by `tox`. These live in the `.tox` dir; e.g.
-`.tox/py39/bin/python`.
+virtualenv created by `poetry`. These live in the `.venv` dir; e.g.
+`.venv/bin/python` if you use in-project `venv` (see above).
 
 - Visual Studio Code
 
   Use `Cmd` + `Shift` + `P` to search for `Python: Interpreter` and select:
-  `.tox/py39/bin/python`
+  `.venv/bin/python`
 
 - IntelliJ
 
   `File`->`New Project`->`Python`; when you get to the screen where it lets you
   choose your python SDK, you may need to click `Edit`, then the `+` button
   to register a new Python SDK, then choose the `Existing` radio button, then
-  navigate to e.g. `.tox/py39/bin/python`.
+  navigate to e.g. `.venv/bin/python`.
 
 <br />
 
 ## Developing :computer:
 
-To test your changes in a python shell, just launch python from the desired
-tox virtualenv, e.g.:
+To test your changes in a python shell, just use poetry:
 
-`.tox/py39/bin/python`: this will start the interactive shell.
+```
+poetry run pytest
+```
 
-Alternately you may put all of your code in a my_test.py file and
-run `.tox/py39/bin/python my_test.py`
-
+We also have a project `Makefile` for convenience. Install `make` then run `make help`
+to see options. Use `make test` to run unit tests and `make` to run formatting, linting,
+and testing.
 <br/>
 
 ## Linting :flashlight:
@@ -150,25 +138,21 @@ via [typeshed](https://github.com/python/typeshed), similar to the [DefinitelyTy
 project for javascript/typescript. In the not-too-distant future this will become table
 stakes for open source python libraries.)
 
+We also use `flake8` for static analysis.
+
 We use `black` for formatting and checking the formatting of the code.
 
-To run the lint checks:
+To run the linters:
 
 ```
-tox -e lint
+poetry run mypy
+poetry run flake8
 ```
 
-To run the auto-formatter:
+To run the code formatter:
 
 ```
-tox -e format
-```
-
-## Adding a new dependency :notebook_with_decorative_cover:
-
-Add the new dependency to the `install_requires` section in `setup.cfg`. Then run:
-```
-tox --recreate
+poetry run black
 ```
 
 <br/>
@@ -181,17 +165,26 @@ provide it. The env `TEST_CACHE_NAME` is also required, but for now any string v
 Example of running tests against all python versions:
 
 ```
-TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
+TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest
 ```
 
-Example of running tests against one specific python version:
+### For M1 Users
+
+There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387
+TO WORK AROUND, please install Rosetta 2 and re-run with:
 
 ```
-TOXENV=py39 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> tox
+arch -x86_64 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest
 ```
+
+### Developing new test cases?
+
+Because we have both an asyncio and a synchronous client, we develop tests for both.
+Fear not! This is not twice the work. Since the synchronous client delegates behavior
+to the asynchronous one, we can re-use the async test cases.
+
+When developing new test cases, only write tests for the async client in the appropriate
+`test_*_async.py` file. Then run `tests/scripts/sync_from_async.sh` to generate
+the synchronous client tests.
 
 <br/>
-
-## Mypy :construction:
-
-TODO (add `mypy`)

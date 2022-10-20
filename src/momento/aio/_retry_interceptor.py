@@ -1,8 +1,7 @@
 import logging
-from typing import List, Callable, Union
+from typing import Callable, List, Union
 
 import grpc
-
 
 # TODO: Retry interceptor behavior should be configurable, but we need to
 # align on basic API design first:
@@ -17,8 +16,8 @@ MAX_ATTEMPTS = 3
 
 
 RETRYABLE_STATUS_CODES: List[grpc.StatusCode] = [
-    ## including all the status codes for reference, but
-    ## commenting out the ones we don't want to retry on for now.
+    # # including all the status codes for reference, but
+    # # commenting out the ones we don't want to retry on for now.
     # grpc.StatusCode.OK,
     # grpc.StatusCode.CANCELLED,
     # grpc.StatusCode.UNKNOWN,
@@ -73,7 +72,8 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             # Return if it was last attempt
             if try_i == (MAX_ATTEMPTS - 1):
                 LOGGER.debug(
-                    "Request path: %s; retryable status code: %s; number of retries (%i) has exceeded max (%i), not retrying.",
+                    "Request path: %s; retryable status code: %s; number of retries (%i) "
+                    "has exceeded max (%i), not retrying.",
                     client_call_details.method.decode("utf-8"),
                     response_code,
                     try_i,
@@ -86,13 +86,12 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 return call
 
             LOGGER.debug(
-                f"Request path: %s; retryable status code: %s; number of retries (%i) is less than max (%i), retrying.",
+                "Request path: %s; retryable status code: %s; number of retries (%i) "
+                "is less than max (%i), retrying.",
                 client_call_details.method.decode("utf-8"),
                 response_code,
                 try_i,
                 MAX_ATTEMPTS,
             )
 
-        raise momento.errors.ClientSdkError(
-            "Failed to return from RetryInterceptor!  This is a bug."
-        )
+        raise momento.errors.ClientSdkError("Failed to return from RetryInterceptor!  This is a bug.")

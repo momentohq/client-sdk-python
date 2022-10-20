@@ -1,0 +1,101 @@
+name: On Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_CACHE_NAME: python-integration-test-cache
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Commitlint and Other Shared Build Steps
+        uses: momentohq/standards-and-practices/github-actions/shared-build@gh-actions-v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Bootstrap poetry
+        run: |
+          curl -sL https://install.python-poetry.org | python - -y
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run mypy
+        # mypy has inconsistencies between 3.7 and the rest; default to lowest common denominator
+        if: matrix.python-version == '3.7'
+        run: poetry run mypy src/
+
+      - name: Run flake8
+        run: poetry run flake8 src/
+
+      - name: Run black
+        run: poetry run black src tests --check --diff
+
+      - name: Run isort
+        run: poetry run isort . --check --diff
+
+      - name: Run tests
+        run: poetry run pytest -p no:sugar -q
+
+  test-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+    env:
+      # TODO: remove token stored as secret in favor of using a
+      # momento-local instance that can be spun up for testing
+      MOMENTO_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Python SDK sample
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run samples for python ${{ matrix.python-version }}
+        id: validation
+        continue-on-error: true
+        run: |
+          pushd examples
+            python -m pip install --user pipenv
+            pipenv install --python ${{ matrix.python-version }}
+            pipenv run python example.py
+            pipenv run python example_async.py
+          popd
+      - name: Run Linters
+        id: linters
+        if: ${{ matrix.python-version == '3.7' }}
+        uses: ./.github/actions/linters
+      - name: Send CI failure mail
+        if: ${{ steps.validation.outcome == 'failure' || steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        uses: momentohq/standards-and-practices/github-actions/error-email-action@gh-actions-v1
+        with:
+          username: ${{secrets.MOMENTO_ROBOT_GMAIL_USERNAME}}
+          password: ${{secrets.MOMENTO_ROBOT_GMAIL_PASSWORD}}
+      - name: Flag Job Failure
+        if: ${{ steps.validation.outcome == 'failure' || steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        run: |
+          echo "Job statuses"
+          echo "============"
+          echo "sample scripts: ${{ steps.validation.outcome }}"
+          echo "mypy: ${{ steps.linters.outputs.mypy }}"
+          echo "black: ${{ steps.linters.outputs.black }}"
+          echo "flake8: ${{ steps.linters.outputs.flake8 }}"
+          exit 1

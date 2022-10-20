@@ -1,9 +1,10 @@
-import unittest
-
-from momento.momento_signer import MomentoSigner, CacheOperation, SigningRequest
-from momento.errors import InvalidArgumentError
 import jwt
+import pytest
 from jwt.api_jwk import PyJWK
+
+from momento.errors import InvalidArgumentError
+from momento.momento_signer import CacheOperation, MomentoSigner, SigningRequest
+from tests.utils import uuid_str
 
 _RSA_NO_ALG_JWK = '{"p":"8qu5SjdYE-pnqp8KxgD5VRxXVhu5bqlufsQR4ki13-nOap8hXHP5-X6dtHDef77NbjeHlSsqdoiEQzVLkTNnY2S9owshBQ_E0nq1XSf_ma4IA9d50KCQF9jHkl2npziyanJgvu33RB7NVh5cuVWzFwZqVq08oMLHiyAs_TfIqu0","kty":"RSA","q":"uiDceVagmm9JMtr4lOLTVp4VnX0evpmqUpcq7a6fl696m8cvnHT9VXNURFPagp0QfWOYGB_j30Fw1dWrnLe5IXSuK_qNgSdEm64fspN9oCuRanK7a7WYw54msr7-gsowu5mIcGaM7H-Lu7wWsA78y6nkBEsuEGWE2y-a1TLJUms","d":"CeJjOaYzZADIoU0uqKYi0jmfwbmI-AOzKo1H_GPoEdo1NvlaHcqMWnXEie8LbN1IvyC6OvknJ3saJ5em0QzjNWyv_IethCMu_kBpZnKXqBuUZ5MtNlXuSsF4J37skMe_zWehpBXun4iWozrHtugdAiYKBLB-tazkiWZ0b03CIzSLYMz7gtj2OHMCiigLEl0dhX32rfRK3-c6ax_yK7XGnT46COQkqDuqSAJrVS7i-4P5MyLIGphoSC0guWS4Vqqo_2yxE4UFEnANtGB59fRylLFunDGo-9Jvdkatj3zpSTrySUhHI9JC2us_iB_LRp7tfyMUtnYeU4g-nJEixvoYZQ","e":"AQAB","kid":"testKeyId","qi":"RBkWNYGJZ0jcEMm7KdnEkc2KDe5LxH5SAaZPe3l_tOruu4RXbLxB_BtuZ2uQSIfsUmvK4zSjhp52BCMGn_cqvNA4ZrGJ_IGRHD6P5dt4HlCg3L0xeB6PZ5risJj45KTiUqqG24HfY56QN7SpRz4vVoTLJsmrlDJq0X9G-44D1Yo","dp":"O5yJiLytqz7CtnwZJmio1wp-Pc3TsGZ4mTVK-15HJzkFFtX-WPq4Zlx_Gws67QCO8Es9yBvxc2q3qtbVuFZ7SEQ__WRHeTnVbKruEHM566N_non5B5HZs7Hx3HebLo3T7igosd49BoPWhxgwSOrPcpGF38LwiMEwSXHe-1kPt0U","dq":"VtIBRbA81gzXDhvKHFj5z8uJtZ6peqrfIgtVgO0VkIHQJV3yPX7stLFJO14J7Scqi_Kq_YXSm09BPN2gYUfp2Us9-1GyM-6HOD8ulfPqg44PFKJT_lgE3CqnTnV87rE1rixd0mBjl-We3oFL6-_xx2aF7-LJp-hS4pMAHDbGZeU","n":"sG_rFa4BMxYupx7ru5WPjoRE-81Jomd8g4jx7WAmVSe2uvnEC57zfBYaZ8saULkGwd9A7dzvw1skRW8RTmL1qttjM2ZTlsMaa_bpS1a2PloNZfIKNzux0KOkKwbNdnO3bPpAMrsgAIC6BFom9ISdCrTP1cgbe-klAp04osEsK0jNNglJhZFIIBzwqbYvGGLaat3ribY-OB9KN3Vhh9Z7v7F-i9dobbZk68nVUd0sgGZ-ht3xF-mdnN-CtugZjO0_Ke7t0jIRu_qNvZsbi9MqhSB6FRhqkFcs4n5HNxu082OwraU7MMZWbDjRYeq01MlGKGFPd-8xJoZ93bDWFbRbDw"}'
 _RSA_NO_ALG_JWK_PUB = '{"kty":"RSA","e":"AQAB","kid":"testKeyId","n":"sG_rFa4BMxYupx7ru5WPjoRE-81Jomd8g4jx7WAmVSe2uvnEC57zfBYaZ8saULkGwd9A7dzvw1skRW8RTmL1qttjM2ZTlsMaa_bpS1a2PloNZfIKNzux0KOkKwbNdnO3bPpAMrsgAIC6BFom9ISdCrTP1cgbe-klAp04osEsK0jNNglJhZFIIBzwqbYvGGLaat3ribY-OB9KN3Vhh9Z7v7F-i9dobbZk68nVUd0sgGZ-ht3xF-mdnN-CtugZjO0_Ke7t0jIRu_qNvZsbi9MqhSB6FRhqkFcs4n5HNxu082OwraU7MMZWbDjRYeq01MlGKGFPd-8xJoZ93bDWFbRbDw"}'
@@ -17,145 +18,174 @@ _ES_NO_ALG_JWK = '{"kty":"EC","d":"ZhrhvO1Zk8ENkqlDXpHrEJ2TWgZhPSyjgX0j-8jUWig",
 _ES_NO_ALG_JWK_PUB = '{"kty":"EC","crv":"P-256","kid":"testKeyId","x":"5BU5xuaUvasp9gUfSS3HGtqd1oHdGoHH3KtrzoQLd0Q","y":"WUjUeDikRXRHa-AWyNdH5Ye1Nyifd3P26F52Uv4eTVo"}'
 
 
-class TestMomentoSigner(unittest.TestCase):
-    def test_rsa256(self):
-        token = MomentoSigner(_RSA_256_JWK).sign_access_token(
-            SigningRequest(
-                cache_name="foo",
-                cache_key="bar",
-                cache_operation=CacheOperation.GET,
-                expiry_epoch_seconds=4079276098,
-            )
-        )
-        verified_claims = jwt.decode(
-            token, PyJWK.from_json(_RSA_256_JWK_PUB).key, algorithms=["RS256"]
-        )
-        self.assertEqual(
-            verified_claims,
-            {"exp": 4079276098, "cache": "foo", "key": "bar", "method": ["get"]},
-        )
+def test_rsa256():
+    cache_name = uuid_str()
+    cache_key = uuid_str()
 
-    def test_rsa_no_alg(self):
-        token = MomentoSigner(_RSA_NO_ALG_JWK).sign_access_token(
-            SigningRequest(
-                cache_name="foo",
-                cache_key="bar",
-                cache_operation=CacheOperation.GET,
-                expiry_epoch_seconds=4079276098,
-            )
+    token = MomentoSigner(_RSA_256_JWK).sign_access_token(
+        SigningRequest(
+            cache_name=cache_name,
+            cache_key=cache_key,
+            cache_operation=CacheOperation.GET,
+            expiry_epoch_seconds=4079276098,
         )
-        verified_claims = jwt.decode(
-            token, PyJWK.from_json(_RSA_NO_ALG_JWK_PUB).key, algorithms=["RS256"]
-        )
-        self.assertEqual(
-            verified_claims,
-            {"exp": 4079276098, "cache": "foo", "key": "bar", "method": ["get"]},
-        )
+    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_RSA_256_JWK_PUB).key, algorithms=["RS256"])
 
-    def test_rsa384(self):
-        token = MomentoSigner(_RSA_384_JWK).sign_access_token(
-            SigningRequest(
-                cache_name="foo",
-                cache_key="bar",
-                cache_operation=CacheOperation.GET,
-                expiry_epoch_seconds=4079276098,
-            )
-        )
-        verified_claims = jwt.decode(
-            token, PyJWK.from_json(_RSA_384_JWK_PUB).key, algorithms=["RS384"]
-        )
-        self.assertEqual(
-            verified_claims,
-            {"exp": 4079276098, "cache": "foo", "key": "bar", "method": ["get"]},
-        )
+    assert verified_claims == {
+        "exp": 4079276098,
+        "cache": cache_name,
+        "key": cache_key,
+        "method": ["get"],
+    }
 
-    def test_es256(self):
-        token = MomentoSigner(_ES_256_JWK).sign_access_token(
-            SigningRequest(
-                cache_name="foo",
-                cache_key="bar",
-                cache_operation=CacheOperation.GET,
-                expiry_epoch_seconds=4079276098,
-            )
-        )
-        verified_claims = jwt.decode(
-            token, PyJWK.from_json(_ES_256_JWK_PUB).key, algorithms=["ES256"]
-        )
-        self.assertEqual(
-            verified_claims,
-            {"exp": 4079276098, "cache": "foo", "key": "bar", "method": ["get"]},
-        )
 
-    def test_es_no_alg(self):
-        token = MomentoSigner(_ES_NO_ALG_JWK).sign_access_token(
-            SigningRequest(
-                cache_name="foo",
-                cache_key="bar",
-                cache_operation=CacheOperation.GET,
-                expiry_epoch_seconds=4079276098,
-            )
+def test_rsa_no_alg():
+    cache_name = uuid_str()
+    cache_key = uuid_str()
+
+    token = MomentoSigner(_RSA_NO_ALG_JWK).sign_access_token(
+        SigningRequest(
+            cache_name=cache_name,
+            cache_key=cache_key,
+            cache_operation=CacheOperation.GET,
+            expiry_epoch_seconds=4079276098,
         )
-        verified_claims = jwt.decode(
-            token, PyJWK.from_json(_ES_NO_ALG_JWK_PUB).key, algorithms=["ES256"]
+    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_RSA_NO_ALG_JWK_PUB).key, algorithms=["RS256"])
+
+    assert verified_claims == {
+        "exp": 4079276098,
+        "cache": cache_name,
+        "key": cache_key,
+        "method": ["get"],
+    }
+
+
+def test_rsa384():
+    cache_name = uuid_str()
+    cache_key = uuid_str()
+
+    token = MomentoSigner(_RSA_384_JWK).sign_access_token(
+        SigningRequest(
+            cache_name=cache_name,
+            cache_key=cache_key,
+            cache_operation=CacheOperation.GET,
+            expiry_epoch_seconds=4079276098,
         )
-        self.assertEqual(
-            verified_claims,
-            {"exp": 4079276098, "cache": "foo", "key": "bar", "method": ["get"]},
+    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_RSA_384_JWK_PUB).key, algorithms=["RS384"])
+
+    assert verified_claims == {
+        "exp": 4079276098,
+        "cache": cache_name,
+        "key": cache_key,
+        "method": ["get"],
+    }
+
+
+def test_es256():
+    cache_name = uuid_str()
+    cache_key = uuid_str()
+
+    token = MomentoSigner(_ES_256_JWK).sign_access_token(
+        SigningRequest(
+            cache_name=cache_name,
+            cache_key=cache_key,
+            cache_operation=CacheOperation.GET,
+            expiry_epoch_seconds=4079276098,
         )
+    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_ES_256_JWK_PUB).key, algorithms=["ES256"])
 
-    def test_empty_jwk_json_string(self):
-        with self.assertRaises(InvalidArgumentError):
-            MomentoSigner("")
+    assert verified_claims == {
+        "exp": 4079276098,
+        "cache": cache_name,
+        "key": cache_key,
+        "method": ["get"],
+    }
 
-    def test_nothing_jwk_json_string(self):
-        with self.assertRaises(InvalidArgumentError):
-            MomentoSigner("{}")
 
-    def test_incomplete_jwk_json_string(self):
-        with self.assertRaises(InvalidArgumentError):
-            MomentoSigner('{"alg":"foo","kid":"bar","kty":"RSA"}')
+def test_es_no_alg():
+    cache_name = uuid_str()
+    cache_key = uuid_str()
 
-    def test_create_presigned_url_for_get(self):
-        result = MomentoSigner(_RSA_256_JWK).create_presigned_url(
-            "example.com",
-            SigningRequest(
-                cache_name="!#$&'()*+,/:;=?@[]",
-                cache_key="!#$&'()*+,/:;=?@[]",
-                cache_operation=CacheOperation.GET,
-                expiry_epoch_seconds=4079276098,
-            ),
+    token = MomentoSigner(_ES_NO_ALG_JWK).sign_access_token(
+        SigningRequest(
+            cache_name=cache_name,
+            cache_key=cache_key,
+            cache_operation=CacheOperation.GET,
+            expiry_epoch_seconds=4079276098,
         )
+    )
+    verified_claims = jwt.decode(token, PyJWK.from_json(_ES_NO_ALG_JWK_PUB).key, algorithms=["ES256"])
 
-        self.assertEqual(
-            result,
-            "https://rest.example.com/cache/get/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RLZXlJZCJ9.eyJleHAiOjQwNzkyNzYwOTgsImNhY2hlIjoiISMkJicoKSorLC86Oz0_QFtdIiwia2V5IjoiISMkJicoKSorLC86Oz0_QFtdIiwibWV0aG9kIjpbImdldCJdfQ.TpM6MLCnEWKJfwy0Mp5n9c9ygS5KwklpHqNTTCCncICTgENblbz3BGMUXUw4ljrTCt0uwxebX2iIROMGP32SevMlcygxsnXweHHVvkONAeok5ASvhiQtJcClb_4BMCkxPL7OlmaDlJVrcWdIqNa5E_HG6IWA6TXDJDzRrNPvknD7TVMRYDxaUMagdF3kPMBXZeO6CdlhLGb6Kfhmyc2mkdt8o-aCK3-n2vIXqiEwRNkSVr2iGBlP1l6nlVQ_dXfb0I56fLTncF1xWI1zDf2pbiQn9S3Z4n45_0C2yZy_FI8csWM2gYNqKK5VqsxkpbhlFJWyINxnyNA-FMBDhdJUZQ",
-        )
+    assert verified_claims == {
+        "exp": 4079276098,
+        "cache": cache_name,
+        "key": cache_key,
+        "method": ["get"],
+    }
 
-    def test_create_presigned_url_for_set(self):
-        result = MomentoSigner(_RSA_256_JWK).create_presigned_url(
+
+def test_empty_jwk_json_string():
+    with pytest.raises(InvalidArgumentError):
+        MomentoSigner("")
+
+
+def test_nothing_jwk_json_string():
+    with pytest.raises(InvalidArgumentError):
+        MomentoSigner("{}")
+
+
+def test_incomplete_jwk_json_string():
+    with pytest.raises(InvalidArgumentError):
+        MomentoSigner('{"alg":"foo","kid":"bar","kty":"RSA"}')
+
+
+def test_create_presigned_url_for_get():
+    result = MomentoSigner(_RSA_256_JWK).create_presigned_url(
+        "example.com",
+        SigningRequest(
+            cache_name="!#$&'()*+,/:;=?@[]",
+            cache_key="!#$&'()*+,/:;=?@[]",
+            cache_operation=CacheOperation.GET,
+            expiry_epoch_seconds=4079276098,
+        ),
+    )
+
+    assert (
+        result
+        == "https://rest.example.com/cache/get/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RLZXlJZCJ9.eyJleHAiOjQwNzkyNzYwOTgsImNhY2hlIjoiISMkJicoKSorLC86Oz0_QFtdIiwia2V5IjoiISMkJicoKSorLC86Oz0_QFtdIiwibWV0aG9kIjpbImdldCJdfQ.TpM6MLCnEWKJfwy0Mp5n9c9ygS5KwklpHqNTTCCncICTgENblbz3BGMUXUw4ljrTCt0uwxebX2iIROMGP32SevMlcygxsnXweHHVvkONAeok5ASvhiQtJcClb_4BMCkxPL7OlmaDlJVrcWdIqNa5E_HG6IWA6TXDJDzRrNPvknD7TVMRYDxaUMagdF3kPMBXZeO6CdlhLGb6Kfhmyc2mkdt8o-aCK3-n2vIXqiEwRNkSVr2iGBlP1l6nlVQ_dXfb0I56fLTncF1xWI1zDf2pbiQn9S3Z4n45_0C2yZy_FI8csWM2gYNqKK5VqsxkpbhlFJWyINxnyNA-FMBDhdJUZQ"
+    )
+
+
+def test_create_presigned_url_for_set():
+    result = MomentoSigner(_RSA_256_JWK).create_presigned_url(
+        "example.com",
+        SigningRequest(
+            cache_name="!#$&'()*+,/:;=?@[]",
+            cache_key="!#$&'()*+,/:;=?@[]",
+            cache_operation=CacheOperation.SET,
+            expiry_epoch_seconds=4079276098,
+            ttl_seconds=5,
+        ),
+    )
+
+    assert (
+        result
+        == "https://rest.example.com/cache/set/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RLZXlJZCJ9.eyJleHAiOjQwNzkyNzYwOTgsImNhY2hlIjoiISMkJicoKSorLC86Oz0_QFtdIiwia2V5IjoiISMkJicoKSorLC86Oz0_QFtdIiwibWV0aG9kIjpbInNldCJdLCJ0dGwiOjV9.GlsGrxuoMMvwyr-SHBxfAK_CEk55P218jcsBTW9PiXoYgd85BNuDaHcQJaE_31CRdJ5emXj_qIQZjFLz3LDb3zHSAHCSYzg_pDZyVB-yLaW4nOCiztaxlr_FsihgghHUziO2lFyPgNpx2iZUQ5RnUvaCkhwN8R-FbKhBQ4Oh8hG4xBuILEIA5fJ8PAhbvmqzgmgbzplbhPMVvNPVXbdEn5YCdqIuoo6oQTB8ksgm788d7zRBgJmcyF07lDviGFaXt7OYshBWxKZ8f8Iv9PTaDtIFWPJDdaYCTcaYoaOqA2VXFEFmqcuDwcRIaNGkaYd8emqnlKc4ItdASLWV5k1Wjg&ttl_milliseconds=5000"
+    )
+
+
+def test_create_presigned_url_for_set_missing_ttl():
+    with pytest.raises(InvalidArgumentError):
+        MomentoSigner(_RSA_256_JWK).create_presigned_url(
             "example.com",
             SigningRequest(
                 cache_name="!#$&'()*+,/:;=?@[]",
                 cache_key="!#$&'()*+,/:;=?@[]",
                 cache_operation=CacheOperation.SET,
                 expiry_epoch_seconds=4079276098,
-                ttl_seconds=5,
             ),
         )
-
-        self.assertEqual(
-            result,
-            "https://rest.example.com/cache/set/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D/%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RLZXlJZCJ9.eyJleHAiOjQwNzkyNzYwOTgsImNhY2hlIjoiISMkJicoKSorLC86Oz0_QFtdIiwia2V5IjoiISMkJicoKSorLC86Oz0_QFtdIiwibWV0aG9kIjpbInNldCJdLCJ0dGwiOjV9.GlsGrxuoMMvwyr-SHBxfAK_CEk55P218jcsBTW9PiXoYgd85BNuDaHcQJaE_31CRdJ5emXj_qIQZjFLz3LDb3zHSAHCSYzg_pDZyVB-yLaW4nOCiztaxlr_FsihgghHUziO2lFyPgNpx2iZUQ5RnUvaCkhwN8R-FbKhBQ4Oh8hG4xBuILEIA5fJ8PAhbvmqzgmgbzplbhPMVvNPVXbdEn5YCdqIuoo6oQTB8ksgm788d7zRBgJmcyF07lDviGFaXt7OYshBWxKZ8f8Iv9PTaDtIFWPJDdaYCTcaYoaOqA2VXFEFmqcuDwcRIaNGkaYd8emqnlKc4ItdASLWV5k1Wjg&ttl_milliseconds=5000",
-        )
-
-    def test_create_presigned_url_for_set_missing_ttl(self):
-        with self.assertRaises(InvalidArgumentError):
-            MomentoSigner(_RSA_256_JWK).create_presigned_url(
-                "example.com",
-                SigningRequest(
-                    cache_name="!#$&'()*+,/:;=?@[]",
-                    cache_key="!#$&'()*+,/:;=?@[]",
-                    cache_operation=CacheOperation.SET,
-                    expiry_epoch_seconds=4079276098,
-                ),
-            )

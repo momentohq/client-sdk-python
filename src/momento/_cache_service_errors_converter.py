@@ -1,8 +1,8 @@
 from typing import Any
 
 import grpc
-from . import errors
-from . import logs
+
+from . import errors, logs
 
 __rpc_to_error = {
     grpc.StatusCode.INVALID_ARGUMENT: errors.BadRequestError,
@@ -32,14 +32,14 @@ def convert(exception: Exception) -> Exception:
         if exception.code() in __rpc_to_error:
             return __rpc_to_error[exception.code()](exception.details())
         else:
-            return errors.InternalServerError(
-                "CacheService failed with an internal error"
-            )
+            return errors.InternalServerError("CacheService failed with an internal error")
 
     return errors.ClientSdkError("Operation failed with error: " + str(exception))
 
 
-def convert_ecache_result(ecache_result: Any, message: str, operation_name: str) -> errors.InternalServerError:  # type: ignore[misc]
+def convert_ecache_result(  # type: ignore[misc]
+    ecache_result: Any, message: str, operation_name: str
+) -> errors.InternalServerError:
     logs.debug("Converting ECacheResult: %s to error.", ecache_result)
     return errors.InternalServerError(
         f"CacheService returned an unexpected result: {ecache_result}"

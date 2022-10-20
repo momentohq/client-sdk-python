@@ -1,24 +1,22 @@
-from typing import cast, Optional, List, Union
 import warnings
+from typing import List, Optional, Union, cast
 
-from .. import INCUBATING_WARNING_MSG
-from ...aio.simple_cache_client import SimpleCacheClient
 from ..._utilities._data_validation import _as_bytes
-
+from ...aio.simple_cache_client import SimpleCacheClient
+from .. import INCUBATING_WARNING_MSG
 from ..cache_operation_types import (
-    CacheGetStatus,
-    CacheDictionaryGetUnaryResponse,
-    CacheDictionaryGetMultiResponse,
-    CacheDictionarySetUnaryResponse,
-    CacheDictionarySetMultiResponse,
-    CacheDictionaryGetAllResponse,
-    CacheExistsResponse,
     BytesDictionary,
+    CacheDictionaryGetAllResponse,
+    CacheDictionaryGetMultiResponse,
+    CacheDictionaryGetUnaryResponse,
+    CacheDictionarySetMultiResponse,
+    CacheDictionarySetUnaryResponse,
+    CacheExistsResponse,
+    CacheGetStatus,
+    Dictionary,
     DictionaryKey,
     DictionaryValue,
-    Dictionary,
 )
-from ..._utilities._data_validation import _validate_request_timeout
 from .utils import (
     convert_dict_items_to_bytes,
     deserialize_dictionary,
@@ -31,12 +29,23 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         self,
         auth_token: str,
         default_ttl_seconds: int,
-        data_client_operation_timeout_ms: Optional[int],
+        request_timeout_ms: Optional[int] = None,
     ):
+        """Creates a SimpleCacheClientIncubating.
+        !! Includes non-final, experimental features and APIs subject to change  !!
+
+        Args:
+            auth_token: Momento Token to authenticate the requests with Simple Cache Service
+            default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
+                possible to override this setting when calling the set method.
+            request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
+                Defaults to None, in which case 5 seconds is used. The request will be terminated if it takes longer
+                than this value and will result in TimeoutError.
+        Raises:
+            IllegalArgumentError: If method arguments fail validations
+        """
         warnings.warn(INCUBATING_WARNING_MSG)
-        super().__init__(
-            auth_token, default_ttl_seconds, data_client_operation_timeout_ms
-        )
+        super().__init__(auth_token, default_ttl_seconds, request_timeout_ms)
 
     async def dictionary_set(
         self,
@@ -68,20 +77,14 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         cached_dictionary: BytesDictionary = {}
         if dictionary_get_response.status() == CacheGetStatus.HIT:
-            cached_dictionary = deserialize_dictionary(
-                cast(bytes, dictionary_get_response.value_as_bytes())
-            )
+            cached_dictionary = deserialize_dictionary(cast(bytes, dictionary_get_response.value_as_bytes()))
 
         bytes_key = _as_bytes(key)
         bytes_value = _as_bytes(value)
         cached_dictionary[bytes_key] = bytes_value
 
-        await self.set(
-            cache_name, dictionary_name, serialize_dictionary(cached_dictionary)
-        )
-        return CacheDictionarySetUnaryResponse(
-            dictionary_name=dictionary_name, key=bytes_key, value=bytes_value
-        )
+        await self.set(cache_name, dictionary_name, serialize_dictionary(cached_dictionary))
+        return CacheDictionarySetUnaryResponse(dictionary_name=dictionary_name, key=bytes_key, value=bytes_value)
 
     async def dictionary_set_multi(
         self,
@@ -111,19 +114,13 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         cached_dictionary: BytesDictionary = {}
         if dictionary_get_response.status() == CacheGetStatus.HIT:
-            cached_dictionary = deserialize_dictionary(
-                cast(bytes, dictionary_get_response.value_as_bytes())
-            )
+            cached_dictionary = deserialize_dictionary(cast(bytes, dictionary_get_response.value_as_bytes()))
 
         bytes_dictionary = convert_dict_items_to_bytes(dictionary)
         cached_dictionary.update(bytes_dictionary)
 
-        await self.set(
-            cache_name, dictionary_name, serialize_dictionary(cached_dictionary)
-        )
-        return CacheDictionarySetMultiResponse(
-            dictionary_name=dictionary_name, dictionary=bytes_dictionary
-        )
+        await self.set(cache_name, dictionary_name, serialize_dictionary(cached_dictionary))
+        return CacheDictionarySetMultiResponse(dictionary_name=dictionary_name, dictionary=bytes_dictionary)
 
     async def dictionary_get(
         self,
@@ -144,20 +141,14 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         """
         dictionary_get_response = await self.get(cache_name, dictionary_name)
         if dictionary_get_response.status() == CacheGetStatus.MISS:
-            return CacheDictionaryGetUnaryResponse(
-                value=None, status=CacheGetStatus.MISS
-            )
+            return CacheDictionaryGetUnaryResponse(value=None, status=CacheGetStatus.MISS)
 
-        dictionary: BytesDictionary = deserialize_dictionary(
-            cast(bytes, dictionary_get_response.value_as_bytes())
-        )
+        dictionary: BytesDictionary = deserialize_dictionary(cast(bytes, dictionary_get_response.value_as_bytes()))
 
         try:
             value = dictionary[_as_bytes(key, "Unsupported type for key: ")]
         except KeyError:
-            return CacheDictionaryGetUnaryResponse(
-                value=None, status=CacheGetStatus.MISS
-            )
+            return CacheDictionaryGetUnaryResponse(value=None, status=CacheGetStatus.MISS)
 
         return CacheDictionaryGetUnaryResponse(value=value, status=CacheGetStatus.HIT)
 
@@ -188,9 +179,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
                 status=[CacheGetStatus.MISS for _ in range(len(keys))],
             )
 
-        dictionary: BytesDictionary = deserialize_dictionary(
-            cast(bytes, dictionary_get_response.value_as_bytes())
-        )
+        dictionary: BytesDictionary = deserialize_dictionary(cast(bytes, dictionary_get_response.value_as_bytes()))
 
         values: List[Optional[DictionaryValue]] = []
         results: List[CacheGetStatus] = []
@@ -205,9 +194,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
 
         return CacheDictionaryGetMultiResponse(values=values, status=results)
 
-    async def dictionary_get_all(
-        self, cache_name: str, dictionary_name: str
-    ) -> CacheDictionaryGetAllResponse:
+    async def dictionary_get_all(self, cache_name: str, dictionary_name: str) -> CacheDictionaryGetAllResponse:
         """Retrieve the entire dictionary from the cache.
 
         Args:
@@ -224,9 +211,7 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         value = deserialize_dictionary(cast(bytes, get_response.value_as_bytes()))
         return CacheDictionaryGetAllResponse(value=value, status=CacheGetStatus.HIT)
 
-    async def exists(
-        self, cache_name: str, *keys: Union[str, bytes]
-    ) -> CacheExistsResponse:
+    async def exists(self, cache_name: str, *keys: Union[str, bytes]) -> CacheExistsResponse:
         """Test if `keys` exist in the cache.
 
         Args:
@@ -257,29 +242,3 @@ class SimpleCacheClientIncubating(SimpleCacheClient):
         get_multi_response = await self.get_multi(cache_name, *keys)
         mask = [status == CacheGetStatus.HIT for status in get_multi_response.status()]
         return CacheExistsResponse(keys, mask)
-
-
-def init(
-    auth_token: str,
-    item_default_ttl_seconds: int,
-    request_timeout_ms: Optional[int] = None,
-) -> SimpleCacheClientIncubating:
-    """Creates a SimpleCacheClientIncubating.
-    !! Includes non-final, experimental features and APIs subject to change  !!
-
-    Args:
-        auth_token: Momento Token to authenticate the requests with Simple Cache Service
-        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
-            possible to override this setting when calling the set method.
-        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
-            Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result
-            in TimeoutError.
-    Returns:
-        SimpleCacheClientIncubating
-    Raises:
-        IllegalArgumentError: If method arguments fail validations
-    """
-    _validate_request_timeout(request_timeout_ms)
-    return SimpleCacheClientIncubating(
-        auth_token, item_default_ttl_seconds, request_timeout_ms
-    )
