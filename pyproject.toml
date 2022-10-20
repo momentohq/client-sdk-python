@@ -17,7 +17,6 @@ keywords = ["Momento", "caching", "key-value store", "serverless"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Operating System :: OS Independent",
-  "Framework :: AsnycIO",
   "Environment :: Console",
   "Intended Audience :: Developers",
   "Topic :: Internet",
