@@ -6,6 +6,6 @@ name = "pypi"
 [packages]
 colorlog = "==6.6.0"
 hdrhistogram = "*"
-momento = "==0.14.0"
+momento = "==0.16.1"
 
 [dev-packages]

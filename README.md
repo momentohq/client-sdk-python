@@ -33,29 +33,28 @@ Check out our [Python SDK example](/examples/)!
 
 ```python
 import os
-import momento.simple_cache_client as simple_cache_client
+from momento import simple_cache_client as scc
 
 # Initializing Momento
 _MOMENTO_AUTH_TOKEN = os.getenv('MOMENTO_AUTH_TOKEN')
 _ITEM_DEFAULT_TTL_SECONDS = 60
-simple_cache_client.init(_MOMENTO_AUTH_TOKEN, _ITEM_DEFAULT_TTL_SECONDS) as cache_client
+with scc.SimpleCacheClient(_MOMENTO_AUTH_TOKEN, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    # Creating a cache named "cache"
+    _CACHE_NAME = 'cache'
+    cache_client.create_cache(_CACHE_NAME)
 
-# Creating a cache named "cache"
-_CACHE_NAME = 'cache'
-cache_client.create_cache(_CACHE_NAME)
+    # Sets key with default TTL and get value with that key
+    _KEY = 'MyKey'
+    _VALUE = 'MyValue'
+    cache_client.set(_CACHE_NAME, _KEY, _VALUE)
+    get_resp = cache_client.get(_CACHE_NAME, _KEY)
+    print(f'Looked up Value: {str(get_resp.value())}')
 
-# Sets key with default TTL and get value with that key
-_KEY = 'MyKey'
-_VALUE = 'MyValue'
-cache_client.set(_CACHE_NAME, _KEY, _VALUE)
-get_resp = cache_client.get(_CACHE_NAME, _KEY)
-print(f'Looked up Value: {str(get_resp.value())}')
+    # Sets key with TTL of 5 seconds
+    cache_client.set(_CACHE_NAME, _KEY, _VALUE, 5)
 
-# Sets key with TTL of 5 seconds
-cache_client.set(_CACHE_NAME, _KEY, _VALUE, 5)
-
-# Permanently deletes cache
-cache_client.delete_cache(_CACHE_NAME)
+    # Permanently deletes cache
+    cache_client.delete_cache(_CACHE_NAME)
 ```
 
 <br/>
