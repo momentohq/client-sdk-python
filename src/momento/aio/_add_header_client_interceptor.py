@@ -24,13 +24,13 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         )
 
     async def intercept_unary_unary(
-            self,
-            continuation: Callable[
-                [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
-                grpc.aio._call.UnaryUnaryCall,
-            ],
-            client_call_details: grpc.aio._interceptor.ClientCallDetails,
-            request: grpc.aio._typing.RequestType,
+        self,
+        continuation: Callable[
+            [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
+            grpc.aio._call.UnaryUnaryCall,
+        ],
+        client_call_details: grpc.aio._interceptor.ClientCallDetails,
+        request: grpc.aio._typing.RequestType,
     ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
 
         # FIXME Hack to account for ddtrace lib injecting grpc metadata as list instead of proper grpc.aio.Metadata()
