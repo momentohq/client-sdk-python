@@ -1,7 +1,7 @@
 from typing import Callable, List, Union
 
 import grpc
-from grpc.aio import Metadata, ClientCallDetails
+from grpc.aio import ClientCallDetails, Metadata
 
 
 class Header:
