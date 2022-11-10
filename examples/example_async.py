@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 
-from utils.logging_utils import initialize_logging
+from example_utils.example_logging import initialize_logging
 
 import momento.aio.simple_cache_client as scc
 import momento.errors as errors

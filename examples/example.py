@@ -1,7 +1,7 @@
 import logging
 import os
 
-from utils.logging_utils import initialize_logging
+from example_utils.example_logging import initialize_logging
 
 import momento.errors as errors
 import momento.simple_cache_client as scc
