@@ -11,7 +11,8 @@ def test_sanitize_client_grpc_request():
     class TestClientMetadata:
         method: str
         timeout: Optional[float]
-        ## This is only difference in this test case is this can be Any to replicate what we see in wild
+        # Only difference in this test class from grpc.aio.Metadata is the metadata property which can be any so in
+        # tests we can replicate what we are seeing in the wild.
         metadata: any
         credentials: Optional[grpc.CallCredentials]
         wait_for_ready: Optional[bool]
@@ -35,7 +36,6 @@ def test_sanitize_client_grpc_request():
     )
 
     class TestCase:
-        name: str = ""
         client_input: any = None
         expected_output: grpc.aio.ClientCallDetails = None
         expected_err: Exception = None
@@ -48,26 +48,22 @@ def test_sanitize_client_grpc_request():
 
     test_cases: list[TestCase] = [
         TestCase(
-            name="no metadata set",
             client_input=build_test_client_request(metadata_to_set=None),  # Test None
             expected_output=happy_path_expected_output,
             expected_err=None,
         ),
         TestCase(
-            name="no metadata set",
             client_input=build_test_client_request(metadata_to_set=[]),  # Test Basic List
             expected_output=happy_path_expected_output,
             expected_err=None,
         ),
         TestCase(
-            name="no metadata set",
             # Test with Metadata() set properly
             client_input=build_test_client_request(metadata_to_set=grpc.aio.Metadata()),
             expected_output=happy_path_expected_output,
             expected_err=None,
         ),
         TestCase(
-            name="no metadata set",
             # Test with unknown generic dict passed as metadata
             client_input=build_test_client_request(metadata_to_set={}),
             expected_output=None,
