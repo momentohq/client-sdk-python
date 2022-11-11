@@ -10,7 +10,7 @@ import colorlog
 from hdrh.histogram import HdrHistogram
 
 import momento.errors
-from momento.aio import simple_cache_client
+from momento.aio import simple_cache_client as scc
 from momento.cache_operation_types import (
     CacheGetResponse,
     CacheGetStatus,
@@ -78,7 +78,7 @@ class BasicPythonLoadGen:
 
     async def run(self) -> None:
         cache_item_ttl_seconds = 60
-        async with simple_cache_client.init(
+        async with scc.SimpleCacheClient(
             self.auth_token, cache_item_ttl_seconds, self.request_timeout_ms
         ) as cache_client:
             try:
@@ -114,7 +114,7 @@ class BasicPythonLoadGen:
 
     async def launch_and_run_worker(
         self,
-        client: simple_cache_client.SimpleCacheClient,
+        client: scc.SimpleCacheClient,
         context: BasicPythonLoadGenContext,
         worker_id: int,
         num_operations: int,
@@ -143,7 +143,7 @@ cumulative get latencies:
 
     async def issue_async_set_get(
         self,
-        client: simple_cache_client.SimpleCacheClient,
+        client: scc.SimpleCacheClient,
         context: BasicPythonLoadGenContext,
         worker_id: int,
         operation_id: int,
