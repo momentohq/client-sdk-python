@@ -31,11 +31,11 @@ def test_sanitize_client_grpc_request():
         metadata=grpc.aio.Metadata(),  # important! we want grpc.io.Metadata object in response
         method="test",
         credentials=None,
-        wait_for_ready=True
+        wait_for_ready=True,
     )
 
     class TestCase:
-        name: str = ''
+        name: str = ""
         client_input: any = None
         expected_output: grpc.aio.ClientCallDetails = None
         expected_err: Exception = None
@@ -48,31 +48,30 @@ def test_sanitize_client_grpc_request():
 
     test_cases: list[TestCase] = [
         TestCase(
-            name='no metadata set',
+            name="no metadata set",
             client_input=build_test_client_request(metadata_to_set=None),  # Test None
             expected_output=happy_path_expected_output,
-            expected_err=None
+            expected_err=None,
         ),
         TestCase(
-            name='no metadata set',
+            name="no metadata set",
             client_input=build_test_client_request(metadata_to_set=[]),  # Test Basic List
             expected_output=happy_path_expected_output,
-            expected_err=None
+            expected_err=None,
         ),
         TestCase(
-            name='no metadata set',
+            name="no metadata set",
             # Test with Metadata() set properly
             client_input=build_test_client_request(metadata_to_set=grpc.aio.Metadata()),
             expected_output=happy_path_expected_output,
-            expected_err=None
+            expected_err=None,
         ),
         TestCase(
-            name='no metadata set',
+            name="no metadata set",
             # Test with unnkown generic dict passed as metadata
             client_input=build_test_client_request(metadata_to_set={}),
             expected_output=None,
-            expected_err=InvalidArgumentError # Make sure we throw on unkown metadata input
-
+            expected_err=InvalidArgumentError,  # Make sure we throw on unkown metadata input
         ),
     ]
 
