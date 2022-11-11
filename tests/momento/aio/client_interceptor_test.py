@@ -8,7 +8,7 @@ from src.momento.aio._add_header_client_interceptor import sanitize_client_call_
 
 
 def test_sanitize_client_grpc_request():
-    class TestClientMetadata:
+    class MockGrpcRequestDetails:
         method: str
         timeout: Optional[float]
         # Only difference in this test class from grpc.aio.Metadata is the metadata property which can be any so in
@@ -18,7 +18,7 @@ def test_sanitize_client_grpc_request():
         wait_for_ready: Optional[bool]
 
     def build_test_client_request(metadata_to_set: object):
-        return_request = TestClientMetadata()
+        return_request = MockGrpcRequestDetails()
         return_request.method = ""
         return_request.timeout = 1
         return_request.metadata = metadata_to_set
