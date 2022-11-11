@@ -68,7 +68,7 @@ def test_sanitize_client_grpc_request():
         ),
         TestCase(
             name="no metadata set",
-            # Test with unnkown generic dict passed as metadata
+            # Test with unknown generic dict passed as metadata
             client_input=build_test_client_request(metadata_to_set={}),
             expected_output=None,
             expected_err=InvalidArgumentError,  # Make sure we throw on unkown metadata input

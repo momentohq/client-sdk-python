@@ -17,7 +17,7 @@ runs:
       continue-on-error: true
       run: |
         pushd examples
-          pipenv install mypy
+          pipenv install mypy==0.982
           pipenv run mypy .
         popd
       shell: bash
