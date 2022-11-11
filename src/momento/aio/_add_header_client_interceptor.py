@@ -26,13 +26,13 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         )
 
     async def intercept_unary_unary(
-            self,
-            continuation: Callable[
-                [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
-                grpc.aio._call.UnaryUnaryCall,
-            ],
-            client_call_details: grpc.aio._interceptor.ClientCallDetails,
-            request: grpc.aio._typing.RequestType,
+        self,
+        continuation: Callable[
+            [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
+            grpc.aio._call.UnaryUnaryCall,
+        ],
+        client_call_details: grpc.aio._interceptor.ClientCallDetails,
+        request: grpc.aio._typing.RequestType,
     ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
 
         new_client_call_details = sanitize_client_call_details(client_call_details)
@@ -91,8 +91,8 @@ def sanitize_client_call_details(client_call_details):
     else:
         # Else we raise exception for now since we don't know how to handle an unknown type
         raise InvalidArgumentError(
-            'unexpected grpc client request metadata property passed to interceptor '
-            'type=' + str(type(client_call_details.metadata))
+            "unexpected grpc client request metadata property passed to interceptor "
+            "type=" + str(type(client_call_details.metadata))
         )
 
     return new_client_call_details

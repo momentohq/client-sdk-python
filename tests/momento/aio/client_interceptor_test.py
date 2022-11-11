@@ -1,9 +1,9 @@
 from typing import Optional
 
 import grpc.aio
-from momento.errors import InvalidArgumentError, AuthenticationError
 import pytest
 
+from momento.errors import AuthenticationError, InvalidArgumentError
 from src.momento.aio._add_header_client_interceptor import sanitize_client_call_details
 
 
