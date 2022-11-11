@@ -48,7 +48,7 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         return await continuation(new_client_call_details, request)
 
 
-def sanitize_client_call_details(client_call_details):
+def sanitize_client_call_details(client_call_details: grpc.aio.ClientCallDetails) -> grpc.aio.ClientCallDetails:
     """
     Defensive function meant to handle inbound grpc client request objects and make sure we can handle properly
     when we inject our own metadata onto request object. This was mainly done as temporary fix after we observed
