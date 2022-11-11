@@ -40,8 +40,7 @@ def test_sanitize_client_grpc_request():
         expected_output: grpc.aio.ClientCallDetails = None
         expected_err: Exception = None
 
-        def __init__(self, name, client_input, expected_output, expected_err):
-            self.name = name
+        def __init__(self, client_input, expected_output, expected_err):
             self.client_input = client_input
             self.expected_output = expected_output
             self.expected_err = expected_err
