@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-colorlog = "==6.6.0"
+colorlog = "==6.7.0"
 hdrhistogram = "*"
 momento = "==0.16.3"
 
