@@ -83,6 +83,7 @@ async def client_async() -> SimpleCacheClientAsync:
     async with SimpleCacheClientAsync(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         try:
+            await _client.delete_cache(TEST_CACHE_NAME)
             await _client.create_cache(TEST_CACHE_NAME)
         except errors.AlreadyExistsError:
             pass
