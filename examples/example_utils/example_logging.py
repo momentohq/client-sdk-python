@@ -6,7 +6,7 @@ import colorlog
 from momento.logs import initialize_momento_logging
 
 
-def initialize_logging():
+def initialize_logging() -> None:
     initialize_momento_logging()
     debug_mode = os.getenv("DEBUG")
     trace_mode = os.getenv("TRACE")

@@ -1,4 +1,4 @@
-from typing import Union, Optional, Callable, Tuple, TypeVar, Awaitable
+from typing import Union, Optional, Callable, TypeVar, Awaitable
 
 from momento import _cache_service_errors_converter
 from momento import cache_operation_types
@@ -9,21 +9,21 @@ from momento_wire_types.cacheclient_pb2 import _SetRequest, _SetResponse
 from momento_wire_types.cacheclient_pb2 import _GetRequest, _GetResponse
 from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _DeleteResponse
 
-TResponse = TypeVar('TResponse')
-TGeneratedRequest = TypeVar('TGeneratedRequest')
-TGeneratedResponse = TypeVar('TGeneratedResponse')
-TExecuteResult = TypeVar('TExecuteResult')
-TMomentoResponse = TypeVar('TMomentoResponse')
+TResponse = TypeVar("TResponse")
+TGeneratedRequest = TypeVar("TGeneratedRequest")
+TGeneratedResponse = TypeVar("TGeneratedResponse")
+TExecuteResult = TypeVar("TExecuteResult")
+TMomentoResponse = TypeVar("TMomentoResponse")
 
 _logger = logs.logger
 
 
 def wrap_with_error_handling(
-        cache_name: str,
-        request_type: str,
-        prepare_request_fn: Callable[[], TGeneratedRequest],
-        execute_request_fn: Callable[[TGeneratedRequest], TGeneratedResponse],
-        response_fn: Callable[[TGeneratedRequest, TGeneratedResponse], TMomentoResponse],
+    cache_name: str,
+    request_type: str,
+    prepare_request_fn: Callable[[], TGeneratedRequest],
+    execute_request_fn: Callable[[TGeneratedRequest], TGeneratedResponse],
+    response_fn: Callable[[TGeneratedRequest, TGeneratedResponse], TMomentoResponse],
 ) -> TMomentoResponse:
     _validate_cache_name(cache_name)
     try:
@@ -36,16 +36,17 @@ def wrap_with_error_handling(
 
 
 async def wrap_async_with_error_handling(
-        cache_name: str,
-        request_type: str,
-        prepare_request_fn: Callable[[], TGeneratedRequest],
-        execute_request_fn: Callable[[TGeneratedRequest], Awaitable[TGeneratedResponse]],
-        response_fn: Callable[[TGeneratedRequest, TGeneratedResponse], TMomentoResponse]
+    cache_name: str,
+    request_type: str,
+    prepare_request_fn: Callable[[], TGeneratedRequest],
+    execute_request_fn: Callable[[TGeneratedRequest], Awaitable[TGeneratedResponse]],
+    response_fn: Callable[[TGeneratedRequest, TGeneratedResponse], TMomentoResponse],
 ) -> TMomentoResponse:
     _validate_cache_name(cache_name)
     try:
         req = prepare_request_fn()
         resp = await execute_request_fn(req)
+        print(f"\n\n\n\nAWAITED EXECUTED REQ FN, RESP: {resp}\n\n\n\n\n")
         return response_fn(req, resp)
     except Exception as e:
         _logger.warning("%s failed with exception: %s", request_type, e)
@@ -53,10 +54,10 @@ async def wrap_async_with_error_handling(
 
 
 def prepare_set_request(
-        key: Union[str, bytes],
-        value: Union[str, bytes],
-        ttl_seconds: Optional[int],
-        default_ttl_seconds: int,
+    key: Union[str, bytes],
+    value: Union[str, bytes],
+    ttl_seconds: Optional[int],
+    default_ttl_seconds: int,
 ) -> _GetRequest:
     _logger.log(logs.TRACE, "Issuing a set request with key %s", str(key))
     item_ttl_seconds = default_ttl_seconds if ttl_seconds is None else ttl_seconds
@@ -73,9 +74,7 @@ def construct_set_response(req: _SetRequest, resp: _SetResponse) -> cache_operat
     return cache_operation_types.CacheSetResponse(req.cache_key, req.cache_body)
 
 
-def prepare_get_request(
-        key: Union[str, bytes]
-) -> _GetRequest:
+def prepare_get_request(key: Union[str, bytes]) -> _GetRequest:
     _logger.log(logs.TRACE, "Issuing a Get request with key %s", str(key))
     get_request = _GetRequest()
     get_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
@@ -87,9 +86,7 @@ def construct_get_response(req: _GetRequest, resp: _GetResponse) -> cache_operat
     return cache_operation_types.CacheGetResponse.from_grpc_response(resp)
 
 
-def prepare_delete_request(
-        key: Union[str, bytes]
-) -> _DeleteRequest:
+def prepare_delete_request(key: Union[str, bytes]) -> _DeleteRequest:
     _logger.log(logs.TRACE, "Issuing a Delete request with key %s", str(key))
     delete_request = _DeleteRequest()
     delete_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
