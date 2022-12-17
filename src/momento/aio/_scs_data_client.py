@@ -1,25 +1,30 @@
-from typing import Mapping, Optional, Union, Awaitable
+from typing import Optional, Union, Awaitable
 
 from grpc.aio import Metadata
 from momento_wire_types.cacheclient_pb2 import _GetRequest, _GetResponse
 from momento_wire_types.cacheclient_pb2 import _SetRequest, _SetResponse
 from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _DeleteResponse
 
-from momento.internal.common._data_client_ops import construct_set_response, \
-    construct_get_response, construct_delete_response, prepare_get_request, \
-    wrap_async_with_error_handling, prepare_set_request, prepare_delete_request
+from momento.internal.common._data_client_ops import (
+    construct_set_response,
+    construct_get_response,
+    construct_delete_response,
+    prepare_get_request,
+    wrap_async_with_error_handling,
+    prepare_set_request,
+    prepare_delete_request,
+)
 from .. import cache_operation_types as cache_sdk_ops
 from .. import logs
-from .._utilities._data_validation import (
-    _validate_ttl,
-)
+from .._utilities._data_validation import _validate_ttl
+
 from . import _scs_grpc_manager
 
 _DEFAULT_DEADLINE_SECONDS = 5.0  # 5 seconds
 
 
 def _make_metadata(cache_name: str) -> Metadata:
-    return Metadata(("cache", cache_name))  # type: ignore[misc]
+    return Metadata(("cache", cache_name))
 
 
 class _ScsDataClient:
@@ -52,8 +57,8 @@ class _ScsDataClient:
         value: Union[str, bytes],
         ttl_seconds: Optional[int],
     ) -> cache_sdk_ops.CacheSetResponse:
-        def execute_set_request_fn(req: _SetRequest) -> Awaitable[_SetResponse]:
-            return self._grpc_manager.async_stub().Set(
+        async def execute_set_request_fn(req: _SetRequest) -> _SetResponse:
+            return await self._grpc_manager.async_stub().Set(
                 req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
@@ -61,15 +66,15 @@ class _ScsDataClient:
 
         return await wrap_async_with_error_handling(
             cache_name=cache_name,
-            request_type='Set',
-            prepare_request_fn=lambda: prepare_set_request(key, value, ttl_seconds, self._default_ttlSeconds),
+            request_type="Set",
+            prepare_request_fn=lambda: prepare_set_request(key, value, ttl_seconds, self._default_ttlSeconds),   # type: ignore[no-any-return]
             execute_request_fn=execute_set_request_fn,
-            response_fn=construct_set_response
+            response_fn=construct_set_response,
         )
 
     async def get(self, cache_name: str, key: Union[str, bytes]) -> cache_sdk_ops.CacheGetResponse:
-        def execute_get_request_fn(req: _GetRequest) -> Awaitable[_GetResponse]:
-            return self._grpc_manager.async_stub().Get(
+        async def execute_get_request_fn(req: _GetRequest) -> _GetResponse:
+            return await self._grpc_manager.async_stub().Get(
                 req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
@@ -77,15 +82,15 @@ class _ScsDataClient:
 
         return await wrap_async_with_error_handling(
             cache_name=cache_name,
-            request_type='Get',
-            prepare_request_fn=lambda: prepare_get_request(key),
+            request_type="Get",
+            prepare_request_fn=lambda: prepare_get_request(key),   # type: ignore[no-any-return]
             execute_request_fn=execute_get_request_fn,
-            response_fn=construct_get_response
+            response_fn=construct_get_response,
         )
 
     async def delete(self, cache_name: str, key: Union[str, bytes]) -> cache_sdk_ops.CacheDeleteResponse:
-        def execute_delete_request_fn(req: _DeleteRequest) -> Awaitable[_DeleteResponse]:
-            return self._grpc_manager.async_stub().Delete(
+        async def execute_delete_request_fn(req: _DeleteRequest) -> _DeleteResponse:
+            return await self._grpc_manager.async_stub().Delete(
                 req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
@@ -93,10 +98,10 @@ class _ScsDataClient:
 
         return await wrap_async_with_error_handling(
             cache_name=cache_name,
-            request_type='Delete',
-            prepare_request_fn=lambda: prepare_delete_request(key),
+            request_type="Delete",
+            prepare_request_fn=lambda: prepare_delete_request(key),   # type: ignore[no-any-return]
             execute_request_fn=execute_delete_request_fn,
-            response_fn=construct_delete_response
+            response_fn=construct_delete_response,
         )
 
     async def close(self) -> None:

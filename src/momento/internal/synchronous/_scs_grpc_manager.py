@@ -15,13 +15,8 @@ class _ControlGrpcManager:
     version = pkg_resources.get_distribution("momento").version
 
     def __init__(self, auth_token: str, endpoint: str) -> None:
-        self._secure_channel = grpc.secure_channel(
-            endpoint, grpc.ssl_channel_credentials()
-        )
-        intercept_channel = grpc.intercept_channel(
-            self._secure_channel,
-            *_interceptors(auth_token)
-        )
+        self._secure_channel = grpc.secure_channel(endpoint, grpc.ssl_channel_credentials())
+        intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(auth_token))
         self._stub = control_client.ScsControlStub(intercept_channel)
 
     def close(self) -> None:
@@ -41,10 +36,7 @@ class _DataGrpcManager:
             target=endpoint,
             credentials=grpc.ssl_channel_credentials(),
         )
-        intercept_channel = grpc.intercept_channel(
-            self._secure_channel,
-            *_interceptors(auth_token)
-        )
+        intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(auth_token))
         self._stub = cache_client.ScsStub(intercept_channel)
 
     def close(self) -> None:
@@ -55,10 +47,5 @@ class _DataGrpcManager:
 
 
 def _interceptors(auth_token: str) -> List[grpc.UnaryUnaryClientInterceptor]:
-    headers = [
-        Header("authorization", auth_token),
-        Header("agent", f"python:{_ControlGrpcManager.version}")
-    ]
-    return [
-        AddHeaderClientInterceptor(headers)
-    ]
+    headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
+    return [AddHeaderClientInterceptor(headers)]

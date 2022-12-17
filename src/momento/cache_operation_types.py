@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Mapping, Optional
+from typing import Any, List, Optional
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 
@@ -54,7 +54,7 @@ class CacheGetResponse:
         self._status = status
 
     @staticmethod
-    def from_grpc_response(grpc_get_response: Any) -> "CacheGetResponse":  # type: ignore[misc]
+    def from_grpc_response(grpc_get_response: cache_client_types._GetResponse) -> "CacheGetResponse":  # type: ignore[misc]
         """Initializes CacheGetResponse to handle gRPC get response.
 
         Args:
@@ -284,7 +284,7 @@ class SigningKey:
         return self._endpoint
 
     @staticmethod
-    def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> "SigningKey":  # type: ignore[misc]
+    def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> 'SigningKey':  # type: ignore[misc]
         key_id: str = grpc_listed_signing_key.key_id  # type: ignore[misc]
         expires_at: datetime = datetime.fromtimestamp(grpc_listed_signing_key.expires_at)  # type: ignore[misc]
         return SigningKey(key_id, expires_at, endpoint)
@@ -323,7 +323,7 @@ class ListSigningKeysResponse:
             if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]
             else None
         )
-        signing_keys: List[SigningKey] = [
+        signing_keys: List[SigningKey] = [  # type: ignore[misc]
             SigningKey.from_grpc_response(signing_key, endpoint)  # type: ignore[misc]
             for signing_key in grpc_list_signing_keys_response.signing_key  # type: ignore[misc]
         ]

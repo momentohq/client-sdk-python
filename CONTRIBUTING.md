@@ -146,14 +146,14 @@ We use `black` for formatting and checking the formatting of the code.
 To run the linters:
 
 ```
-poetry run mypy
+poetry run mypy .
 poetry run flake8
 ```
 
 To run the code formatter:
 
 ```
-poetry run black
+poetry run black .
 ```
 
 <br/>

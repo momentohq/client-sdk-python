@@ -33,9 +33,7 @@ class _ScsControlClient:
             self._getStub().CreateCache(request, timeout=_DEADLINE_SECONDS)
             return CreateCacheResponse()
         except Exception as e:
-            logs.debug(
-                f"Failed to create cache: {cache_name} with exception:{e}"
-            )
+            logs.debug(f"Failed to create cache: {cache_name} with exception:{e}")
             # raise e
             raise _cache_service_errors_converter.convert(e) from None
 
@@ -48,21 +46,15 @@ class _ScsControlClient:
             self._getStub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
             return DeleteCacheResponse()
         except Exception as e:
-            logs.debug(
-                f"Failed to delete cache: {cache_name} with exception:{e}"
-            )
+            logs.debug(f"Failed to delete cache: {cache_name} with exception:{e}")
             raise _cache_service_errors_converter.convert(e) from None
 
     def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         try:
             list_caches_request = _ListCachesRequest()
-            list_caches_request.next_token = (
-                next_token if next_token is not None else ""
-            )
+            list_caches_request.next_token = next_token if next_token is not None else ""
             return ListCachesResponse.from_grpc_response(
-                self._getStub().ListCaches(
-                    list_caches_request, timeout=_DEADLINE_SECONDS
-                )
+                self._getStub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             )
         except Exception as e:
             raise _cache_service_errors_converter.convert(e)

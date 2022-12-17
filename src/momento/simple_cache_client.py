@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Mapping, Optional, Type, Union
+from typing import Optional, Type, Union
 
 from ._utilities._data_validation import _validate_request_timeout
 from .cache_operation_types import (

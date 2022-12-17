@@ -82,4 +82,3 @@ async def client_async() -> SimpleCacheClientAsync:
             pass
 
         yield _client
-
