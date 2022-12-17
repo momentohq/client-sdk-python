@@ -31,9 +31,7 @@ except ImportError as e:
 from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
     CacheDeleteResponse,
-    CacheGetMultiResponse,
     CacheGetResponse,
-    CacheSetMultiResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -202,31 +200,6 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_signing_keys(self._get_next_client().get_endpoint(), next_token)
 
-    async def set_multi(
-        self,
-        cache_name: str,
-        items: Union[Mapping[str, str], Mapping[bytes, bytes]],
-        ttl_seconds: Optional[int] = None,
-    ) -> CacheSetMultiResponse:
-        """Store items in the cache.
-
-        Args:
-            cache_name: Name of the cache to store the item in.
-            items: (Union[Mapping[str, str], Mapping[bytes, bytes]]): The items to store.
-            ttl_seconds: (Optional[int]): The TTL to apply to each item. Defaults to None.
-
-        Returns:
-            CacheSetMultiResponse
-
-        Raises:
-            InvalidArgumentError: If validation fails for the provided method arguments.
-            BadRequestError: If the provided inputs are rejected by server because they are invalid
-            NotFoundError: If the cache with the given name doesn't exist.
-            AuthenticationError: If the provided Momento Auth Token is invalid.
-            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
-        """
-        return await self._get_next_client().set_multi(cache_name, items, ttl_seconds)
-
     async def set(
         self,
         cache_name: str,
@@ -254,25 +227,6 @@ class SimpleCacheClient:
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
         return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
-
-    async def get_multi(self, cache_name: str, *keys: Union[str, bytes]) -> CacheGetMultiResponse:
-        """Retrieve multiple items from the cache.
-
-        Args:
-            cache_name (str): Name of the cache to get the item from.
-            keys: (Union[str, bytes]): The keys used to retrieve the items.
-
-        Returns:
-            CacheGetMultiResponse
-
-        Raises:
-            InvalidArgumentError: If validation fails for the provided method arguments.
-            BadRequestError: If the provided inputs are rejected by server because they are invalid
-            NotFoundError: If the cache with the given name doesn't exist.
-            AuthenticationError: If the provided Momento Auth Token is invalid.
-            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
-        """
-        return await self._get_next_client().get_multi(cache_name, *keys)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
