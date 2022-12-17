@@ -1,10 +1,10 @@
 import logging
 import os
 
-from example_utils.example_logging import initialize_logging
-
 import momento.errors as errors
 import momento.simple_cache_client as scc
+
+from .example_utils.example_logging import initialize_logging
 
 _MOMENTO_AUTH_TOKEN = os.getenv("MOMENTO_AUTH_TOKEN")
 _CACHE_NAME = "cache"

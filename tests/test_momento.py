@@ -5,11 +5,11 @@ import pytest
 import momento.errors as errors
 from momento.cache_operation_types import CacheGetStatus
 from momento.simple_cache_client import SimpleCacheClient
-from tests.utils import str_to_bytes, uuid_bytes, uuid_str
+from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 
 def test_create_cache_get_set_values_and_delete_cache(client: SimpleCacheClient, cache_name: str):
-    random_cache_name = uuid_str()
+    random_cache_name = unique_test_cache_name()
     key = uuid_str()
     value = uuid_str()
 
@@ -87,7 +87,7 @@ def test_create_cache_with_bad_cache_name_throws_exception(
 def test_create_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
     with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
-            client.create_cache(uuid_str())
+            client.create_cache(unique_test_cache_name())
 
 
 # Delete cache
@@ -165,17 +165,6 @@ def test_list_caches_with_next_token_works(client: SimpleCacheClient, cache_name
     """skip until pagination is actually implemented, see
     https://github.com/momentohq/control-plane-service/issues/83"""
     pass
-
-
-# Signing keys
-def test_create_list_revoke_signing_keys(client: SimpleCacheClient):
-    create_resp = client.create_signing_key(30)
-    list_resp = client.list_signing_keys()
-    assert create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
-
-    client.revoke_signing_key(create_resp.key_id())
-    list_resp = client.list_signing_keys()
-    assert create_resp.key_id() not in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
 
 
 # Setting and Getting
