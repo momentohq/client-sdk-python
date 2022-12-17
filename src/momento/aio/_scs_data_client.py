@@ -1,20 +1,25 @@
-import asyncio
-from typing import Mapping, Optional, Union
+from typing import Mapping, Optional, Union, Awaitable
 
-from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _GetRequest, _SetRequest
+from grpc.aio import Metadata
+from momento_wire_types.cacheclient_pb2 import _GetRequest, _GetResponse
+from momento_wire_types.cacheclient_pb2 import _SetRequest, _SetResponse
+from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _DeleteResponse
 
-from .. import _cache_service_errors_converter
+from momento.internal.common._data_client_ops import construct_set_response, \
+    construct_get_response, construct_delete_response, prepare_get_request, \
+    wrap_async_with_error_handling, prepare_set_request, prepare_delete_request
 from .. import cache_operation_types as cache_sdk_ops
 from .. import logs
 from .._utilities._data_validation import (
-    _as_bytes,
-    _make_metadata,
-    _validate_cache_name,
     _validate_ttl,
 )
 from . import _scs_grpc_manager
 
 _DEFAULT_DEADLINE_SECONDS = 5.0  # 5 seconds
+
+
+def _make_metadata(cache_name: str) -> Metadata:
+    return Metadata(("cache", cache_name))  # type: ignore[misc]
 
 
 class _ScsDataClient:
@@ -47,60 +52,52 @@ class _ScsDataClient:
         value: Union[str, bytes],
         ttl_seconds: Optional[int],
     ) -> cache_sdk_ops.CacheSetResponse:
-        _validate_cache_name(cache_name)
-        try:
-            self._logger.log(logs.TRACE, "Issuing a set request with key %s", str(key))
-            item_ttl_seconds = self._default_ttlSeconds if ttl_seconds is None else ttl_seconds
-            _validate_ttl(item_ttl_seconds)
-            set_request = _SetRequest()
-            set_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            set_request.cache_body = _as_bytes(value, "Unsupported type for value: ")
-            set_request.ttl_milliseconds = item_ttl_seconds * 1000
-            await self._grpc_manager.async_stub().Set(
-                set_request,
+        def execute_set_request_fn(req: _SetRequest) -> Awaitable[_SetResponse]:
+            return self._grpc_manager.async_stub().Set(
+                req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            self._logger.log(logs.TRACE, "Set succeeded for key: %s", str(key))
-            return cache_sdk_ops.CacheSetResponse(set_request.cache_key, set_request.cache_body)
-        except Exception as e:
-            self._logger.log(logs.TRACE, "Set failed for %s with response: %s", str(key), e)
-            raise _cache_service_errors_converter.convert(e)
+
+        return await wrap_async_with_error_handling(
+            cache_name=cache_name,
+            request_type='Set',
+            prepare_request_fn=lambda: prepare_set_request(key, value, ttl_seconds, self._default_ttlSeconds),
+            execute_request_fn=execute_set_request_fn,
+            response_fn=construct_set_response
+        )
 
     async def get(self, cache_name: str, key: Union[str, bytes]) -> cache_sdk_ops.CacheGetResponse:
-
-        _validate_cache_name(cache_name)
-        try:
-            self._logger.log(logs.TRACE, "Issuing a get request with key %s", str(key))
-            get_request = _GetRequest()
-            get_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            response = await self._grpc_manager.async_stub().Get(
-                get_request,
+        def execute_get_request_fn(req: _GetRequest) -> Awaitable[_GetResponse]:
+            return self._grpc_manager.async_stub().Get(
+                req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            self._logger.log(logs.TRACE, "Received a get response for %s", str(key))
-            return cache_sdk_ops.CacheGetResponse.from_grpc_response(response)
-        except Exception as e:
-            self._logger.log(logs.TRACE, "Get failed for %s with response: %s", str(key), e)
-            raise _cache_service_errors_converter.convert(e)
+
+        return await wrap_async_with_error_handling(
+            cache_name=cache_name,
+            request_type='Get',
+            prepare_request_fn=lambda: prepare_get_request(key),
+            execute_request_fn=execute_get_request_fn,
+            response_fn=construct_get_response
+        )
 
     async def delete(self, cache_name: str, key: Union[str, bytes]) -> cache_sdk_ops.CacheDeleteResponse:
-        _validate_cache_name(cache_name)
-        try:
-            self._logger.log(logs.TRACE, "Issuing a delete request with key %s", str(key))
-            delete_request = _DeleteRequest()
-            delete_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            await self._grpc_manager.async_stub().Delete(
-                delete_request,
+        def execute_delete_request_fn(req: _DeleteRequest) -> Awaitable[_DeleteResponse]:
+            return self._grpc_manager.async_stub().Delete(
+                req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            self._logger.log(logs.TRACE, "Received a delete response for %s", str(key))
-            return cache_sdk_ops.CacheDeleteResponse()
-        except Exception as e:
-            self._logger.debug("Delete failed for %s with response: %s", str(key), e)
-            raise _cache_service_errors_converter.convert(e)
+
+        return await wrap_async_with_error_handling(
+            cache_name=cache_name,
+            request_type='Delete',
+            prepare_request_fn=lambda: prepare_delete_request(key),
+            execute_request_fn=execute_delete_request_fn,
+            response_fn=construct_delete_response
+        )
 
     async def close(self) -> None:
         await self._grpc_manager.close()

@@ -76,16 +76,17 @@ version numbers, and from now on whenever you `cd` into this directory,
 
 If you haven't installed poetry yet, follow the instructions on the [website](https://python-poetry.org/docs/#installation).
 
-Tell poetry to use your desired python version:
-
-```
-poetry env use $(which python)
-```
-
 As a matter of preference, you may like having the virtual environment in the project folder:
 
 ```
 poetry config virtualenvs.in-project true
+```
+
+
+Tell poetry to use your desired python version:
+
+```
+poetry env use $(which python)
 ```
 
 Finally install the project dependencies as specified in `pyproject.toml`:
@@ -170,8 +171,12 @@ TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest
 
 ### For M1 Users
 
-There is an issue on M1 macs between GRPC native packaging and Python wheel tags. See https://github.com/grpc/grpc/issues/28387
-TO WORK AROUND, please install Rosetta 2 and re-run with:
+In the past, there was an issue on M1 macs that could cause failures when attempting to
+install the gRPC dependency.  See https://github.com/grpc/grpc/issues/28387
+
+This issue should be resolved now; if you run into it, we would love for you to file
+a github issue with us to let us know.  And in the meantime you can work around the
+issue by installing Rosetta 2 and re-running with:
 
 ```
 arch -x86_64 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry run pytest

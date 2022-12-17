@@ -5,11 +5,11 @@ import pytest
 import momento.errors as errors
 from momento.aio.simple_cache_client import SimpleCacheClient
 from momento.cache_operation_types import CacheGetStatus
-from tests.utils import str_to_bytes, uuid_bytes, uuid_str
+from tests.utils import str_to_bytes, uuid_bytes, uuid_str, unique_test_cache_name
 
 
 async def test_create_cache_get_set_values_and_delete_cache(client_async: SimpleCacheClient, cache_name: str):
-    random_cache_name = uuid_str()
+    random_cache_name = unique_test_cache_name()
     key = uuid_str()
     value = uuid_str()
 
@@ -95,7 +95,7 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
 ):
     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
         with pytest.raises(errors.AuthenticationError):
-            await client_async.create_cache(uuid_str())
+            await client_async.create_cache(unique_test_cache_name())
 
 
 # Delete cache
@@ -392,6 +392,7 @@ async def test_get_throws_timeout_error_for_short_request_timeout(
     async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
         with pytest.raises(errors.TimeoutError):
             await client_async.get(cache_name, "foo")
+
 
 # Test delete for key that doesn't exist
 async def test_delete_key_doesnt_exist(client_async: SimpleCacheClient, cache_name: str):
