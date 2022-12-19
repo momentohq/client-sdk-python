@@ -52,7 +52,7 @@ jobs:
         run: poetry run isort . --check --diff
 
       - name: Run tests
-        run: poetry run pytest -p no:sugar -q
+        run: poetry run pytest -p no:sugar
 
   test-examples:
     runs-on: ubuntu-latest

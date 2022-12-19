@@ -47,7 +47,7 @@ black = "^22.8.0"
 isort = "^5.10.1"
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
+asyncio_mode = "strict"
 
 [tool.black]
 line-length = 120
