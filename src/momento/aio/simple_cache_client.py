@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Mapping, Optional, Type, Union
+from typing import Optional, Type, Union
 
 from .. import logs
 

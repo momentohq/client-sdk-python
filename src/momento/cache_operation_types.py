@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Mapping, Optional
+from typing import Any, List, Optional
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 

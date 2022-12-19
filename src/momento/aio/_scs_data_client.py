@@ -1,5 +1,4 @@
-import asyncio
-from typing import Mapping, Optional, Union
+from typing import Optional, Union
 
 from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _GetRequest, _SetRequest
 
