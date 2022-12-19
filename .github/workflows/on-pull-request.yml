@@ -38,6 +38,8 @@ jobs:
         run: poetry install
 
       - name: Run mypy
+        # mypy has inconsistencies between 3.7 and the rest; default to lowest common denominator
+        if: matrix.python-version == '3.7'
         run: poetry run mypy src/
 
       - name: Run flake8
