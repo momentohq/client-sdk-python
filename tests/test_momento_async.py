@@ -393,6 +393,7 @@ async def test_get_throws_timeout_error_for_short_request_timeout(
         with pytest.raises(errors.TimeoutError):
             await client_async.get(cache_name, "foo")
 
+
 # Test delete for key that doesn't exist
 async def test_delete_key_doesnt_exist(client_async: SimpleCacheClient, cache_name: str):
     key = uuid_str()
