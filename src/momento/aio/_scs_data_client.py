@@ -1,23 +1,28 @@
 from typing import Optional, Union
 
 from grpc.aio import Metadata
-from momento_wire_types.cacheclient_pb2 import _GetRequest, _GetResponse
-from momento_wire_types.cacheclient_pb2 import _SetRequest, _SetResponse
-from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _DeleteResponse
+from momento_wire_types.cacheclient_pb2 import (
+    _DeleteRequest,
+    _DeleteResponse,
+    _GetRequest,
+    _GetResponse,
+    _SetRequest,
+    _SetResponse,
+)
 
 from momento.internal.common._data_client_ops import (
-    construct_set_response,
-    construct_get_response,
     construct_delete_response,
-    prepare_get_request,
-    wrap_async_with_error_handling,
-    prepare_set_request,
+    construct_get_response,
+    construct_set_response,
     prepare_delete_request,
+    prepare_get_request,
+    prepare_set_request,
+    wrap_async_with_error_handling,
 )
+
 from .. import cache_operation_types as cache_sdk_ops
 from .. import logs
 from .._utilities._data_validation import _validate_ttl
-
 from . import _scs_grpc_manager
 
 _DEFAULT_DEADLINE_SECONDS = 5.0  # 5 seconds

@@ -1,6 +1,7 @@
 from types import TracebackType
 from typing import Optional, Type, Union
 
+from . import _momento_endpoint_resolver
 from ._utilities._data_validation import _validate_request_timeout
 from .cache_operation_types import (
     CacheDeleteResponse,
@@ -10,11 +11,8 @@ from .cache_operation_types import (
     DeleteCacheResponse,
     ListCachesResponse,
 )
-
 from .internal.synchronous._scs_control_client import _ScsControlClient
 from .internal.synchronous._scs_data_client import _ScsDataClient
-
-from . import _momento_endpoint_resolver
 
 
 class SimpleCacheClient:

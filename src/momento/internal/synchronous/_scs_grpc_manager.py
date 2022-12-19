@@ -1,12 +1,14 @@
 from typing import List
 
 import grpc
-
 import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.controlclient_pb2_grpc as control_client
-from momento.internal.synchronous._add_header_client_interceptor import AddHeaderClientInterceptor, Header
-
 import pkg_resources
+
+from momento.internal.synchronous._add_header_client_interceptor import (
+    AddHeaderClientInterceptor,
+    Header,
+)
 
 
 class _ControlGrpcManager:

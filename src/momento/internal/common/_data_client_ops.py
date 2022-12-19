@@ -1,13 +1,20 @@
-from typing import Union, Optional, Callable, TypeVar, Awaitable
+from typing import Awaitable, Callable, Optional, TypeVar, Union
 
-from momento import _cache_service_errors_converter
-from momento import cache_operation_types
-from momento import logs
-from momento._utilities._data_validation import _validate_ttl, _as_bytes, _validate_cache_name
+from momento_wire_types.cacheclient_pb2 import (
+    _DeleteRequest,
+    _DeleteResponse,
+    _GetRequest,
+    _GetResponse,
+    _SetRequest,
+    _SetResponse,
+)
 
-from momento_wire_types.cacheclient_pb2 import _SetRequest, _SetResponse
-from momento_wire_types.cacheclient_pb2 import _GetRequest, _GetResponse
-from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _DeleteResponse
+from momento import _cache_service_errors_converter, cache_operation_types, logs
+from momento._utilities._data_validation import (
+    _as_bytes,
+    _validate_cache_name,
+    _validate_ttl,
+)
 
 TResponse = TypeVar("TResponse")
 TGeneratedRequest = TypeVar("TGeneratedRequest")
