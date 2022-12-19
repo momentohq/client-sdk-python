@@ -1,12 +1,12 @@
 from types import TracebackType
-from typing import Mapping, Optional, Type, Union
+from typing import Optional, Mapping, Type, Union
 
 from .. import logs
 
 try:
-    from .._utilities._data_validation import _validate_request_timeout
     from ._scs_control_client import _ScsControlClient
     from ._scs_data_client import _ScsDataClient
+    from .._utilities._data_validation import _validate_request_timeout
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -30,22 +30,22 @@ except ImportError as e:
 
 from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
-    CacheDeleteResponse,
-    CacheGetMultiResponse,
-    CacheGetResponse,
-    CacheSetMultiResponse,
-    CacheSetResponse,
     CreateCacheResponse,
-    CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
-    ListSigningKeysResponse,
+    CreateSigningKeyResponse,
     RevokeSigningKeyResponse,
+    ListSigningKeysResponse,
+    CacheSetResponse,
+    CacheGetResponse,
+    CacheDeleteResponse,
+    CacheSetMultiResponse,
+    CacheGetMultiResponse,
 )
 
 
 class SimpleCacheClient:
-    """Async Simple Cache Client"""
+    """async Simple Cache client"""
 
     # For high load, we might get better performance with multiple clients, because the server is
     # configured to allow a max of 100 streams per connection.  In the javascript SDK, multiple
@@ -63,21 +63,8 @@ class SimpleCacheClient:
         self,
         auth_token: str,
         default_ttl_seconds: int,
-        request_timeout_ms: Optional[int] = None,
+        data_client_operation_timeout_ms: Optional[int],
     ):
-        """Creates an async SimpleCacheClient
-
-        Args:
-            auth_token (str): Momento Token to authenticate the requests with Simple Cache Service
-            default_ttl_seconds (int): A default Time To Live in seconds for cache objects created by this client. It is
-                possible to override this setting when calling the set method.
-            request_timeout_ms (Optional[int], optional): An optional timeout in milliseconds to allow for Get and Set
-                operations to complete. The request will be terminated if it takes longer than this value and will
-                result in TimeoutError. Defaults to None, in which case a 5 second timeout is used.
-        Raises:
-            IllegalArgumentError: If method arguments fail validations.
-        """
-        _validate_request_timeout(request_timeout_ms)
         self._logger = logs.logger
         self._next_client_index = 0
         endpoints = _momento_endpoint_resolver.resolve(auth_token)
@@ -87,7 +74,7 @@ class SimpleCacheClient:
                 auth_token,
                 endpoints.cache_endpoint,
                 default_ttl_seconds,
-                request_timeout_ms,
+                data_client_operation_timeout_ms,
             )
             for _ in range(SimpleCacheClient._NUM_CLIENTS)
         ]
@@ -170,7 +157,9 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.create_signing_key(ttl_minutes, self._get_next_client().get_endpoint())
+        return await self._control_client.create_signing_key(
+            ttl_minutes, self._get_next_client().get_endpoint()
+        )
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         """Revokes a Momento signing key, all tokens signed by which will be invalid
@@ -187,7 +176,9 @@ class SimpleCacheClient:
         """
         return await self._control_client.revoke_signing_key(key_id)
 
-    async def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+    async def list_signing_keys(
+        self, next_token: Optional[str] = None
+    ) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
 
         Args:
@@ -200,7 +191,9 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.list_signing_keys(self._get_next_client().get_endpoint(), next_token)
+        return await self._control_client.list_signing_keys(
+            self._get_next_client().get_endpoint(), next_token
+        )
 
     async def set_multi(
         self,
@@ -255,7 +248,9 @@ class SimpleCacheClient:
         """
         return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
 
-    async def get_multi(self, cache_name: str, *keys: Union[str, bytes]) -> CacheGetMultiResponse:
+    async def get_multi(
+        self, cache_name: str, *keys: Union[str, bytes]
+    ) -> CacheGetMultiResponse:
         """Retrieve multiple items from the cache.
 
         Args:
@@ -316,5 +311,30 @@ class SimpleCacheClient:
 
     def _get_next_client(self) -> _ScsDataClient:
         client = self._data_clients[self._next_client_index]
-        self._next_client_index = (self._next_client_index + 1) % len(self._data_clients)
+        self._next_client_index = (self._next_client_index + 1) % len(
+            self._data_clients
+        )
         return client
+
+
+def init(
+    auth_token: str,
+    item_default_ttl_seconds: int,
+    request_timeout_ms: Optional[int] = None,
+) -> SimpleCacheClient:
+    """Creates an async SimpleCacheClient
+
+    Args:
+        auth_token: Momento Token to authenticate the requests with Simple Cache Service
+        item_default_ttl_seconds: A default Time To Live in seconds for cache objects created by this client. It is
+            possible to override this setting when calling the set method.
+        request_timeout_ms: An optional timeout in milliseconds to allow for Get and Set operations to complete.
+            Defaults to 5 seconds. The request will be terminated if it takes longer than this value and will result in
+            TimeoutError.
+    Returns:
+        SimpleCacheClient
+    Raises:
+        IllegalArgumentError: If method arguments fail validations.
+    """
+    _validate_request_timeout(request_timeout_ms)
+    return SimpleCacheClient(auth_token, item_default_ttl_seconds, request_timeout_ms)

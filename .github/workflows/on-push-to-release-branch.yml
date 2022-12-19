@@ -6,13 +6,14 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+
 jobs:
   release:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.release.outputs.release }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
       - name: Set release
         id: semrel
         uses: go-semantic-release/action@v1
@@ -25,13 +26,14 @@ jobs:
           #  to actually have anything to do with CI:
           # https://github.com/go-semantic-release/semantic-release/blob/master/cmd/semantic-release/main.go#L173-L194
           # https://github.com/go-semantic-release/condition-github/blob/4c8af3fc516151423fff2f77eb08bf7082570676/pkg/condition/github.go#L42-L44
-          custom-arguments: "--no-ci"
+          custom-arguments: '--no-ci'
 
       - name: Output release
         id: release
         run: echo "::set-output name=release::${{ steps.semrel.outputs.version }}"
 
-  test:
+  test_python_versions:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -40,63 +42,83 @@ jobs:
       TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-cache
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Bootstrap poetry
+      - name: Build package
         run: |
-          curl -sL https://install.python-poetry.org | python - -y
-
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
-
-      - name: Install dependencies
-        run: poetry install
-
-      - name: Run mypy
-        # mypy has inconsistencies between 3.7 and the rest; default to lowest common denominator
-        if: matrix.python-version == '3.7'
-        run: poetry run mypy src/
-
-      - name: Run flake8
-        run: poetry run flake8 src/
-
-      - name: Run black
-        run: poetry run black src tests --check --diff
-
-      - name: Run isort
-        run: poetry run isort . --check --diff
+          pip install -r requirements.txt
+          python -m build
+          pip install -e .
 
       - name: Run tests
-        run: poetry run pytest -p no:sugar -q
+        run: python -m unittest discover -v
 
-  publish:
+  publish_python:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    needs: [release, test]
+    needs: [release, test_python_versions]
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_CACHE_NAME: python-integration-test-cache
 
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
-
-      - name: Bootstrap poetry
-        run: |
-          curl -sL https://install.python-poetry.org | python - -y
-
-      - name: Bump version
-        run: poetry version ${{ needs.release.outputs.version }}
+          python-version: "3.9"
 
       - name: Build package
-        run: poetry build
+        run: |
+          pip install -r requirements.txt
+          python -m build
 
-      - name: Publish package
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYTHON_CUSTOMER_SDK_PYPI_TOKEN }}
-        run: poetry publish
+      - name: Run linters
+        id: linters
+        uses: ./.github/actions/linters
+
+      - name: Flag Job Failure
+        if: ${{ steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        run: |
+          echo "Job statuses"
+          echo "============"
+          echo "mypy: ${{ steps.linters.outputs.mypy }}"
+          echo "black: ${{ steps.linters.outputs.black }}"
+          echo "flake8: ${{ steps.linters.outputs.flake8 }}"
+          exit 1
+
+      - name: Prepare to publish
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine build
+
+      - name: Configure PyPI publish credentials
+        run: |
+          set -e
+          set -x
+          pushd package_index_setup
+            ./pypi_setup.sh __token__ ${{ secrets.PYTHON_CUSTOMER_SDK_PYPI_TOKEN }} >> ~/.pypirc
+          popd
+        shell: bash
+
+      - name: Build and publish package
+        run: |
+          set -e
+          set -x
+          export MOMENTO_SDK_VERSION="${{needs.release.outputs.version}}"
+          if [ -z "$MOMENTO_SDK_VERSION"]
+          then
+            echo "Unable to determine SDK version!  Exiting!"
+            exit 1
+          fi
+          echo "MOMENTO_SDK_VERSION=${MOMENTO_SDK_VERSION}"
+          python setup.py sdist bdist_wheel
+          python -m twine upload dist/* --config-file ~/.pypirc
+        shell: bash

@@ -1,8 +1,8 @@
 from typing import Any
 
 import grpc
-
-from . import errors, logs
+from . import errors
+from . import logs
 
 __rpc_to_error = {
     grpc.StatusCode.INVALID_ARGUMENT: errors.BadRequestError,
@@ -32,7 +32,9 @@ def convert(exception: Exception) -> Exception:
         if exception.code() in __rpc_to_error:
             return __rpc_to_error[exception.code()](exception.details())
         else:
-            return errors.InternalServerError("CacheService failed with an internal error")
+            return errors.InternalServerError(
+                "CacheService failed with an internal error"
+            )
 
     return errors.ClientSdkError("Operation failed with error: " + str(exception))
 

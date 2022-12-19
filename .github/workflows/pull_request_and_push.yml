@@ -1,0 +1,56 @@
+name: PR / Push
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install Requirements
+        run: python -m pip install -r requirements.txt
+      - name: Run linters
+        id: linters
+        uses: ./.github/actions/linters
+      - name: Flag Job Failure
+        if: ${{ steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        run: |
+          echo "Job statuses"
+          echo "============"
+          echo "mypy: ${{ steps.linters.outputs.mypy }}"
+          echo "black: ${{ steps.linters.outputs.black }}"
+          echo "flake8: ${{ steps.linters.outputs.flake8 }}"
+          exit 1
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_CACHE_NAME: python-integration-test-cache
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel build
+          python -m build
+          pip install -e .
+
+      - name: Run tests
+        run: python -m unittest discover -v

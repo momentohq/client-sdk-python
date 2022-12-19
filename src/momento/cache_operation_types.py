@@ -1,10 +1,9 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Mapping, Optional
+from typing import Any, Optional, List, Mapping
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
-
 from . import _cache_service_errors_converter as error_converter
 from . import logs
 
@@ -53,7 +52,10 @@ class CacheSetMultiResponse:
         self._items = items
 
     def items(self) -> Mapping[str, str]:
-        return {key.decode("utf-8"): value.decode("utf-8") for key, value in self._items.items()}
+        return {
+            key.decode("utf-8"): value.decode("utf-8")
+            for key, value in self._items.items()
+        }
 
     def items_as_bytes(self) -> Mapping[bytes, bytes]:
         return self._items
@@ -87,7 +89,9 @@ class CacheGetResponse:
         elif grpc_get_response.result == cache_client_types.Miss:  # type: ignore[misc]
             status = CacheGetStatus.MISS
         else:
-            logs.debug("Get received unsupported ECacheResult: %s", grpc_get_response.result)  # type: ignore[misc]
+            logs.debug(
+                "Get received unsupported ECacheResult: %s", grpc_get_response.result  # type: ignore[misc]
+            )
             raise error_converter.convert_ecache_result(
                 grpc_get_response.result, grpc_get_response.message, "GET"  # type: ignore[misc]
             )
@@ -278,7 +282,9 @@ class CreateSigningKeyResponse:
     ) -> "CreateSigningKeyResponse":
         key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]  # type: ignore[misc]
         key: str = grpc_create_signing_key_response.key  # type: ignore[misc]
-        expires_at: datetime = datetime.fromtimestamp(grpc_create_signing_key_response.expires_at)  # type: ignore[misc]
+        expires_at: datetime = datetime.fromtimestamp(
+            grpc_create_signing_key_response.expires_at  # type: ignore[misc]
+        )
         return CreateSigningKeyResponse(key_id, endpoint, key, expires_at)
 
     def __str__(self) -> str:
@@ -328,7 +334,9 @@ class SigningKey:
     @staticmethod
     def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> "SigningKey":  # type: ignore[misc]
         key_id: str = grpc_listed_signing_key.key_id  # type: ignore[misc]
-        expires_at: datetime = datetime.fromtimestamp(grpc_listed_signing_key.expires_at)  # type: ignore[misc]
+        expires_at: datetime = datetime.fromtimestamp(
+            grpc_listed_signing_key.expires_at  # type: ignore[misc]
+        )
         return SigningKey(key_id, expires_at, endpoint)
 
     def __str__(self) -> str:
@@ -365,7 +373,7 @@ class ListSigningKeysResponse:
             if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]
             else None
         )
-        signing_keys: List[SigningKey] = [
+        signing_keys: List[SigningKey] = [  # type: ignore[misc]
             SigningKey.from_grpc_response(signing_key, endpoint)  # type: ignore[misc]
             for signing_key in grpc_list_signing_keys_response.signing_key  # type: ignore[misc]
         ]
