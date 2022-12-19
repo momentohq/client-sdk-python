@@ -60,7 +60,7 @@ class _ScsDataClient:
         return wrap_with_error_handling(
             cache_name=cache_name,
             request_type="Set",
-            prepare_request_fn=lambda: prepare_set_request(   # type: ignore[no-any-return]
+            prepare_request_fn=lambda: prepare_set_request(  # type: ignore[no-any-return]
                 key=key, value=value, ttl_seconds=ttl_seconds, default_ttl_seconds=self._default_ttlSeconds
             ),
             execute_request_fn=execute_set_request_fn,
@@ -78,7 +78,7 @@ class _ScsDataClient:
         return wrap_with_error_handling(
             cache_name=cache_name,
             request_type="Get",
-            prepare_request_fn=lambda: prepare_get_request(key),   # type: ignore[no-any-return]
+            prepare_request_fn=lambda: prepare_get_request(key),  # type: ignore[no-any-return]
             execute_request_fn=execute_get_request_fn,
             response_fn=construct_get_response,
         )

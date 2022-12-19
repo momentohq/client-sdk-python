@@ -55,7 +55,7 @@ class CacheGetResponse:
 
     @staticmethod
     def from_grpc_response(  # type: ignore[misc]
-            grpc_get_response: cache_client_types._GetResponse
+        grpc_get_response: cache_client_types._GetResponse,
     ) -> "CacheGetResponse":
         """Initializes CacheGetResponse to handle gRPC get response.
 
@@ -286,7 +286,7 @@ class SigningKey:
         return self._endpoint
 
     @staticmethod
-    def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> 'SigningKey':  # type: ignore[misc]
+    def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> "SigningKey":  # type: ignore[misc]
         key_id: str = grpc_listed_signing_key.key_id  # type: ignore[misc]
         expires_at: datetime = datetime.fromtimestamp(grpc_listed_signing_key.expires_at)  # type: ignore[misc]
         return SigningKey(key_id, expires_at, endpoint)
