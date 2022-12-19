@@ -1,4 +1,4 @@
-from typing import Optional, Union, Awaitable
+from typing import Optional, Union
 
 from grpc.aio import Metadata
 from momento_wire_types.cacheclient_pb2 import _GetRequest, _GetResponse
@@ -67,7 +67,9 @@ class _ScsDataClient:
         return await wrap_async_with_error_handling(
             cache_name=cache_name,
             request_type="Set",
-            prepare_request_fn=lambda: prepare_set_request(key, value, ttl_seconds, self._default_ttlSeconds),   # type: ignore[no-any-return]
+            prepare_request_fn=lambda: prepare_set_request(   # type: ignore[no-any-return]
+                key, value, ttl_seconds, self._default_ttlSeconds
+            ),
             execute_request_fn=execute_set_request_fn,
             response_fn=construct_set_response,
         )
