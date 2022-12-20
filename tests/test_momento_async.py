@@ -111,23 +111,23 @@ async def test_delete_cache_succeeds(client_async: SimpleCacheClient, cache_name
     with pytest.raises(errors.NotFoundError):
         print(f"\n\n\nABOUT TO CALL DELETE AGAIN TO TEST NOTFOUND ERROR\n\n\n")
         await client_async.delete_cache(cache_name)
-#
-#
-# async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
-#     client_async: SimpleCacheClient,
-# ):
-#     cache_name = uuid_str()
-#     with pytest.raises(errors.NotFoundError):
-#         await client_async.delete_cache(cache_name)
-#
-#
-# async def test_delete_cache_throws_invalid_input_for_null_cache_name(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.InvalidArgumentError):
-#         await client_async.delete_cache(None)
-#
-#
+
+
+async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
+    client_async: SimpleCacheClient,
+):
+    cache_name = uuid_str()
+    with pytest.raises(errors.NotFoundError):
+        await client_async.delete_cache(cache_name)
+
+
+async def test_delete_cache_throws_invalid_input_for_null_cache_name(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.InvalidArgumentError):
+        await client_async.delete_cache(None)
+
+
 # async def test_delete_cache_throws_exception_for_empty_cache_name(
 #     client_async: SimpleCacheClient,
 # ):
