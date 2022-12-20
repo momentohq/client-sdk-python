@@ -128,106 +128,106 @@ async def test_delete_cache_throws_invalid_input_for_null_cache_name(
         await client_async.delete_cache(None)
 
 
-# async def test_delete_cache_throws_exception_for_empty_cache_name(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.BadRequestError):
-#         await client_async.delete_cache("")
-#
-#
-# async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.delete_cache(1)
-#         assert cm.exception == "Cache name must be a non-empty string"
-#
-#
-# async def test_delete_cache_throws_authentication_exception_for_bad_token(
-#     bad_auth_token: str, default_ttl_seconds: int
-# ):
-#     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-#         with pytest.raises(errors.AuthenticationError):
-#             await client_async.delete_cache(uuid_str())
-#
-#
-# # List caches
-# async def test_list_caches_succeeds(client_async: SimpleCacheClient, cache_name: str):
-#     cache_name = uuid_str()
-#
-#     caches = (await client_async.list_caches()).caches()
-#     cache_names = [cache.name() for cache in caches]
-#     assert cache_name not in cache_names
-#
-#     try:
-#         await client_async.create_cache(cache_name)
-#
-#         list_cache_resp = await client_async.list_caches()
-#         caches = list_cache_resp.caches()
-#         cache_names = [cache.name() for cache in caches]
-#         assert cache_name in cache_names
-#         assert list_cache_resp.next_token() is None
-#     finally:
-#         await client_async.delete_cache(cache_name)
-#
-#
-# async def test_list_caches_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
-#     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-#         with pytest.raises(errors.AuthenticationError):
-#             await client_async.list_caches()
-#
-#
-# async def test_list_caches_with_next_token_works(client_async: SimpleCacheClient, cache_name: str):
-#     """skip until pagination is actually implemented, see
-#     https://github.com/momentohq/control-plane-service/issues/83"""
-#     pass
-#
-#
-# # Signing keys
-# async def test_create_list_revoke_signing_keys(client_async: SimpleCacheClient):
-#     create_resp = await client_async.create_signing_key(30)
-#     list_resp = await client_async.list_signing_keys()
-#     assert create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
-#
-#     await client_async.revoke_signing_key(create_resp.key_id())
-#     list_resp = await client_async.list_signing_keys()
-#     assert create_resp.key_id() not in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
-#
-#
-# # Setting and Getting
-# async def test_set_and_get_with_hit(client_async: SimpleCacheClient, cache_name: str):
-#     key = uuid_str()
-#     value = uuid_str()
-#
-#     set_resp = await client_async.set(cache_name, key, value)
-#     assert set_resp.value() == value
-#     assert set_resp.value_as_bytes() == str_to_bytes(value)
-#
-#     get_resp = await client_async.get(cache_name, key)
-#     assert get_resp.status() == CacheGetStatus.HIT
-#     assert get_resp.value() == value
-#     assert get_resp.value_as_bytes() == str_to_bytes(value)
-#
-#
-# async def test_set_and_get_with_byte_key_values(client_async: SimpleCacheClient, cache_name: str):
-#     key = uuid_bytes()
-#     value = uuid_bytes()
-#
-#     set_resp = await client_async.set(cache_name, key, value)
-#     assert set_resp.value_as_bytes() == value
-#
-#     get_resp = await client_async.get(cache_name, key)
-#     assert get_resp.status() == CacheGetStatus.HIT
-#     assert get_resp.value_as_bytes() == value
-#
-#
-# async def test_get_returns_miss(client_async: SimpleCacheClient, cache_name: str):
-#     key = uuid_str()
-#
-#     get_resp = await client_async.get(cache_name, key)
-#     assert get_resp.status() == CacheGetStatus.MISS
-#     assert get_resp.value_as_bytes() is None
-#     assert get_resp.value() is None
-#
-#
+async def test_delete_cache_throws_exception_for_empty_cache_name(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.BadRequestError):
+        await client_async.delete_cache("")
+
+
+async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.delete_cache(1)
+        assert cm.exception == "Cache name must be a non-empty string"
+
+
+async def test_delete_cache_throws_authentication_exception_for_bad_token(
+    bad_auth_token: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+        with pytest.raises(errors.AuthenticationError):
+            await client_async.delete_cache(uuid_str())
+
+
+# List caches
+async def test_list_caches_succeeds(client_async: SimpleCacheClient, cache_name: str):
+    cache_name = uuid_str()
+
+    caches = (await client_async.list_caches()).caches()
+    cache_names = [cache.name() for cache in caches]
+    assert cache_name not in cache_names
+
+    try:
+        await client_async.create_cache(cache_name)
+
+        list_cache_resp = await client_async.list_caches()
+        caches = list_cache_resp.caches()
+        cache_names = [cache.name() for cache in caches]
+        assert cache_name in cache_names
+        assert list_cache_resp.next_token() is None
+    finally:
+        await client_async.delete_cache(cache_name)
+
+
+async def test_list_caches_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
+    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+        with pytest.raises(errors.AuthenticationError):
+            await client_async.list_caches()
+
+
+async def test_list_caches_with_next_token_works(client_async: SimpleCacheClient, cache_name: str):
+    """skip until pagination is actually implemented, see
+    https://github.com/momentohq/control-plane-service/issues/83"""
+    pass
+
+
+# Signing keys
+async def test_create_list_revoke_signing_keys(client_async: SimpleCacheClient):
+    create_resp = await client_async.create_signing_key(30)
+    list_resp = await client_async.list_signing_keys()
+    assert create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
+
+    await client_async.revoke_signing_key(create_resp.key_id())
+    list_resp = await client_async.list_signing_keys()
+    assert create_resp.key_id() not in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
+
+
+# Setting and Getting
+async def test_set_and_get_with_hit(client_async: SimpleCacheClient, cache_name: str):
+    key = uuid_str()
+    value = uuid_str()
+
+    set_resp = await client_async.set(cache_name, key, value)
+    assert set_resp.value() == value
+    assert set_resp.value_as_bytes() == str_to_bytes(value)
+
+    get_resp = await client_async.get(cache_name, key)
+    assert get_resp.status() == CacheGetStatus.HIT
+    assert get_resp.value() == value
+    assert get_resp.value_as_bytes() == str_to_bytes(value)
+
+
+async def test_set_and_get_with_byte_key_values(client_async: SimpleCacheClient, cache_name: str):
+    key = uuid_bytes()
+    value = uuid_bytes()
+
+    set_resp = await client_async.set(cache_name, key, value)
+    assert set_resp.value_as_bytes() == value
+
+    get_resp = await client_async.get(cache_name, key)
+    assert get_resp.status() == CacheGetStatus.HIT
+    assert get_resp.value_as_bytes() == value
+
+
+async def test_get_returns_miss(client_async: SimpleCacheClient, cache_name: str):
+    key = uuid_str()
+
+    get_resp = await client_async.get(cache_name, key)
+    assert get_resp.status() == CacheGetStatus.MISS
+    assert get_resp.value_as_bytes() is None
+    assert get_resp.value() is None
+
+
 # async def test_expires_items_after_ttl(client_async: SimpleCacheClient, cache_name: str):
 #     key = uuid_str()
 #     val = uuid_str()
