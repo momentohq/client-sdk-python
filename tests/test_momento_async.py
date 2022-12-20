@@ -6,97 +6,97 @@ import momento.errors as errors
 from momento.aio.simple_cache_client import SimpleCacheClient
 from momento.cache_operation_types import CacheGetStatus
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
-#
-#
-# async def test_create_cache_get_set_values_and_delete_cache(client_async: SimpleCacheClient, cache_name: str):
-#     random_cache_name = uuid_str()
-#     key = uuid_str()
-#     value = uuid_str()
-#
-#     await client_async.create_cache(random_cache_name)
-#
-#     set_resp = await client_async.set(random_cache_name, key, value)
-#     assert set_resp.value() == value
-#
-#     get_resp = await client_async.get(random_cache_name, key)
-#     assert get_resp.status() == CacheGetStatus.HIT
-#     assert get_resp.value() == value
-#
-#     get_for_key_in_some_other_cache = await client_async.get(cache_name, key)
-#     assert get_for_key_in_some_other_cache.status() == CacheGetStatus.MISS
-#
-#     await client_async.delete_cache(random_cache_name)
-#
-#
-# # Init
-# async def test_init_throws_exception_when_client_uses_negative_default_ttl(
-#     auth_token: str,
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         SimpleCacheClient(auth_token, -1)
-#         assert cm.exception == "TTL Seconds must be a non-negative integer"
-#
-#
-# async def test_init_throws_exception_for_non_jwt_token(default_ttl_seconds: int):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         SimpleCacheClient("notanauthtoken", default_ttl_seconds)
-#         assert cm.exception == "Invalid Auth token."
-#
-#
-# async def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
-#     auth_token: str, default_ttl_seconds: int
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         SimpleCacheClient(auth_token, default_ttl_seconds, -1)
-#         assert cm.exception == "Request timeout must be greater than zero."
-#
-#
-# async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
-#     auth_token: str, default_ttl_seconds: int
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         SimpleCacheClient(auth_token, default_ttl_seconds, 0)
-#         assert cm.exception == "Request timeout must be greater than zero."
-#
-#
-# # Create cache
-# async def test_create_cache_throws_already_exists_when_creating_existing_cache(
-#     client_async: SimpleCacheClient, cache_name: str
-# ):
-#     with pytest.raises(errors.AlreadyExistsError):
-#         await client_async.create_cache(cache_name)
-#
-#
-# async def test_create_cache_throws_exception_for_empty_cache_name(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.BadRequestError):
-#         await client_async.create_cache("")
-#
-#
-# async def test_create_cache_throws_validation_exception_for_null_cache_name(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.create_cache(None)
-#         assert cm.exception == "Cache name must be a non-empty string"
-#
-#
-# async def test_create_cache_with_bad_cache_name_throws_exception(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.create_cache(1)
-#         assert cm.exception == "Cache name must be a non-empty string"
-#
-#
-# async def test_create_cache_throws_authentication_exception_for_bad_token(
-#     bad_auth_token: str, default_ttl_seconds: int
-# ):
-#     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-#         with pytest.raises(errors.AuthenticationError):
-#             await client_async.create_cache(uuid_str())
-#
+
+
+async def test_create_cache_get_set_values_and_delete_cache(client_async: SimpleCacheClient, cache_name: str):
+    random_cache_name = uuid_str()
+    key = uuid_str()
+    value = uuid_str()
+
+    await client_async.create_cache(random_cache_name)
+
+    set_resp = await client_async.set(random_cache_name, key, value)
+    assert set_resp.value() == value
+
+    get_resp = await client_async.get(random_cache_name, key)
+    assert get_resp.status() == CacheGetStatus.HIT
+    assert get_resp.value() == value
+
+    get_for_key_in_some_other_cache = await client_async.get(cache_name, key)
+    assert get_for_key_in_some_other_cache.status() == CacheGetStatus.MISS
+
+    await client_async.delete_cache(random_cache_name)
+
+
+# Init
+async def test_init_throws_exception_when_client_uses_negative_default_ttl(
+    auth_token: str,
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        SimpleCacheClient(auth_token, -1)
+        assert cm.exception == "TTL Seconds must be a non-negative integer"
+
+
+async def test_init_throws_exception_for_non_jwt_token(default_ttl_seconds: int):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        SimpleCacheClient("notanauthtoken", default_ttl_seconds)
+        assert cm.exception == "Invalid Auth token."
+
+
+async def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
+    auth_token: str, default_ttl_seconds: int
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        SimpleCacheClient(auth_token, default_ttl_seconds, -1)
+        assert cm.exception == "Request timeout must be greater than zero."
+
+
+async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
+    auth_token: str, default_ttl_seconds: int
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        SimpleCacheClient(auth_token, default_ttl_seconds, 0)
+        assert cm.exception == "Request timeout must be greater than zero."
+
+
+# Create cache
+async def test_create_cache_throws_already_exists_when_creating_existing_cache(
+    client_async: SimpleCacheClient, cache_name: str
+):
+    with pytest.raises(errors.AlreadyExistsError):
+        await client_async.create_cache(cache_name)
+
+
+async def test_create_cache_throws_exception_for_empty_cache_name(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.BadRequestError):
+        await client_async.create_cache("")
+
+
+async def test_create_cache_throws_validation_exception_for_null_cache_name(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.create_cache(None)
+        assert cm.exception == "Cache name must be a non-empty string"
+
+
+async def test_create_cache_with_bad_cache_name_throws_exception(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.create_cache(1)
+        assert cm.exception == "Cache name must be a non-empty string"
+
+
+async def test_create_cache_throws_authentication_exception_for_bad_token(
+    bad_auth_token: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+        with pytest.raises(errors.AuthenticationError):
+            await client_async.create_cache(uuid_str())
+
 
 # Delete cache
 async def test_delete_cache_succeeds(client_async: SimpleCacheClient, cache_name: str):
