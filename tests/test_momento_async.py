@@ -228,243 +228,243 @@ async def test_get_returns_miss(client_async: SimpleCacheClient, cache_name: str
     assert get_resp.value() is None
 
 
-# async def test_expires_items_after_ttl(client_async: SimpleCacheClient, cache_name: str):
-#     key = uuid_str()
-#     val = uuid_str()
-#
-#     await client_async.set(cache_name, key, val, 2)
-#     get_response = await client_async.get(cache_name, key)
-#     assert get_response.status() == CacheGetStatus.HIT
-#
-#     time.sleep(4)
-#     get_response = await client_async.get(cache_name, key)
-#     assert get_response.status() == CacheGetStatus.MISS
-#
-#
-# async def test_set_with_different_ttl(client_async: SimpleCacheClient, cache_name: str):
-#     key1 = uuid_str()
-#     key2 = uuid_str()
-#
-#     await client_async.set(cache_name, key1, "1", 2)
-#     await client_async.set(cache_name, key2, "2")
-#
-#     # Before
-#     get_response = await client_async.get(cache_name, key1)
-#     assert get_response.status() == CacheGetStatus.HIT
-#     get_response = await client_async.get(cache_name, key2)
-#     assert get_response.status() == CacheGetStatus.HIT
-#
-#     time.sleep(4)
-#
-#     # After
-#     get_response = await client_async.get(cache_name, key1)
-#     assert get_response.status() == CacheGetStatus.MISS
-#     get_response = await client_async.get(cache_name, key2)
-#     assert get_response.status() == CacheGetStatus.HIT
-#
-#
-# # Set
-# async def test_set_with_non_existent_cache_name_throws_not_found(
-#     client_async: SimpleCacheClient,
-# ):
-#     cache_name = uuid_str()
-#     with pytest.raises(errors.NotFoundError):
-#         await client_async.set(cache_name, "foo", "bar")
-#
-#
-# async def test_set_with_null_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.set(None, "foo", "bar")
-#         assert cm.exception == "Cache name must be a non-empty string"
-#
-#
-# async def test_set_with_empty_cache_name_throws_exception(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.BadRequestError) as cm:
-#         await client_async.set("", "foo", "bar")
-#         assert cm.exception == "Cache header is empty"
-#
-#
-# async def test_set_with_null_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError):
-#         await client_async.set(cache_name, None, "bar")
-#
-#
-# async def test_set_with_null_value_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError):
-#         await client_async.set(cache_name, "foo", None)
-#
-#
-# async def test_set_negative_ttl_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.set(cache_name, "foo", "bar", -1)
-#         assert cm.exception == "TTL Seconds must be a non-negative integer"
-#
-#
-# async def test_set_with_bad_cache_name_throws_exception(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.set(1, "foo", "bar")
-#         assert cm.exception == "Cache name must be a non-empty string"
-#
-#
-# async def test_set_with_bad_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.set(cache_name, 1, "bar")
-#         assert cm.exception == "Unsupported type for key: <class 'int'>"
-#
-#
-# async def test_set_with_bad_value_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.set(cache_name, "foo", 1)
-#         assert cm.exception == "Unsupported type for value: <class 'int'>"
-#
-#
-# async def test_set_throws_authentication_exception_for_bad_token(
-#     bad_auth_token: str, cache_name: str, default_ttl_seconds: int
-# ):
-#     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-#         with pytest.raises(errors.AuthenticationError):
-#             await client_async.set(cache_name, "foo", "bar")
-#
-#
-# async def test_set_throws_timeout_error_for_short_request_timeout(
-#     auth_token: str, cache_name: str, default_ttl_seconds: int
-# ):
-#     async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
-#         with pytest.raises(errors.TimeoutError):
-#             await client_async.set(cache_name, "foo", "bar")
-#
-#
-# # Get
-# async def test_get_with_non_existent_cache_name_throws_not_found(
-#     client_async: SimpleCacheClient,
-# ):
-#     cache_name = uuid_str()
-#     with pytest.raises(errors.NotFoundError):
-#         await client_async.get(cache_name, "foo")
-#
-#
-# async def test_get_with_null_cache_name_throws_exception(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.get(None, "foo")
-#         assert cm.exception == "Cache name must be a non-empty string"
-#
-#
-# async def test_get_with_empty_cache_name_throws_exception(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.BadRequestError) as cm:
-#         await client_async.get("", "foo")
-#         assert cm.exception == "Cache header is empty"
-#
-#
-# async def test_get_with_null_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError):
-#         await client_async.get(cache_name, None)
-#
-#
-# async def test_get_with_bad_cache_name_throws_exception(
-#     client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.get(1, "foo")
-#         assert cm.exception == "Cache name must be a non-empty string"
-#
-#
-# async def test_get_with_bad_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-#     with pytest.raises(errors.InvalidArgumentError) as cm:
-#         await client_async.get(cache_name, 1)
-#         assert cm.exception == "Unsupported type for key: <class 'int'>"
-#
-#
-# async def test_get_throws_authentication_exception_for_bad_token(
-#     bad_auth_token: str, cache_name: str, default_ttl_seconds: int
-# ):
-#     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-#         with pytest.raises(errors.AuthenticationError):
-#             await client_async.get(cache_name, "foo")
-#
-#
-# async def test_get_throws_timeout_error_for_short_request_timeout(
-#     auth_token: str, cache_name: str, default_ttl_seconds: int
-# ):
-#     async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
-#         with pytest.raises(errors.TimeoutError):
-#             await client_async.get(cache_name, "foo")
-#
-#
-# # Multi op tests
-# async def test_get_multi_and_set(client_async: SimpleCacheClient, cache_name: str):
-#     items = [(uuid_str(), uuid_str()) for _ in range(5)]
-#     set_resp = await client_async.set_multi(cache_name=cache_name, items=dict(items))
-#     assert dict(items) == set_resp.items()
-#
-#     get_resp = await client_async.get_multi(cache_name, items[4][0], items[0][0], items[1][0], items[2][0])
-#     values = get_resp.values()
-#     assert items[4][1] == values[0]
-#     assert items[0][1] == values[1]
-#     assert items[1][1] == values[2]
-#     assert items[2][1] == values[3]
-#
-#
-# async def test_get_multi_failure(auth_token: str, cache_name: str, default_ttl_seconds: int):
-#     # Start with a cache client with impossibly small request timeout to force failures
-#     async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
-#         with pytest.raises(errors.TimeoutError):
-#             await client_async.get_multi(cache_name, "key1", "key2", "key3", "key4", "key5", "key6")
-#
-#
-# async def test_set_multi_failure(
-#     client_async: SimpleCacheClient,
-#     auth_token: str,
-#     cache_name: str,
-#     default_ttl_seconds: int,
-# ):
-#     # Start with a cache client with impossibly small request timeout to force failures
-#     async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
-#         with pytest.raises(errors.TimeoutError):
-#             await client_async.set_multi(
-#                 cache_name=cache_name,
-#                 items={
-#                     "fizz1": "buzz1",
-#                     "fizz2": "buzz2",
-#                     "fizz3": "buzz3",
-#                     "fizz4": "buzz4",
-#                     "fizz5": "buzz5",
-#                 },
-#             )
-#
-#
-# # Test delete for key that doesn't exist
-# async def test_delete_key_doesnt_exist(client_async: SimpleCacheClient, cache_name: str):
-#     key = uuid_str()
-#     get_response = await client_async.get(cache_name, key)
-#     assert get_response.status() == CacheGetStatus.MISS
-#
-#     await client_async.delete(cache_name, key)
-#     get_response = await client_async.get(cache_name, key)
-#     get_response.status() == CacheGetStatus.MISS
-#
-#
-# # Test delete
-# async def test_delete(client_async: SimpleCacheClient, cache_name: str):
-#     # Set an item to then delete...
-#     key, value = uuid_str(), uuid_str()
-#     get_response = await client_async.get(cache_name, key)
-#     assert get_response.status() == CacheGetStatus.MISS
-#     await client_async.set(cache_name, key, value)
-#
-#     get_response = await client_async.get(cache_name, key)
-#     assert get_response.status() == CacheGetStatus.HIT
-#
-#     # Delete
-#     await client_async.delete(cache_name, key)
-#
-#     # Verify deleted
-#     get_response = await client_async.get(cache_name, key)
-#     assert get_response.status() == CacheGetStatus.MISS
+async def test_expires_items_after_ttl(client_async: SimpleCacheClient, cache_name: str):
+    key = uuid_str()
+    val = uuid_str()
+
+    await client_async.set(cache_name, key, val, 2)
+    get_response = await client_async.get(cache_name, key)
+    assert get_response.status() == CacheGetStatus.HIT
+
+    time.sleep(4)
+    get_response = await client_async.get(cache_name, key)
+    assert get_response.status() == CacheGetStatus.MISS
+
+
+async def test_set_with_different_ttl(client_async: SimpleCacheClient, cache_name: str):
+    key1 = uuid_str()
+    key2 = uuid_str()
+
+    await client_async.set(cache_name, key1, "1", 2)
+    await client_async.set(cache_name, key2, "2")
+
+    # Before
+    get_response = await client_async.get(cache_name, key1)
+    assert get_response.status() == CacheGetStatus.HIT
+    get_response = await client_async.get(cache_name, key2)
+    assert get_response.status() == CacheGetStatus.HIT
+
+    time.sleep(4)
+
+    # After
+    get_response = await client_async.get(cache_name, key1)
+    assert get_response.status() == CacheGetStatus.MISS
+    get_response = await client_async.get(cache_name, key2)
+    assert get_response.status() == CacheGetStatus.HIT
+
+
+# Set
+async def test_set_with_non_existent_cache_name_throws_not_found(
+    client_async: SimpleCacheClient,
+):
+    cache_name = uuid_str()
+    with pytest.raises(errors.NotFoundError):
+        await client_async.set(cache_name, "foo", "bar")
+
+
+async def test_set_with_null_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.set(None, "foo", "bar")
+        assert cm.exception == "Cache name must be a non-empty string"
+
+
+async def test_set_with_empty_cache_name_throws_exception(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.BadRequestError) as cm:
+        await client_async.set("", "foo", "bar")
+        assert cm.exception == "Cache header is empty"
+
+
+async def test_set_with_null_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError):
+        await client_async.set(cache_name, None, "bar")
+
+
+async def test_set_with_null_value_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError):
+        await client_async.set(cache_name, "foo", None)
+
+
+async def test_set_negative_ttl_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.set(cache_name, "foo", "bar", -1)
+        assert cm.exception == "TTL Seconds must be a non-negative integer"
+
+
+async def test_set_with_bad_cache_name_throws_exception(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.set(1, "foo", "bar")
+        assert cm.exception == "Cache name must be a non-empty string"
+
+
+async def test_set_with_bad_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.set(cache_name, 1, "bar")
+        assert cm.exception == "Unsupported type for key: <class 'int'>"
+
+
+async def test_set_with_bad_value_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.set(cache_name, "foo", 1)
+        assert cm.exception == "Unsupported type for value: <class 'int'>"
+
+
+async def test_set_throws_authentication_exception_for_bad_token(
+    bad_auth_token: str, cache_name: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+        with pytest.raises(errors.AuthenticationError):
+            await client_async.set(cache_name, "foo", "bar")
+
+
+async def test_set_throws_timeout_error_for_short_request_timeout(
+    auth_token: str, cache_name: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
+        with pytest.raises(errors.TimeoutError):
+            await client_async.set(cache_name, "foo", "bar")
+
+
+# Get
+async def test_get_with_non_existent_cache_name_throws_not_found(
+    client_async: SimpleCacheClient,
+):
+    cache_name = uuid_str()
+    with pytest.raises(errors.NotFoundError):
+        await client_async.get(cache_name, "foo")
+
+
+async def test_get_with_null_cache_name_throws_exception(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.get(None, "foo")
+        assert cm.exception == "Cache name must be a non-empty string"
+
+
+async def test_get_with_empty_cache_name_throws_exception(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.BadRequestError) as cm:
+        await client_async.get("", "foo")
+        assert cm.exception == "Cache header is empty"
+
+
+async def test_get_with_null_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError):
+        await client_async.get(cache_name, None)
+
+
+async def test_get_with_bad_cache_name_throws_exception(
+    client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.get(1, "foo")
+        assert cm.exception == "Cache name must be a non-empty string"
+
+
+async def test_get_with_bad_key_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+    with pytest.raises(errors.InvalidArgumentError) as cm:
+        await client_async.get(cache_name, 1)
+        assert cm.exception == "Unsupported type for key: <class 'int'>"
+
+
+async def test_get_throws_authentication_exception_for_bad_token(
+    bad_auth_token: str, cache_name: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+        with pytest.raises(errors.AuthenticationError):
+            await client_async.get(cache_name, "foo")
+
+
+async def test_get_throws_timeout_error_for_short_request_timeout(
+    auth_token: str, cache_name: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
+        with pytest.raises(errors.TimeoutError):
+            await client_async.get(cache_name, "foo")
+
+
+# Multi op tests
+async def test_get_multi_and_set(client_async: SimpleCacheClient, cache_name: str):
+    items = [(uuid_str(), uuid_str()) for _ in range(5)]
+    set_resp = await client_async.set_multi(cache_name=cache_name, items=dict(items))
+    assert dict(items) == set_resp.items()
+
+    get_resp = await client_async.get_multi(cache_name, items[4][0], items[0][0], items[1][0], items[2][0])
+    values = get_resp.values()
+    assert items[4][1] == values[0]
+    assert items[0][1] == values[1]
+    assert items[1][1] == values[2]
+    assert items[2][1] == values[3]
+
+
+async def test_get_multi_failure(auth_token: str, cache_name: str, default_ttl_seconds: int):
+    # Start with a cache client with impossibly small request timeout to force failures
+    async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
+        with pytest.raises(errors.TimeoutError):
+            await client_async.get_multi(cache_name, "key1", "key2", "key3", "key4", "key5", "key6")
+
+
+async def test_set_multi_failure(
+    client_async: SimpleCacheClient,
+    auth_token: str,
+    cache_name: str,
+    default_ttl_seconds: int,
+):
+    # Start with a cache client with impossibly small request timeout to force failures
+    async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
+        with pytest.raises(errors.TimeoutError):
+            await client_async.set_multi(
+                cache_name=cache_name,
+                items={
+                    "fizz1": "buzz1",
+                    "fizz2": "buzz2",
+                    "fizz3": "buzz3",
+                    "fizz4": "buzz4",
+                    "fizz5": "buzz5",
+                },
+            )
+
+
+# Test delete for key that doesn't exist
+async def test_delete_key_doesnt_exist(client_async: SimpleCacheClient, cache_name: str):
+    key = uuid_str()
+    get_response = await client_async.get(cache_name, key)
+    assert get_response.status() == CacheGetStatus.MISS
+
+    await client_async.delete(cache_name, key)
+    get_response = await client_async.get(cache_name, key)
+    get_response.status() == CacheGetStatus.MISS
+
+
+# Test delete
+async def test_delete(client_async: SimpleCacheClient, cache_name: str):
+    # Set an item to then delete...
+    key, value = uuid_str(), uuid_str()
+    get_response = await client_async.get(cache_name, key)
+    assert get_response.status() == CacheGetStatus.MISS
+    await client_async.set(cache_name, key, value)
+
+    get_response = await client_async.get(cache_name, key)
+    assert get_response.status() == CacheGetStatus.HIT
+
+    # Delete
+    await client_async.delete(cache_name, key)
+
+    # Verify deleted
+    get_response = await client_async.get(cache_name, key)
+    assert get_response.status() == CacheGetStatus.MISS
