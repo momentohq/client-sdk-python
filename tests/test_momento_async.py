@@ -7,25 +7,25 @@ from momento.aio.simple_cache_client import SimpleCacheClient
 from momento.cache_operation_types import CacheGetStatus
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
-
-async def test_create_cache_get_set_values_and_delete_cache(client_async: SimpleCacheClient, cache_name: str):
-    random_cache_name = uuid_str()
-    key = uuid_str()
-    value = uuid_str()
-
-    await client_async.create_cache(random_cache_name)
-
-    set_resp = await client_async.set(random_cache_name, key, value)
-    assert set_resp.value() == value
-
-    get_resp = await client_async.get(random_cache_name, key)
-    assert get_resp.status() == CacheGetStatus.HIT
-    assert get_resp.value() == value
-
-    get_for_key_in_some_other_cache = await client_async.get(cache_name, key)
-    assert get_for_key_in_some_other_cache.status() == CacheGetStatus.MISS
-
-    await client_async.delete_cache(random_cache_name)
+#
+# async def test_create_cache_get_set_values_and_delete_cache(client_async: SimpleCacheClient, cache_name: str):
+#     random_cache_name = uuid_str()
+#     key = uuid_str()
+#     value = uuid_str()
+#
+#     await client_async.create_cache(random_cache_name)
+#
+#     set_resp = await client_async.set(random_cache_name, key, value)
+#     assert set_resp.value() == value
+#
+#     get_resp = await client_async.get(random_cache_name, key)
+#     assert get_resp.status() == CacheGetStatus.HIT
+#     assert get_resp.value() == value
+#
+#     get_for_key_in_some_other_cache = await client_async.get(cache_name, key)
+#     assert get_for_key_in_some_other_cache.status() == CacheGetStatus.MISS
+#
+#     await client_async.delete_cache(random_cache_name)
 
 
 
