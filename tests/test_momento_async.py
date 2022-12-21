@@ -113,12 +113,12 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
 #         await client_async.delete_cache(cache_name)
 
 
-async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
-    client_async: SimpleCacheClient,
-):
-    cache_name = uuid_str()
-    with pytest.raises(errors.NotFoundError):
-        await client_async.delete_cache(cache_name)
+# async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
+#     client_async: SimpleCacheClient,
+# ):
+#     cache_name = uuid_str()
+#     with pytest.raises(errors.NotFoundError):
+#         await client_async.delete_cache(cache_name)
 
 #
 # async def test_delete_cache_throws_invalid_input_for_null_cache_name(
