@@ -120,12 +120,12 @@ async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
     with pytest.raises(errors.NotFoundError):
         await client_async.delete_cache(cache_name)
 
-
-async def test_delete_cache_throws_invalid_input_for_null_cache_name(
-    client_async: SimpleCacheClient,
-):
-    with pytest.raises(errors.InvalidArgumentError):
-        await client_async.delete_cache(None)
+#
+# async def test_delete_cache_throws_invalid_input_for_null_cache_name(
+#     client_async: SimpleCacheClient,
+# ):
+#     with pytest.raises(errors.InvalidArgumentError):
+#         await client_async.delete_cache(None)
 
 
 async def test_delete_cache_throws_exception_for_empty_cache_name(
@@ -134,11 +134,11 @@ async def test_delete_cache_throws_exception_for_empty_cache_name(
     with pytest.raises(errors.BadRequestError):
         await client_async.delete_cache("")
 
-
-async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        await client_async.delete_cache(1)
-        assert cm.exception == "Cache name must be a non-empty string"
+#
+# async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
+#     with pytest.raises(errors.InvalidArgumentError) as cm:
+#         await client_async.delete_cache(1)
+#         assert cm.exception == "Cache name must be a non-empty string"
 
 
 async def test_delete_cache_throws_authentication_exception_for_bad_token(
