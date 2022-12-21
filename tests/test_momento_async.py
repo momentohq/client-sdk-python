@@ -73,6 +73,29 @@ async def test_create_cache_throws_exception_for_empty_cache_name(
     with pytest.raises(errors.BadRequestError):
         await client_async.create_cache("")
 
+
+async def test_delete_cache_throws_authentication_exception_for_bad_token(
+        bad_auth_token: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+        with pytest.raises(errors.AuthenticationError):
+            await client_async.delete_cache(uuid_str())
+
+
+async def test_create_cache_throws_authentication_exception_for_bad_token(
+        bad_auth_token: str, default_ttl_seconds: int
+):
+    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+        with pytest.raises(errors.AuthenticationError):
+            await client_async.create_cache(uuid_str())
+
+
+async def test_delete_cache_throws_exception_for_empty_cache_name(
+        client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.BadRequestError):
+        await client_async.delete_cache("")
+
 #
 # async def test_create_cache_throws_validation_exception_for_null_cache_name(
 #     client_async: SimpleCacheClient,
@@ -90,12 +113,6 @@ async def test_create_cache_throws_exception_for_empty_cache_name(
 #         assert cm.exception == "Cache name must be a non-empty string"
 #
 
-async def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, default_ttl_seconds: int
-):
-    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-        with pytest.raises(errors.AuthenticationError):
-            await client_async.create_cache(uuid_str())
 
 
 # Delete cache
@@ -128,11 +145,6 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
 #         await client_async.delete_cache(None)
 
 
-async def test_delete_cache_throws_exception_for_empty_cache_name(
-    client_async: SimpleCacheClient,
-):
-    with pytest.raises(errors.BadRequestError):
-        await client_async.delete_cache("")
 
 #
 # async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
@@ -141,12 +153,6 @@ async def test_delete_cache_throws_exception_for_empty_cache_name(
 #         assert cm.exception == "Cache name must be a non-empty string"
 
 
-async def test_delete_cache_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, default_ttl_seconds: int
-):
-    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-        with pytest.raises(errors.AuthenticationError):
-            await client_async.delete_cache(uuid_str())
 
 
 # # List caches
