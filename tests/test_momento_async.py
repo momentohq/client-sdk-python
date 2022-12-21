@@ -33,11 +33,11 @@ from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 # CI TIMEOUTS ARE REPRODUCIBLE WITHOUT ANYTHING ABOVE THIS LINE
 ##############################################################################################################
 
-# async def test_create_cache_throws_exception_for_empty_cache_name(
-#         client_async: SimpleCacheClient,
-# ):
-#     with pytest.raises(errors.BadRequestError):
-#         await client_async.create_cache("")
+async def test_create_cache_throws_exception_for_empty_cache_name(
+        client_async: SimpleCacheClient,
+):
+    with pytest.raises(errors.BadRequestError):
+        await client_async.create_cache("")
 
 
 async def test_delete_cache_throws_authentication_exception_for_bad_token(
