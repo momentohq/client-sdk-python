@@ -29,6 +29,10 @@ from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
 
 
+##############################################################################################################
+# CI TIMEOUTS ARE REPRODUCIBLE WITHOUT ANYTHING ABOVE THIS LINE
+##############################################################################################################
+
 async def test_create_cache_throws_exception_for_empty_cache_name(
         client_async: SimpleCacheClient,
 ):
@@ -43,13 +47,13 @@ async def test_delete_cache_throws_authentication_exception_for_bad_token(
         with pytest.raises(errors.AuthenticationError):
             await client_async.delete_cache(uuid_str())
 
-
-async def test_create_cache_throws_authentication_exception_for_bad_token(
-        bad_auth_token: str, default_ttl_seconds: int
-):
-    async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-        with pytest.raises(errors.AuthenticationError):
-            await client_async.create_cache(uuid_str())
+#
+# async def test_create_cache_throws_authentication_exception_for_bad_token(
+#         bad_auth_token: str, default_ttl_seconds: int
+# ):
+#     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
+#         with pytest.raises(errors.AuthenticationError):
+#             await client_async.create_cache(uuid_str())
 
 
 async def test_delete_cache_throws_exception_for_empty_cache_name(
@@ -57,6 +61,12 @@ async def test_delete_cache_throws_exception_for_empty_cache_name(
 ):
     with pytest.raises(errors.BadRequestError):
         await client_async.delete_cache("")
+
+
+##############################################################################################################
+# CI TIMEOUTS ARE REPRODUCIBLE WITHOUT ANYTHING BELOW THIS LINE
+##############################################################################################################
+
 
 #
 # # Init
