@@ -6,7 +6,7 @@ from enum import Enum
 from time import perf_counter_ns
 from typing import Callable, Coroutine, Optional, Tuple, TypeVar
 
-import colorlog
+import colorlog  # type: ignore
 from hdrh.histogram import HdrHistogram
 
 import momento.errors
