@@ -53,7 +53,6 @@ async def wrap_async_with_error_handling(
     try:
         req = prepare_request_fn()
         resp = await execute_request_fn(req)
-        print(f"\n\n\n\nAWAITED EXECUTED REQ FN, RESP: {resp}\n\n\n\n\n")
         return response_fn(req, resp)
     except Exception as e:
         _logger.warning("%s failed with exception: %s", request_type, e)
