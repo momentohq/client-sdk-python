@@ -3,7 +3,7 @@ import os
 
 import colorlog  # type: ignore
 
-from momento.logs import initialize_momento_logging, TRACE
+from momento.logs import TRACE, initialize_momento_logging
 
 
 def initialize_logging() -> None:
