@@ -3,13 +3,16 @@ import os
 
 import colorlog  # type: ignore
 
-from momento.logs import initialize_momento_logging
+from momento.logs import initialize_momento_logging, TRACE
 
 
 def initialize_logging() -> None:
     initialize_momento_logging()
     debug_mode = os.getenv("DEBUG")
-    if debug_mode == "true":
+    trace_mode = os.getenv("TRACE")
+    if trace_mode == "true":
+        log_level = TRACE
+    elif debug_mode == "true":
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
