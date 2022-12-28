@@ -54,7 +54,9 @@ class CacheGetResponse:
         self._status = status
 
     @staticmethod
-    def from_grpc_response(grpc_get_response: Any) -> "CacheGetResponse":  # type: ignore[misc]
+    def from_grpc_response(  # type: ignore[misc]
+        grpc_get_response: cache_client_types._GetResponse,
+    ) -> "CacheGetResponse":
         """Initializes CacheGetResponse to handle gRPC get response.
 
         Args:
