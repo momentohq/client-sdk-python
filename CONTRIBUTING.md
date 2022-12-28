@@ -142,6 +142,7 @@ stakes for open source python libraries.)
 We also use `flake8` for static analysis.
 
 We use `black` for formatting and checking the formatting of the code.
+We also use `isort` to order imports.
 
 To run the linters:
 
@@ -154,6 +155,7 @@ To run the code formatter:
 
 ```
 poetry run black .
+poetry run isort .
 ```
 
 <br/>
