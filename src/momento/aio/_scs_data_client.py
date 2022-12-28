@@ -1,5 +1,4 @@
-import asyncio
-from typing import Mapping, Optional, Union
+from typing import Optional, Union
 
 from momento_wire_types.cacheclient_pb2 import _DeleteRequest, _GetRequest, _SetRequest
 
@@ -67,35 +66,6 @@ class _ScsDataClient:
             self._logger.log(logs.TRACE, "Set failed for %s with response: %s", str(key), e)
             raise _cache_service_errors_converter.convert(e)
 
-    async def set_multi(
-        self,
-        cache_name: str,
-        items: Union[Mapping[str, str], Mapping[bytes, bytes]],
-        ttl_seconds: Optional[int] = None,
-    ) -> cache_sdk_ops.CacheSetMultiResponse:
-        _validate_cache_name(cache_name)
-
-        try:
-            request_promises = [self.set(cache_name, key, value, ttl_seconds) for key, value in items.items()]
-
-            # A note on `return_exceptions=True`: because we're gathering the results,
-            # if an individual promise raises an exception, we want the others to finish gracefully.
-            responses = await asyncio.gather(
-                *request_promises,
-                return_exceptions=True,
-            )
-
-            for response in responses:
-                if isinstance(response, Exception):
-                    raise response
-
-            items_as_bytes = {response.key_as_bytes(): response.value_as_bytes() for response in responses}
-            return cache_sdk_ops.CacheSetMultiResponse(items=items_as_bytes)
-        except Exception as e:
-            self._logger.debug("multi-set failed with error: %s", e)
-            # re-raise any error caught here is fatal error with overall handling of request objects
-            raise _cache_service_errors_converter.convert(e)
-
     async def get(self, cache_name: str, key: Union[str, bytes]) -> cache_sdk_ops.CacheGetResponse:
 
         _validate_cache_name(cache_name)
@@ -113,30 +83,6 @@ class _ScsDataClient:
         except Exception as e:
             self._logger.log(logs.TRACE, "Get failed for %s with response: %s", str(key), e)
             raise _cache_service_errors_converter.convert(e)
-
-    async def get_multi(
-        self,
-        cache_name: str,
-        *keys: Union[str, bytes],
-    ) -> cache_sdk_ops.CacheGetMultiResponse:
-        _validate_cache_name(cache_name)
-        try:
-            request_promises = [self.get(cache_name, key) for key in keys]
-
-            # A note on `return_exceptions=True`: because we're gathering the results,
-            # if an individual promise raises an exception, we want the others to finish gracefully.
-            responses = await asyncio.gather(
-                *request_promises,
-                return_exceptions=True,
-            )
-            for response in responses:
-                if isinstance(response, Exception):
-                    raise response
-        except Exception as e:
-            self._logger.debug("get_multi failed with response: %s", e)
-            raise _cache_service_errors_converter.convert(e)
-
-        return cache_sdk_ops.CacheGetMultiResponse(responses=responses)
 
     async def delete(self, cache_name: str, key: Union[str, bytes]) -> cache_sdk_ops.CacheDeleteResponse:
         _validate_cache_name(cache_name)

@@ -7,12 +7,6 @@ import pytest_asyncio
 
 import momento.errors as errors
 from momento.aio.simple_cache_client import SimpleCacheClient as SimpleCacheClientAsync
-from momento.incubating.aio.simple_cache_client import (
-    SimpleCacheClientIncubating as IncubatingSimpleCacheClientAsync,
-)
-from momento.incubating.simple_cache_client import (
-    SimpleCacheClientIncubating as IncubatingSimpleCacheClient,
-)
 from momento.simple_cache_client import SimpleCacheClient
 
 #######################
@@ -88,28 +82,3 @@ async def client_async() -> SimpleCacheClientAsync:
             pass
 
         yield _client
-
-
-# TODO: Test fails when this is session scope. Because of a race when closing the event loop?
-@pytest.fixture(scope="module")
-def incubating_client() -> IncubatingSimpleCacheClient:
-    with IncubatingSimpleCacheClient(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
-        # Ensure test cache exists
-        try:
-            client.create_cache(TEST_CACHE_NAME)
-        except errors.AlreadyExistsError:
-            pass
-
-        yield client
-
-
-@pytest_asyncio.fixture(scope="session")
-async def incubating_client_async() -> IncubatingSimpleCacheClientAsync:
-    async with IncubatingSimpleCacheClientAsync(TEST_AUTH_TOKEN, DEFAULT_TTL_SECONDS) as client:
-        # Ensure test cache exists
-        try:
-            await client.create_cache(TEST_CACHE_NAME)
-        except errors.AlreadyExistsError:
-            pass
-
-        yield client
