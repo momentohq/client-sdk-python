@@ -3,7 +3,7 @@ from typing import Optional
 import grpc.aio
 import pytest
 
-from momento.errors import AuthenticationError, InvalidArgumentError
+from momento.errors import InvalidArgumentError
 from src.momento.aio._add_header_client_interceptor import sanitize_client_call_details
 
 

@@ -1,14 +1,8 @@
 from typing import Optional, Union
 
-from grpc.aio import Metadata
-
 from .. import errors
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
-
-
-def _make_metadata(cache_name: str) -> Metadata:
-    return Metadata(("cache", cache_name))  # type: ignore[misc]
 
 
 def _validate_cache_name(cache_name: str) -> None:

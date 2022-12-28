@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Mapping, Optional
+from typing import Any, List, Optional
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 
@@ -48,30 +48,15 @@ class CacheSetResponse:
         return f"CacheSetResponse(key={self._key!r}, value={self._value!r})"
 
 
-class CacheSetMultiResponse:
-    def __init__(self, items: Mapping[bytes, bytes]):
-        self._items = items
-
-    def items(self) -> Mapping[str, str]:
-        return {key.decode("utf-8"): value.decode("utf-8") for key, value in self._items.items()}
-
-    def items_as_bytes(self) -> Mapping[bytes, bytes]:
-        return self._items
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return f"CacheSetMultiResponse(items={self._items!r})"
-
-
 class CacheGetResponse:
     def __init__(self, value: bytes, status: CacheGetStatus):
         self._value = value
         self._status = status
 
     @staticmethod
-    def from_grpc_response(grpc_get_response: Any) -> "CacheGetResponse":  # type: ignore[misc]
+    def from_grpc_response(  # type: ignore[misc]
+        grpc_get_response: cache_client_types._GetResponse,
+    ) -> "CacheGetResponse":
         """Initializes CacheGetResponse to handle gRPC get response.
 
         Args:
@@ -114,31 +99,6 @@ class CacheGetResponse:
 
     def __repr__(self) -> str:
         return f"CacheGetResponse(value={self._value!r}, status={self._status!r})"
-
-
-class CacheGetMultiResponse:
-    def __init__(self, responses: List[CacheGetResponse]):
-        self._responses = responses
-
-    def status(self) -> List[CacheGetStatus]:
-        return [response.status() for response in self._responses]
-
-    def values(self) -> List[Optional[str]]:
-        """Returns list of values as utf-8 string for each Hit. Each item in list is None if was a Miss."""
-        return [response.value() for response in self._responses]
-
-    def values_as_bytes(self) -> List[Optional[bytes]]:
-        """Returns list of values as bytes for each Hit. Each item in list is None if was a Miss."""
-        return [response.value_as_bytes() for response in self._responses]
-
-    def to_list(self) -> List[CacheGetResponse]:
-        return self._responses
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return f"CacheGetMultiResponse(responses={self._responses!r})"
 
 
 class CacheDeleteResponse:

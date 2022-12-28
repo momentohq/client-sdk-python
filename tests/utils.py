@@ -1,6 +1,10 @@
 import uuid
 
 
+def unique_test_cache_name() -> str:
+    return f"python-test-{uuid_str()}"
+
+
 def uuid_str() -> str:
     """Generate a UUID as a string.
 

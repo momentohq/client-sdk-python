@@ -5,11 +5,11 @@ import pytest
 import momento.errors as errors
 from momento.aio.simple_cache_client import SimpleCacheClient
 from momento.cache_operation_types import CacheGetStatus
-from tests.utils import str_to_bytes, uuid_bytes, uuid_str
+from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 
 async def test_create_cache_get_set_values_and_delete_cache(client_async: SimpleCacheClient, cache_name: str):
-    random_cache_name = uuid_str()
+    random_cache_name = unique_test_cache_name()
     key = uuid_str()
     value = uuid_str()
 
@@ -95,7 +95,7 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
 ):
     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
         with pytest.raises(errors.AuthenticationError):
-            await client_async.create_cache(uuid_str())
+            await client_async.create_cache(unique_test_cache_name())
 
 
 # Delete cache
@@ -392,48 +392,6 @@ async def test_get_throws_timeout_error_for_short_request_timeout(
     async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
         with pytest.raises(errors.TimeoutError):
             await client_async.get(cache_name, "foo")
-
-
-# Multi op tests
-async def test_get_multi_and_set(client_async: SimpleCacheClient, cache_name: str):
-    items = [(uuid_str(), uuid_str()) for _ in range(5)]
-    set_resp = await client_async.set_multi(cache_name=cache_name, items=dict(items))
-    assert dict(items) == set_resp.items()
-
-    get_resp = await client_async.get_multi(cache_name, items[4][0], items[0][0], items[1][0], items[2][0])
-    values = get_resp.values()
-    assert items[4][1] == values[0]
-    assert items[0][1] == values[1]
-    assert items[1][1] == values[2]
-    assert items[2][1] == values[3]
-
-
-async def test_get_multi_failure(auth_token: str, cache_name: str, default_ttl_seconds: int):
-    # Start with a cache client with impossibly small request timeout to force failures
-    async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
-        with pytest.raises(errors.TimeoutError):
-            await client_async.get_multi(cache_name, "key1", "key2", "key3", "key4", "key5", "key6")
-
-
-async def test_set_multi_failure(
-    client_async: SimpleCacheClient,
-    auth_token: str,
-    cache_name: str,
-    default_ttl_seconds: int,
-):
-    # Start with a cache client with impossibly small request timeout to force failures
-    async with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client_async:
-        with pytest.raises(errors.TimeoutError):
-            await client_async.set_multi(
-                cache_name=cache_name,
-                items={
-                    "fizz1": "buzz1",
-                    "fizz2": "buzz2",
-                    "fizz3": "buzz3",
-                    "fizz4": "buzz4",
-                    "fizz5": "buzz5",
-                },
-            )
 
 
 # Test delete for key that doesn't exist

@@ -5,11 +5,11 @@ import pytest
 import momento.errors as errors
 from momento.cache_operation_types import CacheGetStatus
 from momento.simple_cache_client import SimpleCacheClient
-from tests.utils import str_to_bytes, uuid_bytes, uuid_str
+from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 
 def test_create_cache_get_set_values_and_delete_cache(client: SimpleCacheClient, cache_name: str):
-    random_cache_name = uuid_str()
+    random_cache_name = unique_test_cache_name()
     key = uuid_str()
     value = uuid_str()
 
@@ -87,7 +87,7 @@ def test_create_cache_with_bad_cache_name_throws_exception(
 def test_create_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
     with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
-            client.create_cache(uuid_str())
+            client.create_cache(unique_test_cache_name())
 
 
 # Delete cache
@@ -165,17 +165,6 @@ def test_list_caches_with_next_token_works(client: SimpleCacheClient, cache_name
     """skip until pagination is actually implemented, see
     https://github.com/momentohq/control-plane-service/issues/83"""
     pass
-
-
-# Signing keys
-def test_create_list_revoke_signing_keys(client: SimpleCacheClient):
-    create_resp = client.create_signing_key(30)
-    list_resp = client.list_signing_keys()
-    assert create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
-
-    client.revoke_signing_key(create_resp.key_id())
-    list_resp = client.list_signing_keys()
-    assert create_resp.key_id() not in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
 
 
 # Setting and Getting
@@ -378,48 +367,6 @@ def test_get_throws_timeout_error_for_short_request_timeout(auth_token: str, cac
     with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
         with pytest.raises(errors.TimeoutError):
             client.get(cache_name, "foo")
-
-
-# Multi op tests
-def test_get_multi_and_set(client: SimpleCacheClient, cache_name: str):
-    items = [(uuid_str(), uuid_str()) for _ in range(5)]
-    set_resp = client.set_multi(cache_name=cache_name, items=dict(items))
-    assert dict(items) == set_resp.items()
-
-    get_resp = client.get_multi(cache_name, items[4][0], items[0][0], items[1][0], items[2][0])
-    values = get_resp.values()
-    assert items[4][1] == values[0]
-    assert items[0][1] == values[1]
-    assert items[1][1] == values[2]
-    assert items[2][1] == values[3]
-
-
-def test_get_multi_failure(auth_token: str, cache_name: str, default_ttl_seconds: int):
-    # Start with a cache client with impossibly small request timeout to force failures
-    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
-        with pytest.raises(errors.TimeoutError):
-            client.get_multi(cache_name, "key1", "key2", "key3", "key4", "key5", "key6")
-
-
-def test_set_multi_failure(
-    client: SimpleCacheClient,
-    auth_token: str,
-    cache_name: str,
-    default_ttl_seconds: int,
-):
-    # Start with a cache client with impossibly small request timeout to force failures
-    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
-        with pytest.raises(errors.TimeoutError):
-            client.set_multi(
-                cache_name=cache_name,
-                items={
-                    "fizz1": "buzz1",
-                    "fizz2": "buzz2",
-                    "fizz3": "buzz3",
-                    "fizz4": "buzz4",
-                    "fizz5": "buzz5",
-                },
-            )
 
 
 # Test delete for key that doesn't exist
