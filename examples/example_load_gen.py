@@ -1,4 +1,6 @@
 import asyncio
+import threading
+import time
 import logging
 import os
 from dataclasses import dataclass
@@ -18,6 +20,22 @@ from momento.cache_operation_types import (
 )
 from momento.logs import initialize_momento_logging
 
+class setInterval :
+    def __init__(self,interval,action) :
+        self.interval=interval
+        self.action=action
+        self.stopEvent=threading.Event()
+        thread=threading.Thread(target=self.__setInterval)
+        thread.start()
+
+    def __setInterval(self) :
+        nextTime=time.time()+self.interval
+        while not self.stopEvent.wait(nextTime-time.time()) :
+            nextTime+=self.interval
+            self.action()
+
+    def cancel(self) :
+        self.stopEvent.set()
 
 def initialize_logging(level: int) -> None:
     initialize_momento_logging()
@@ -58,13 +76,13 @@ class BasicPythonLoadGenContext:
 
 class BasicPythonLoadGen:
     cache_name = "python-loadgen"
-    print_summary_every_n_requests = 1_000
 
     def __init__(
         self,
         request_timeout_ms: int,
         cache_item_payload_bytes: int,
         number_of_concurrent_requests: int,
+        show_stats_interval_seconds: int,
         total_number_of_operations_to_execute: int,
     ):
         self.logger = logging.getLogger("load-gen")
@@ -73,6 +91,7 @@ class BasicPythonLoadGen:
             raise ValueError("Missing required environment variable MOMENTO_AUTH_TOKEN")
         self.request_timeout_ms = request_timeout_ms
         self.number_of_concurrent_requests = number_of_concurrent_requests
+        self.show_stats_interval_seconds = show_stats_interval_seconds
         self.total_number_of_operations_to_execute = total_number_of_operations_to_execute
         self.cache_value = "x" * cache_item_payload_bytes
 
@@ -109,7 +128,14 @@ class BasicPythonLoadGen:
                 )
                 for worker_id in range(self.number_of_concurrent_requests)
             )
+            show_stats_interval = setInterval(
+                self.show_stats_interval_seconds,
+                lambda : self.log_stats(load_gen_context)
+            )
             await asyncio.gather(*async_get_set_results)
+            show_stats_interval.cancel()
+            self.log_stats(load_gen_context)
+            
             self.logger.info("DONE!")
 
     def log_stats(
@@ -143,8 +169,6 @@ class BasicPythonLoadGen:
     ) -> None:
         for i in range(num_operations):
             await self.issue_async_set_get(client, context, worker_id, i + 1)
-            if context.global_request_count % BasicPythonLoadGen.print_summary_every_n_requests == 0:
-                self.log_stats(context)
 
     async def issue_async_set_get(
         self,
@@ -284,6 +308,7 @@ async def main(
     request_timeout_ms: int,
     cache_item_payload_bytes: int,
     number_of_concurrent_requests: int,
+    show_stats_interval_seconds: int,
     total_number_of_operations_to_execute: int,
 ) -> None:
     initialize_logging(log_level)
@@ -291,6 +316,7 @@ async def main(
         request_timeout_ms=request_timeout_ms,
         cache_item_payload_bytes=cache_item_payload_bytes,
         number_of_concurrent_requests=number_of_concurrent_requests,
+        show_stats_interval_seconds=show_stats_interval_seconds,
         total_number_of_operations_to_execute=total_number_of_operations_to_execute,
     )
     await load_generator.run()
@@ -323,6 +349,11 @@ load_generator_options = dict(
     # may increase.
     #
     number_of_concurrent_requests=50,
+    #
+    # Print some statistics about throughput and latency every time this many
+    # seconds have passed.
+    #
+    show_stats_interval_seconds=5,
     #
     # Controls how long the load test will run.  We will execute this many operations
     # (1 cache 'set' followed immediately by 1 'get') across all of our concurrent
