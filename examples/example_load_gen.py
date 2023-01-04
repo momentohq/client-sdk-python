@@ -175,13 +175,6 @@ class BasicPythonLoadGen:
             else:
                 value_string = "n/a"
 
-            if context.global_request_count % BasicPythonLoadGen.print_summary_every_n_requests == 0:
-                self.logger.info(
-                    f"worker: {worker_id}, worker request: {operation_id}, "
-                    f"global request: {context.global_request_count}, status: {get_result.status()}, "
-                    f"val: {value_string}"
-                )
-
     T = TypeVar("T")
 
     async def execute_request_and_update_context_counts(
