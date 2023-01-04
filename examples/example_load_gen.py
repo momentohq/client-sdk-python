@@ -112,6 +112,28 @@ class BasicPythonLoadGen:
             await asyncio.gather(*async_get_set_results)
             self.logger.info("DONE!")
 
+    def log_stats(
+        self,
+        context: BasicPythonLoadGenContext
+    ) -> None:
+        self.logger.info(
+            f"""
+    cumulative stats:
+    total requests: {context.global_request_count} ({self.tps(context, context.global_request_count)} tps)
+      success: {context.global_success_count} ({self.percent_requests(context, context.global_success_count)}%) ({self.tps(context, context.global_success_count)} tps)
+    unavailable: {context.global_unavailable_count} ({self.percent_requests(context, context.global_unavailable_count)}%)
+    deadline exceeded: {context.global_deadline_exceeded_count} ({self.percent_requests(context, context.global_deadline_exceeded_count)}%)
+    throttled: {context.global_throttle_count} ({self.percent_requests(context, context.global_throttle_count)}%)
+               (Default throttling limit is 100tps; please contact Momento for a limit increase!)
+
+    cumulative set latencies:
+    {self.output_histogram_summary(context.set_latencies)}
+
+    cumulative get latencies:
+    {self.output_histogram_summary(context.get_latencies)}
+    """  # noqa
+        )
+
     async def launch_and_run_worker(
         self,
         client: scc.SimpleCacheClient,
@@ -121,25 +143,8 @@ class BasicPythonLoadGen:
     ) -> None:
         for i in range(num_operations):
             await self.issue_async_set_get(client, context, worker_id, i + 1)
-
             if context.global_request_count % BasicPythonLoadGen.print_summary_every_n_requests == 0:
-                self.logger.info(
-                    f"""
-cumulative stats:
-       total requests: {context.global_request_count} ({self.tps(context, context.global_request_count)} tps)
-              success: {context.global_success_count} ({self.percent_requests(context, context.global_success_count)}%) ({self.tps(context, context.global_success_count)} tps)
-          unavailable: {context.global_unavailable_count} ({self.percent_requests(context, context.global_unavailable_count)}%)
-    deadline exceeded: {context.global_deadline_exceeded_count} ({self.percent_requests(context, context.global_deadline_exceeded_count)}%)
-            throttled: {context.global_throttle_count} ({self.percent_requests(context, context.global_throttle_count)}%)
-                       (Default throttling limit is 100tps; please contact Momento for a limit increase!)
-    
-cumulative set latencies:
-{self.output_histogram_summary(context.set_latencies)}
-
-cumulative get latencies:
-{self.output_histogram_summary(context.get_latencies)}
-"""  # noqa
-                )
+                self.log_stats(context)
 
     async def issue_async_set_get(
         self,
