@@ -81,6 +81,7 @@ class BasicPythonLoadGen:
         self,
         request_timeout_ms: int,
         cache_item_payload_bytes: int,
+        max_requests_per_second: int,
         number_of_concurrent_requests: int,
         show_stats_interval_seconds: int,
         total_seconds_to_run: int,
@@ -90,10 +91,12 @@ class BasicPythonLoadGen:
         if not self.auth_token:
             raise ValueError("Missing required environment variable MOMENTO_AUTH_TOKEN")
         self.request_timeout_ms = request_timeout_ms
+        self.max_requests_per_second = max_requests_per_second
         self.number_of_concurrent_requests = number_of_concurrent_requests
         self.show_stats_interval_seconds = show_stats_interval_seconds
         self.total_seconds_to_run = total_seconds_to_run
         self.cache_value = "x" * cache_item_payload_bytes
+        self.request_interval_ms = number_of_concurrent_requests / max_requests_per_second * 1000
 
     async def run(self) -> None:
         cache_item_ttl_seconds = 60
@@ -115,7 +118,7 @@ class BasicPythonLoadGen:
                 global_deadline_exceeded_count=0,
                 global_throttle_count=0,
             )
-            
+                        
             # Show stats every show_stats_interval_seconds
             show_stats_interval = setInterval(
                 self.show_stats_interval_seconds,
@@ -139,8 +142,8 @@ class BasicPythonLoadGen:
 
     async def start(
         self,
-        cache_client,
-        context,
+        cache_client: scc.SimpleCacheClient,
+        context: BasicPythonLoadGenContext,
     ) -> None:
         async_get_set_results = (
             self.launch_and_run_worker(
@@ -187,6 +190,11 @@ class BasicPythonLoadGen:
             )
             operation_id += 1
 
+    async def rate_limit(self, duration_ms):
+        if duration_ms < self.request_interval_ms:
+            delay = (self.request_interval_ms - duration_ms) / 1000
+            await asyncio.sleep(delay)
+
     async def issue_async_set_get(
         self,
         client: scc.SimpleCacheClient,
@@ -202,6 +210,7 @@ class BasicPythonLoadGen:
         if result:
             set_duration = self.get_elapsed_millis(set_start_time)
             context.set_latencies.record_value(set_duration)
+            await self.rate_limit(set_duration)
 
         get_start_time = perf_counter_ns()
         get_result: Optional[CacheGetResponse] = await self.execute_request_and_update_context_counts(
@@ -215,6 +224,7 @@ class BasicPythonLoadGen:
                 value_string = f"{value[0:10]}... (len: {len(value)})"
             else:
                 value_string = "n/a"
+            await self.rate_limit(set_duration)
 
     T = TypeVar("T")
 
@@ -324,6 +334,7 @@ async def main(
     log_level: int,
     request_timeout_ms: int,
     cache_item_payload_bytes: int,
+    max_requests_per_second: int,
     number_of_concurrent_requests: int,
     show_stats_interval_seconds: int,
     total_seconds_to_run: int,
@@ -332,6 +343,7 @@ async def main(
     load_generator = BasicPythonLoadGen(
         request_timeout_ms=request_timeout_ms,
         cache_item_payload_bytes=cache_item_payload_bytes,
+        max_requests_per_second=max_requests_per_second,
         number_of_concurrent_requests=number_of_concurrent_requests,
         show_stats_interval_seconds=show_stats_interval_seconds,
         total_seconds_to_run=total_seconds_to_run
@@ -358,6 +370,11 @@ load_generator_options = dict(
     # larger payloads.
     #
     cache_item_payload_bytes=100,
+    #
+    # Limit the load generator to this many requests per second to avoid being
+    # rate limited by Momento servers.
+    #
+    max_requests_per_second=100,
     #
     # Controls the number of concurrent requests that will be made (via asynchronous
     # function calls) by the load test.  Increasing this number may improve throughput,
