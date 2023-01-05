@@ -38,6 +38,16 @@ class AsyncSetGetResult(Enum):
 
 
 @dataclass
+class BasicPythonLoadGenOptions:
+    log_level: int
+    request_timeout_ms: int
+    cache_item_payload_bytes: int
+    max_requests_per_second: int
+    number_of_concurrent_requests: int
+    show_stats_interval_seconds: int
+    total_seconds_to_run: int
+
+@dataclass
 class BasicPythonLoadGenContext:
     start_time: float
     get_latencies: HdrHistogram
@@ -55,31 +65,19 @@ class BasicPythonLoadGenContext:
 class BasicPythonLoadGen:
     cache_name = "python-loadgen"
 
-    def __init__(
-        self,
-        request_timeout_ms: int,
-        cache_item_payload_bytes: int,
-        max_requests_per_second: int,
-        number_of_concurrent_requests: int,
-        show_stats_interval_seconds: int,
-        total_seconds_to_run: int,
-    ):
+    def __init__(self, options: BasicPythonLoadGenOptions):
         self.logger = logging.getLogger("load-gen")
         self.auth_token = os.getenv("MOMENTO_AUTH_TOKEN")
         if not self.auth_token:
             raise ValueError("Missing required environment variable MOMENTO_AUTH_TOKEN")
-        self.request_timeout_ms = request_timeout_ms
-        self.max_requests_per_second = max_requests_per_second
-        self.number_of_concurrent_requests = number_of_concurrent_requests
-        self.show_stats_interval_seconds = show_stats_interval_seconds
-        self.total_seconds_to_run = total_seconds_to_run
-        self.cache_value = "x" * cache_item_payload_bytes
-        self.request_interval_ms = number_of_concurrent_requests / max_requests_per_second * 1000
+        self.options = options
+        self.cache_value = "x" * options.cache_item_payload_bytes
+        self.request_interval_ms = options.number_of_concurrent_requests / options.max_requests_per_second * 1000
 
     async def run(self) -> None:
         cache_item_ttl_seconds = 60
         async with scc.SimpleCacheClient(
-            self.auth_token, cache_item_ttl_seconds, self.request_timeout_ms
+            self.auth_token, cache_item_ttl_seconds, self.options.request_timeout_ms
         ) as cache_client:
             try:
                 await cache_client.create_cache(BasicPythonLoadGen.cache_name)
@@ -97,13 +95,13 @@ class BasicPythonLoadGen:
                 global_throttle_count=0,
             )
 
-            self.logger.info(f"Limiting to {self.max_requests_per_second} tps.")
-            self.logger.info(f"Running {self.number_of_concurrent_requests} concurrent requests.")
-            self.logger.info(f"Running for {self.total_seconds_to_run} seconds.")
+            self.logger.info(f"Limiting to {self.options.max_requests_per_second} tps.")
+            self.logger.info(f"Running {self.options.number_of_concurrent_requests} concurrent requests.")
+            self.logger.info(f"Running for {self.options.total_seconds_to_run} seconds.")
 
             # Run for total_seconds_to_run
             try:
-                await asyncio.wait_for(self.start(cache_client, load_gen_context), timeout=self.total_seconds_to_run)
+                await asyncio.wait_for(self.start(cache_client, load_gen_context), timeout=self.options.total_seconds_to_run)
             except asyncio.TimeoutError:
                 # Show stats one last time.
                 self.log_stats(load_gen_context)
@@ -112,7 +110,7 @@ class BasicPythonLoadGen:
 
     async def display_stats(self, context: BasicPythonLoadGenContext) -> None:
         while True:
-            await asyncio.sleep(self.show_stats_interval_seconds)
+            await asyncio.sleep(self.options.show_stats_interval_seconds)
             self.log_stats(context)
 
     async def start(
@@ -126,7 +124,7 @@ class BasicPythonLoadGen:
                 context,
                 worker_id,
             )
-            for worker_id in range(1, self.number_of_concurrent_requests)
+            for worker_id in range(1, self.options.number_of_concurrent_requests)
         )
         await asyncio.gather(*async_get_set_results, self.display_stats(context))
 
@@ -296,28 +294,15 @@ If you have questions or need help experimenting further, please reach out to us
 
 
 async def main(
-    log_level: int,
-    request_timeout_ms: int,
-    cache_item_payload_bytes: int,
-    max_requests_per_second: int,
-    number_of_concurrent_requests: int,
-    show_stats_interval_seconds: int,
-    total_seconds_to_run: int,
+    options: BasicPythonLoadGenOptions
 ) -> None:
-    initialize_logging(log_level)
-    load_generator = BasicPythonLoadGen(
-        request_timeout_ms=request_timeout_ms,
-        cache_item_payload_bytes=cache_item_payload_bytes,
-        max_requests_per_second=max_requests_per_second,
-        number_of_concurrent_requests=number_of_concurrent_requests,
-        show_stats_interval_seconds=show_stats_interval_seconds,
-        total_seconds_to_run=total_seconds_to_run,
-    )
+    initialize_logging(options.log_level)
+    load_generator = BasicPythonLoadGen(options)
     await load_generator.run()
     print(PERFORMANCE_INFORMATION_MESSAGE)
 
 
-load_generator_options = dict(
+load_generator_options = BasicPythonLoadGenOptions(
     #
     # This setting allows you to control the verbosity of the log output during
     # the load generator run. Available log levels are TRACE, DEBUG, INFO, WARN,
@@ -362,4 +347,4 @@ load_generator_options = dict(
 
 
 if __name__ == "__main__":
-    asyncio.run(main(**load_generator_options))
+    asyncio.run(main(load_generator_options))
