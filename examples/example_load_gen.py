@@ -118,7 +118,13 @@ class BasicPythonLoadGen:
                 global_deadline_exceeded_count=0,
                 global_throttle_count=0,
             )
-                        
+
+            self.logger.info(f"Limiting to {self.max_requests_per_second} tps.");
+            self.logger.info(
+                f"Running {self.number_of_concurrent_requests} concurrent requests."
+            );
+            self.logger.info(f"Running for {self.total_seconds_to_run} seconds.");
+
             # Show stats every show_stats_interval_seconds
             show_stats_interval = setInterval(
                 self.show_stats_interval_seconds,
