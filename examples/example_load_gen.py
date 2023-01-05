@@ -1,6 +1,4 @@
 import asyncio
-import threading
-import time
 import logging
 import os
 from dataclasses import dataclass
@@ -19,23 +17,6 @@ from momento.cache_operation_types import (
     CacheSetResponse,
 )
 from momento.logs import initialize_momento_logging
-
-class setInterval :
-    def __init__(self,interval,action) :
-        self.interval=interval
-        self.action=action
-        self.stopEvent=threading.Event()
-        thread=threading.Thread(target=self.__setInterval)
-        thread.start()
-
-    def __setInterval(self) :
-        nextTime=time.time()+self.interval
-        while not self.stopEvent.wait(nextTime-time.time()) :
-            nextTime+=self.interval
-            self.action()
-
-    def cancel(self) :
-        self.stopEvent.set()
 
 def initialize_logging(level: int) -> None:
     initialize_momento_logging()
@@ -125,12 +106,6 @@ class BasicPythonLoadGen:
             );
             self.logger.info(f"Running for {self.total_seconds_to_run} seconds.");
 
-            # Show stats every show_stats_interval_seconds
-            show_stats_interval = setInterval(
-                self.show_stats_interval_seconds,
-                lambda : self.log_stats(load_gen_context)
-            )
-            
             # Run for total_seconds_to_run
             try:
                 await asyncio.wait_for(
@@ -138,13 +113,18 @@ class BasicPythonLoadGen:
                     timeout=self.total_seconds_to_run
                 )
             except asyncio.TimeoutError:
-                # Stop showing stats
-                show_stats_interval.cancel()
-
                 # Show stats one last time.
                 self.log_stats(load_gen_context)
                 
                 self.logger.info("DONE!")
+
+    async def display_stats(
+        self,
+        context: BasicPythonLoadGenContext
+    ) -> None:
+        while True:
+            await asyncio.sleep(self.show_stats_interval_seconds)
+            self.log_stats(context)
 
     async def start(
         self,
@@ -159,7 +139,7 @@ class BasicPythonLoadGen:
             )
             for worker_id in range(1, self.number_of_concurrent_requests)
         )
-        await asyncio.gather(*async_get_set_results)
+        await asyncio.gather(*async_get_set_results, self.display_stats(context))
 
     def log_stats(
         self,
