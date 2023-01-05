@@ -101,28 +101,20 @@ class BasicPythonLoadGen:
                 global_throttle_count=0,
             )
 
-            self.logger.info(f"Limiting to {self.max_requests_per_second} tps.");
-            self.logger.info(
-                f"Running {self.number_of_concurrent_requests} concurrent requests."
-            );
-            self.logger.info(f"Running for {self.total_seconds_to_run} seconds.");
+            self.logger.info(f"Limiting to {self.max_requests_per_second} tps.")
+            self.logger.info(f"Running {self.number_of_concurrent_requests} concurrent requests.")
+            self.logger.info(f"Running for {self.total_seconds_to_run} seconds.")
 
             # Run for total_seconds_to_run
             try:
-                await asyncio.wait_for(
-                    self.start(cache_client, load_gen_context),
-                    timeout=self.total_seconds_to_run
-                )
+                await asyncio.wait_for(self.start(cache_client, load_gen_context), timeout=self.total_seconds_to_run)
             except asyncio.TimeoutError:
                 # Show stats one last time.
                 self.log_stats(load_gen_context)
-                
+
                 self.logger.info("DONE!")
 
-    async def display_stats(
-        self,
-        context: BasicPythonLoadGenContext
-    ) -> None:
+    async def display_stats(self, context: BasicPythonLoadGenContext) -> None:
         while True:
             await asyncio.sleep(self.show_stats_interval_seconds)
             self.log_stats(context)
@@ -142,10 +134,7 @@ class BasicPythonLoadGen:
         )
         await asyncio.gather(*async_get_set_results, self.display_stats(context))
 
-    def log_stats(
-        self,
-        context: BasicPythonLoadGenContext
-    ) -> None:
+    def log_stats(self, context: BasicPythonLoadGenContext) -> None:
         self.logger.info(
             f"""
     cumulative stats:
@@ -172,9 +161,7 @@ class BasicPythonLoadGen:
     ) -> None:
         operation_id = 1
         while True:
-            await self.issue_async_set_get(
-                client, context, worker_id, operation_id
-            )
+            await self.issue_async_set_get(client, context, worker_id, operation_id)
             operation_id += 1
 
     async def rate_limit(self, duration_ms):
@@ -333,7 +320,7 @@ async def main(
         max_requests_per_second=max_requests_per_second,
         number_of_concurrent_requests=number_of_concurrent_requests,
         show_stats_interval_seconds=show_stats_interval_seconds,
-        total_seconds_to_run=total_seconds_to_run
+        total_seconds_to_run=total_seconds_to_run,
     )
     await load_generator.run()
     print(PERFORMANCE_INFORMATION_MESSAGE)
@@ -379,7 +366,7 @@ load_generator_options = dict(
     # Controls how long the load test will run, in seconds. We will execute operations
     # for this long and the exit.
     #
-    total_seconds_to_run = 60,
+    total_seconds_to_run=60,
 )
 
 
