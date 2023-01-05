@@ -47,6 +47,7 @@ class BasicPythonLoadGenOptions:
     show_stats_interval_seconds: int
     total_seconds_to_run: int
 
+
 @dataclass
 class BasicPythonLoadGenContext:
     start_time: float
@@ -285,9 +286,7 @@ If you have questions or need help experimenting further, please reach out to us
 """
 
 
-async def main(
-    options: BasicPythonLoadGenOptions
-) -> None:
+async def main(options: BasicPythonLoadGenOptions) -> None:
     initialize_logging(options.log_level)
     load_generator = BasicPythonLoadGen(options)
     await load_generator.run()
