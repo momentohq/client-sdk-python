@@ -18,6 +18,7 @@ from momento.cache_operation_types import (
 )
 from momento.logs import initialize_momento_logging
 
+
 def initialize_logging(level: int) -> None:
     initialize_momento_logging()
     root_logger = logging.getLogger()
