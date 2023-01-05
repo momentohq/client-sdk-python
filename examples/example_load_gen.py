@@ -11,10 +11,7 @@ from hdrh.histogram import HdrHistogram
 
 import momento.errors
 from momento.aio import simple_cache_client as scc
-from momento.cache_operation_types import (
-    CacheGetResponse,
-    CacheSetResponse,
-)
+from momento.cache_operation_types import CacheGetResponse, CacheSetResponse
 from momento.logs import initialize_momento_logging
 
 
