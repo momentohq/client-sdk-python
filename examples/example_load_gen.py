@@ -13,7 +13,6 @@ import momento.errors
 from momento.aio import simple_cache_client as scc
 from momento.cache_operation_types import (
     CacheGetResponse,
-    CacheGetStatus,
     CacheSetResponse,
 )
 from momento.logs import initialize_momento_logging
@@ -193,11 +192,6 @@ class BasicPythonLoadGen:
         if get_result:
             get_duration = self.get_elapsed_millis(get_start_time)
             context.get_latencies.record_value(get_duration)
-            if get_result.status() == CacheGetStatus.HIT:
-                value = get_result.value()
-                value_string = f"{value[0:10]}... (len: {len(value)})"
-            else:
-                value_string = "n/a"
             await self.rate_limit(set_duration)
 
     T = TypeVar("T")
