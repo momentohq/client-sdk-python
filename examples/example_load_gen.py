@@ -189,7 +189,7 @@ class BasicPythonLoadGen:
         if get_result:
             get_duration = self.get_elapsed_millis(get_start_time)
             context.get_latencies.record_value(get_duration)
-            await self.rate_limit(set_duration)
+            await self.rate_limit(get_duration)
 
     T = TypeVar("T")
 
