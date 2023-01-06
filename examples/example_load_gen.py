@@ -11,11 +11,7 @@ from hdrh.histogram import HdrHistogram
 
 import momento.errors
 from momento.aio import simple_cache_client as scc
-from momento.cache_operation_types import (
-    CacheGetResponse,
-    CacheGetStatus,
-    CacheSetResponse,
-)
+from momento.cache_operation_types import CacheGetResponse, CacheSetResponse
 from momento.logs import initialize_momento_logging
 
 
@@ -42,6 +38,17 @@ class AsyncSetGetResult(Enum):
 
 
 @dataclass
+class BasicPythonLoadGenOptions:
+    log_level: int
+    request_timeout_ms: int
+    cache_item_payload_bytes: int
+    max_requests_per_second: int
+    number_of_concurrent_requests: int
+    show_stats_interval_seconds: int
+    total_seconds_to_run: int
+
+
+@dataclass
 class BasicPythonLoadGenContext:
     start_time: float
     get_latencies: HdrHistogram
@@ -58,38 +65,27 @@ class BasicPythonLoadGenContext:
 
 class BasicPythonLoadGen:
     cache_name = "python-loadgen"
-    print_summary_every_n_requests = 1_000
 
-    def __init__(
-        self,
-        request_timeout_ms: int,
-        cache_item_payload_bytes: int,
-        number_of_concurrent_requests: int,
-        total_number_of_operations_to_execute: int,
-    ):
+    def __init__(self, options: BasicPythonLoadGenOptions):
         self.logger = logging.getLogger("load-gen")
         self.auth_token = os.getenv("MOMENTO_AUTH_TOKEN")
         if not self.auth_token:
             raise ValueError("Missing required environment variable MOMENTO_AUTH_TOKEN")
-        self.request_timeout_ms = request_timeout_ms
-        self.number_of_concurrent_requests = number_of_concurrent_requests
-        self.total_number_of_operations_to_execute = total_number_of_operations_to_execute
-        self.cache_value = "x" * cache_item_payload_bytes
+        self.options = options
+        self.cache_value = "x" * options.cache_item_payload_bytes
+        self.request_interval_ms = options.number_of_concurrent_requests / options.max_requests_per_second * 1000
 
     async def run(self) -> None:
         cache_item_ttl_seconds = 60
         async with scc.SimpleCacheClient(
-            self.auth_token, cache_item_ttl_seconds, self.request_timeout_ms
+            self.auth_token, cache_item_ttl_seconds, self.options.request_timeout_ms
         ) as cache_client:
             try:
                 await cache_client.create_cache(BasicPythonLoadGen.cache_name)
             except momento.errors.AlreadyExistsError:
                 self.logger.info(f"Cache with name: {BasicPythonLoadGen.cache_name} already exists.")
 
-            num_operations_per_worker = round(
-                self.total_number_of_operations_to_execute / self.number_of_concurrent_requests
-            )
-            load_gen_context = BasicPythonLoadGenContext(
+            self.context = BasicPythonLoadGenContext(
                 start_time=perf_counter_ns(),
                 get_latencies=HdrHistogram(1, 1000 * 60, 1),
                 set_latencies=HdrHistogram(1, 1000 * 60, 1),
@@ -100,97 +96,108 @@ class BasicPythonLoadGen:
                 global_throttle_count=0,
             )
 
-            async_get_set_results = (
-                self.launch_and_run_worker(
-                    cache_client,
-                    load_gen_context,
-                    worker_id + 1,
-                    num_operations_per_worker,
-                )
-                for worker_id in range(self.number_of_concurrent_requests)
+            self.logger.info(f"Limiting to {self.options.max_requests_per_second} tps.")
+            self.logger.info(f"Running {self.options.number_of_concurrent_requests} concurrent requests.")
+            self.logger.info(f"Running for {self.options.total_seconds_to_run} seconds.")
+
+            # Run for total_seconds_to_run
+            try:
+                await asyncio.wait_for(self.start(cache_client), timeout=self.options.total_seconds_to_run)
+            except asyncio.TimeoutError:
+                # Show stats one last time.
+                self.log_stats()
+
+                self.logger.info("DONE!")
+
+    async def display_stats(self) -> None:
+        while True:
+            await asyncio.sleep(self.options.show_stats_interval_seconds)
+            self.log_stats()
+
+    async def start(
+        self,
+        cache_client: scc.SimpleCacheClient,
+    ) -> None:
+        async_get_set_results = (
+            self.launch_and_run_worker(
+                cache_client,
+                worker_id,
             )
-            await asyncio.gather(*async_get_set_results)
-            self.logger.info("DONE!")
+            for worker_id in range(1, self.options.number_of_concurrent_requests)
+        )
+        await asyncio.gather(*async_get_set_results, self.display_stats())
+
+    def log_stats(self) -> None:
+        self.logger.info(
+            f"""
+    cumulative stats:
+    total requests: {self.context.global_request_count} ({self.tps(self.context.global_request_count)} tps)
+      success: {self.context.global_success_count} ({self.percent_requests(self.context.global_success_count)}%) ({self.tps(self.context.global_success_count)} tps)
+    unavailable: {self.context.global_unavailable_count} ({self.percent_requests(self.context.global_unavailable_count)}%)
+    deadline exceeded: {self.context.global_deadline_exceeded_count} ({self.percent_requests(self.context.global_deadline_exceeded_count)}%)
+    throttled: {self.context.global_throttle_count} ({self.percent_requests(self.context.global_throttle_count)}%)
+               (Default throttling limit is 100tps; please contact Momento for a limit increase!)
+
+    cumulative set latencies:
+    {self.output_histogram_summary(self.context.set_latencies)}
+
+    cumulative get latencies:
+    {self.output_histogram_summary(self.context.get_latencies)}
+    """  # noqa
+        )
 
     async def launch_and_run_worker(
         self,
         client: scc.SimpleCacheClient,
-        context: BasicPythonLoadGenContext,
         worker_id: int,
-        num_operations: int,
     ) -> None:
-        for i in range(num_operations):
-            await self.issue_async_set_get(client, context, worker_id, i + 1)
+        operation_id = 1
+        while True:
+            await self.issue_async_set_get(client, worker_id, operation_id)
+            operation_id += 1
 
-            if context.global_request_count % BasicPythonLoadGen.print_summary_every_n_requests == 0:
-                self.logger.info(
-                    f"""
-cumulative stats:
-       total requests: {context.global_request_count} ({self.tps(context, context.global_request_count)} tps)
-              success: {context.global_success_count} ({self.percent_requests(context, context.global_success_count)}%) ({self.tps(context, context.global_success_count)} tps)
-          unavailable: {context.global_unavailable_count} ({self.percent_requests(context, context.global_unavailable_count)}%)
-    deadline exceeded: {context.global_deadline_exceeded_count} ({self.percent_requests(context, context.global_deadline_exceeded_count)}%)
-            throttled: {context.global_throttle_count} ({self.percent_requests(context, context.global_throttle_count)}%)
-                       (Default throttling limit is 100tps; please contact Momento for a limit increase!)
-    
-cumulative set latencies:
-{self.output_histogram_summary(context.set_latencies)}
-
-cumulative get latencies:
-{self.output_histogram_summary(context.get_latencies)}
-"""  # noqa
-                )
+    async def rate_limit(self, duration_ms):
+        if duration_ms < self.request_interval_ms:
+            delay = (self.request_interval_ms - duration_ms) / 1000
+            await asyncio.sleep(delay)
 
     async def issue_async_set_get(
         self,
         client: scc.SimpleCacheClient,
-        context: BasicPythonLoadGenContext,
         worker_id: int,
         operation_id: int,
     ) -> None:
         cache_key = f"worker{worker_id}operation{operation_id}"
         set_start_time = perf_counter_ns()
         result: Optional[CacheSetResponse] = await self.execute_request_and_update_context_counts(
-            context, lambda: client.set(self.cache_name, cache_key, self.cache_value)
+            lambda: client.set(self.cache_name, cache_key, self.cache_value)
         )
         if result:
             set_duration = self.get_elapsed_millis(set_start_time)
-            context.set_latencies.record_value(set_duration)
+            self.context.set_latencies.record_value(set_duration)
+            await self.rate_limit(set_duration)
 
         get_start_time = perf_counter_ns()
         get_result: Optional[CacheGetResponse] = await self.execute_request_and_update_context_counts(
-            context, lambda: client.get(self.cache_name, cache_key)
+            lambda: client.get(self.cache_name, cache_key)
         )
         if get_result:
             get_duration = self.get_elapsed_millis(get_start_time)
-            context.get_latencies.record_value(get_duration)
-            if get_result.status() == CacheGetStatus.HIT:
-                value = get_result.value()
-                value_string = f"{value[0:10]}... (len: {len(value)})"
-            else:
-                value_string = "n/a"
-
-            if context.global_request_count % BasicPythonLoadGen.print_summary_every_n_requests == 0:
-                self.logger.info(
-                    f"worker: {worker_id}, worker request: {operation_id}, "
-                    f"global request: {context.global_request_count}, status: {get_result.status()}, "
-                    f"val: {value_string}"
-                )
+            self.context.get_latencies.record_value(get_duration)
+            await self.rate_limit(get_duration)
 
     T = TypeVar("T")
 
     async def execute_request_and_update_context_counts(
         self,
-        context: BasicPythonLoadGenContext,
         block: Callable[[], Coroutine[None, None, T]],
     ) -> Optional[T]:
-        result, response = await self.execute_request(context, block)
-        self.update_context_counts_for_request(context, result)
+        result, response = await self.execute_request(block)
+        self.update_context_counts_for_request(result)
         return response
 
     async def execute_request(
         self,
-        context: BasicPythonLoadGenContext,
         block: Callable[[], Coroutine[None, None, T]],
     ) -> Tuple[AsyncSetGetResult, Optional[T]]:
         try:
@@ -205,34 +212,32 @@ cumulative get latencies:
             self.logger.error(f"Caught TimeoutError: {e}")
             return AsyncSetGetResult.DEADLINE_EXCEEDED, None
         except momento.errors.LimitExceededError:
-            if context.global_throttle_count % 5_000 == 0:
+            if self.context.global_throttle_count % 5_000 == 0:
                 self.logger.warning("Received limit exceeded responses from the server.")
                 self.logger.warning(
                     "Default limit is 100tps; please contact support@momentohq.com for a limit increase!"
                 )
             return AsyncSetGetResult.THROTTLE, None
 
-    @staticmethod
-    def update_context_counts_for_request(context: BasicPythonLoadGenContext, result: AsyncSetGetResult):
-        context.global_request_count += 1
+    def update_context_counts_for_request(self, result: AsyncSetGetResult):
+        self.context.global_request_count += 1
         if result == AsyncSetGetResult.SUCCESS:
-            context.global_success_count += 1
+            self.context.global_success_count += 1
         elif result == AsyncSetGetResult.UNAVAILABLE:
-            context.global_unavailable_count += 1
+            self.context.global_unavailable_count += 1
         elif result == AsyncSetGetResult.DEADLINE_EXCEEDED:
-            context.global_deadline_exceeded_count += 1
+            self.context.global_deadline_exceeded_count += 1
         elif result == AsyncSetGetResult.THROTTLE:
-            context.global_throttle_count += 1
+            self.context.global_throttle_count += 1
         else:
             raise ValueError(f"Unsupported result type: {result}")
 
-    def tps(self, context: BasicPythonLoadGenContext, request_count: int) -> int:
-        return round((request_count * 1000) / self.get_elapsed_millis(context.start_time))
+    def tps(self, request_count: int) -> int:
+        return round((request_count * 1000) / self.get_elapsed_millis(self.context.start_time))
 
-    @staticmethod
-    def percent_requests(context: BasicPythonLoadGenContext, count: int) -> float:
+    def percent_requests(self, count: int) -> float:
         # multiply the ratio by 100 to get a percentage.  round to the nearest 0.1.
-        return round((count / context.global_request_count) * 100, 1)
+        return round((count / self.context.global_request_count) * 100, 1)
 
     @staticmethod
     def output_histogram_summary(histogram: HdrHistogram) -> str:
@@ -281,25 +286,14 @@ If you have questions or need help experimenting further, please reach out to us
 """
 
 
-async def main(
-    log_level: int,
-    request_timeout_ms: int,
-    cache_item_payload_bytes: int,
-    number_of_concurrent_requests: int,
-    total_number_of_operations_to_execute: int,
-) -> None:
-    initialize_logging(log_level)
-    load_generator = BasicPythonLoadGen(
-        request_timeout_ms=request_timeout_ms,
-        cache_item_payload_bytes=cache_item_payload_bytes,
-        number_of_concurrent_requests=number_of_concurrent_requests,
-        total_number_of_operations_to_execute=total_number_of_operations_to_execute,
-    )
+async def main(options: BasicPythonLoadGenOptions) -> None:
+    initialize_logging(options.log_level)
+    load_generator = BasicPythonLoadGen(options)
     await load_generator.run()
     print(PERFORMANCE_INFORMATION_MESSAGE)
 
 
-load_generator_options = dict(
+load_generator_options = BasicPythonLoadGenOptions(
     #
     # This setting allows you to control the verbosity of the log output during
     # the load generator run. Available log levels are TRACE, DEBUG, INFO, WARN,
@@ -318,6 +312,11 @@ load_generator_options = dict(
     #
     cache_item_payload_bytes=100,
     #
+    # Limit the load generator to this many requests per second to avoid being
+    # rate limited by Momento servers.
+    #
+    max_requests_per_second=100,
+    #
     # Controls the number of concurrent requests that will be made (via asynchronous
     # function calls) by the load test.  Increasing this number may improve throughput,
     # but it will also increase CPU consumption.  As CPU usage increases and there
@@ -326,13 +325,17 @@ load_generator_options = dict(
     #
     number_of_concurrent_requests=50,
     #
-    # Controls how long the load test will run.  We will execute this many operations
-    # (1 cache 'set' followed immediately by 1 'get') across all of our concurrent
-    # workers before exiting.  Statistics will be logged every 1000 operations.
+    # Print some statistics about throughput and latency every time this many
+    # seconds have passed.
     #
-    total_number_of_operations_to_execute=50_000,
+    show_stats_interval_seconds=5,
+    #
+    # Controls how long the load test will run, in seconds. We will execute operations
+    # for this long and the exit.
+    #
+    total_seconds_to_run=60,
 )
 
 
 if __name__ == "__main__":
-    asyncio.run(main(**load_generator_options))
+    asyncio.run(main(load_generator_options))
