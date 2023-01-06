@@ -63,20 +63,13 @@ class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
         continuation: Callable[
             [grpc.ClientCallDetails, RequestType],
             InterceptorCall
-            # [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
-            # grpc.aio._call.UnaryUnaryCall,
         ],
-        # client_call_details: grpc.aio._interceptor.ClientCallDetails,
         client_call_details: grpc.ClientCallDetails,
-        # request: grpc.aio._typing.RequestType,
         request: RequestType
-        # ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
     ) -> Union[InterceptorCall, ResponseType]:
         for try_i in range(MAX_ATTEMPTS):
-            # call = await continuation(client_call_details, request)
             call = continuation(client_call_details, request)
-            # response_code = await call.code()
-            response_code = call.code()
+            response_code = call.code() # type: ignore[attr-defined]  # noqa: F401
 
             if response_code == grpc.StatusCode.OK:
                 return call
