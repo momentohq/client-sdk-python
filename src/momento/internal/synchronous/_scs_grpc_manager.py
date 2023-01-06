@@ -9,6 +9,9 @@ from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     Header,
 )
+from momento.internal.synchronous._retry_interceptor import (
+    get_retry_interceptor_if_enabled,
+)
 
 
 class _ControlGrpcManager:
@@ -50,4 +53,4 @@ class _DataGrpcManager:
 
 def _interceptors(auth_token: str) -> List[grpc.UnaryUnaryClientInterceptor]:
     headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
-    return [AddHeaderClientInterceptor(headers)]
+    return [AddHeaderClientInterceptor(headers), *get_retry_interceptor_if_enabled()]
