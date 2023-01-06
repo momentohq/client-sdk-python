@@ -2,6 +2,7 @@ import logging
 from typing import Callable, List, Union
 
 import grpc
+
 import momento.errors
 
 # TODO: This is very duplicative of the synchronous retry interceptor; we need to

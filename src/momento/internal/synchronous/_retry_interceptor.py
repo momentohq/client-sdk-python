@@ -1,7 +1,8 @@
 import logging
-from typing import Callable, List, Union, TypeVar
+from typing import Callable, List, TypeVar, Union
 
 import grpc
+
 import momento.errors
 
 RequestType = TypeVar("RequestType")
