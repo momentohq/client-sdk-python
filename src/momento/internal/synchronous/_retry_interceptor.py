@@ -1,10 +1,14 @@
 import logging
-from typing import Callable, List, Union
+from typing import Callable, List, Union, TypeVar
 
 import grpc
 import momento.errors
 
-# TODO: This is very duplicative of the synchronous retry interceptor; we need to
+RequestType = TypeVar("RequestType")
+InterceptorCall = TypeVar("InterceptorCall")
+ResponseType = TypeVar("ResponseType")
+
+# TODO: This is very duplicative of the asyncio retry interceptor; we need to
 # DRY these up, but for now I am prioritizing getting a fix out for a customer.
 
 # TODO: Retry interceptor behavior should be configurable, but we need to
@@ -14,7 +18,6 @@ import momento.errors
 
 RETRIES_ENABLED = True
 MAX_ATTEMPTS = 3
-
 
 RETRYABLE_STATUS_CODES: List[grpc.StatusCode] = [
     # # including all the status codes for reference, but
@@ -46,26 +49,33 @@ LOGGER = logging.getLogger("retry-interceptor")
 # https://github.com/momentohq/client-sdk-javascript/issues/80
 # TODO: we need to add backoff/jitter for the retries:
 # https://github.com/momentohq/client-sdk-javascript/issues/81
-def get_retry_interceptor_if_enabled() -> List[grpc.aio.UnaryUnaryClientInterceptor]:
+def get_retry_interceptor_if_enabled() -> List[grpc.UnaryUnaryClientInterceptor]:
     if not RETRIES_ENABLED:
         return []
 
     return [RetryInterceptor()]
 
 
-class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
-    async def intercept_unary_unary(
+class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
+     def intercept_unary_unary(
         self,
         continuation: Callable[
-            [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
-            grpc.aio._call.UnaryUnaryCall,
+            [grpc.ClientCallDetails, RequestType],
+            InterceptorCall
+            # [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
+            # grpc.aio._call.UnaryUnaryCall,
         ],
-        client_call_details: grpc.aio._interceptor.ClientCallDetails,
-        request: grpc.aio._typing.RequestType,
-    ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
+        # client_call_details: grpc.aio._interceptor.ClientCallDetails,
+        client_call_details: grpc.ClientCallDetails,
+        # request: grpc.aio._typing.RequestType,
+        request: RequestType
+    # ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
+     ) -> Union[InterceptorCall, ResponseType]:
         for try_i in range(MAX_ATTEMPTS):
-            call = await continuation(client_call_details, request)
-            response_code = await call.code()
+            # call = await continuation(client_call_details, request)
+            call = continuation(client_call_details, request)
+            # response_code = await call.code()
+            response_code = call.code()
 
             if response_code == grpc.StatusCode.OK:
                 return call
@@ -75,7 +85,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 LOGGER.debug(
                     "Request path: %s; retryable status code: %s; number of retries (%i) "
                     "has exceeded max (%i), not retrying.",
-                    client_call_details.method.decode("utf-8"),
+                    client_call_details.method,
                     response_code,
                     try_i,
                     MAX_ATTEMPTS,
@@ -89,7 +99,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             LOGGER.debug(
                 "Request path: %s; retryable status code: %s; number of retries (%i) "
                 "is less than max (%i), retrying.",
-                client_call_details.method.decode("utf-8"),
+                client_call_details.method,
                 response_code,
                 try_i,
                 MAX_ATTEMPTS,
