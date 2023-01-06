@@ -51,7 +51,4 @@ class _DataGrpcManager:
 
 def _interceptors(auth_token: str) -> List[grpc.UnaryUnaryClientInterceptor]:
     headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
-    return [
-        AddHeaderClientInterceptor(headers),
-        *get_retry_interceptor_if_enabled()
-    ]
+    return [AddHeaderClientInterceptor(headers), *get_retry_interceptor_if_enabled()]

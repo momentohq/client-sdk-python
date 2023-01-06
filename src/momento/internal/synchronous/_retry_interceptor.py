@@ -57,7 +57,7 @@ def get_retry_interceptor_if_enabled() -> List[grpc.UnaryUnaryClientInterceptor]
 
 
 class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
-     def intercept_unary_unary(
+    def intercept_unary_unary(
         self,
         continuation: Callable[
             [grpc.ClientCallDetails, RequestType],
@@ -69,8 +69,8 @@ class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
         client_call_details: grpc.ClientCallDetails,
         # request: grpc.aio._typing.RequestType,
         request: RequestType
-    # ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
-     ) -> Union[InterceptorCall, ResponseType]:
+        # ) -> Union[grpc.aio._call.UnaryUnaryCall, grpc.aio._typing.ResponseType]:
+    ) -> Union[InterceptorCall, ResponseType]:
         for try_i in range(MAX_ATTEMPTS):
             # call = await continuation(client_call_details, request)
             call = continuation(client_call_details, request)
