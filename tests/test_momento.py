@@ -1,7 +1,11 @@
+import os
+from datetime import timedelta
 import time
 
 import pytest
 
+from momento.auth.credential_provider import CredentialProvider, EnvMomentoTokenProvider
+from momento.config.configuration import Configuration
 import momento.errors as errors
 from momento.cache_operation_types import CacheGetStatus
 from momento.simple_cache_client import SimpleCacheClient
@@ -30,29 +34,32 @@ def test_create_cache_get_set_values_and_delete_cache(client: SimpleCacheClient,
 
 # Init
 def test_init_throws_exception_when_client_uses_negative_default_ttl(
-    auth_token: str,
+    configuration: Configuration, auth_provider: CredentialProvider
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        SimpleCacheClient(auth_token, -1)
-        assert cm.exception == "TTL Seconds must be a non-negative integer"
+    with pytest.raises(errors.InvalidArgumentError, match="TTL timedelta must be a non-negative integer"):
+        SimpleCacheClient(configuration, auth_provider, timedelta(seconds=-1))
 
 
 def test_init_throws_exception_for_non_jwt_token(default_ttl_seconds: int):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        SimpleCacheClient("notanauthtoken", default_ttl_seconds)
-        assert cm.exception == "Invalid Auth token."
+    with pytest.raises(errors.InvalidArgumentError, match="Invalid Auth token."):
+        os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
+        EnvMomentoTokenProvider("BAD_AUTH_TOKEN")
 
 
-def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(auth_token: str, default_ttl_seconds: int):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        SimpleCacheClient(auth_token, default_ttl_seconds, -1)
-        assert cm.exception == "Request timeout must be greater than zero."
+def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
+        configuration: Configuration, auth_provider: CredentialProvider, default_ttl_seconds: int
+):
+    with pytest.raises(errors.InvalidArgumentError, match="Request timeout must be greater than zero."):
+        configuration = configuration.with_client_timeout(-1)
+        SimpleCacheClient(configuration, auth_provider, default_ttl_seconds)
 
 
-def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(auth_token: str, default_ttl_seconds: int):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        SimpleCacheClient(auth_token, default_ttl_seconds, 0)
-        assert cm.exception == "Request timeout must be greater than zero."
+def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
+        configuration: Configuration, auth_provider: CredentialProvider, default_ttl_seconds: int
+):
+    with pytest.raises(errors.InvalidArgumentError, match="Request timeout must be greater than zero."):
+        configuration = configuration.with_client_timeout(0)
+        SimpleCacheClient(configuration, auth_provider, default_ttl_seconds)
 
 
 # Create cache
@@ -71,21 +78,22 @@ def test_create_cache_throws_exception_for_empty_cache_name(
 def test_create_cache_throws_validation_exception_for_null_cache_name(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.create_cache(None)
-        assert cm.exception == "Cache name must be a non-empty string"
 
 
 def test_create_cache_with_bad_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.create_cache(1)
-        assert cm.exception == "Cache name must be a non-empty string"
 
 
-def test_create_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+
+def test_create_cache_throws_authentication_exception_for_bad_token(
+    configuration: Configuration, bad_token_auth_provider: EnvMomentoTokenProvider, default_ttl_seconds: int
+):
+    with SimpleCacheClient(configuration, bad_token_auth_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.create_cache(unique_test_cache_name())
 
@@ -124,13 +132,14 @@ def test_delete_cache_throws_exception_for_empty_cache_name(
 
 
 def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.delete_cache(1)
-        assert cm.exception == "Cache name must be a non-empty string"
 
 
-def test_delete_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+def test_delete_cache_throws_authentication_exception_for_bad_token(
+    configuration: Configuration, bad_token_auth_provider: EnvMomentoTokenProvider, default_ttl_seconds: int
+):
+    with SimpleCacheClient(configuration, bad_token_auth_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.delete_cache(uuid_str())
 
@@ -155,8 +164,10 @@ def test_list_caches_succeeds(client: SimpleCacheClient, cache_name: str):
         client.delete_cache(cache_name)
 
 
-def test_list_caches_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+def test_list_caches_throws_authentication_exception_for_bad_token(
+    configuration: Configuration, bad_token_auth_provider: EnvMomentoTokenProvider, default_ttl_seconds: int
+):
+    with SimpleCacheClient(configuration, bad_token_auth_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.list_caches()
 
@@ -207,7 +218,7 @@ def test_expires_items_after_ttl(client: SimpleCacheClient, cache_name: str):
     key = uuid_str()
     val = uuid_str()
 
-    client.set(cache_name, key, val, 2)
+    client.set(cache_name, key, val, timedelta(seconds=2))
     get_response = client.get(cache_name, key)
     assert get_response.status() == CacheGetStatus.HIT
 
@@ -220,7 +231,7 @@ def test_set_with_different_ttl(client: SimpleCacheClient, cache_name: str):
     key1 = uuid_str()
     key2 = uuid_str()
 
-    client.set(cache_name, key1, "1", 2)
+    client.set(cache_name, key1, "1", timedelta(seconds=2))
     client.set(cache_name, key2, "2")
 
     # Before
@@ -248,17 +259,15 @@ def test_set_with_non_existent_cache_name_throws_not_found(
 
 
 def test_set_with_null_cache_name_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.set(None, "foo", "bar")
-        assert cm.exception == "Cache name must be a non-empty string"
 
 
 def test_set_with_empty_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.BadRequestError) as cm:
+    with pytest.raises(errors.BadRequestError, match="Cache header is empty"):
         client.set("", "foo", "bar")
-        assert cm.exception == "Cache header is empty"
 
 
 def test_set_with_null_key_throws_exception(client: SimpleCacheClient, cache_name: str):
@@ -272,41 +281,40 @@ def test_set_with_null_value_throws_exception(client: SimpleCacheClient, cache_n
 
 
 def test_set_negative_ttl_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        client.set(cache_name, "foo", "bar", -1)
-        assert cm.exception == "TTL Seconds must be a non-negative integer"
+    with pytest.raises(errors.InvalidArgumentError, match="TTL Seconds must be a non-negative integer"):
+        client.set(cache_name, "foo", "bar", timedelta(seconds=-1))
 
 
 def test_set_with_bad_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.set(1, "foo", "bar")
-        assert cm.exception == "Cache name must be a non-empty string"
 
 
 def test_set_with_bad_key_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Unsupported type for key: <class 'int'>"):
         client.set(cache_name, 1, "bar")
-        assert cm.exception == "Unsupported type for key: <class 'int'>"
 
 
 def test_set_with_bad_value_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Unsupported type for value: <class 'int'>"):
         client.set(cache_name, "foo", 1)
-        assert cm.exception == "Unsupported type for value: <class 'int'>"
 
 
 def test_set_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, cache_name: str, default_ttl_seconds: int
+    configuration: Configuration, bad_token_auth_provider: EnvMomentoTokenProvider, cache_name: str, default_ttl_seconds: int
 ):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+    with SimpleCacheClient(configuration, bad_token_auth_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.set(cache_name, "foo", "bar")
 
 
-def test_set_throws_timeout_error_for_short_request_timeout(auth_token: str, cache_name: str, default_ttl_seconds: int):
-    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
+def test_set_throws_timeout_error_for_short_request_timeout(
+    configuration: Configuration, auth_provider: CredentialProvider, cache_name: str, default_ttl_seconds: int
+):
+    configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
+    with SimpleCacheClient(configuration, auth_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.TimeoutError):
             client.set(cache_name, "foo", "bar")
 
@@ -323,17 +331,15 @@ def test_get_with_non_existent_cache_name_throws_not_found(
 def test_get_with_null_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.get(None, "foo")
-        assert cm.exception == "Cache name must be a non-empty string"
 
 
 def test_get_with_empty_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.BadRequestError) as cm:
+    with pytest.raises(errors.BadRequestError, match="Cache header is empty"):
         client.get("", "foo")
-        assert cm.exception == "Cache header is empty"
 
 
 def test_get_with_null_key_throws_exception(client: SimpleCacheClient, cache_name: str):
@@ -344,27 +350,28 @@ def test_get_with_null_key_throws_exception(client: SimpleCacheClient, cache_nam
 def test_get_with_bad_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.get(1, "foo")
-        assert cm.exception == "Cache name must be a non-empty string"
 
 
 def test_get_with_bad_key_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="Unsupported type for key: <class 'int'>"):
         client.get(cache_name, 1)
-        assert cm.exception == "Unsupported type for key: <class 'int'>"
 
 
 def test_get_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, cache_name: str, default_ttl_seconds: int
+    configuration: Configuration, bad_token_auth_provider: EnvMomentoTokenProvider, cache_name: str, default_ttl_seconds: int
 ):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+    with SimpleCacheClient(configuration, bad_token_auth_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
             client.get(cache_name, "foo")
 
 
-def test_get_throws_timeout_error_for_short_request_timeout(auth_token: str, cache_name: str, default_ttl_seconds: int):
-    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
+def test_get_throws_timeout_error_for_short_request_timeout(
+    configuration: Configuration, auth_provider: CredentialProvider, cache_name: str, default_ttl_seconds: int
+):
+    configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
+    with SimpleCacheClient(configuration, auth_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.TimeoutError):
             client.get(cache_name, "foo")
 
@@ -377,7 +384,7 @@ def test_delete_key_doesnt_exist(client: SimpleCacheClient, cache_name: str):
 
     client.delete(cache_name, key)
     get_response = client.get(cache_name, key)
-    get_response.status() == CacheGetStatus.MISS
+    assert get_response.status() == CacheGetStatus.MISS
 
 
 # Test delete

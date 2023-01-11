@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import List, Optional, Tuple, Union
 
 from momento_wire_types.cacheclient_pb2 import (
@@ -12,6 +13,8 @@ from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 
 from momento import cache_operation_types
 from momento._utilities._data_validation import _validate_ttl
+from momento.auth.credential_provider import CredentialProvider
+from momento.config.configuration import Configuration
 
 from ..common._data_client_ops import (
     construct_delete_response,
@@ -24,7 +27,7 @@ from ..common._data_client_ops import (
 )
 from . import _scs_grpc_manager
 
-_DEFAULT_DEADLINE_SECONDS = 5.0  # 5 seconds
+_DEFAULT_DEADLINE_SECONDS = timedelta(seconds=5)
 
 
 def _make_metadata(cache_name: str) -> List[Tuple[str, str]]:
@@ -36,32 +39,37 @@ class _ScsDataClient:
 
     def __init__(
         self,
-        auth_token: str,
-        endpoint: str,
-        default_ttl_seconds: int,
-        request_timeout_ms: Optional[int],
+        configuration: Configuration,
+        auth_provider: CredentialProvider,
+        default_ttl: timedelta,
     ):
-        self._default_deadline_seconds = (
-            _DEFAULT_DEADLINE_SECONDS if not request_timeout_ms else request_timeout_ms / 1000.0
+        default_deadline: timedelta = (
+            configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
+            or _DEFAULT_DEADLINE_SECONDS
         )
-        self._grpc_manager = _scs_grpc_manager._DataGrpcManager(auth_token, endpoint)
-        _validate_ttl(default_ttl_seconds)
-        self._default_ttlSeconds = default_ttl_seconds
+        self._default_deadline_seconds = int(default_deadline.total_seconds())
+        self._grpc_manager = _scs_grpc_manager._DataGrpcManager(
+            auth_provider.get_auth_token(),
+            auth_provider.get_cache_endpoint()
+        )
+        _validate_ttl(default_ttl)
+        self._default_ttlSeconds = int(default_ttl.total_seconds())
 
     def set(
         self,
         cache_name: str,
         key: Union[str, bytes],
         value: Union[str, bytes],
-        ttl_seconds: Optional[int],
+        ttl: Optional[timedelta],
     ) -> cache_operation_types.CacheSetResponse:
         def execute_set_request_fn(req: _SetRequest) -> _SetResponse:
-            return self._getStub().Set(
+            return self._get_stub().Set(
                 req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
 
+        ttl_seconds: Optional[int] = int(ttl.total_seconds()) if ttl else None
         return wrap_with_error_handling(
             cache_name=cache_name,
             request_type="Set",
@@ -74,7 +82,7 @@ class _ScsDataClient:
 
     def get(self, cache_name: str, key: Union[str, bytes]) -> cache_operation_types.CacheGetResponse:
         def execute_get_request_fn(req: _GetRequest) -> _GetResponse:
-            return self._getStub().Get(
+            return self._get_stub().Get(
                 req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
@@ -90,7 +98,7 @@ class _ScsDataClient:
 
     def delete(self, cache_name: str, key: Union[str, bytes]) -> cache_operation_types.CacheDeleteResponse:
         def execute_delete_request_fn(req: _DeleteRequest) -> _DeleteResponse:
-            return self._getStub().Delete(
+            return self._get_stub().Delete(
                 req,
                 metadata=_make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
@@ -104,7 +112,7 @@ class _ScsDataClient:
             response_fn=construct_delete_response,
         )
 
-    def _getStub(self) -> ScsStub:
+    def _get_stub(self) -> ScsStub:
         return self._grpc_manager.stub()
 
     def close(self) -> None:

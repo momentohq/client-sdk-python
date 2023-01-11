@@ -1,4 +1,5 @@
 from typing import Optional, Union
+from datetime import timedelta
 
 from .. import errors
 
@@ -21,18 +22,18 @@ def _as_bytes(
     raise errors.InvalidArgumentError(error_message + str(type(data)))
 
 
-def _validate_ttl(ttl_seconds: int) -> None:
+def _validate_ttl(ttl: timedelta) -> None:
+    if not isinstance(ttl, timedelta) or ttl.total_seconds() < 0:
+        raise errors.InvalidArgumentError("TTL timedelta must be a non-negative integer")
+
+
+def _validate_ttl_seconds(ttl_seconds: int) -> None:
     if not isinstance(ttl_seconds, int) or ttl_seconds < 0:
         raise errors.InvalidArgumentError("TTL Seconds must be a non-negative integer")
 
 
-def _validate_ttl_minutes(ttl_minutes: int) -> None:
-    if not isinstance(ttl_minutes, int) or ttl_minutes < 0:
-        raise errors.InvalidArgumentError("TTL Minutes must be a non-negative integer")
-
-
-def _validate_request_timeout(request_timeout_ms: Optional[int]) -> None:
-    if request_timeout_ms is None:
+def _validate_request_timeout(request_timeout: Optional[timedelta]) -> None:
+    if request_timeout is None:
         return
-    if not isinstance(request_timeout_ms, int) or request_timeout_ms <= 0:
+    if not isinstance(request_timeout, timedelta) or request_timeout.total_seconds() <= 0:
         raise errors.InvalidArgumentError("Request timeout must be greater than zero.")

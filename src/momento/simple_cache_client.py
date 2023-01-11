@@ -1,7 +1,9 @@
+from datetime import timedelta
 from types import TracebackType
 from typing import Optional, Type, Union
 
-from . import _momento_endpoint_resolver
+from .auth.credential_provider import CredentialProvider
+from .config.configuration import Configuration
 from ._utilities._data_validation import _validate_request_timeout
 from .cache_operation_types import (
     CacheDeleteResponse,
@@ -18,31 +20,27 @@ from .internal.synchronous._scs_data_client import _ScsDataClient
 class SimpleCacheClient:
     def __init__(
         self,
-        auth_token: str,
-        default_ttl_seconds: int,
-        request_timeout_ms: Optional[int] = None,
+        configuration: Configuration,
+        auth_provider: CredentialProvider,
+        default_ttl: timedelta,
     ):
         """Creates an async SimpleCacheClient
 
         Args:
-            auth_token (str): Momento Token to authenticate the requests with Simple Cache Service
-            default_ttl_seconds (int): A default Time To Live in seconds for cache objects created by this client. It is
-                possible to override this setting when calling the set method.
-            request_timeout_ms (Optional[int], optional): An optional timeout in milliseconds to allow for Get and Set
-                operations to complete. The request will be terminated if it takes longer than this value and will
-                result in TimeoutError. Defaults to None, in which case a 5 second timeout is used.
+            configuration (Configuration): An object holding configuration settings for communication with the server.
+            auth_provider (CredentialProvider): An object holding the auth token and endpoint information.
+            default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
+                It is possible to override this setting when calling the set method.
         Raises:
             IllegalArgumentError: If method arguments fail validations.
         """
-        _validate_request_timeout(request_timeout_ms)
-
-        endpoints = _momento_endpoint_resolver.resolve(auth_token)
-        self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
+        _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
+        self._configuration = configuration
+        self._control_client = _ScsControlClient(auth_provider)
         self._data_client = _ScsDataClient(
-            auth_token,
-            endpoints.cache_endpoint,
-            default_ttl_seconds,
-            request_timeout_ms,
+            configuration,
+            auth_provider,
+            default_ttl,
         )
 
     def __enter__(self) -> "SimpleCacheClient":
@@ -112,7 +110,7 @@ class SimpleCacheClient:
         cache_name: str,
         key: Union[str, bytes],
         value: Union[str, bytes],
-        ttl_seconds: Optional[int] = None,
+        ttl: Optional[timedelta] = None,
     ) -> CacheSetResponse:
         """Stores an item in cache
 
@@ -133,7 +131,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
-        return self._data_client.set(cache_name, key, value, ttl_seconds)
+        return self._data_client.set(cache_name, key, value, ttl)
 
     def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
         """Retrieve an item from the cache

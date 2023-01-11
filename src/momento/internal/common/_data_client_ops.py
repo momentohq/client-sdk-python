@@ -1,4 +1,5 @@
 from typing import Awaitable, Callable, Optional, TypeVar, Union
+from datetime import timedelta
 
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
@@ -14,6 +15,7 @@ from momento._utilities._data_validation import (
     _as_bytes,
     _validate_cache_name,
     _validate_ttl,
+    _validate_ttl_seconds
 )
 
 TResponse = TypeVar("TResponse")
@@ -64,10 +66,10 @@ def prepare_set_request(
     value: Union[str, bytes],
     ttl_seconds: Optional[int],
     default_ttl_seconds: int,
-) -> _GetRequest:
+) -> _SetRequest:
     _logger.log(logs.TRACE, "Issuing a set request with key %s", str(key))
     item_ttl_seconds = default_ttl_seconds if ttl_seconds is None else ttl_seconds
-    _validate_ttl(item_ttl_seconds)
+    _validate_ttl_seconds(item_ttl_seconds)
     set_request = _SetRequest()
     set_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
     set_request.cache_body = _as_bytes(value, "Unsupported type for value: ")

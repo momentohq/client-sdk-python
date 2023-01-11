@@ -1,7 +1,10 @@
+from datetime import timedelta
 from types import TracebackType
 from typing import Optional, Type, Union
 
 from .. import logs
+from ..auth.credential_provider import CredentialProvider
+from ..config.configuration import Configuration
 
 try:
     from .._utilities._data_validation import _validate_request_timeout
@@ -28,7 +31,6 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
     CacheDeleteResponse,
     CacheGetResponse,
@@ -59,33 +61,29 @@ class SimpleCacheClient:
 
     def __init__(
         self,
-        auth_token: str,
-        default_ttl_seconds: int,
-        request_timeout_ms: Optional[int] = None,
+        configuration: Configuration,
+        auth_provider: CredentialProvider,
+        default_ttl: timedelta
     ):
         """Creates an async SimpleCacheClient
 
         Args:
-            auth_token (str): Momento Token to authenticate the requests with Simple Cache Service
-            default_ttl_seconds (int): A default Time To Live in seconds for cache objects created by this client. It is
-                possible to override this setting when calling the set method.
-            request_timeout_ms (Optional[int], optional): An optional timeout in milliseconds to allow for Get and Set
-                operations to complete. The request will be terminated if it takes longer than this value and will
-                result in TimeoutError. Defaults to None, in which case a 5 second timeout is used.
+            configuration (Configuration): An object holding configuration settings for communication with the server.
+            auth_provider (CredentialProvider): An object holding the auth token and endpoint information.
+            default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
+                It is possible to override this setting when calling the set method.
         Raises:
             IllegalArgumentError: If method arguments fail validations.
         """
-        _validate_request_timeout(request_timeout_ms)
+        _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
         self._next_client_index = 0
-        endpoints = _momento_endpoint_resolver.resolve(auth_token)
-        self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
+        self._control_client = _ScsControlClient(auth_provider)
         self._data_clients = [
             _ScsDataClient(
-                auth_token,
-                endpoints.cache_endpoint,
-                default_ttl_seconds,
-                request_timeout_ms,
+                configuration,
+                auth_provider,
+                default_ttl
             )
             for _ in range(SimpleCacheClient._NUM_CLIENTS)
         ]
