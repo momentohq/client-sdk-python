@@ -151,11 +151,11 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_caches(next_token)
 
-    async def create_signing_key(self, ttl_minutes: int) -> CreateSigningKeyResponse:
+    async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
         """Creates a Momento signing key
 
         Args:
-            ttl_minutes: The key's time-to-live in minutes
+            ttl: The key's time-to-live represented as a timedelta
 
         Returns:
             CreateSigningKeyResponse
@@ -166,7 +166,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.create_signing_key(ttl_minutes, self._get_next_client().get_endpoint())
+        return await self._control_client.create_signing_key(ttl, self._get_next_client().get_endpoint())
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         """Revokes a Momento signing key, all tokens signed by which will be invalid
@@ -203,7 +203,7 @@ class SimpleCacheClient:
         cache_name: str,
         key: str,
         value: Union[str, bytes],
-        ttl_seconds: Optional[int] = None,
+        ttl: Optional[timedelta] = None,
     ) -> CacheSetResponse:
         """Stores an item in cache
 
@@ -211,7 +211,7 @@ class SimpleCacheClient:
             cache_name: Name of the cache to store the item in.
             key (string or bytes): The key to be used to store item.
             value (string or bytes): The value to be stored.
-            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache
+            ttl (Optional): Time to live in cache timedelta. If not provided, then default TTL for the cache
                 client instance is used.
 
         Returns:
@@ -224,7 +224,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
-        return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
+        return await self._get_next_client().set(cache_name, key, value, ttl)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache
