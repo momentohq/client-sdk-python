@@ -21,10 +21,6 @@ TEST_CONFIGURATION = Laptop.latest()
 
 TEST_AUTH_PROVIDER = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
 
-TEST_AUTH_TOKEN: Optional[str] = os.getenv("TEST_AUTH_TOKEN")
-if not TEST_AUTH_TOKEN:
-    raise RuntimeError("Integration tests require TEST_AUTH_TOKEN env var; see README for more details.")
-
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
 if not TEST_CACHE_NAME:
     raise RuntimeError("Integration tests require TEST_CACHE_NAME env var; see README for more details.")
@@ -39,19 +35,14 @@ BAD_AUTH_TOKEN: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoi
 
 
 @pytest.fixture(scope="session")
-def auth_provider() -> EnvMomentoTokenProvider:
+def credential_provider() -> EnvMomentoTokenProvider:
     return TEST_AUTH_PROVIDER
 
 
 @pytest.fixture(scope="session")
-def bad_token_auth_provider() -> EnvMomentoTokenProvider:
+def bad_token_credential_provider() -> EnvMomentoTokenProvider:
     os.environ["BAD_AUTH_TOKEN"] = BAD_AUTH_TOKEN
     return EnvMomentoTokenProvider("BAD_AUTH_TOKEN")
-
-
-@pytest.fixture(scope="session")
-def auth_token() -> str:
-    return cast(str, TEST_AUTH_TOKEN)
 
 
 @pytest.fixture(scope="session")
@@ -86,8 +77,8 @@ def event_loop() -> asyncio.AbstractEventLoop:
 @pytest.fixture(scope="session")
 def client() -> SimpleCacheClient:
     configuration = Laptop.latest()
-    auth_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
-    with SimpleCacheClient(configuration, auth_provider, DEFAULT_TTL_SECONDS) as _client:
+    credential_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
+    with SimpleCacheClient(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         try:
             _client.create_cache(TEST_CACHE_NAME)
@@ -100,8 +91,8 @@ def client() -> SimpleCacheClient:
 @pytest_asyncio.fixture(scope="session")
 async def client_async() -> SimpleCacheClientAsync:
     configuration = Laptop.latest()
-    auth_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
-    async with SimpleCacheClientAsync(configuration, auth_provider, DEFAULT_TTL_SECONDS) as _client:
+    credential_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
+    async with SimpleCacheClientAsync(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         try:
             # TODO consider deleting cache on when test runner shuts down

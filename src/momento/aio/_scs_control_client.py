@@ -28,12 +28,12 @@ _DEADLINE_SECONDS = 60.0  # 1 minute
 class _ScsControlClient:
     """Momento Internal."""
 
-    def __init__(self, auth_provider: CredentialProvider):
-        endpoint = auth_provider.get_control_endpoint()
+    def __init__(self, credential_provider: CredentialProvider):
+        endpoint = credential_provider.get_control_endpoint()
         self._logger = logs.logger
         self._logger.debug("Simple cache control client instantiated with endpoint: %s", endpoint)
         self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(
-            auth_provider
+            credential_provider
         )
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponse:

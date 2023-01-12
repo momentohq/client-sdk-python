@@ -41,10 +41,10 @@ class _ScsDataClient:
     def __init__(
         self,
         configuration: Configuration,
-        auth_provider: CredentialProvider,
+        credential_provider: CredentialProvider,
         default_ttl: timedelta
     ):
-        endpoint = auth_provider.get_cache_endpoint()
+        endpoint = credential_provider.get_cache_endpoint()
         self._logger = logs.logger
         self._logger.debug("Simple cache data client instantiated with endpoint: %s", endpoint)
         default_deadline: timedelta = (
@@ -52,7 +52,7 @@ class _ScsDataClient:
             or _DEFAULT_DEADLINE_SECONDS
         )
         self._default_deadline_seconds = int(default_deadline.total_seconds())
-        self._grpc_manager = _scs_grpc_manager._DataGrpcManager(auth_provider)
+        self._grpc_manager = _scs_grpc_manager._DataGrpcManager(credential_provider)
         _validate_ttl(default_ttl)
         self._default_ttlSeconds = int(default_ttl.total_seconds())
         self._endpoint = endpoint

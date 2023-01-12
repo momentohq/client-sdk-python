@@ -62,14 +62,14 @@ class SimpleCacheClient:
     def __init__(
         self,
         configuration: Configuration,
-        auth_provider: CredentialProvider,
+        credential_provider: CredentialProvider,
         default_ttl: timedelta
     ):
         """Creates an async SimpleCacheClient
 
         Args:
             configuration (Configuration): An object holding configuration settings for communication with the server.
-            auth_provider (CredentialProvider): An object holding the auth token and endpoint information.
+            credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
             default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
                 It is possible to override this setting when calling the set method.
         Raises:
@@ -78,11 +78,11 @@ class SimpleCacheClient:
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
         self._next_client_index = 0
-        self._control_client = _ScsControlClient(auth_provider)
+        self._control_client = _ScsControlClient(credential_provider)
         self._data_clients = [
             _ScsDataClient(
                 configuration,
-                auth_provider,
+                credential_provider,
                 default_ttl
             )
             for _ in range(SimpleCacheClient._NUM_CLIENTS)
