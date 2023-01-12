@@ -38,18 +38,12 @@ def _make_metadata(cache_name: str) -> Metadata:
 class _ScsDataClient:
     """Internal"""
 
-    def __init__(
-        self,
-        configuration: Configuration,
-        credential_provider: CredentialProvider,
-        default_ttl: timedelta
-    ):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.get_cache_endpoint()
         self._logger = logs.logger
         self._logger.debug("Simple cache data client instantiated with endpoint: %s", endpoint)
         default_deadline: timedelta = (
-            configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
-            or _DEFAULT_DEADLINE_SECONDS
+            configuration.get_transport_strategy().get_grpc_configuration().get_deadline() or _DEFAULT_DEADLINE_SECONDS
         )
         self._default_deadline_seconds = int(default_deadline.total_seconds())
         self._grpc_manager = _scs_grpc_manager._DataGrpcManager(credential_provider)

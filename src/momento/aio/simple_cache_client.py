@@ -59,12 +59,7 @@ class SimpleCacheClient:
     # https://github.com/momentohq/dev-eco-issue-tracker/issues/85
     _NUM_CLIENTS = 1
 
-    def __init__(
-        self,
-        configuration: Configuration,
-        credential_provider: CredentialProvider,
-        default_ttl: timedelta
-    ):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         """Creates an async SimpleCacheClient
 
         Args:
@@ -80,11 +75,7 @@ class SimpleCacheClient:
         self._next_client_index = 0
         self._control_client = _ScsControlClient(credential_provider)
         self._data_clients = [
-            _ScsDataClient(
-                configuration,
-                credential_provider,
-                default_ttl
-            )
+            _ScsDataClient(configuration, credential_provider, default_ttl)
             for _ in range(SimpleCacheClient._NUM_CLIENTS)
         ]
 

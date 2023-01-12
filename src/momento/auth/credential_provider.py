@@ -19,12 +19,7 @@ class CredentialProvider(ABC):
 
 
 class EnvMomentoTokenProvider(CredentialProvider):
-    def __init__(
-        self,
-        env_var_name: str,
-        control_endpoint: Optional[str] = None,
-        cache_endpoint: Optional[str] = None
-    ):
+    def __init__(self, env_var_name: str, control_endpoint: Optional[str] = None, cache_endpoint: Optional[str] = None):
         token = os.getenv(env_var_name)
         if not token:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")

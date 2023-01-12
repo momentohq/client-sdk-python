@@ -47,7 +47,7 @@ def test_init_throws_exception_for_non_jwt_token(default_ttl_seconds: int):
 
 
 def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
-        configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
 ):
     with pytest.raises(errors.InvalidArgumentError, match="Request timeout must be greater than zero."):
         configuration = configuration.with_client_timeout(-1)
@@ -55,7 +55,7 @@ def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
 
 
 def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
-        configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
 ):
     with pytest.raises(errors.InvalidArgumentError, match="Request timeout must be greater than zero."):
         configuration = configuration.with_client_timeout(0)
@@ -87,7 +87,6 @@ def test_create_cache_with_bad_cache_name_throws_exception(
 ):
     with pytest.raises(errors.InvalidArgumentError, match="Cache name must be a non-empty string"):
         client.create_cache(1)
-
 
 
 def test_create_cache_throws_authentication_exception_for_bad_token(
@@ -303,7 +302,10 @@ def test_set_with_bad_value_throws_exception(client: SimpleCacheClient, cache_na
 
 
 def test_set_throws_authentication_exception_for_bad_token(
-    configuration: Configuration, bad_token_credential_provider: EnvMomentoTokenProvider, cache_name: str, default_ttl_seconds: int
+    configuration: Configuration,
+    bad_token_credential_provider: EnvMomentoTokenProvider,
+    cache_name: str,
+    default_ttl_seconds: int,
 ):
     with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):
@@ -360,7 +362,10 @@ def test_get_with_bad_key_throws_exception(client: SimpleCacheClient, cache_name
 
 
 def test_get_throws_authentication_exception_for_bad_token(
-    configuration: Configuration, bad_token_credential_provider: EnvMomentoTokenProvider, cache_name: str, default_ttl_seconds: int
+    configuration: Configuration,
+    bad_token_credential_provider: EnvMomentoTokenProvider,
+    cache_name: str,
+    default_ttl_seconds: int,
 ):
     with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
         with pytest.raises(errors.AuthenticationError):

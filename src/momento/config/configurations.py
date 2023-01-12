@@ -6,14 +6,12 @@ from .transport.transport_strategy import StaticTransportStrategy, StaticGrpcCon
 
 
 class Laptop(Configuration):
-
     @staticmethod
     def latest() -> Laptop:
         return Laptop(StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=15))))
 
 
 class InRegion:
-
     class Default(Configuration):
         @staticmethod
         def latest() -> InRegion.Default:
