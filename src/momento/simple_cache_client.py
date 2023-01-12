@@ -2,9 +2,8 @@ from datetime import timedelta
 from types import TracebackType
 from typing import Optional, Type, Union
 
-from .auth.credential_provider import CredentialProvider
-from .config.configuration import Configuration
 from ._utilities._data_validation import _validate_request_timeout
+from .auth.credential_provider import CredentialProvider
 from .cache_operation_types import (
     CacheDeleteResponse,
     CacheGetResponse,
@@ -13,6 +12,7 @@ from .cache_operation_types import (
     DeleteCacheResponse,
     ListCachesResponse,
 )
+from .config.configuration import Configuration
 from .internal.synchronous._scs_control_client import _ScsControlClient
 from .internal.synchronous._scs_data_client import _ScsDataClient
 

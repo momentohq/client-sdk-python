@@ -10,7 +10,11 @@ from momento_wire_types.cacheclient_pb2 import (
 )
 
 from momento import _cache_service_errors_converter, cache_operation_types, logs
-from momento._utilities._data_validation import _as_bytes, _validate_cache_name, _validate_ttl_seconds
+from momento._utilities._data_validation import (
+    _as_bytes,
+    _validate_cache_name,
+    _validate_ttl_seconds,
+)
 
 TResponse = TypeVar("TResponse")
 TGeneratedRequest = TypeVar("TGeneratedRequest")

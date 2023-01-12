@@ -1,16 +1,16 @@
 import asyncio
-from datetime import timedelta
 import os
+from datetime import timedelta
 from typing import Optional, cast
 
 import pytest
 import pytest_asyncio
 
+import momento.errors as errors
+from momento.aio.simple_cache_client import SimpleCacheClient as SimpleCacheClientAsync
 from momento.auth.credential_provider import EnvMomentoTokenProvider
 from momento.config.configuration import Configuration
 from momento.config.configurations import Laptop
-import momento.errors as errors
-from momento.aio.simple_cache_client import SimpleCacheClient as SimpleCacheClientAsync
 from momento.simple_cache_client import SimpleCacheClient
 
 #######################

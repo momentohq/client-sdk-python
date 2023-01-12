@@ -1,8 +1,12 @@
 from __future__ import annotations
+
 from datetime import timedelta
 
 from .configuration import Configuration
-from .transport.transport_strategy import StaticTransportStrategy, StaticGrpcConfiguration
+from .transport.transport_strategy import (
+    StaticGrpcConfiguration,
+    StaticTransportStrategy,
+)
 
 
 class Laptop(Configuration):

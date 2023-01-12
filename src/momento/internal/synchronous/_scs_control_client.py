@@ -8,8 +8,8 @@ from momento_wire_types.controlclient_pb2 import (
 from momento_wire_types.controlclient_pb2_grpc import ScsControlStub
 
 from momento import _cache_service_errors_converter, logs
-from momento.auth.credential_provider import CredentialProvider
 from momento._utilities._data_validation import _validate_cache_name
+from momento.auth.credential_provider import CredentialProvider
 from momento.cache_operation_types import (
     CreateCacheResponse,
     DeleteCacheResponse,

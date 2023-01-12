@@ -1,5 +1,5 @@
-from typing import Optional, Union
 from datetime import timedelta
+from typing import Optional, Union
 
 from .. import errors
 

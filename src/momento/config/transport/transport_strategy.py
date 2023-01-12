@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from datetime import timedelta
+
 from .grpc_configuration import GrpcConfiguration
 
 
