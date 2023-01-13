@@ -20,6 +20,7 @@ from ..common._data_client_ops import (
     construct_delete_response,
     construct_get_response,
     construct_set_response,
+    get_default_client_deadline,
     prepare_delete_request,
     prepare_get_request,
     prepare_set_request,
@@ -43,15 +44,13 @@ class _ScsDataClient:
         credential_provider: CredentialProvider,
         default_ttl: timedelta,
     ):
-        default_deadline: timedelta = (
-            configuration.get_transport_strategy().get_grpc_configuration().get_deadline() or _DEFAULT_DEADLINE_SECONDS
-        )
+        default_deadline: timedelta = get_default_client_deadline(configuration)
         self._default_deadline_seconds = int(default_deadline.total_seconds())
         self._grpc_manager = _scs_grpc_manager._DataGrpcManager(
             credential_provider.get_auth_token(), credential_provider.get_cache_endpoint()
         )
         _validate_ttl(default_ttl)
-        self._default_ttlSeconds = int(default_ttl.total_seconds())
+        self._default_ttl = default_ttl
 
     def set(
         self,
@@ -67,12 +66,11 @@ class _ScsDataClient:
                 timeout=self._default_deadline_seconds,
             )
 
-        ttl_seconds: Optional[int] = int(ttl.total_seconds()) if ttl else None
         return wrap_with_error_handling(
             cache_name=cache_name,
             request_type="Set",
             prepare_request_fn=lambda: prepare_set_request(  # type: ignore[no-any-return]
-                key=key, value=value, ttl_seconds=ttl_seconds, default_ttl_seconds=self._default_ttlSeconds
+                key=key, value=value, ttl=ttl, default_ttl=self._default_ttl
             ),
             execute_request_fn=execute_set_request_fn,
             response_fn=construct_set_response,

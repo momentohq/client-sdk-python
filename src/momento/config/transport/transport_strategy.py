@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import timedelta
 
 from .grpc_configuration import GrpcConfiguration
+from momento._utilities._data_validation import _validate_request_timeout
 
 
 class TransportStrategy(ABC):
@@ -28,6 +29,7 @@ class StaticGrpcConfiguration(GrpcConfiguration):
         return self._deadline
 
     def with_deadline(self, deadline: timedelta) -> GrpcConfiguration:
+        _validate_request_timeout(deadline)
         return StaticGrpcConfiguration(deadline)
 
 

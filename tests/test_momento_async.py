@@ -40,25 +40,38 @@ async def test_init_throws_exception_when_client_uses_negative_default_ttl(
         SimpleCacheClient(configuration, credential_provider, timedelta(seconds=-1))
 
 
-async def test_init_throws_exception_for_non_jwt_token(configuration: Configuration, default_ttl_seconds: int):
-    with pytest.raises(errors.InvalidArgumentError, match="Invalid Auth token.") as cm:
+async def test_init_throws_exception_for_non_jwt_token(configuration: Configuration, default_ttl_seconds: timedelta):
+    with pytest.raises(errors.InvalidArgumentError, match="Invalid Auth token."):
         os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
         credential_provider = EnvMomentoTokenProvider("BAD_AUTH_TOKEN")
         SimpleCacheClient(configuration, credential_provider, default_ttl_seconds)
 
 
-async def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
+async def test_init_throws_exception_when_client_uses_integer_request_timeout_ms(
     configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
 ):
-    with pytest.raises(errors.InvalidArgumentError, match="Request timeout must be greater than zero."):
+    with pytest.raises(
+        errors.InvalidArgumentError, match="Request timeout must be a timedelta with a value greater " "than zero."
+    ):
+        configuration.with_client_timeout(-1)
+
+
+async def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: timedelta
+):
+    with pytest.raises(
+        errors.InvalidArgumentError, match="Request timeout must be a timedelta with a value greater than zero."
+    ):
         configuration = configuration.with_client_timeout(timedelta(seconds=-1))
         SimpleCacheClient(configuration, credential_provider, default_ttl_seconds)
 
 
 async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
-    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: timedelta
 ):
-    with pytest.raises(errors.InvalidArgumentError, match="Request timeout must be greater than zero."):
+    with pytest.raises(
+        errors.InvalidArgumentError, match="Request timeout must be a timedelta with a value greater than zero."
+    ):
         configuration = configuration.with_client_timeout(timedelta(seconds=0))
         SimpleCacheClient(configuration, credential_provider, default_ttl_seconds)
 
@@ -93,7 +106,7 @@ async def test_create_cache_with_bad_cache_name_throws_exception(
 
 
 async def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: int
+    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ):
     async with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         with pytest.raises(errors.AuthenticationError):
@@ -139,7 +152,7 @@ async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleC
 
 
 async def test_delete_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: int
+    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ):
     async with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         with pytest.raises(errors.AuthenticationError):
@@ -167,7 +180,7 @@ async def test_list_caches_succeeds(client_async: SimpleCacheClient, cache_name:
 
 
 async def test_list_caches_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: int
+    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ):
     async with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         with pytest.raises(errors.AuthenticationError):
@@ -294,7 +307,7 @@ async def test_set_with_null_value_throws_exception(client_async: SimpleCacheCli
 
 
 async def test_set_negative_ttl_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError, match="TTL Seconds must be a non-negative integer") as cm:
+    with pytest.raises(errors.InvalidArgumentError, match="TTL timedelta must be a non-negative integer"):
         await client_async.set(cache_name, "foo", "bar", timedelta(seconds=-1))
 
 
@@ -319,7 +332,7 @@ async def test_set_throws_authentication_exception_for_bad_token(
     bad_token_credential_provider: EnvMomentoTokenProvider,
     configuration: Configuration,
     cache_name: str,
-    default_ttl_seconds: int,
+    default_ttl_seconds: timedelta,
 ):
     async with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         with pytest.raises(errors.AuthenticationError):
@@ -330,7 +343,7 @@ async def test_set_throws_timeout_error_for_short_request_timeout(
     configuration: Configuration,
     credential_provider: EnvMomentoTokenProvider,
     cache_name: str,
-    default_ttl_seconds: int,
+    default_ttl_seconds: timedelta,
 ):
     configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
     async with SimpleCacheClient(configuration, credential_provider, default_ttl_seconds) as client_async:
@@ -382,7 +395,7 @@ async def test_get_throws_authentication_exception_for_bad_token(
     bad_token_credential_provider: EnvMomentoTokenProvider,
     configuration: Configuration,
     cache_name: str,
-    default_ttl_seconds: int,
+    default_ttl_seconds: timedelta,
 ):
     async with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         with pytest.raises(errors.AuthenticationError):
@@ -393,7 +406,7 @@ async def test_get_throws_timeout_error_for_short_request_timeout(
     configuration: Configuration,
     credential_provider: EnvMomentoTokenProvider,
     cache_name: str,
-    default_ttl_seconds: int,
+    default_ttl_seconds: timedelta,
 ):
     configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
     async with SimpleCacheClient(configuration, credential_provider, default_ttl_seconds) as client_async:
@@ -429,3 +442,13 @@ async def test_delete(client_async: SimpleCacheClient, cache_name: str):
     # Verify deleted
     get_response = await client_async.get(cache_name, key)
     assert get_response.status() == CacheGetStatus.MISS
+
+
+async def test_configuration_client_timeout_copy_constructor(configuration: Configuration):
+    def snag_deadline(config: Configuration) -> timedelta:
+        return config.get_transport_strategy().get_grpc_configuration().get_deadline()
+
+    original_deadline: timedelta = snag_deadline(configuration)
+    assert original_deadline.total_seconds() == 15
+    configuration = configuration.with_client_timeout(timedelta(seconds=600))
+    assert snag_deadline(configuration).total_seconds() == 600
