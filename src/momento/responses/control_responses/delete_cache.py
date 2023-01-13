@@ -5,39 +5,32 @@ from momento.errors import SdkException
 from ..mixins import ErrorResponseMixin
 
 
-class CreateCacheResponseBase(ABC):
-    """Parent response type for a create cache request. The
+class DeleteCacheResponseBase(ABC):
+    """Parent response type for a delete cache request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
-    - `CreateCacheResponse.Success`
-    - `CreateCacheResponse.CacheAlreadyExists`
-    - `CreateCacheResponse.Error`
+    - `DeleteCacheResponse.Success`
+    - `DeleteCacheResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example:
     ```
     match response:
-        case CreateCacheResponse.Success:
+        case DeleteCacheResponse.Success:
             ...
-        case CreateCacheResponse.CacheAlreadyExists:
-            ...
-        case CreateCacheResponse.Error:
+        case DeleteCacheResponse.Error:
             ...
     ```
     """
 
 
-class CreateCacheResponse(ABC):
+class DeleteCacheResponse(ABC):
     @dataclass
-    class Success(CreateCacheResponseBase):
+    class Success(DeleteCacheResponseBase):
         """Indicates the request was successful."""
 
     @dataclass
-    class CacheAlreadyExists(CreateCacheResponseBase):
-        """Indicates that a cache with the requested name has already been created in the requesting account."""
-
-    @dataclass
-    class Error(CreateCacheResponseBase, ErrorResponseMixin):
+    class Error(DeleteCacheResponseBase, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.

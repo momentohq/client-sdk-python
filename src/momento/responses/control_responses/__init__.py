@@ -1,4 +1,8 @@
 from .create_cache import (
     CreateCacheResponseBase,
-    CreateCacheResponse
+    CreateCacheResponse,
+)
+from .delete_cache import (
+    DeleteCacheResponseBase,
+    DeleteCacheResponse,
 )
