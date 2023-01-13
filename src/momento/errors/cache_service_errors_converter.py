@@ -4,29 +4,52 @@ import grpc
 
 from momento import logs
 from momento.errors import (
+    AlreadyExistsError,
+    AlreadyExistsException,
+    AuthenticationError,
+    AuthenticationException,
+    BadRequestError,
+    BadRequestException,
+    CancelledError,
+    CancelledException,
+    ClientSdkError,
+    FailedPreconditionException,
+    InternalServerError,
+    InternalServerException,
+    InvalidArgumentException,
+    LimitExceededError,
+    LimitExceededException,
     MomentoErrorTransportDetails,
     MomentoGrpcErrorDetails,
-    SdkException,
-    AlreadyExistsException,
-    ServerUnavailableException,
-    InvalidArgumentException,
-    SdkError,
-    BadRequestError,
-    CancelledError,
-    ClientSdkError,
-    TimeoutError,
-    PermissionError,
-    AuthenticationError,
-    LimitExceededError,
-    AlreadyExistsError,
     NotFoundError,
-    InternalServerError,
+    NotFoundException,
+    PermissionDeniedException,
+    PermissionError,
+    SdkError,
+    SdkException,
+    ServerUnavailableException,
+    TimeoutError,
+    TimeoutException,
+    UnknownException,
+    UnknownServiceException,
 )
 
 new_mapping: Dict[grpc.StatusCode, Type[SdkException]] = {
-    grpc.StatusCode.ALREADY_EXISTS: AlreadyExistsException,
-    grpc.StatusCode.UNAVAILABLE: ServerUnavailableException,
     grpc.StatusCode.INVALID_ARGUMENT: InvalidArgumentException,
+    grpc.StatusCode.OUT_OF_RANGE: BadRequestException,
+    grpc.StatusCode.UNIMPLEMENTED: BadRequestException,
+    grpc.StatusCode.FAILED_PRECONDITION: FailedPreconditionException,
+    grpc.StatusCode.PERMISSION_DENIED: PermissionDeniedException,
+    grpc.StatusCode.UNAUTHENTICATED: AuthenticationException,
+    grpc.StatusCode.RESOURCE_EXHAUSTED: LimitExceededException,
+    grpc.StatusCode.NOT_FOUND: NotFoundException,
+    grpc.StatusCode.ALREADY_EXISTS: AlreadyExistsException,
+    grpc.StatusCode.DEADLINE_EXCEEDED: TimeoutException,
+    grpc.StatusCode.CANCELLED: CancelledException,
+    grpc.StatusCode.UNAVAILABLE: ServerUnavailableException,
+    grpc.StatusCode.UNKNOWN: UnknownServiceException,
+    grpc.StatusCode.ABORTED: InternalServerException,
+    grpc.StatusCode.DATA_LOSS: InternalServerException,
 }
 
 __rpc_to_error = {
@@ -48,6 +71,9 @@ __rpc_to_error = {
     grpc.StatusCode.DATA_LOSS: InternalServerError,
 }
 
+INTERNAL_SERVER_ERROR_MESSAGE = "Unexpected exception occurred while trying to fulfill the request."
+SDK_ERROR_MESSAGE = "SDK Failed to process the request."
+
 
 def new_convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, str]]] = None) -> SdkException:
     if isinstance(exception, SdkException):
@@ -55,7 +81,6 @@ def new_convert(exception: Exception, transport_metadata: Optional[List[Tuple[st
 
     if isinstance(exception, grpc.RpcError):
         status_code: grpc.StatusCode = exception.code()
-        # TODO: is this correct vs the exception args?
         details = exception.details()
 
         if status_code in new_mapping:
@@ -64,8 +89,12 @@ def new_convert(exception: Exception, transport_metadata: Optional[List[Tuple[st
                 MomentoGrpcErrorDetails(status_code, details, transport_metadata)
             )
             return concrete_exception_type(details, transport_details)  # type: ignore
+        else:
+            # TODO exception chaining from .NET redundant here?
+            return InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE, transport_details)
 
-    return InvalidArgumentException("Operation failed with error: " + str(exception))
+    # TODO exception chaining from .NET redundant here?
+    return UnknownException(SDK_ERROR_MESSAGE, None)
 
 
 def convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, str]]] = None) -> Exception:
