@@ -7,13 +7,14 @@ from momento_wire_types.controlclient_pb2 import (
 )
 from momento_wire_types.controlclient_pb2_grpc import ScsControlStub
 
-from momento import _cache_service_errors_converter, logs
+from momento import logs
 from momento._utilities._data_validation import _validate_cache_name
 from momento.cache_operation_types import (
     CreateCacheResponse,
     DeleteCacheResponse,
     ListCachesResponse,
 )
+from momento.errors import cache_service_errors_converter
 
 from . import _scs_grpc_manager
 
@@ -36,8 +37,7 @@ class _ScsControlClient:
             return CreateCacheResponse()
         except Exception as e:
             logs.debug(f"Failed to create cache: {cache_name} with exception:{e}")
-            # raise e
-            raise _cache_service_errors_converter.convert(e) from None
+            raise cache_service_errors_converter.convert(e) from e
 
     def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         _validate_cache_name(cache_name)
@@ -49,7 +49,7 @@ class _ScsControlClient:
             return DeleteCacheResponse()
         except Exception as e:
             logs.debug(f"Failed to delete cache: {cache_name} with exception:{e}")
-            raise _cache_service_errors_converter.convert(e) from None
+            raise cache_service_errors_converter.convert(e) from None
 
     def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         try:
@@ -59,7 +59,7 @@ class _ScsControlClient:
                 self._getStub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             )
         except Exception as e:
-            raise _cache_service_errors_converter.convert(e)
+            raise cache_service_errors_converter.convert(e)
 
     def _getStub(self) -> ScsControlStub:
         return self._grpc_manager.stub()

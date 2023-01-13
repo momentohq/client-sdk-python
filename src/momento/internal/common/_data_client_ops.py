@@ -9,12 +9,13 @@ from momento_wire_types.cacheclient_pb2 import (
     _SetResponse,
 )
 
-from momento import _cache_service_errors_converter, cache_operation_types, logs
+from momento import cache_operation_types, logs
 from momento._utilities._data_validation import (
     _as_bytes,
     _validate_cache_name,
     _validate_ttl,
 )
+from momento.errors import cache_service_errors_converter
 
 TResponse = TypeVar("TResponse")
 TGeneratedRequest = TypeVar("TGeneratedRequest")
@@ -39,7 +40,7 @@ def wrap_with_error_handling(
         return response_fn(req, resp)
     except Exception as e:
         _logger.warning("%s failed with exception: %s", request_type, e)
-        raise _cache_service_errors_converter.convert(e)
+        raise cache_service_errors_converter.convert(e)
 
 
 async def wrap_async_with_error_handling(
@@ -56,7 +57,7 @@ async def wrap_async_with_error_handling(
         return response_fn(req, resp)
     except Exception as e:
         _logger.warning("%s failed with exception: %s", request_type, e)
-        raise _cache_service_errors_converter.convert(e)
+        raise cache_service_errors_converter.convert(e)
 
 
 def prepare_set_request(

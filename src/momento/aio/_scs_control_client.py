@@ -9,7 +9,9 @@ from momento_wire_types.controlclient_pb2 import (
     _RevokeSigningKeyRequest,
 )
 
-from .. import _cache_service_errors_converter, logs
+from ..errors import cache_service_errors_converter
+
+from .. import logs
 from .._utilities._data_validation import _validate_cache_name, _validate_ttl_minutes
 from ..cache_operation_types import (
     CreateCacheResponse,
@@ -42,7 +44,7 @@ class _ScsControlClient:
             return CreateCacheResponse()
         except Exception as e:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
-            raise _cache_service_errors_converter.convert(e) from None
+            raise cache_service_errors_converter.convert(e) from None
 
     async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         _validate_cache_name(cache_name)
@@ -54,7 +56,7 @@ class _ScsControlClient:
             return DeleteCacheResponse()
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
-            raise _cache_service_errors_converter.convert(e) from None
+            raise cache_service_errors_converter.convert(e) from None
 
     async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         try:
@@ -64,7 +66,7 @@ class _ScsControlClient:
                 await self._grpc_manager.async_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             )
         except Exception as e:
-            raise _cache_service_errors_converter.convert(e)
+            raise cache_service_errors_converter.convert(e)
 
     async def create_signing_key(self, ttl_minutes: int, endpoint: str) -> CreateSigningKeyResponse:
         _validate_ttl_minutes(ttl_minutes)
@@ -80,7 +82,7 @@ class _ScsControlClient:
             )
         except Exception as e:
             self._logger.warning(f"Failed to create signing key with exception: {e}")
-            raise _cache_service_errors_converter.convert(e)
+            raise cache_service_errors_converter.convert(e)
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         try:
@@ -91,7 +93,7 @@ class _ScsControlClient:
             return RevokeSigningKeyResponse()
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
-            raise _cache_service_errors_converter.convert(e)
+            raise cache_service_errors_converter.convert(e)
 
     async def list_signing_keys(self, endpoint: str, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         try:
@@ -104,7 +106,7 @@ class _ScsControlClient:
                 endpoint,
             )
         except Exception as e:
-            raise _cache_service_errors_converter.convert(e)
+            raise cache_service_errors_converter.convert(e)
 
     async def close(self) -> None:
         await self._grpc_manager.close()
