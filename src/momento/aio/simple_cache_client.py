@@ -33,13 +33,13 @@ from ..cache_operation_types import (
     CacheDeleteResponse,
     CacheGetResponse,
     CacheSetResponse,
-    CreateCacheResponse,
     CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
+from momento.responses import CreateCacheResponseBase
 
 
 class SimpleCacheClient:
@@ -103,7 +103,7 @@ class SimpleCacheClient:
         for data_client in self._data_clients:
             await data_client.close()
 
-    async def create_cache(self, cache_name: str) -> CreateCacheResponse:
+    async def create_cache(self, cache_name: str) -> CreateCacheResponseBase:
         """Creates a new cache in your Momento account.
 
         Args:

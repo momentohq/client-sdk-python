@@ -49,11 +49,7 @@ __rpc_to_error = {
 }
 
 
-def convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, str]]] = None) -> Exception:
-    # TODO remove
-    if isinstance(exception, SdkError):
-        return exception
-
+def new_convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, str]]] = None) -> SdkException:
     if isinstance(exception, SdkException):
         return exception
 
@@ -69,6 +65,14 @@ def convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, s
             )
             return concrete_exception_type(details, transport_details)  # type: ignore
 
+    return InvalidArgumentException("Operation failed with error: " + str(exception))
+
+
+def convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, str]]] = None) -> Exception:
+    if isinstance(exception, SdkError):
+        return exception
+
+    if isinstance(exception, grpc.RpcError):
         if exception.code() in __rpc_to_error:
             return __rpc_to_error[exception.code()](exception.details())
         else:

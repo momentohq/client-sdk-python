@@ -1,6 +1,1 @@
-from .control_responses import (
-    CreateCacheResponse,
-    CreateCacheResponseSuccess,
-    CreateCacheResponseCacheAlreadyExists,
-    CreateCacheResponseError,
-)
+from .control_responses import CreateCacheResponseBase, CreateCacheResponse

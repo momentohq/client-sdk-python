@@ -1,5 +1,7 @@
 from typing import Optional
 
+import grpc
+
 from momento_wire_types.controlclient_pb2 import (
     _CreateCacheRequest,
     _CreateSigningKeyRequest,
@@ -14,7 +16,6 @@ from ..errors import cache_service_errors_converter
 from .. import logs
 from .._utilities._data_validation import _validate_cache_name, _validate_ttl_minutes
 from ..cache_operation_types import (
-    CreateCacheResponse,
     CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
@@ -22,6 +23,7 @@ from ..cache_operation_types import (
     RevokeSigningKeyResponse,
 )
 from . import _scs_grpc_manager
+from momento.responses import CreateCacheResponse, CreateCacheResponseBase
 
 _DEADLINE_SECONDS = 60.0  # 1 minute
 
@@ -34,17 +36,19 @@ class _ScsControlClient:
         self._logger.debug("Simple cache control client instantiated with endpoint: %s", endpoint)
         self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(auth_token, endpoint)
 
-    async def create_cache(self, cache_name: str) -> CreateCacheResponse:
+    async def create_cache(self, cache_name: str) -> CreateCacheResponseBase:
         _validate_cache_name(cache_name)
         try:
             self._logger.info(f"Creating cache with name: {cache_name}")
             request = _CreateCacheRequest()
             request.cache_name = cache_name
             await self._grpc_manager.async_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)
-            return CreateCacheResponse()
         except Exception as e:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
-            raise cache_service_errors_converter.convert(e) from None
+            if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
+                return CreateCacheResponse.CacheAlreadyExists()
+            return CreateCacheResponse.Error(cache_service_errors_converter.new_convert(e))
+        return CreateCacheResponse.Success()
 
     async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         _validate_cache_name(cache_name)
