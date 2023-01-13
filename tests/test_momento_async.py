@@ -5,6 +5,8 @@ import pytest
 import momento.errors as errors
 from momento.aio.simple_cache_client import SimpleCacheClient
 from momento.cache_operation_types import CacheGetStatus
+from momento.errors import MomentoErrorCode
+from momento.responses import CreateCacheResponse
 from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 
@@ -63,31 +65,32 @@ async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
 async def test_create_cache_throws_already_exists_when_creating_existing_cache(
     client_async: SimpleCacheClient, cache_name: str
 ):
-    with pytest.raises(errors.AlreadyExistsError):
-        await client_async.create_cache(cache_name)
+    response = await client_async.create_cache(cache_name)
+    assert isinstance(response, CreateCacheResponse.CacheAlreadyExists)
 
 
 async def test_create_cache_throws_exception_for_empty_cache_name(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.BadRequestError):
-        await client_async.create_cache("")
+    response = await client_async.create_cache("")
+    assert isinstance(response, CreateCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
 async def test_create_cache_throws_validation_exception_for_null_cache_name(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        await client_async.create_cache(None)
-        assert cm.exception == "Cache name must be a non-empty string"
+    response = await client_async.create_cache(None)
+    assert isinstance(response, CreateCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
 async def test_create_cache_with_bad_cache_name_throws_exception(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
-        await client_async.create_cache(1)
-        assert cm.exception == "Cache name must be a non-empty string"
+    response = await client_async.create_cache(1)
+    assert isinstance(response, CreateCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
 async def test_create_cache_throws_authentication_exception_for_bad_token(

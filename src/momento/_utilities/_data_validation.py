@@ -1,13 +1,15 @@
 from typing import Optional, Union
 
 from .. import errors
+from momento.errors import InvalidArgumentException
+
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 
 
 def _validate_cache_name(cache_name: str) -> None:
     if cache_name is None or not isinstance(cache_name, str):
-        raise errors.InvalidArgumentError("Cache name must be a non-empty string")
+        raise InvalidArgumentException("Cache name must be a non-empty string")
 
 
 def _as_bytes(

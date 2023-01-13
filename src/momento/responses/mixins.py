@@ -1,4 +1,10 @@
-from typing import Protocol
+import typing
+
+# https://stackoverflow.com/questions/71889556/mypy-checking-typing-protocol-with-python-3-7-support
+if typing.TYPE_CHECKING:
+    from typing_extensions import Protocol
+else:
+    Protocol = object
 
 from momento.errors import SdkException, MomentoErrorCode
 

@@ -110,7 +110,7 @@ class SimpleCacheClient:
             cache_name: String used to create cache.
 
         Returns:
-            CreateCacheResponse
+            CreateCacheResponseBase
 
         Raises:
             InvalidArgumentError: If provided cache_name None.
