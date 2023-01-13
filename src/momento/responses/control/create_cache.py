@@ -28,6 +28,8 @@ class CreateCacheResponseBase(ABC):
 
 
 class CreateCacheResponse(ABC):
+    """Groups all `CreateCacheResponseBase` derived types under a common namespace."""
+
     @dataclass
     class Success(CreateCacheResponseBase):
         """Indicates the request was successful."""

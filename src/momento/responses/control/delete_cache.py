@@ -25,6 +25,8 @@ class DeleteCacheResponseBase(ABC):
 
 
 class DeleteCacheResponse(ABC):
+    """Groups all `DeleteCacheResponseBase` derived types under a common namespace."""
+
     @dataclass
     class Success(DeleteCacheResponseBase):
         """Indicates the request was successful."""

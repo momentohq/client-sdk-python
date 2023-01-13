@@ -28,6 +28,8 @@ class CacheGetResponseBase(ABC):
 
 
 class CacheGetResponse(ABC):
+    """Groups all `CacheGetResponseBase` derived types under a common namespace."""
+
     @dataclass
     class Hit(CacheGetResponseBase):
         """Indicates the request was successful."""

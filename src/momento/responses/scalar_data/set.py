@@ -25,6 +25,8 @@ class CacheSetResponseBase(ABC):
 
 
 class CacheSetResponse(ABC):
+    """Groups all `CacheSetResponseBase` derived types under a common namespace."""
+
     @dataclass
     class Success(CacheSetResponseBase):
         """Indicates the request was successful."""
