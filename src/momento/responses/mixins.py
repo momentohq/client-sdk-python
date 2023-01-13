@@ -31,6 +31,11 @@ class ValueStringMixin:
 
     @property
     def value_string(self: HasValueBytesProtocol) -> str:
+        """Convert the bytes `value` to a UTF-8 string
+
+        Returns:
+            str: UTF-8 representation of the `value`
+        """
         return self.value_bytes.decode("utf-8")
 
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from momento.errors import SdkException
 
-from ..mixins import ErrorResponseMixin
+from ..mixins import ErrorResponseMixin, ValueStringMixin
 
 
 class CacheGetResponseBase(ABC):
@@ -32,16 +32,12 @@ class CacheGetResponse(ABC):
     """Groups all `CacheGetResponseBase` derived types under a common namespace."""
 
     @dataclass
-    class Hit(CacheGetResponseBase):
+    class Hit(CacheGetResponseBase, ValueStringMixin):
         """Indicates the request was successful."""
 
         value_bytes: bytes
         """The value returned from the cache for the specified key. Use the
         `value_string` property to access the value as a string."""
-
-        @property
-        def value_string(self) -> str:
-            return self.value_bytes.decode("utf-8")
 
     @dataclass
     class Miss(CacheGetResponseBase):
