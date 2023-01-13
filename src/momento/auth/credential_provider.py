@@ -6,6 +6,9 @@ from . import momento_endpoint_resolver
 
 
 class CredentialProvider(ABC):
+    """Provides information that the SimpleCacheClient needs in order to establish a connection to and authenticate with
+    the Momento service.
+    """
     @abstractmethod
     def get_auth_token(self) -> str:
         pass
@@ -21,6 +24,12 @@ class CredentialProvider(ABC):
 
 class EnvMomentoTokenProvider(CredentialProvider):
     def __init__(self, env_var_name: str, control_endpoint: Optional[str] = None, cache_endpoint: Optional[str] = None):
+        """Reads and parses a Momento auth token stored as an environment variable.
+
+        :param env_var_name: name of the environment variable from which the auth token will be read
+        :param control_endpoint: optionally overrides the default control endpoint
+        :param cache_endpoint: optionally overrides the default control endpoint
+        """
         token = os.getenv(env_var_name)
         if not token:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")
