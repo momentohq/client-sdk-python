@@ -5,10 +5,10 @@ from datetime import timedelta
 import pytest
 
 import momento.errors as errors
-from momento.simple_cache_client import SimpleCacheClient
 from momento.auth.credential_provider import CredentialProvider, EnvMomentoTokenProvider
 from momento.cache_operation_types import CacheGetStatus
 from momento.config.configuration import Configuration
+from momento.simple_cache_client import SimpleCacheClient
 from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 
