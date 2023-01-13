@@ -35,3 +35,4 @@ from .exceptions import (
     UnknownException,
     UnknownServiceException,
 )
+from .cache_service_errors_converter import new_convert

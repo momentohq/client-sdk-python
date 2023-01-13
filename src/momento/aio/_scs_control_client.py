@@ -11,7 +11,7 @@ from momento_wire_types.controlclient_pb2 import (
     _RevokeSigningKeyRequest,
 )
 
-from ..errors import cache_service_errors_converter
+from momento.errors import new_convert, cache_service_errors_converter
 
 from .. import logs
 from .._utilities._data_validation import _validate_cache_name, _validate_ttl_minutes
@@ -37,9 +37,9 @@ class _ScsControlClient:
         self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(auth_token, endpoint)
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponseBase:
-        _validate_cache_name(cache_name)
         try:
             self._logger.info(f"Creating cache with name: {cache_name}")
+            _validate_cache_name(cache_name)
             request = _CreateCacheRequest()
             request.cache_name = cache_name
             await self._grpc_manager.async_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)
@@ -47,7 +47,7 @@ class _ScsControlClient:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
             if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
                 return CreateCacheResponse.CacheAlreadyExists()
-            return CreateCacheResponse.Error(cache_service_errors_converter.new_convert(e))
+            return CreateCacheResponse.Error(new_convert(e))
         return CreateCacheResponse.Success()
 
     async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:

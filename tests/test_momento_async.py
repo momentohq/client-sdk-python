@@ -62,7 +62,7 @@ async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
 
 
 # Create cache
-async def test_create_cache_throws_already_exists_when_creating_existing_cache(
+async def test_create_cache__already_exists_when_creating_existing_cache(
     client_async: SimpleCacheClient, cache_name: str
 ):
     response = await client_async.create_cache(cache_name)
@@ -97,8 +97,9 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
     bad_auth_token: str, default_ttl_seconds: int
 ):
     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-        with pytest.raises(errors.AuthenticationError):
-            await client_async.create_cache(unique_test_cache_name())
+        response = await client_async.create_cache(unique_test_cache_name())
+        assert isinstance(response, CreateCacheResponse.Error)
+        assert response.error_code == errors.MomentoErrorCode.AUTHENTICATION_ERROR
 
 
 # Delete cache
@@ -123,7 +124,7 @@ async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
 async def test_delete_cache_throws_invalid_input_for_null_cache_name(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError):
+    with pytest.raises(errors.InvalidArgumentException):
         await client_async.delete_cache(None)
 
 
@@ -135,7 +136,7 @@ async def test_delete_cache_throws_exception_for_empty_cache_name(
 
 
 async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         await client_async.delete_cache(1)
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -272,7 +273,7 @@ async def test_set_with_non_existent_cache_name_throws_not_found(
 
 
 async def test_set_with_null_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         await client_async.set(None, "foo", "bar")
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -304,7 +305,7 @@ async def test_set_negative_ttl_throws_exception(client_async: SimpleCacheClient
 async def test_set_with_bad_cache_name_throws_exception(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         await client_async.set(1, "foo", "bar")
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -349,7 +350,7 @@ async def test_get_with_non_existent_cache_name_throws_not_found(
 async def test_get_with_null_cache_name_throws_exception(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         await client_async.get(None, "foo")
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -370,7 +371,7 @@ async def test_get_with_null_key_throws_exception(client_async: SimpleCacheClien
 async def test_get_with_bad_cache_name_throws_exception(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         await client_async.get(1, "foo")
         assert cm.exception == "Cache name must be a non-empty string"
 

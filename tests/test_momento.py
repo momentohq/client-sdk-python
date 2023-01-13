@@ -71,7 +71,7 @@ def test_create_cache_throws_exception_for_empty_cache_name(
 def test_create_cache_throws_validation_exception_for_null_cache_name(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         client.create_cache(None)
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -79,7 +79,7 @@ def test_create_cache_throws_validation_exception_for_null_cache_name(
 def test_create_cache_with_bad_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         client.create_cache(1)
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -112,7 +112,7 @@ def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
 def test_delete_cache_throws_invalid_input_for_null_cache_name(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError):
+    with pytest.raises(errors.InvalidArgumentException):
         client.delete_cache(None)
 
 
@@ -124,7 +124,7 @@ def test_delete_cache_throws_exception_for_empty_cache_name(
 
 
 def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         client.delete_cache(1)
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -248,7 +248,7 @@ def test_set_with_non_existent_cache_name_throws_not_found(
 
 
 def test_set_with_null_cache_name_throws_exception(client: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         client.set(None, "foo", "bar")
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -280,7 +280,7 @@ def test_set_negative_ttl_throws_exception(client: SimpleCacheClient, cache_name
 def test_set_with_bad_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         client.set(1, "foo", "bar")
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -323,7 +323,7 @@ def test_get_with_non_existent_cache_name_throws_not_found(
 def test_get_with_null_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         client.get(None, "foo")
         assert cm.exception == "Cache name must be a non-empty string"
 
@@ -344,7 +344,7 @@ def test_get_with_null_key_throws_exception(client: SimpleCacheClient, cache_nam
 def test_get_with_bad_cache_name_throws_exception(
     client: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(errors.InvalidArgumentException) as cm:
         client.get(1, "foo")
         assert cm.exception == "Cache name must be a non-empty string"
 
