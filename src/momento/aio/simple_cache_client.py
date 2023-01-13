@@ -28,6 +28,8 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
+from momento.responses import CreateCacheResponseBase
+
 from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
     CacheDeleteResponse,
@@ -39,7 +41,6 @@ from ..cache_operation_types import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.responses import CreateCacheResponseBase
 
 
 class SimpleCacheClient:

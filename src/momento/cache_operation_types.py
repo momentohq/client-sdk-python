@@ -5,8 +5,8 @@ from typing import Any, List, Optional
 
 from momento_wire_types import cacheclient_pb2 as cache_client_types
 
-from .errors import cache_service_errors_converter as error_converter
 from . import logs
+from .errors import cache_service_errors_converter as error_converter
 
 
 class CacheGetStatus(Enum):

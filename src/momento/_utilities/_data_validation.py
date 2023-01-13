@@ -1,8 +1,8 @@
 from typing import Optional, Union
 
-from .. import errors
 from momento.errors import InvalidArgumentException
 
+from .. import errors
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 

@@ -1,7 +1,6 @@
 from typing import Optional
 
 import grpc
-
 from momento_wire_types.controlclient_pb2 import (
     _CreateCacheRequest,
     _CreateSigningKeyRequest,
@@ -11,7 +10,8 @@ from momento_wire_types.controlclient_pb2 import (
     _RevokeSigningKeyRequest,
 )
 
-from momento.errors import new_convert, cache_service_errors_converter
+from momento.errors import cache_service_errors_converter, new_convert
+from momento.responses import CreateCacheResponse, CreateCacheResponseBase
 
 from .. import logs
 from .._utilities._data_validation import _validate_cache_name, _validate_ttl_minutes
@@ -23,7 +23,6 @@ from ..cache_operation_types import (
     RevokeSigningKeyResponse,
 )
 from . import _scs_grpc_manager
-from momento.responses import CreateCacheResponse, CreateCacheResponseBase
 
 _DEADLINE_SECONDS = 60.0  # 1 minute
 

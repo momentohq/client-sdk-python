@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
 else:
     Protocol = object
 
-from momento.errors import SdkException, MomentoErrorCode
+from momento.errors import MomentoErrorCode, SdkException
 
 
 class AbstractClassMixin:
