@@ -11,13 +11,17 @@ from momento_wire_types.controlclient_pb2 import (
 )
 
 from momento.errors import cache_service_errors_converter, new_convert
-from momento.responses import CreateCacheResponse, CreateCacheResponseBase
+from momento.responses import (
+    CreateCacheResponse,
+    CreateCacheResponseBase,
+    DeleteCacheResponse,
+    DeleteCacheResponseBase,
+)
 
 from .. import logs
 from .._utilities._data_validation import _validate_cache_name, _validate_ttl_minutes
 from ..cache_operation_types import (
     CreateSigningKeyResponse,
-    DeleteCacheResponse,
     ListCachesResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
@@ -49,17 +53,17 @@ class _ScsControlClient:
             return CreateCacheResponse.Error(new_convert(e))
         return CreateCacheResponse.Success()
 
-    async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
-        _validate_cache_name(cache_name)
+    async def delete_cache(self, cache_name: str) -> DeleteCacheResponseBase:
         try:
             self._logger.info(f"Deleting cache with name: {cache_name}")
+            _validate_cache_name(cache_name)
             request = _DeleteCacheRequest()
             request.cache_name = cache_name
             await self._grpc_manager.async_stub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
-            return DeleteCacheResponse()
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
-            raise cache_service_errors_converter.convert(e) from None
+            return DeleteCacheResponse.Error(new_convert(e))
+        return DeleteCacheResponse.Success()
 
     async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         try:

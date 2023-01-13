@@ -6,7 +6,7 @@ import momento.errors as errors
 from momento.aio.simple_cache_client import SimpleCacheClient
 from momento.cache_operation_types import CacheGetStatus
 from momento.errors import MomentoErrorCode
-from momento.responses import CreateCacheResponse
+from momento.responses import CreateCacheResponse, DeleteCacheResponse
 from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 
@@ -106,47 +106,55 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
 async def test_delete_cache_succeeds(client_async: SimpleCacheClient, cache_name: str):
     cache_name = uuid_str()
 
-    await client_async.create_cache(cache_name)
-    await client_async.delete_cache(cache_name)
+    response = await client_async.create_cache(cache_name)
+    assert isinstance(response, CreateCacheResponse.Success)
 
-    with pytest.raises(errors.NotFoundError):
-        await client_async.delete_cache(cache_name)
+    response = await client_async.delete_cache(cache_name)
+    assert isinstance(response, DeleteCacheResponse.Success)
+
+    response = await client_async.delete_cache(cache_name)
+    assert isinstance(response, DeleteCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
 
 
 async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
     client_async: SimpleCacheClient,
 ):
     cache_name = uuid_str()
-    with pytest.raises(errors.NotFoundError):
-        await client_async.delete_cache(cache_name)
+    response = await client_async.delete_cache(cache_name)
+    assert isinstance(response, DeleteCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
 
 
 async def test_delete_cache_throws_invalid_input_for_null_cache_name(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.InvalidArgumentException):
-        await client_async.delete_cache(None)
+    response = await client_async.delete_cache(None)
+    assert isinstance(response, DeleteCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
 async def test_delete_cache_throws_exception_for_empty_cache_name(
     client_async: SimpleCacheClient,
 ):
-    with pytest.raises(errors.BadRequestError):
-        await client_async.delete_cache("")
+    response = await client_async.delete_cache("")
+    assert isinstance(response, DeleteCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
 async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClient, cache_name: str):
-    with pytest.raises(errors.InvalidArgumentException) as cm:
-        await client_async.delete_cache(1)
-        assert cm.exception == "Cache name must be a non-empty string"
+    response = await client_async.delete_cache(1)
+    assert isinstance(response, DeleteCacheResponse.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
 async def test_delete_cache_throws_authentication_exception_for_bad_token(
     bad_auth_token: str, default_ttl_seconds: int
 ):
     async with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client_async:
-        with pytest.raises(errors.AuthenticationError):
-            await client_async.delete_cache(uuid_str())
+        response = await client_async.delete_cache(uuid_str())
+        assert isinstance(response, DeleteCacheResponse.Error)
+        assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
 # List caches

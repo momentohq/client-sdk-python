@@ -28,7 +28,7 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from momento.responses import CreateCacheResponseBase
+from momento.responses import CreateCacheResponseBase, DeleteCacheResponseBase
 
 from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
@@ -36,7 +36,6 @@ from ..cache_operation_types import (
     CacheGetResponse,
     CacheSetResponse,
     CreateSigningKeyResponse,
-    DeleteCacheResponse,
     ListCachesResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
@@ -122,7 +121,7 @@ class SimpleCacheClient:
         """
         return await self._control_client.create_cache(cache_name)
 
-    async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
+    async def delete_cache(self, cache_name: str) -> DeleteCacheResponseBase:
         """Deletes a cache and all of the items within it.
 
         Args:
