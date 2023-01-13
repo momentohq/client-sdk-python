@@ -73,6 +73,7 @@ exclude = """
 [tool.isort]
 profile = "black"
 src_paths = ["src", "tests"]
+extend_skip_glob = ["src/momento/errors/__init__.py"]
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
