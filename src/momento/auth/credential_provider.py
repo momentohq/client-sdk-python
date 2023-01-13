@@ -9,6 +9,7 @@ class CredentialProvider(ABC):
     """Provides information that the SimpleCacheClient needs in order to establish a connection to and authenticate with
     the Momento service.
     """
+
     @abstractmethod
     def get_auth_token(self) -> str:
         pass

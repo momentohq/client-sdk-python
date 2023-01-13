@@ -9,12 +9,11 @@ from .grpc_configuration import GrpcConfiguration
 
 
 class TransportStrategy(ABC):
-    """Configures the network options for communicating with the Momento service.
-    """
+    """Configures the network options for communicating with the Momento service."""
+
     @abstractmethod
     def get_grpc_configuration(self) -> GrpcConfiguration:
-        """:return: low-level gRPC settings for the Momento client's communication
-        """
+        """:return: low-level gRPC settings for the Momento client's communication"""
         pass
 
     @abstractmethod

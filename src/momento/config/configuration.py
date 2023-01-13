@@ -25,14 +25,13 @@ class ConfigurationBase(ABC):
 
 class Configuration(ConfigurationBase):
     """Configuration options for Momento Simple Cache Client"""
+
     def __init__(self, transport_strategy: TransportStrategy):
-        """:param transport_strategy: Configuration options for wire interactions with the Momento service
-        """
+        """:param transport_strategy: Configuration options for wire interactions with the Momento service"""
         self._transport_strategy = transport_strategy
 
     def get_transport_strategy(self) -> TransportStrategy:
-        """:return: the current configuration options for wire interactions with the Momento service
-        """
+        """:return: the current configuration options for wire interactions with the Momento service"""
         return self._transport_strategy
 
     def with_transport_strategy(self, transport_strategy: TransportStrategy) -> Configuration:
