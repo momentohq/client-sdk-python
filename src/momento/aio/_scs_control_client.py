@@ -16,13 +16,14 @@ from momento.responses import (
     CreateCacheResponseBase,
     DeleteCacheResponse,
     DeleteCacheResponseBase,
+    ListCachesResponse,
+    ListCachesResponseBase,
 )
 
 from .. import logs
 from .._utilities._data_validation import _validate_cache_name, _validate_ttl_minutes
 from ..cache_operation_types import (
     CreateSigningKeyResponse,
-    ListCachesResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
@@ -65,15 +66,14 @@ class _ScsControlClient:
             return DeleteCacheResponse.Error(new_convert(e))
         return DeleteCacheResponse.Success()
 
-    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
+    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponseBase:
         try:
             list_caches_request = _ListCachesRequest()
             list_caches_request.next_token = next_token if next_token is not None else ""
-            return ListCachesResponse.from_grpc_response(
-                await self._grpc_manager.async_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
-            )
+            response = await self._grpc_manager.async_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
+            return ListCachesResponse.Success.from_grpc_response(response)
         except Exception as e:
-            raise cache_service_errors_converter.convert(e)
+            return ListCachesResponse.Error(new_convert(e))
 
     async def create_signing_key(self, ttl_minutes: int, endpoint: str) -> CreateSigningKeyResponse:
         _validate_ttl_minutes(ttl_minutes)
