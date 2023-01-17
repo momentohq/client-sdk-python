@@ -28,15 +28,18 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from momento.responses import CreateCacheResponseBase, DeleteCacheResponseBase
+from momento.responses import (
+    CacheDeleteResponseBase,
+    CacheGetResponseBase,
+    CacheSetResponseBase,
+    CreateCacheResponseBase,
+    DeleteCacheResponseBase,
+    ListCachesResponseBase,
+)
 
 from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
-    CacheDeleteResponse,
-    CacheGetResponse,
-    CacheSetResponse,
     CreateSigningKeyResponse,
-    ListCachesResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
@@ -139,7 +142,7 @@ class SimpleCacheClient:
         """
         return await self._control_client.delete_cache(cache_name)
 
-    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
+    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponseBase:
         """Lists all caches.
 
         Args:
@@ -206,7 +209,7 @@ class SimpleCacheClient:
         key: str,
         value: Union[str, bytes],
         ttl_seconds: Optional[int] = None,
-    ) -> CacheSetResponse:
+    ) -> CacheSetResponseBase:
         """Stores an item in cache
 
         Args:
@@ -228,7 +231,7 @@ class SimpleCacheClient:
         """
         return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
 
-    async def get(self, cache_name: str, key: str) -> CacheGetResponse:
+    async def get(self, cache_name: str, key: str) -> CacheGetResponseBase:
         """Retrieve an item from the cache
 
         Args:
@@ -247,7 +250,7 @@ class SimpleCacheClient:
         """
         return await self._get_next_client().get(cache_name, key)
 
-    async def delete(self, cache_name: str, key: str) -> CacheDeleteResponse:
+    async def delete(self, cache_name: str, key: str) -> CacheDeleteResponseBase:
         """Delete an item from the cache.
 
         Performs a no-op if the item is not in the cache.

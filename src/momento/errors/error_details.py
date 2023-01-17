@@ -1,6 +1,6 @@
 import enum
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import grpc
 
@@ -53,7 +53,7 @@ class MomentoGrpcErrorDetails:
     """The gRPC status code of the error repsonse"""
     details: str
     """Detailed information about the error"""
-    metadata: Optional[List[Tuple[str, str]]] = None
+    metadata: Optional[grpc.aio.Metadata] = None
     """Headers and other information about the error response"""
     # TODO need to reconcile synchronous metadata (above) with grpc.aio.Metadata
 

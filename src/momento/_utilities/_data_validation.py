@@ -2,8 +2,6 @@ from typing import Optional, Union
 
 from momento.errors import InvalidArgumentException
 
-from .. import errors
-
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 
 
@@ -20,21 +18,21 @@ def _as_bytes(
         return data.encode("utf-8")
     if isinstance(data, bytes):
         return data
-    raise errors.InvalidArgumentError(error_message + str(type(data)))
+    raise InvalidArgumentException(error_message + str(type(data)))
 
 
 def _validate_ttl(ttl_seconds: int) -> None:
     if not isinstance(ttl_seconds, int) or ttl_seconds < 0:
-        raise errors.InvalidArgumentError("TTL Seconds must be a non-negative integer")
+        raise InvalidArgumentException("TTL Seconds must be a non-negative integer")
 
 
 def _validate_ttl_minutes(ttl_minutes: int) -> None:
     if not isinstance(ttl_minutes, int) or ttl_minutes < 0:
-        raise errors.InvalidArgumentError("TTL Minutes must be a non-negative integer")
+        raise InvalidArgumentException("TTL Minutes must be a non-negative integer")
 
 
 def _validate_request_timeout(request_timeout_ms: Optional[int]) -> None:
     if request_timeout_ms is None:
         return
     if not isinstance(request_timeout_ms, int) or request_timeout_ms <= 0:
-        raise errors.InvalidArgumentError("Request timeout must be greater than zero.")
+        raise InvalidArgumentException("Request timeout must be greater than zero.")

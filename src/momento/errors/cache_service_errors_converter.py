@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import grpc
+from grpc.aio import Metadata
 
 from momento import logs
 from momento.errors import (
@@ -75,9 +76,18 @@ INTERNAL_SERVER_ERROR_MESSAGE = "Unexpected exception occurred while trying to f
 SDK_ERROR_MESSAGE = "SDK Failed to process the request."
 
 
-def new_convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, str]]] = None) -> SdkException:
+TMetadata = Union[Metadata, List[Tuple[str, str]]]
+"""Metadata in the asynchronous gRPC client is of type Metadata, while
+metadata in the synchronous client is a list of tuples. The types are isomorphic."""
+
+
+def new_convert(exception: Exception, transport_metadata: Optional[TMetadata] = None) -> SdkException:
     if isinstance(exception, SdkException):
         return exception
+
+    # Normalize synchronous client metadata to `Metadata`
+    if isinstance(transport_metadata, list):
+        transport_metadata = Metadata.from_tuple(transport_metadata)
 
     if isinstance(exception, grpc.RpcError):
         status_code: grpc.StatusCode = exception.code()
@@ -99,6 +109,9 @@ def new_convert(exception: Exception, transport_metadata: Optional[List[Tuple[st
 
 def convert(exception: Exception, transport_metadata: Optional[List[Tuple[str, str]]] = None) -> Exception:
     if isinstance(exception, SdkError):
+        return exception
+
+    if isinstance(exception, SdkException):
         return exception
 
     if isinstance(exception, grpc.RpcError):

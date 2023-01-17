@@ -2,11 +2,11 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import List, Optional
 
+from momento_wire_types.controlclient_pb2 import _ListCachesResponse
+
 from momento.errors import SdkException
 
 from ..mixins import ErrorResponseMixin
-
-from momento_wire_types.controlclient_pb2 import _ListCachesResponse
 
 
 class ListCachesResponseBase(ABC):

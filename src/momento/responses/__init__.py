@@ -7,6 +7,8 @@ from .control import (
     ListCachesResponseBase,
 )
 from .scalar_data import (
+    CacheDeleteResponse,
+    CacheDeleteResponseBase,
     CacheGetResponse,
     CacheGetResponseBase,
     CacheSetResponse,

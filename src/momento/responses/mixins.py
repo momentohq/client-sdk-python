@@ -6,6 +6,8 @@ if typing.TYPE_CHECKING:
 else:
     Protocol = object
 
+from typing import Type, TypeVar
+
 from momento.errors import MomentoErrorCode, SdkException
 
 
@@ -45,7 +47,13 @@ class HasErrorProtocol(Protocol):
         ...
 
 
+TError = TypeVar("TError", bound="ErrorResponseMixin")
+
+
 class ErrorResponseMixin:
+    def __init__(self, _error: SdkException):
+        ...
+
     @property
     def inner_exception(self: HasErrorProtocol) -> SdkException:
         """The SdkException object used to construct the response."""
@@ -60,3 +68,7 @@ class ErrorResponseMixin:
     def message(self: HasErrorProtocol) -> str:
         """An explanation of conditions that caused and potential ways to resolve the error."""
         return f"{self._error.message_wrapper}: {self._error.message}"
+
+    @classmethod
+    def from_sdkexception(cls: Type[TError], _error: SdkException) -> TError:
+        return cls(_error)
