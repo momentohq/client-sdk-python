@@ -1,7 +1,10 @@
+from datetime import timedelta
 from types import TracebackType
 from typing import Optional, Type, Union
 
 from .. import logs
+from ..auth.credential_provider import CredentialProvider
+from ..config.configuration import Configuration
 
 try:
     from .._utilities._data_validation import _validate_request_timeout
@@ -28,7 +31,6 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from .. import _momento_endpoint_resolver
 from ..cache_operation_types import (
     CacheDeleteResponse,
     CacheGetResponse,
@@ -57,36 +59,23 @@ class SimpleCacheClient:
     # https://github.com/momentohq/dev-eco-issue-tracker/issues/85
     _NUM_CLIENTS = 1
 
-    def __init__(
-        self,
-        auth_token: str,
-        default_ttl_seconds: int,
-        request_timeout_ms: Optional[int] = None,
-    ):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         """Creates an async SimpleCacheClient
 
         Args:
-            auth_token (str): Momento Token to authenticate the requests with Simple Cache Service
-            default_ttl_seconds (int): A default Time To Live in seconds for cache objects created by this client. It is
-                possible to override this setting when calling the set method.
-            request_timeout_ms (Optional[int], optional): An optional timeout in milliseconds to allow for Get and Set
-                operations to complete. The request will be terminated if it takes longer than this value and will
-                result in TimeoutError. Defaults to None, in which case a 5 second timeout is used.
+            configuration (Configuration): An object holding configuration settings for communication with the server.
+            credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
+            default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
+                It is possible to override this setting when calling the set method.
         Raises:
             IllegalArgumentError: If method arguments fail validations.
         """
-        _validate_request_timeout(request_timeout_ms)
+        _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
         self._next_client_index = 0
-        endpoints = _momento_endpoint_resolver.resolve(auth_token)
-        self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
+        self._control_client = _ScsControlClient(credential_provider)
         self._data_clients = [
-            _ScsDataClient(
-                auth_token,
-                endpoints.cache_endpoint,
-                default_ttl_seconds,
-                request_timeout_ms,
-            )
+            _ScsDataClient(configuration, credential_provider, default_ttl)
             for _ in range(SimpleCacheClient._NUM_CLIENTS)
         ]
 
@@ -153,11 +142,11 @@ class SimpleCacheClient:
         """
         return await self._control_client.list_caches(next_token)
 
-    async def create_signing_key(self, ttl_minutes: int) -> CreateSigningKeyResponse:
+    async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
         """Creates a Momento signing key
 
         Args:
-            ttl_minutes: The key's time-to-live in minutes
+            ttl: The key's time-to-live represented as a timedelta
 
         Returns:
             CreateSigningKeyResponse
@@ -168,7 +157,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.create_signing_key(ttl_minutes, self._get_next_client().get_endpoint())
+        return await self._control_client.create_signing_key(ttl, self._get_next_client().get_endpoint())
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         """Revokes a Momento signing key, all tokens signed by which will be invalid
@@ -205,7 +194,7 @@ class SimpleCacheClient:
         cache_name: str,
         key: str,
         value: Union[str, bytes],
-        ttl_seconds: Optional[int] = None,
+        ttl: Optional[timedelta] = None,
     ) -> CacheSetResponse:
         """Stores an item in cache
 
@@ -213,7 +202,7 @@ class SimpleCacheClient:
             cache_name: Name of the cache to store the item in.
             key (string or bytes): The key to be used to store item.
             value (string or bytes): The value to be stored.
-            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache
+            ttl (Optional timedelta): Time to live in cache. If not provided, then default TTL for the cache
                 client instance is used.
 
         Returns:
@@ -226,7 +215,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             InternalServerError: If server encountered an unknown error while trying to store the item.
         """
-        return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
+        return await self._get_next_client().set(cache_name, key, value, ttl)
 
     async def get(self, cache_name: str, key: str) -> CacheGetResponse:
         """Retrieve an item from the cache

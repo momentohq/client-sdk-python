@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Optional
 
 from momento_wire_types.controlclient_pb2 import (
@@ -10,7 +11,8 @@ from momento_wire_types.controlclient_pb2 import (
 )
 
 from .. import _cache_service_errors_converter, logs
-from .._utilities._data_validation import _validate_cache_name, _validate_ttl_minutes
+from .._utilities._data_validation import _validate_cache_name, _validate_ttl
+from ..auth.credential_provider import CredentialProvider
 from ..cache_operation_types import (
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -27,10 +29,11 @@ _DEADLINE_SECONDS = 60.0  # 1 minute
 class _ScsControlClient:
     """Momento Internal."""
 
-    def __init__(self, auth_token: str, endpoint: str):
+    def __init__(self, credential_provider: CredentialProvider):
+        endpoint = credential_provider.get_control_endpoint()
         self._logger = logs.logger
         self._logger.debug("Simple cache control client instantiated with endpoint: %s", endpoint)
-        self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(auth_token, endpoint)
+        self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(credential_provider)
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         _validate_cache_name(cache_name)
@@ -66,9 +69,10 @@ class _ScsControlClient:
         except Exception as e:
             raise _cache_service_errors_converter.convert(e)
 
-    async def create_signing_key(self, ttl_minutes: int, endpoint: str) -> CreateSigningKeyResponse:
-        _validate_ttl_minutes(ttl_minutes)
+    async def create_signing_key(self, ttl: timedelta, endpoint: str) -> CreateSigningKeyResponse:
+        _validate_ttl(ttl)
         try:
+            ttl_minutes = round(ttl.total_seconds() / 60)
             self._logger.info(f"Creating signing key with ttl (in minutes): {ttl_minutes}")
             create_signing_key_request = _CreateSigningKeyRequest()
             create_signing_key_request.ttl_minutes = ttl_minutes

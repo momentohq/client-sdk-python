@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Optional, Union
 
 from grpc.aio import Metadata
@@ -10,10 +11,13 @@ from momento_wire_types.cacheclient_pb2 import (
     _SetResponse,
 )
 
+from momento.auth.credential_provider import CredentialProvider
+from momento.config.configuration import Configuration
 from momento.internal.common._data_client_ops import (
     construct_delete_response,
     construct_get_response,
     construct_set_response,
+    get_default_client_deadline,
     prepare_delete_request,
     prepare_get_request,
     prepare_set_request,
@@ -25,8 +29,6 @@ from .. import logs
 from .._utilities._data_validation import _validate_ttl
 from . import _scs_grpc_manager
 
-_DEFAULT_DEADLINE_SECONDS = 5.0  # 5 seconds
-
 
 def _make_metadata(cache_name: str) -> Metadata:
     return Metadata(("cache", cache_name))
@@ -35,21 +37,15 @@ def _make_metadata(cache_name: str) -> Metadata:
 class _ScsDataClient:
     """Internal"""
 
-    def __init__(
-        self,
-        auth_token: str,
-        endpoint: str,
-        default_ttl_seconds: int,
-        operation_timeout_ms: Optional[int],
-    ):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
+        endpoint = credential_provider.get_cache_endpoint()
         self._logger = logs.logger
         self._logger.debug("Simple cache data client instantiated with endpoint: %s", endpoint)
-        self._default_deadline_seconds = (
-            _DEFAULT_DEADLINE_SECONDS if not operation_timeout_ms else operation_timeout_ms / 1000.0
-        )
-        self._grpc_manager = _scs_grpc_manager._DataGrpcManager(auth_token, endpoint)
-        _validate_ttl(default_ttl_seconds)
-        self._default_ttlSeconds = default_ttl_seconds
+        default_deadline: timedelta = get_default_client_deadline(configuration)
+        self._default_deadline_seconds = int(default_deadline.total_seconds())
+        self._grpc_manager = _scs_grpc_manager._DataGrpcManager(credential_provider)
+        _validate_ttl(default_ttl)
+        self._default_ttl = default_ttl
         self._endpoint = endpoint
 
     def get_endpoint(self) -> str:
@@ -60,7 +56,7 @@ class _ScsDataClient:
         cache_name: str,
         key: Union[str, bytes],
         value: Union[str, bytes],
-        ttl_seconds: Optional[int],
+        ttl: Optional[timedelta],
     ) -> cache_sdk_ops.CacheSetResponse:
         async def execute_set_request_fn(req: _SetRequest) -> _SetResponse:
             return await self._grpc_manager.async_stub().Set(
@@ -73,7 +69,7 @@ class _ScsDataClient:
             cache_name=cache_name,
             request_type="Set",
             prepare_request_fn=lambda: prepare_set_request(  # type: ignore[no-any-return]
-                key, value, ttl_seconds, self._default_ttlSeconds
+                key, value, ttl, self._default_ttl
             ),
             execute_request_fn=execute_set_request_fn,
             response_fn=construct_set_response,
