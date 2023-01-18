@@ -6,8 +6,8 @@ import pytest
 import pytest_asyncio
 
 import momento.errors as errors
-from momento.aio.simple_cache_client import SimpleCacheClient as SimpleCacheClientAsync
-from momento.simple_cache_client import SimpleCacheClient
+from momento import SimpleCacheClientAsync
+from momento import SimpleCacheClient
 
 #######################
 # Integration test data

@@ -1,12 +1,12 @@
 from types import TracebackType
 from typing import Optional, Type, Union
 
-from .. import logs
+from momento import logs
 
 try:
-    from .._utilities._data_validation import _validate_request_timeout
-    from ._scs_control_client import _ScsControlClient
-    from ._scs_data_client import _ScsDataClient
+    from momento.internal.aio._scs_data_client import _ScsDataClient
+    from momento.internal.aio._scs_control_client import _ScsControlClient
+    from momento._utilities._data_validation import _validate_request_timeout
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -28,6 +28,12 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
+import momento._momento_endpoint_resolver as endpoint_resolver
+from momento.cache_operation_types import (
+    CreateSigningKeyResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
+)
 from momento.responses import (
     CacheDeleteResponseBase,
     CacheGetResponseBase,
@@ -37,15 +43,8 @@ from momento.responses import (
     ListCachesResponseBase,
 )
 
-from .. import _momento_endpoint_resolver
-from ..cache_operation_types import (
-    CreateSigningKeyResponse,
-    ListSigningKeysResponse,
-    RevokeSigningKeyResponse,
-)
 
-
-class SimpleCacheClient:
+class SimpleCacheClientAsync:
     """Async Simple Cache Client"""
 
     # For high load, we might get better performance with multiple clients, because the server is
@@ -81,7 +80,7 @@ class SimpleCacheClient:
         _validate_request_timeout(request_timeout_ms)
         self._logger = logs.logger
         self._next_client_index = 0
-        endpoints = _momento_endpoint_resolver.resolve(auth_token)
+        endpoints = endpoint_resolver.resolve(auth_token)
         self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
         self._data_clients = [
             _ScsDataClient(
@@ -90,10 +89,10 @@ class SimpleCacheClient:
                 default_ttl_seconds,
                 request_timeout_ms,
             )
-            for _ in range(SimpleCacheClient._NUM_CLIENTS)
+            for _ in range(self._NUM_CLIENTS)
         ]
 
-    async def __aenter__(self) -> "SimpleCacheClient":
+    async def __aenter__(self) -> "SimpleCacheClientAsync":
         return self
 
     async def __aexit__(
@@ -171,7 +170,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.create_signing_key(ttl_minutes, self._get_next_client().get_endpoint())
+        return await self._control_client.create_signing_key(ttl_minutes, self._get_next_client().endpoint)
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         """Revokes a Momento signing key, all tokens signed by which will be invalid
@@ -201,7 +200,7 @@ class SimpleCacheClient:
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
-        return await self._control_client.list_signing_keys(self._get_next_client().get_endpoint(), next_token)
+        return await self._control_client.list_signing_keys(self._get_next_client().endpoint, next_token)
 
     async def set(
         self,

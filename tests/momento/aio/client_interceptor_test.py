@@ -4,7 +4,9 @@ import grpc.aio
 import pytest
 
 from momento.errors import InvalidArgumentError
-from src.momento.aio._add_header_client_interceptor import sanitize_client_call_details
+from momento.internal.aio._add_header_client_interceptor import (
+    sanitize_client_call_details,
+)
 
 
 def test_sanitize_client_grpc_request():

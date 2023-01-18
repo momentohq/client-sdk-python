@@ -1,21 +1,52 @@
 from types import TracebackType
 from typing import Optional, Type, Union
 
-from . import _momento_endpoint_resolver
-from ._utilities._data_validation import _validate_request_timeout
-from .cache_operation_types import (
-    CacheDeleteResponse,
-    CacheGetResponse,
-    CacheSetResponse,
-    CreateCacheResponse,
-    DeleteCacheResponse,
-    ListCachesResponse,
+from momento import logs
+
+try:
+    from momento.internal.synchronous._scs_data_client import _ScsDataClient
+    from momento.internal.synchronous._scs_control_client import _ScsControlClient
+    from momento._utilities._data_validation import _validate_request_timeout
+except ImportError as e:
+    if e.name == "cygrpc":
+        import sys
+
+        print(
+            "There is an issue on M1 macs between GRPC native packaging and Python wheel tags. "
+            "See https://github.com/grpc/grpc/issues/28387",
+            file=sys.stderr,
+        )
+        print("-".join("" for _ in range(99)), file=sys.stderr)
+        print("    TO WORK AROUND:", file=sys.stderr)
+        print("    * Install Rosetta 2", file=sys.stderr)
+        print(
+            "    * Install Python from python.org (you might need to do this if you're using an arm-only build)",
+            file=sys.stderr,
+        )
+        print("    * re-run with:", file=sys.stderr)
+        print("arch -x86_64 {} {}".format(sys.executable, *sys.argv), file=sys.stderr)
+        print("-".join("" for _ in range(99)), file=sys.stderr)
+    raise e
+
+import momento._momento_endpoint_resolver as endpoint_resolver
+from momento.cache_operation_types import (
+    CreateSigningKeyResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
 )
-from .internal.synchronous._scs_control_client import _ScsControlClient
-from .internal.synchronous._scs_data_client import _ScsDataClient
+from momento.responses import (
+    CacheDeleteResponseBase,
+    CacheGetResponseBase,
+    CacheSetResponseBase,
+    CreateCacheResponseBase,
+    DeleteCacheResponseBase,
+    ListCachesResponseBase,
+)
 
 
 class SimpleCacheClient:
+    """Synchronous Simple Cache Client"""
+
     def __init__(
         self,
         auth_token: str,
@@ -35,8 +66,9 @@ class SimpleCacheClient:
             IllegalArgumentError: If method arguments fail validations.
         """
         _validate_request_timeout(request_timeout_ms)
-
-        endpoints = _momento_endpoint_resolver.resolve(auth_token)
+        self._logger = logs.logger
+        self._next_client_index = 0
+        endpoints = endpoint_resolver.resolve(auth_token)
         self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
         self._data_client = _ScsDataClient(
             auth_token,
@@ -57,26 +89,26 @@ class SimpleCacheClient:
         self._control_client.close()
         self._data_client.close()
 
-    def create_cache(self, cache_name: str) -> CreateCacheResponse:
+    def create_cache(self, cache_name: str) -> CreateCacheResponseBase:
         """Creates a new cache in your Momento account.
 
         Args:
             cache_name: String used to create cache.
 
         Returns:
-            CreateCacheResponse
+            CreateCacheResponseBase
 
         Raises:
-            InvalidArgumentError: If provided cache_name is None.
+            InvalidArgumentError: If provided cache_name None.
             BadRequestError: If the cache name provided doesn't follow the naming conventions
-            AlreadyExistsError: If cache with the given name already exists.
+            ExistsError: If cache with the given name already exists.
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
         return self._control_client.create_cache(cache_name)
 
-    def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
-        """Deletes a cache and all the items within it.
+    def delete_cache(self, cache_name: str) -> DeleteCacheResponseBase:
+        """Deletes a cache and all of the items within it.
 
         Args:
             cache_name: String cache name to delete.
@@ -87,13 +119,13 @@ class SimpleCacheClient:
         Raises:
             InvalidArgumentError: If provided cache_name is None.
             BadRequestError: If the cache name provided doesn't follow the naming conventions
-            NotFoundError: If an attempt is made to delete a MomentoCache that doesn't exist.
+            NotFoundError: If an attempt is made to delete a MomentoCache that doesn't exits.
             AuthenticationError: If the provided Momento Auth Token is invalid.
             ClientSdkError: For any SDK checks that fail.
         """
         return self._control_client.delete_cache(cache_name)
 
-    def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
+    def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponseBase:
         """Lists all caches.
 
         Args:
@@ -107,13 +139,60 @@ class SimpleCacheClient:
         """
         return self._control_client.list_caches(next_token)
 
+    def create_signing_key(self, ttl_minutes: int) -> CreateSigningKeyResponse:
+        """Creates a Momento signing key
+
+        Args:
+            ttl_minutes: The key's time-to-live in minutes
+
+        Returns:
+            CreateSigningKeyResponse
+
+        Raises:
+            InvalidArgumentError: If provided ttl minutes is negative.
+            BadRequestError: If the ttl provided is not accepted
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        return self._control_client.create_signing_key(ttl_minutes, self._data_client.endpoint)
+
+    def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+        """Revokes a Momento signing key, all tokens signed by which will be invalid
+
+        Args:
+            key_id: The id of the Momento signing key to revoke
+
+        Returns:
+            RevokeSigningKeyResponse
+
+        Raises:
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        return self._control_client.revoke_signing_key(key_id)
+
+    def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+        """Lists all Momento signing keys for the provided auth token.
+
+        Args:
+            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+
+        Returns:
+            ListSigningKeysResponse
+
+        Raises:
+            AuthenticationError: If the provided Momento Auth Token is invalid.
+            ClientSdkError: For any SDK checks that fail.
+        """
+        return self._control_client.list_signing_keys(self._data_client.endpoint, next_token)
+
     def set(
         self,
         cache_name: str,
-        key: Union[str, bytes],
+        key: str,
         value: Union[str, bytes],
         ttl_seconds: Optional[int] = None,
-    ) -> CacheSetResponse:
+    ) -> CacheSetResponseBase:
         """Stores an item in cache
 
         Args:
@@ -127,7 +206,7 @@ class SimpleCacheClient:
             CacheSetResponse
 
         Raises:
-            InvalidArgumentError: If validation fails for the provided method arguments.
+            InvalidArgumentError: If validation fails for provided method arguments.
             BadRequestError: If the provided inputs are rejected by server because they are invalid
             NotFoundError: If the cache with the given name doesn't exist.
             AuthenticationError: If the provided Momento Auth Token is invalid.
@@ -135,7 +214,7 @@ class SimpleCacheClient:
         """
         return self._data_client.set(cache_name, key, value, ttl_seconds)
 
-    def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
+    def get(self, cache_name: str, key: str) -> CacheGetResponseBase:
         """Retrieve an item from the cache
 
         Args:
@@ -146,7 +225,7 @@ class SimpleCacheClient:
             CacheGetResponse
 
         Raises:
-            InvalidArgumentError: If validation fails for the provided method arguments.
+            InvalidArgumentError: If validation fails for provided method arguments.
             BadRequestError: If the provided inputs are rejected by server because they are invalid
             NotFoundError: If the cache with the given name doesn't exist.
             AuthenticationError: If the provided Momento Auth Token is invalid.
@@ -154,7 +233,7 @@ class SimpleCacheClient:
         """
         return self._data_client.get(cache_name, key)
 
-    def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
+    def delete(self, cache_name: str, key: str) -> CacheDeleteResponseBase:
         """Delete an item from the cache.
 
         Performs a no-op if the item is not in the cache.

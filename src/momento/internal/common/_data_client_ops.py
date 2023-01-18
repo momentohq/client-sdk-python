@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable, Optional, TypeVar, Union
+from typing import Awaitable, Callable, List, Optional, Tuple, TypeVar, Union
 
 from grpc.aio import Metadata
 from momento_wire_types.cacheclient_pb2 import (
@@ -17,7 +17,7 @@ from momento._utilities._data_validation import (
     _validate_cache_name,
     _validate_ttl,
 )
-from momento.errors import SdkException, cache_service_errors_converter, new_convert
+from momento.errors import SdkException, new_convert
 from momento.responses import (
     CacheDeleteResponse,
     CacheDeleteResponseBase,
@@ -42,15 +42,17 @@ def wrap_with_error_handling(
     prepare_request_fn: Callable[[], TGeneratedRequest],
     execute_request_fn: Callable[[TGeneratedRequest], TGeneratedResponse],
     response_fn: Callable[[TGeneratedRequest, TGeneratedResponse], TMomentoResponse],
+    error_fn: Callable[[SdkException], TMomentoResponse],
+    metadata: List[Tuple[str, str]],
 ) -> TMomentoResponse:
-    _validate_cache_name(cache_name)
     try:
+        _validate_cache_name(cache_name)
         req = prepare_request_fn()
         resp = execute_request_fn(req)
         return response_fn(req, resp)
     except Exception as e:
         _logger.warning("%s failed with exception: %s", request_type, e)
-        raise cache_service_errors_converter.convert(e)
+        return error_fn(new_convert(e, metadata))
 
 
 async def wrap_async_with_error_handling(
