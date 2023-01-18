@@ -3,7 +3,7 @@ from typing import Optional
 import jwt
 from jwt.exceptions import DecodeError
 
-from . import errors
+from momento import errors
 
 _MOMENTO_CONTROL_ENDPOINT_PREFIX = "control."
 _MOMENTO_CACHE_ENDPOINT_PREFIX = "cache."
@@ -34,4 +34,4 @@ def _getEndpointFromToken(auth_token: str) -> _Endpoints:
             claims[_CACHE_ENDPOINT_CLAIM_ID],  # type: ignore[misc]
         )
     except (DecodeError, KeyError):
-        raise errors.InvalidArgumentError("Invalid Auth token.") from None
+        raise errors.InvalidArgumentException("Invalid Auth token.") from None

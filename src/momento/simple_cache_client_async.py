@@ -29,18 +29,16 @@ except ImportError as e:
     raise e
 
 import momento._momento_endpoint_resolver as endpoint_resolver
-from momento.cache_operation_types import (
-    CreateSigningKeyResponse,
-    ListSigningKeysResponse,
-    RevokeSigningKeyResponse,
-)
 from momento.responses import (
     CacheDeleteResponseBase,
     CacheGetResponseBase,
     CacheSetResponseBase,
     CreateCacheResponseBase,
+    CreateSigningKeyResponse,
     DeleteCacheResponseBase,
     ListCachesResponseBase,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
 )
 
 

@@ -16,12 +16,7 @@ from momento._utilities._data_validation import (
     _validate_cache_name,
     _validate_ttl_minutes,
 )
-from momento.cache_operation_types import (
-    CreateSigningKeyResponse,
-    ListSigningKeysResponse,
-    RevokeSigningKeyResponse,
-)
-from momento.errors import cache_service_errors_converter, new_convert
+from momento.errors import convert_error
 from momento.internal.synchronous._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
     CreateCacheResponse,
@@ -30,6 +25,11 @@ from momento.responses import (
     DeleteCacheResponseBase,
     ListCachesResponse,
     ListCachesResponseBase,
+)
+from momento.responses.control.signing_keys import (
+    CreateSigningKeyResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
 )
 
 _DEADLINE_SECONDS = 60.0  # 1 minute
@@ -59,7 +59,7 @@ class _ScsControlClient:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
             if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
                 return CreateCacheResponse.CacheAlreadyExists()
-            return CreateCacheResponse.Error(new_convert(e))
+            return CreateCacheResponse.Error(convert_error(e))
         return CreateCacheResponse.Success()
 
     def delete_cache(self, cache_name: str) -> DeleteCacheResponseBase:
@@ -71,7 +71,7 @@ class _ScsControlClient:
             self._getStub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
-            return DeleteCacheResponse.Error(new_convert(e))
+            return DeleteCacheResponse.Error(convert_error(e))
         return DeleteCacheResponse.Success()
 
     def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponseBase:
@@ -81,7 +81,7 @@ class _ScsControlClient:
             response = self._getStub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             return ListCachesResponse.Success.from_grpc_response(response)
         except Exception as e:
-            return ListCachesResponse.Error(new_convert(e))
+            return ListCachesResponse.Error(convert_error(e))
 
     def create_signing_key(self, ttl_minutes: int, endpoint: str) -> CreateSigningKeyResponse:
         _validate_ttl_minutes(ttl_minutes)
@@ -95,7 +95,7 @@ class _ScsControlClient:
             )
         except Exception as e:
             self._logger.warning(f"Failed to create signing key with exception: {e}")
-            raise cache_service_errors_converter.convert(e)
+            raise convert_error(e)
 
     def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         try:
@@ -106,7 +106,7 @@ class _ScsControlClient:
             return RevokeSigningKeyResponse()
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
-            raise cache_service_errors_converter.convert(e)
+            raise convert_error(e)
 
     def list_signing_keys(self, endpoint: str, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         try:
@@ -117,7 +117,7 @@ class _ScsControlClient:
                 endpoint,
             )
         except Exception as e:
-            raise cache_service_errors_converter.convert(e)
+            raise convert_error(e)
 
     def _getStub(self) -> ScsControlStub:
         return self._grpc_manager.stub()

@@ -11,13 +11,13 @@ from momento_wire_types.cacheclient_pb2 import (
     _SetResponse,
 )
 
-from momento import cache_operation_types, logs
+from momento import logs
 from momento._utilities._data_validation import (
     _as_bytes,
     _validate_cache_name,
     _validate_ttl,
 )
-from momento.errors import SdkException, new_convert
+from momento.errors import SdkException, convert_error
 from momento.responses import (
     CacheDeleteResponse,
     CacheDeleteResponseBase,
@@ -52,7 +52,7 @@ def wrap_with_error_handling(
         return response_fn(req, resp)
     except Exception as e:
         _logger.warning("%s failed with exception: %s", request_type, e)
-        return error_fn(new_convert(e, metadata))
+        return error_fn(convert_error(e, metadata))
 
 
 async def wrap_async_with_error_handling(
@@ -71,7 +71,7 @@ async def wrap_async_with_error_handling(
         return response_fn(req, resp)
     except Exception as e:
         _logger.warning("%s failed with exception: %s", request_type, e)
-        return error_fn(new_convert(e, metadata))
+        return error_fn(convert_error(e, metadata))
 
 
 def prepare_set_request(
@@ -90,14 +90,9 @@ def prepare_set_request(
     return set_request
 
 
-def construct_set_response_new(req: _SetRequest, resp: _SetResponse) -> CacheSetResponseBase:
+def construct_set_response(req: _SetRequest, resp: _SetResponse) -> CacheSetResponseBase:
     _logger.log(logs.TRACE, "Set succeeded for key: %s", str(req.cache_key))
     return CacheSetResponse.Success()
-
-
-def construct_set_response(req: _SetRequest, resp: _SetResponse) -> cache_operation_types.CacheSetResponse:
-    _logger.log(logs.TRACE, "Set succeeded for key: %s", str(req.cache_key))
-    return cache_operation_types.CacheSetResponse(req.cache_key, req.cache_body)
 
 
 def prepare_get_request(key: Union[str, bytes]) -> _GetRequest:
@@ -107,16 +102,11 @@ def prepare_get_request(key: Union[str, bytes]) -> _GetRequest:
     return get_request
 
 
-def construct_get_response_new(req: _GetRequest, resp: _GetResponse) -> CacheGetResponseBase:
+def construct_get_response(req: _GetRequest, resp: _GetResponse) -> CacheGetResponseBase:
     _logger.log(logs.TRACE, "Received a get response for %s", str(req.cache_key))
     if resp.result == Miss:
         return CacheGetResponse.Miss()
     return CacheGetResponse.Hit(resp.cache_body)
-
-
-def construct_get_response(req: _GetRequest, resp: _GetResponse) -> cache_operation_types.CacheGetResponse:
-    _logger.log(logs.TRACE, "Received a get response for %s", str(req.cache_key))
-    return cache_operation_types.CacheGetResponse.from_grpc_response(resp)
 
 
 def prepare_delete_request(key: Union[str, bytes]) -> _DeleteRequest:
@@ -126,11 +116,6 @@ def prepare_delete_request(key: Union[str, bytes]) -> _DeleteRequest:
     return delete_request
 
 
-def construct_delete_response_new(req: _DeleteRequest, resp: _DeleteResponse) -> CacheDeleteResponseBase:
+def construct_delete_response(req: _DeleteRequest, resp: _DeleteResponse) -> CacheDeleteResponseBase:
     _logger.log(logs.TRACE, "Received a delete response for %s", str(req.cache_key))
     return CacheDeleteResponse.Success()
-
-
-def construct_delete_response(req: _DeleteRequest, resp: _DeleteResponse) -> cache_operation_types.CacheDeleteResponse:
-    _logger.log(logs.TRACE, "Received a delete response for %s", str(req.cache_key))
-    return cache_operation_types.CacheDeleteResponse()

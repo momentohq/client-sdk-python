@@ -46,7 +46,7 @@ def test_init_throws_exception_when_client_uses_negative_default_ttl(
 
 
 def test_init_throws_exception_for_non_jwt_token(default_ttl_seconds: int):
-    with pytest.raises(errors.InvalidArgumentError) as cm:
+    with pytest.raises(InvalidArgumentException) as cm:
         SimpleCacheClient("notanauthtoken", default_ttl_seconds)
         assert cm.exception == "Invalid Auth token."
 

@@ -6,7 +6,7 @@ from urllib.parse import quote
 import jwt
 from jwt.api_jwk import PyJWK
 
-from .errors import InvalidArgumentError
+from .errors import InvalidArgumentException
 
 
 class CacheOperation(Enum):
@@ -62,22 +62,22 @@ class MomentoSigner:
             jwk_json_string: the JSON string of the JWK key. This can be obtained from create_signing_key response.
 
         Raises:
-            InvalidArgumentError: If the supplied private key is not valid.
+            InvalidArgumentException: If the supplied private key is not valid.
         """
         try:
             self._jwk_json: Dict[str, str] = json.loads(jwk_json_string)
         except json.decoder.JSONDecodeError as e:
-            raise InvalidArgumentError(f"Invalid JWK Json String: {jwk_json_string}") from e
+            raise InvalidArgumentException(f"Invalid JWK Json String: {jwk_json_string}") from e
 
         try:
             self._jwk: PyJWK = PyJWK.from_dict(self._jwk_json)  # type: ignore[no-untyped-call, misc]
         except jwt.exceptions.PyJWKError as e:
-            raise InvalidArgumentError(f"Invalid JWK: {jwk_json_string}") from e
+            raise InvalidArgumentException(f"Invalid JWK: {jwk_json_string}") from e
         except jwt.exceptions.InvalidKeyError as e:
-            raise InvalidArgumentError(f"Invalid JWK: {jwk_json_string}") from e
+            raise InvalidArgumentException(f"Invalid JWK: {jwk_json_string}") from e
 
         if self._jwk.key_id is None:  # type: ignore[misc]
-            raise InvalidArgumentError(f"JWK missing kid attribute: {jwk_json_string}")
+            raise InvalidArgumentException(f"JWK missing kid attribute: {jwk_json_string}")
 
         self._alg = self._jwk_json.get("alg", None)
         if self._alg is None:
@@ -103,7 +103,7 @@ class MomentoSigner:
         elif signing_request.cache_operation() == CacheOperation.SET:
             claims["method"] = ["set"]
             if signing_request.ttl_seconds() is None:
-                raise InvalidArgumentError("ttl_seconds is required for SET operation.")
+                raise InvalidArgumentException("ttl_seconds is required for SET operation.")
             claims["ttl"] = signing_request.ttl_seconds()
         else:
             raise NotImplementedError(f"Unrecognized Operation: {signing_request.cache_operation()}")
@@ -133,7 +133,7 @@ class MomentoSigner:
         elif signing_request.cache_operation() == CacheOperation.SET:
             ttl_seconds = signing_request.ttl_seconds()
             if ttl_seconds is None:
-                raise InvalidArgumentError("ttl_seconds is required for SET operation.")
+                raise InvalidArgumentException("ttl_seconds is required for SET operation.")
             url = (
                 f"https://rest.{hostname}/cache/set/{cache_name}/{cache_key}"
                 f"?token={token}&ttl_milliseconds={ttl_seconds * 1000}"
@@ -147,7 +147,7 @@ class MomentoSigner:
     def _alg_fallback_logic(self) -> str:
         kty = self._jwk_json.get("kty", None)
         if kty is None:
-            raise InvalidArgumentError("kty is not found: %s" % self._jwk_json)
+            raise InvalidArgumentException("kty is not found: %s" % self._jwk_json)
         crv = self._jwk_json.get("crv", None)
         if kty == "EC":
             if crv == "P-256" or not crv:
@@ -159,19 +159,19 @@ class MomentoSigner:
             elif crv == "secp256k1":
                 algorithm = "ES256K"
             else:
-                raise InvalidArgumentError("Unsupported crv: %s" % crv)
+                raise InvalidArgumentException("Unsupported crv: %s" % crv)
         elif kty == "RSA":
             algorithm = "RS256"
         elif kty == "oct":
             algorithm = "HS256"
         elif kty == "OKP":
             if not crv:
-                raise InvalidArgumentError("crv is not found: %s" % self._jwk_json)
+                raise InvalidArgumentException("crv is not found: %s" % self._jwk_json)
             if crv == "Ed25519":
                 algorithm = "EdDSA"
             else:
-                raise InvalidArgumentError("Unsupported crv: %s" % crv)
+                raise InvalidArgumentException("Unsupported crv: %s" % crv)
         else:
-            raise InvalidArgumentError("Unsupported kty: %s" % kty)
+            raise InvalidArgumentException("Unsupported kty: %s" % kty)
 
         return algorithm

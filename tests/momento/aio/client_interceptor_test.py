@@ -3,7 +3,7 @@ from typing import Optional
 import grpc.aio
 import pytest
 
-from momento.errors import InvalidArgumentError
+from momento.errors import InvalidArgumentException
 from momento.internal.aio._add_header_client_interceptor import (
     sanitize_client_call_details,
 )
@@ -68,7 +68,7 @@ def test_sanitize_client_grpc_request():
             # Test with unknown generic dict passed as metadata
             client_input=build_test_client_request(metadata_to_set={}),
             expected_output=None,
-            expected_err=InvalidArgumentError,  # Make sure we throw on unkown metadata input
+            expected_err=InvalidArgumentException,  # Make sure we throw on unkown metadata input
         ),
     ]
 

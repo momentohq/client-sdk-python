@@ -16,9 +16,9 @@ from momento._utilities._data_validation import _validate_ttl
 from momento.internal.aio._scs_grpc_manager import _DataGrpcManager
 from momento.internal.aio._utilities import make_metadata
 from momento.internal.common._data_client_ops import (
-    construct_delete_response_new,
-    construct_get_response_new,
-    construct_set_response_new,
+    construct_delete_response,
+    construct_get_response,
+    construct_set_response,
     prepare_delete_request,
     prepare_get_request,
     prepare_set_request,
@@ -87,7 +87,7 @@ class _ScsDataClient:
                 default_ttl_seconds=self._default_ttl_seconds,
             ),
             execute_request_fn=execute_set_request_fn,
-            response_fn=construct_set_response_new,
+            response_fn=construct_set_response,
             error_fn=CacheSetResponse.Error.from_sdkexception,
             metadata=metadata,
         )
@@ -107,7 +107,7 @@ class _ScsDataClient:
             request_type="Get",
             prepare_request_fn=partial(prepare_get_request, key=key),
             execute_request_fn=execute_get_request_fn,
-            response_fn=construct_get_response_new,
+            response_fn=construct_get_response,
             error_fn=CacheGetResponse.Error.from_sdkexception,
             metadata=metadata,
         )
@@ -127,7 +127,7 @@ class _ScsDataClient:
             request_type="Delete",
             prepare_request_fn=partial(prepare_delete_request, key=key),
             execute_request_fn=execute_delete_request_fn,
-            response_fn=construct_delete_response_new,
+            response_fn=construct_delete_response,
             error_fn=CacheDeleteResponse.Error.from_sdkexception,
             metadata=metadata,
         )
