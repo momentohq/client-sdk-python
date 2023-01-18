@@ -35,9 +35,9 @@ class CreateSigningKeyResponse:
     def from_grpc_response(  # type: ignore[misc]
         grpc_create_signing_key_response: Any, endpoint: str
     ) -> "CreateSigningKeyResponse":
-        key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]  # type: ignore[misc]
-        key: str = grpc_create_signing_key_response.key  # type: ignore[misc]
-        expires_at: datetime = datetime.fromtimestamp(grpc_create_signing_key_response.expires_at)  # type: ignore[misc]
+        key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]
+        key: str = grpc_create_signing_key_response.key
+        expires_at: datetime = datetime.fromtimestamp(grpc_create_signing_key_response.expires_at)
         return CreateSigningKeyResponse(key_id, endpoint, key, expires_at)
 
     def __str__(self) -> str:
@@ -86,8 +86,8 @@ class SigningKey:
 
     @staticmethod
     def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> "SigningKey":  # type: ignore[misc]
-        key_id: str = grpc_listed_signing_key.key_id  # type: ignore[misc]
-        expires_at: datetime = datetime.fromtimestamp(grpc_listed_signing_key.expires_at)  # type: ignore[misc]
+        key_id: str = grpc_listed_signing_key.key_id
+        expires_at: datetime = datetime.fromtimestamp(grpc_listed_signing_key.expires_at)
         return SigningKey(key_id, expires_at, endpoint)
 
     def __str__(self) -> str:
@@ -120,13 +120,11 @@ class ListSigningKeysResponse:
         grpc_list_signing_keys_response: Any, endpoint: str
     ) -> "ListSigningKeysResponse":
         next_token: Optional[str] = (
-            grpc_list_signing_keys_response.next_token  # type: ignore[misc]
-            if grpc_list_signing_keys_response.next_token != ""  # type: ignore[misc]
-            else None
+            grpc_list_signing_keys_response.next_token if grpc_list_signing_keys_response.next_token != "" else None
         )
-        signing_keys: List[SigningKey] = [  # type: ignore[misc]
-            SigningKey.from_grpc_response(signing_key, endpoint)  # type: ignore[misc]
-            for signing_key in grpc_list_signing_keys_response.signing_key  # type: ignore[misc]
+        signing_keys: List[SigningKey] = [
+            SigningKey.from_grpc_response(signing_key, endpoint)
+            for signing_key in grpc_list_signing_keys_response.signing_key
         ]
         return ListSigningKeysResponse(next_token, signing_keys)
 
