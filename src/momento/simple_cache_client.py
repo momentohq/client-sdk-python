@@ -4,9 +4,9 @@ from typing import Optional, Type, Union
 from momento import logs
 
 try:
-    from momento.internal.synchronous._scs_data_client import _ScsDataClient
-    from momento.internal.synchronous._scs_control_client import _ScsControlClient
     from momento._utilities._data_validation import _validate_request_timeout
+    from momento.internal.synchronous._scs_control_client import _ScsControlClient
+    from momento.internal.synchronous._scs_data_client import _ScsDataClient
 except ImportError as e:
     if e.name == "cygrpc":
         import sys

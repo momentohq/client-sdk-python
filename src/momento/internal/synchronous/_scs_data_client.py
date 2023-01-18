@@ -13,8 +13,6 @@ from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 
 from momento import logs
 from momento._utilities._data_validation import _validate_ttl
-from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
-from momento.internal.synchronous._utilities import make_metadata
 from momento.internal.common._data_client_ops import (
     construct_delete_response_new,
     construct_get_response_new,
@@ -24,6 +22,8 @@ from momento.internal.common._data_client_ops import (
     prepare_set_request,
     wrap_with_error_handling,
 )
+from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
+from momento.internal.synchronous._utilities import make_metadata
 from momento.responses import (
     CacheDeleteResponse,
     CacheDeleteResponseBase,
