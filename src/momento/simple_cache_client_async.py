@@ -203,7 +203,7 @@ class SimpleCacheClientAsync:
     async def set(
         self,
         cache_name: str,
-        key: str,
+        key: Union[str, bytes],
         value: Union[str, bytes],
         ttl_seconds: Optional[int] = None,
     ) -> CacheSetResponseBase:
@@ -228,7 +228,7 @@ class SimpleCacheClientAsync:
         """
         return await self._get_next_client().set(cache_name, key, value, ttl_seconds)
 
-    async def get(self, cache_name: str, key: str) -> CacheGetResponseBase:
+    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponseBase:
         """Retrieve an item from the cache
 
         Args:
@@ -247,7 +247,7 @@ class SimpleCacheClientAsync:
         """
         return await self._get_next_client().get(cache_name, key)
 
-    async def delete(self, cache_name: str, key: str) -> CacheDeleteResponseBase:
+    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponseBase:
         """Delete an item from the cache.
 
         Performs a no-op if the item is not in the cache.
