@@ -21,13 +21,11 @@ from momento.internal.synchronous._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
     CreateCacheResponse,
     CreateCacheResponseBase,
+    CreateSigningKeyResponse,
     DeleteCacheResponse,
     DeleteCacheResponseBase,
     ListCachesResponse,
     ListCachesResponseBase,
-)
-from momento.responses.control.signing_keys import (
-    CreateSigningKeyResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
