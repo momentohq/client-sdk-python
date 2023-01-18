@@ -43,19 +43,7 @@ from momento.responses import (
 
 
 class SimpleCacheClient:
-    """Async Simple Cache Client"""
-
-    # For high load, we might get better performance with multiple clients, because the server is
-    # configured to allow a max of 100 streams per connection.  In the javascript SDK, multiple
-    # clients resulted in an obvious performance improvement.  However, in the python SDK I have
-    # not yet been able to observe a clear benefit.  So for now, we are putting the plumbing in
-    # place so that we can more easily test performance with multiple connections in the future,
-    # but we are leaving the default value set to 1.
-    #
-    # We are hard-coding the value for now, because we haven't yet designed the API for
-    # users to use to configure tunables:
-    # https://github.com/momentohq/dev-eco-issue-tracker/issues/85
-    _NUM_CLIENTS = 1
+    """Synchronous Simple Cache Client"""
 
     def __init__(
         self,
@@ -77,7 +65,6 @@ class SimpleCacheClient:
         """
         _validate_request_timeout(request_timeout_ms)
         self._logger = logs.logger
-        self._next_client_index = 0
         endpoints = endpoint_resolver.resolve(auth_token)
         self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
         self._data_client = _ScsDataClient(

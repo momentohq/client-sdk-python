@@ -52,6 +52,16 @@ metadata in the synchronous client is a list of tuples. The types are isomorphic
 
 
 def convert_error(exception: Exception, transport_metadata: Optional[TMetadata] = None) -> SdkException:
+    """Convert a low-level exception raised by gRPC to a Momento `SdkException`
+
+    Args:
+        exception (Exception): Low-level (transport, server-side, validation) exception
+        transport_metadata (Optional[TMetadata], optional): Transport metadata to enrich the new exception.
+        Defaults to None.
+
+    Returns:
+        SdkException: High-level Momento exception object
+    """
     if isinstance(exception, SdkException):
         return exception
 
