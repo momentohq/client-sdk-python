@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Awaitable, Callable, List, Optional, Tuple, TypeVar, Union
 
 from grpc.aio import Metadata
@@ -26,6 +27,7 @@ from momento.responses import (
     CacheSetResponse,
     CacheSetResponseBase,
 )
+from momento.config.configuration import Configuration
 
 TResponse = TypeVar("TResponse")
 TGeneratedRequest = TypeVar("TGeneratedRequest")
@@ -33,7 +35,9 @@ TGeneratedResponse = TypeVar("TGeneratedResponse")
 TExecuteResult = TypeVar("TExecuteResult")
 TMomentoResponse = TypeVar("TMomentoResponse")
 
+
 _logger = logs.logger
+_DEFAULT_DEADLINE = timedelta(seconds=5)
 
 
 def wrap_with_error_handling(
@@ -77,16 +81,16 @@ async def wrap_async_with_error_handling(
 def prepare_set_request(
     key: Union[str, bytes],
     value: Union[str, bytes],
-    ttl_seconds: Optional[int],
-    default_ttl_seconds: int,
-) -> _GetRequest:
+    ttl: Optional[timedelta],
+    default_ttl: timedelta,
+) -> _SetRequest:
     _logger.log(logs.TRACE, "Issuing a set request with key %s", str(key))
-    item_ttl_seconds = default_ttl_seconds if ttl_seconds is None else ttl_seconds
-    _validate_ttl(item_ttl_seconds)
+    item_ttl = default_ttl if ttl is None else ttl
+    _validate_ttl(item_ttl)
     set_request = _SetRequest()
     set_request.cache_key = _as_bytes(key, "Unsupported type for key: ")
     set_request.cache_body = _as_bytes(value, "Unsupported type for value: ")
-    set_request.ttl_milliseconds = item_ttl_seconds * 1000
+    set_request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
     return set_request
 
 
@@ -119,3 +123,7 @@ def prepare_delete_request(key: Union[str, bytes]) -> _DeleteRequest:
 def construct_delete_response(req: _DeleteRequest, resp: _DeleteResponse) -> CacheDeleteResponseBase:
     _logger.log(logs.TRACE, "Received a delete response for %s", str(req.cache_key))
     return CacheDeleteResponse.Success()
+
+
+def get_default_client_deadline(configuration: Configuration) -> timedelta:
+    return configuration.get_transport_strategy().get_grpc_configuration().get_deadline() or _DEFAULT_DEADLINE

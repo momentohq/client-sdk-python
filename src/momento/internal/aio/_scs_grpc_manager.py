@@ -5,6 +5,7 @@ import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.controlclient_pb2_grpc as control_client
 import pkg_resources
 
+from momento.auth.credential_provider import CredentialProvider
 from ._add_header_client_interceptor import AddHeaderClientInterceptor, Header
 from ._retry_interceptor import get_retry_interceptor_if_enabled
 
@@ -14,11 +15,11 @@ class _ControlGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, auth_token: str, endpoint: str):
+    def __init__(self, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
-            target=endpoint,
+            target=credential_provider.get_control_endpoint(),
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=_interceptors(auth_token),
+            interceptors=_interceptors(credential_provider.get_auth_token()),
         )
 
     async def close(self) -> None:
@@ -33,11 +34,11 @@ class _DataGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, auth_token: str, endpoint: str):
+    def __init__(self, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
-            target=endpoint,
+            target=credential_provider.get_cache_endpoint(),
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=_interceptors(auth_token),
+            interceptors=_interceptors(credential_provider.get_auth_token()),
             # Here is where you would pass override configuration to the underlying C gRPC layer.
             # However, I have tried several different tuning options here and did not see any
             # performance improvements, so sticking with the defaults for now.

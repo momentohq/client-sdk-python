@@ -3,7 +3,7 @@ from typing import Optional
 import jwt
 from jwt.exceptions import DecodeError
 
-from momento import errors
+from momento.errors import InvalidArgumentException
 
 _MOMENTO_CONTROL_ENDPOINT_PREFIX = "control."
 _MOMENTO_CACHE_ENDPOINT_PREFIX = "cache."
@@ -23,15 +23,15 @@ def resolve(auth_token: str, endpoint_override: Optional[str] = None) -> _Endpoi
             _MOMENTO_CONTROL_ENDPOINT_PREFIX + endpoint_override,
             _MOMENTO_CACHE_ENDPOINT_PREFIX + endpoint_override,
         )
-    return _getEndpointFromToken(auth_token)
+    return _get_endpoint_from_token(auth_token)
 
 
-def _getEndpointFromToken(auth_token: str) -> _Endpoints:
+def _get_endpoint_from_token(auth_token: str) -> _Endpoints:
     try:
         claims = jwt.decode(auth_token, options={"verify_signature": False})  # type: ignore[misc]
         return _Endpoints(
             claims[_CONTROL_ENDPOINT_CLAIM_ID],  # type: ignore[misc]
             claims[_CACHE_ENDPOINT_CLAIM_ID],  # type: ignore[misc]
         )
-    except (DecodeError, KeyError):
-        raise errors.InvalidArgumentException("Invalid Auth token.") from None
+    except (DecodeError, KeyError) as e:
+        raise InvalidArgumentException("Invalid Auth token.") from e

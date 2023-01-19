@@ -1,4 +1,6 @@
+import os
 import time
+from datetime import timedelta
 
 import pytest
 
@@ -13,6 +15,8 @@ from momento.responses import (
     DeleteCacheResponse,
     ListCachesResponse,
 )
+from momento.auth.credential_provider import CredentialProvider, EnvMomentoTokenProvider
+from momento.config.configuration import Configuration
 from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 
@@ -38,33 +42,53 @@ def test_create_cache_get_set_values_and_delete_cache(client: SimpleCacheClient,
 
 # Init
 def test_init_throws_exception_when_client_uses_negative_default_ttl(
-    auth_token: str,
+    configuration: Configuration, credential_provider: CredentialProvider
 ):
-    with pytest.raises(InvalidArgumentException) as cm:
-        SimpleCacheClient(auth_token, -1)
-        assert cm.exception == "TTL Seconds must be a non-negative integer"
+    with pytest.raises(InvalidArgumentException, match="TTL timedelta must be a non-negative integer"):
+        SimpleCacheClient(configuration, credential_provider, timedelta(seconds=-1))
 
 
-def test_init_throws_exception_for_non_jwt_token(default_ttl_seconds: int):
-    with pytest.raises(InvalidArgumentException) as cm:
-        SimpleCacheClient("notanauthtoken", default_ttl_seconds)
-        assert cm.exception == "Invalid Auth token."
+def test_init_throws_exception_for_non_jwt_token(configuration: Configuration, default_ttl_seconds: timedelta):
+    with pytest.raises(InvalidArgumentException, match="Invalid Auth token."):
+        os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
+        credential_provider = EnvMomentoTokenProvider("BAD_AUTH_TOKEN")
+        SimpleCacheClient(configuration, credential_provider, default_ttl_seconds)
 
 
-def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(auth_token: str, default_ttl_seconds: int):
-    with pytest.raises(InvalidArgumentException) as cm:
-        SimpleCacheClient(auth_token, default_ttl_seconds, -1)
+def test_init_throws_exception_when_client_uses_integer_request_timeout_ms(
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
+):
+    with pytest.raises(
+        InvalidArgumentException, match="Request timeout must be a timedelta with a value greater " "than zero."
+    ):
+        configuration.with_client_timeout(-1)
+
+
+def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: timedelta
+):
+    with pytest.raises(
+        InvalidArgumentException, match="Request timeout must be a timedelta with a value greater than zero."
+    ):
+        configuration = configuration.with_client_timeout(timedelta(seconds=-1))
+        SimpleCacheClient(configuration, credential_provider, default_ttl_seconds)
         assert cm.exception == "Request timeout must be greater than zero."
 
 
-def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(auth_token: str, default_ttl_seconds: int):
-    with pytest.raises(InvalidArgumentException) as cm:
-        SimpleCacheClient(auth_token, default_ttl_seconds, 0)
-        assert cm.exception == "Request timeout must be greater than zero."
+def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: timedelta
+):
+    with pytest.raises(
+        InvalidArgumentException, match="Request timeout must be a timedelta with a value greater than zero."
+    ):
+        configuration = configuration.with_client_timeout(timedelta(seconds=0))
+        SimpleCacheClient(configuration, credential_provider, default_ttl_seconds)
 
 
 # Create cache
-def test_create_cache__already_exists_when_creating_existing_cache(client: SimpleCacheClient, cache_name: str):
+def test_create_cache__already_exists_when_creating_existing_cache(
+    client: SimpleCacheClient, cache_name: str
+):
     response = client.create_cache(cache_name)
     assert isinstance(response, CreateCacheResponse.CacheAlreadyExists)
 
@@ -83,6 +107,7 @@ def test_create_cache_throws_validation_exception_for_null_cache_name(
     response = client.create_cache(None)
     assert isinstance(response, CreateCacheResponse.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+    assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
 def test_create_cache_with_bad_cache_name_throws_exception(
@@ -91,10 +116,15 @@ def test_create_cache_with_bad_cache_name_throws_exception(
     response = client.create_cache(1)
     assert isinstance(response, CreateCacheResponse.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+    assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
-def test_create_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+def test_create_cache_throws_authentication_exception_for_bad_token(
+    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
+):
+    with SimpleCacheClient(
+        configuration, bad_token_credential_provider, default_ttl_seconds
+    ) as client:
         response = client.create_cache(unique_test_cache_name())
         assert isinstance(response, CreateCacheResponse.Error)
         assert response.error_code == errors.MomentoErrorCode.AUTHENTICATION_ERROR
@@ -144,10 +174,15 @@ def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient, 
     response = client.delete_cache(1)
     assert isinstance(response, DeleteCacheResponse.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+    assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
-def test_delete_cache_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+def test_delete_cache_throws_authentication_exception_for_bad_token(
+    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
+):
+    with SimpleCacheClient(
+        configuration, bad_token_credential_provider, default_ttl_seconds
+    ) as client:
         response = client.delete_cache(uuid_str())
         assert isinstance(response, DeleteCacheResponse.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
@@ -178,8 +213,12 @@ def test_list_caches_succeeds(client: SimpleCacheClient, cache_name: str):
         assert isinstance(delete_response, DeleteCacheResponse.Success)
 
 
-def test_list_caches_throws_authentication_exception_for_bad_token(bad_auth_token: str, default_ttl_seconds: int):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+def test_list_caches_throws_authentication_exception_for_bad_token(
+    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
+):
+    with SimpleCacheClient(
+        configuration, bad_token_credential_provider, default_ttl_seconds
+    ) as client:
         response = client.list_caches()
         assert isinstance(response, ListCachesResponse.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
@@ -193,7 +232,7 @@ def test_list_caches_with_next_token_works(client: SimpleCacheClient, cache_name
 
 # Signing keys
 def test_create_list_revoke_signing_keys(client: SimpleCacheClient):
-    create_resp = client.create_signing_key(30)
+    create_resp = client.create_signing_key(timedelta(minutes=30))
     list_resp = client.list_signing_keys()
     assert create_resp.key_id() in [signing_key.key_id() for signing_key in list_resp.signing_keys()]
 
@@ -239,7 +278,7 @@ def test_expires_items_after_ttl(client: SimpleCacheClient, cache_name: str):
     key = uuid_str()
     val = uuid_str()
 
-    client.set(cache_name, key, val, 2)
+    client.set(cache_name, key, val, timedelta(seconds=2))
     get_response = client.get(cache_name, key)
     assert isinstance(get_response, CacheGetResponse.Hit)
 
@@ -252,7 +291,7 @@ def test_set_with_different_ttl(client: SimpleCacheClient, cache_name: str):
     key1 = uuid_str()
     key2 = uuid_str()
 
-    client.set(cache_name, key1, "1", 2)
+    client.set(cache_name, key1, "1", timedelta(seconds=2))
     client.set(cache_name, key2, "2")
 
     # Before
@@ -309,10 +348,10 @@ def test_set_with_null_value_throws_exception(client: SimpleCacheClient, cache_n
 
 
 def test_set_negative_ttl_throws_exception(client: SimpleCacheClient, cache_name: str):
-    set_response = client.set(cache_name, "foo", "bar", -1)
+    set_response = client.set(cache_name, "foo", "bar", timedelta(seconds=-1))
     assert isinstance(set_response, CacheSetResponse.Error)
     assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-    assert set_response.inner_exception.message == "TTL Seconds must be a non-negative integer"
+    assert set_response.inner_exception.message == "TTL timedelta must be a non-negative integer"
 
 
 def test_set_with_bad_cache_name_throws_exception(
@@ -339,16 +378,27 @@ def test_set_with_bad_value_throws_exception(client: SimpleCacheClient, cache_na
 
 
 def test_set_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, cache_name: str, default_ttl_seconds: int
+    bad_token_credential_provider: EnvMomentoTokenProvider,
+    configuration: Configuration,
+    cache_name: str,
+    default_ttl_seconds: timedelta,
 ):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+    with SimpleCacheClient(
+        configuration, bad_token_credential_provider, default_ttl_seconds
+    ) as client:
         set_response = client.set(cache_name, "foo", "bar")
         assert isinstance(set_response, CacheSetResponse.Error)
         assert set_response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
-def test_set_throws_timeout_error_for_short_request_timeout(auth_token: str, cache_name: str, default_ttl_seconds: int):
-    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
+def test_set_throws_timeout_error_for_short_request_timeout(
+    configuration: Configuration,
+    credential_provider: EnvMomentoTokenProvider,
+    cache_name: str,
+    default_ttl_seconds: timedelta,
+):
+    configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
+    with SimpleCacheClient(configuration, credential_provider, default_ttl_seconds) as client:
         set_response = client.set(cache_name, "foo", "bar")
         assert isinstance(set_response, CacheSetResponse.Error)
         assert set_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
@@ -370,6 +420,7 @@ def test_get_with_null_cache_name_throws_exception(
     get_response = client.get(None, "foo")
     assert isinstance(get_response, CacheGetResponse.Error)
     assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+    assert get_response.inner_exception.message == "Cache name must be a non-empty string"
 
 
 def test_get_with_empty_cache_name_throws_exception(
@@ -378,6 +429,7 @@ def test_get_with_empty_cache_name_throws_exception(
     get_response = client.get("", "foo")
     assert isinstance(get_response, CacheGetResponse.Error)
     assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+    assert get_response.inner_exception.message == "Cache header is empty"
 
 
 def test_get_with_null_key_throws_exception(client: SimpleCacheClient, cache_name: str):
@@ -403,16 +455,27 @@ def test_get_with_bad_key_throws_exception(client: SimpleCacheClient, cache_name
 
 
 def test_get_throws_authentication_exception_for_bad_token(
-    bad_auth_token: str, cache_name: str, default_ttl_seconds: int
+    bad_token_credential_provider: EnvMomentoTokenProvider,
+    configuration: Configuration,
+    cache_name: str,
+    default_ttl_seconds: timedelta,
 ):
-    with SimpleCacheClient(bad_auth_token, default_ttl_seconds) as client:
+    with SimpleCacheClient(
+        configuration, bad_token_credential_provider, default_ttl_seconds
+    ) as client:
         get_response = client.get(cache_name, "foo")
         assert isinstance(get_response, CacheGetResponse.Error)
         assert get_response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
-def test_get_throws_timeout_error_for_short_request_timeout(auth_token: str, cache_name: str, default_ttl_seconds: int):
-    with SimpleCacheClient(auth_token, default_ttl_seconds, request_timeout_ms=1) as client:
+def test_get_throws_timeout_error_for_short_request_timeout(
+    configuration: Configuration,
+    credential_provider: EnvMomentoTokenProvider,
+    cache_name: str,
+    default_ttl_seconds: timedelta,
+):
+    configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
+    with SimpleCacheClient(configuration, credential_provider, default_ttl_seconds) as client:
         get_response = client.get(cache_name, "foo")
         assert isinstance(get_response, CacheGetResponse.Error)
         assert get_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
@@ -449,3 +512,13 @@ def test_delete(client: SimpleCacheClient, cache_name: str):
     # Verify deleted
     get_response = client.get(cache_name, key)
     assert isinstance(get_response, CacheGetResponse.Miss)
+
+
+def test_configuration_client_timeout_copy_constructor(configuration: Configuration):
+    def snag_deadline(config: Configuration) -> timedelta:
+        return config.get_transport_strategy().get_grpc_configuration().get_deadline()
+
+    original_deadline: timedelta = snag_deadline(configuration)
+    assert original_deadline.total_seconds() == 15
+    configuration = configuration.with_client_timeout(timedelta(seconds=600))
+    assert snag_deadline(configuration).total_seconds() == 600

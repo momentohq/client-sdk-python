@@ -12,6 +12,7 @@ from momento.internal.synchronous._add_header_client_interceptor import (
 from momento.internal.synchronous._retry_interceptor import (
     get_retry_interceptor_if_enabled,
 )
+from momento.auth.credential_provider import CredentialProvider
 
 
 class _ControlGrpcManager:
@@ -19,9 +20,13 @@ class _ControlGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, auth_token: str, endpoint: str) -> None:
-        self._secure_channel = grpc.secure_channel(endpoint, grpc.ssl_channel_credentials())
-        intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(auth_token))
+    def __init__(self, credential_provider: CredentialProvider):
+        self._secure_channel = grpc.secure_channel(
+            target=credential_provider.get_control_endpoint(), credentials=grpc.ssl_channel_credentials()
+        )
+        intercept_channel = grpc.intercept_channel(
+            self._secure_channel, *_interceptors(credential_provider.get_auth_token())
+        )
         self._stub = control_client.ScsControlStub(intercept_channel)
 
     def close(self) -> None:
@@ -36,12 +41,14 @@ class _DataGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, auth_token: str, endpoint: str):
+    def __init__(self, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
-            target=endpoint,
+            target=credential_provider.get_cache_endpoint(),
             credentials=grpc.ssl_channel_credentials(),
         )
-        intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(auth_token))
+        intercept_channel = grpc.intercept_channel(
+            self._secure_channel, *_interceptors(credential_provider.get_auth_token())
+        )
         self._stub = cache_client.ScsStub(intercept_channel)
 
     def close(self) -> None:
