@@ -174,7 +174,7 @@ class LimitExceededException(SdkException):
             message,
             MomentoErrorCode.LIMIT_EXCEEDED_ERROR,
             transport_details,
-            message_wrapper="Request rate exceeded the limits for this account. To resolve this error, reduce your request rate, or contact us at support@momentohq.com to request a limit increase",  # noqa: E501
+            message_wrapper="Request rate, bandwidth, or object size exceeded the limits for this account. To resolve this error, reduce your usage as appropriate or contact us at support@momentohq.com to request a limit increase",  # noqa: E501
         )
 
 
