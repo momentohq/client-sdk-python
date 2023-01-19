@@ -52,7 +52,7 @@ class _ScsControlClient:
             _validate_cache_name(cache_name)
             request = _CreateCacheRequest()
             request.cache_name = cache_name
-            await self._getStub().CreateCache(request, timeout=_DEADLINE_SECONDS)
+            await self._build_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
             if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
@@ -66,7 +66,7 @@ class _ScsControlClient:
             _validate_cache_name(cache_name)
             request = _DeleteCacheRequest()
             request.cache_name = cache_name
-            await self._getStub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
+            await self._build_stub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
             return DeleteCacheResponse.Error(convert_error(e))
@@ -76,7 +76,7 @@ class _ScsControlClient:
         try:
             list_caches_request = _ListCachesRequest()
             list_caches_request.next_token = next_token if next_token is not None else ""
-            response = await self._getStub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
+            response = await self._build_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             return ListCachesResponse.Success.from_grpc_response(response)
         except Exception as e:
             return ListCachesResponse.Error(convert_error(e))
@@ -89,7 +89,7 @@ class _ScsControlClient:
             create_signing_key_request = _CreateSigningKeyRequest()
             create_signing_key_request.ttl_minutes = ttl_minutes
             return CreateSigningKeyResponse.from_grpc_response(
-                await self._getStub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS),
+                await self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS),
                 endpoint,
             )
         except Exception as e:
@@ -101,7 +101,7 @@ class _ScsControlClient:
             self._logger.info(f"Revoking signing key with key_id {key_id}")
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
-            await self._getStub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
+            await self._build_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
             return RevokeSigningKeyResponse()
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
@@ -112,13 +112,13 @@ class _ScsControlClient:
             list_signing_keys_request = _ListSigningKeysRequest()
             list_signing_keys_request.next_token = next_token if next_token is not None else ""
             return ListSigningKeysResponse.from_grpc_response(
-                await self._getStub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS),
+                await self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS),
                 endpoint,
             )
         except Exception as e:
             raise convert_error(e)
 
-    def _getStub(self) -> ScsControlStub:
+    def _build_stub(self) -> ScsControlStub:
         return self._grpc_manager.async_stub()
 
     async def close(self) -> None:

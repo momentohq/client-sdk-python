@@ -69,7 +69,7 @@ class _ScsDataClient:
         metadata = make_metadata(cache_name)
 
         async def execute_set_request_fn(req: _SetRequest) -> _SetResponse:
-            return await self._getStub().Set(
+            return await self._build_stub().Set(
                 req,
                 metadata=metadata,
                 timeout=self._default_deadline_seconds,
@@ -95,7 +95,7 @@ class _ScsDataClient:
         metadata = make_metadata(cache_name)
 
         async def execute_get_request_fn(req: _GetRequest) -> _GetResponse:
-            return await self._getStub().Get(
+            return await self._build_stub().Get(
                 req,
                 metadata=metadata,
                 timeout=self._default_deadline_seconds,
@@ -115,7 +115,7 @@ class _ScsDataClient:
         metadata = make_metadata(cache_name)
 
         async def execute_delete_request_fn(req: _DeleteRequest) -> _DeleteResponse:
-            return await self._getStub().Delete(
+            return await self._build_stub().Delete(
                 req,
                 metadata=metadata,
                 timeout=self._default_deadline_seconds,
@@ -131,7 +131,7 @@ class _ScsDataClient:
             metadata=metadata,
         )
 
-    def _getStub(self) -> ScsStub:
+    def _build_stub(self) -> ScsStub:
         return self._grpc_manager.async_stub()
 
     async def close(self) -> None:
