@@ -6,7 +6,6 @@ from typing import Optional, cast
 import pytest
 import pytest_asyncio
 
-import momento.errors as errors
 from momento import SimpleCacheClient, SimpleCacheClientAsync
 from momento.auth.credential_provider import EnvMomentoTokenProvider
 from momento.config.configuration import Configuration

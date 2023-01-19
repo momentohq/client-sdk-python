@@ -18,7 +18,7 @@ _ES_NO_ALG_JWK = '{"kty":"EC","d":"ZhrhvO1Zk8ENkqlDXpHrEJ2TWgZhPSyjgX0j-8jUWig",
 _ES_NO_ALG_JWK_PUB = '{"kty":"EC","crv":"P-256","kid":"testKeyId","x":"5BU5xuaUvasp9gUfSS3HGtqd1oHdGoHH3KtrzoQLd0Q","y":"WUjUeDikRXRHa-AWyNdH5Ye1Nyifd3P26F52Uv4eTVo"}'  # noqa: E501
 
 
-def test_rsa256():
+def test_rsa256() -> None:
     cache_name = uuid_str()
     cache_key = uuid_str()
 
@@ -40,7 +40,7 @@ def test_rsa256():
     }
 
 
-def test_rsa_no_alg():
+def test_rsa_no_alg() -> None:
     cache_name = uuid_str()
     cache_key = uuid_str()
 
@@ -62,7 +62,7 @@ def test_rsa_no_alg():
     }
 
 
-def test_rsa384():
+def test_rsa384() -> None:
     cache_name = uuid_str()
     cache_key = uuid_str()
 
@@ -84,7 +84,7 @@ def test_rsa384():
     }
 
 
-def test_es256():
+def test_es256() -> None:
     cache_name = uuid_str()
     cache_key = uuid_str()
 
@@ -106,7 +106,7 @@ def test_es256():
     }
 
 
-def test_es_no_alg():
+def test_es_no_alg() -> None:
     cache_name = uuid_str()
     cache_key = uuid_str()
 
@@ -128,22 +128,22 @@ def test_es_no_alg():
     }
 
 
-def test_empty_jwk_json_string():
+def test_empty_jwk_json_string() -> None:
     with pytest.raises(InvalidArgumentException):
         MomentoSigner("")
 
 
-def test_nothing_jwk_json_string():
+def test_nothing_jwk_json_string() -> None:
     with pytest.raises(InvalidArgumentException):
         MomentoSigner("{}")
 
 
-def test_incomplete_jwk_json_string():
+def test_incomplete_jwk_json_string() -> None:
     with pytest.raises(InvalidArgumentException):
         MomentoSigner('{"alg":"foo","kid":"bar","kty":"RSA"}')
 
 
-def test_create_presigned_url_for_get():
+def test_create_presigned_url_for_get() -> None:
     result = MomentoSigner(_RSA_256_JWK).create_presigned_url(
         "example.com",
         SigningRequest(
@@ -160,7 +160,7 @@ def test_create_presigned_url_for_get():
     )
 
 
-def test_create_presigned_url_for_set():
+def test_create_presigned_url_for_set() -> None:
     result = MomentoSigner(_RSA_256_JWK).create_presigned_url(
         "example.com",
         SigningRequest(
@@ -178,7 +178,7 @@ def test_create_presigned_url_for_set():
     )
 
 
-def test_create_presigned_url_for_set_missing_ttl():
+def test_create_presigned_url_for_set_missing_ttl() -> None:
     with pytest.raises(InvalidArgumentException):
         MomentoSigner(_RSA_256_JWK).create_presigned_url(
             "example.com",

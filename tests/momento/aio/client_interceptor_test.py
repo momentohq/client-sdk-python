@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import grpc.aio
 import pytest
@@ -9,17 +9,17 @@ from momento.internal.aio._add_header_client_interceptor import (
 )
 
 
-def test_sanitize_client_grpc_request():
+def test_sanitize_client_grpc_request() -> None:
     class MockGrpcRequestDetails:
         method: str
         timeout: Optional[float]
         # Only difference in this test class from grpc.aio.Metadata is the metadata property which can be any so in
         # tests we can replicate what we are seeing in the wild.
-        metadata: any
+        metadata: grpc.aio.Metadata
         credentials: Optional[grpc.CallCredentials]
         wait_for_ready: Optional[bool]
 
-    def build_test_client_request(metadata_to_set: object):
+    def build_test_client_request(metadata_to_set: object) -> MockGrpcRequestDetails:
         return_request = MockGrpcRequestDetails()
         return_request.method = ""
         return_request.timeout = 1
@@ -38,16 +38,21 @@ def test_sanitize_client_grpc_request():
     )
 
     class TestCase:
-        client_input: any = None
+        client_input: Optional[MockGrpcRequestDetails] = None
         expected_output: grpc.aio.ClientCallDetails = None
-        expected_err: Exception = None
+        expected_err: Optional[Exception] = None
 
-        def __init__(self, client_input, expected_output, expected_err):
+        def __init__(
+            self,
+            client_input: MockGrpcRequestDetails,
+            expected_output: Optional[MockGrpcRequestDetails],
+            expected_err: Optional[Exception],
+        ):
             self.client_input = client_input
             self.expected_output = expected_output
             self.expected_err = expected_err
 
-    test_cases: list[TestCase] = [
+    test_cases: List[TestCase] = [
         TestCase(
             client_input=build_test_client_request(metadata_to_set=None),  # Test None
             expected_output=happy_path_expected_output,
@@ -74,7 +79,7 @@ def test_sanitize_client_grpc_request():
 
     for test in test_cases:
         if test.expected_err is not None:
-            with pytest.raises(test.expected_err):
+            with pytest.raises(test.expected_err):  # type: ignore
                 sanitize_client_call_details(test.client_input)
         else:
             assert sanitize_client_call_details(test.client_input).metadata == test.expected_output.metadata
