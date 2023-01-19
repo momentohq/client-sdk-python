@@ -68,7 +68,7 @@ def convert_error(exception: Exception, transport_metadata: Optional[TMetadata] 
 
     # Normalize synchronous client metadata to `Metadata`
     if isinstance(transport_metadata, list):
-        transport_metadata = Metadata.from_tuple(transport_metadata)
+        transport_metadata = _synchronous_metadata_to_metadata(transport_metadata)
 
     if isinstance(exception, grpc.RpcError):
         status_code: grpc.StatusCode = exception.code()
@@ -86,3 +86,18 @@ def convert_error(exception: Exception, transport_metadata: Optional[TMetadata] 
 
     # TODO exception chaining from .NET redundant here?
     return UnknownException(SDK_ERROR_MESSAGE, None)
+
+
+def _synchronous_metadata_to_metadata(metadata: List[Tuple[str, str]]) -> Metadata:
+    """Represent synchronous client metadata as a `Metadata` object.
+
+    Args:
+        metadata (List[Tuple[str, str]]): The synchronous client metadata.
+
+    Returns:
+        Metadata: async client metadata representation
+    """
+    new_metadata = Metadata()
+    for key, value in metadata:
+        new_metadata.add(key, value)
+    return new_metadata
