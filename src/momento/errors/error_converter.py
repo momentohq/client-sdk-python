@@ -25,6 +25,7 @@ from momento.errors import (
 
 grpc_status_to_exception: Dict[grpc.StatusCode, Type[SdkException]] = {
     grpc.StatusCode.INVALID_ARGUMENT: InvalidArgumentException,
+    grpc.StatusCode.INTERNAL: InternalServerException,
     grpc.StatusCode.OUT_OF_RANGE: BadRequestException,
     grpc.StatusCode.UNIMPLEMENTED: BadRequestException,
     grpc.StatusCode.FAILED_PRECONDITION: FailedPreconditionException,
