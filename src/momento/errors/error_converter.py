@@ -73,12 +73,12 @@ def convert_error(exception: Exception, transport_metadata: Optional[TMetadata] 
     if isinstance(exception, grpc.RpcError):
         status_code: grpc.StatusCode = exception.code()
         details = exception.details()
+        transport_details = MomentoErrorTransportDetails(
+            MomentoGrpcErrorDetails(status_code, details, transport_metadata)
+        )
 
         if status_code in grpc_status_to_exception:
             concrete_exception_type = grpc_status_to_exception[status_code]
-            transport_details = MomentoErrorTransportDetails(
-                MomentoGrpcErrorDetails(status_code, details, transport_metadata)
-            )
             return concrete_exception_type(details, transport_details)  # type: ignore
         else:
             # TODO exception chaining from .NET redundant here?
