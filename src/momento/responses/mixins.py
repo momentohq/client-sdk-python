@@ -11,13 +11,6 @@ from typing import Type, TypeVar
 from momento.errors import MomentoErrorCode, SdkException
 
 
-class AbstractClassMixin:
-    """Mixin that simulates an abstract type. Disallows instantiating an object."""
-
-    def __new__(cls, *args, **kwargs):  # type: ignore
-        raise NotImplementedError("This is an abstract class. Cannot instantiate!")
-
-
 class HasValueBytesProtocol(Protocol):
     @property
     def value_bytes(self) -> bytes:
