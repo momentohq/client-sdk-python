@@ -1,5 +1,5 @@
-from functools import partial
 from datetime import timedelta
+from functools import partial
 from typing import Optional, Union
 
 from momento_wire_types.cacheclient_pb2 import (
@@ -14,8 +14,6 @@ from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 
 from momento import logs
 from momento._utilities._data_validation import _validate_ttl
-from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
-from momento.internal.synchronous._utilities import make_metadata
 from momento.auth.credential_provider import CredentialProvider
 from momento.config.configuration import Configuration
 from momento.internal.common._data_client_ops import (
@@ -28,6 +26,8 @@ from momento.internal.common._data_client_ops import (
     prepare_set_request,
     wrap_with_error_handling,
 )
+from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
+from momento.internal.synchronous._utilities import make_metadata
 from momento.responses import (
     CacheDeleteResponse,
     CacheDeleteResponseBase,

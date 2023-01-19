@@ -18,6 +18,7 @@ from momento._utilities._data_validation import (
     _validate_cache_name,
     _validate_ttl,
 )
+from momento.config.configuration import Configuration
 from momento.errors import SdkException, convert_error
 from momento.responses import (
     CacheDeleteResponse,
@@ -27,7 +28,6 @@ from momento.responses import (
     CacheSetResponse,
     CacheSetResponseBase,
 )
-from momento.config.configuration import Configuration
 
 TResponse = TypeVar("TResponse")
 TGeneratedRequest = TypeVar("TGeneratedRequest")

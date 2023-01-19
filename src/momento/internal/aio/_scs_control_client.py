@@ -13,10 +13,8 @@ from momento_wire_types.controlclient_pb2 import (
 from momento_wire_types.controlclient_pb2_grpc import ScsControlStub
 
 from momento import logs
-from momento._utilities._data_validation import (
-    _validate_cache_name,
-    _validate_ttl,
-)
+from momento._utilities._data_validation import _validate_cache_name, _validate_ttl
+from momento.auth.credential_provider import CredentialProvider
 from momento.errors import convert_error
 from momento.internal.aio._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
@@ -30,7 +28,6 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.auth.credential_provider import CredentialProvider
 
 _DEADLINE_SECONDS = 60.0  # 1 minute
 

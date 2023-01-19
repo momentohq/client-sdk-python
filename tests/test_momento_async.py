@@ -6,6 +6,8 @@ import pytest
 
 import momento.errors as errors
 from momento import SimpleCacheClientAsync
+from momento.auth.credential_provider import CredentialProvider, EnvMomentoTokenProvider
+from momento.config.configuration import Configuration
 from momento.errors import InvalidArgumentException, MomentoErrorCode
 from momento.responses import (
     CacheDeleteResponse,
@@ -15,8 +17,6 @@ from momento.responses import (
     DeleteCacheResponse,
     ListCachesResponse,
 )
-from momento.auth.credential_provider import CredentialProvider, EnvMomentoTokenProvider
-from momento.config.configuration import Configuration
 from tests.utils import str_to_bytes, unique_test_cache_name, uuid_bytes, uuid_str
 
 

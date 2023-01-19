@@ -12,7 +12,6 @@ from momento.auth.credential_provider import EnvMomentoTokenProvider
 from momento.config.configuration import Configuration
 from momento.config.configurations import Laptop
 
-
 #######################
 # Integration test data
 #######################
