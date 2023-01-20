@@ -29,12 +29,12 @@ from momento.internal.common._data_client_ops import (
     wrap_async_with_error_handling,
 )
 from momento.responses import (
+    CacheDelete,
     CacheDeleteResponse,
-    CacheDeleteResponseBase,
+    CacheGet,
     CacheGetResponse,
-    CacheGetResponseBase,
+    CacheSet,
     CacheSetResponse,
-    CacheSetResponseBase,
 )
 
 
@@ -65,7 +65,7 @@ class _ScsDataClient:
         key: Union[str, bytes],
         value: Union[str, bytes],
         ttl: Optional[timedelta],
-    ) -> CacheSetResponseBase:
+    ) -> CacheSetResponse:
         metadata = make_metadata(cache_name)
 
         async def execute_set_request_fn(req: _SetRequest) -> _SetResponse:
@@ -87,11 +87,11 @@ class _ScsDataClient:
             ),
             execute_request_fn=execute_set_request_fn,
             response_fn=construct_set_response,
-            error_fn=CacheSetResponse.Error.from_sdkexception,
+            error_fn=CacheSet.Error.from_sdkexception,
             metadata=metadata,
         )
 
-    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponseBase:
+    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
         metadata = make_metadata(cache_name)
 
         async def execute_get_request_fn(req: _GetRequest) -> _GetResponse:
@@ -107,11 +107,11 @@ class _ScsDataClient:
             prepare_request_fn=partial(prepare_get_request, key=key),
             execute_request_fn=execute_get_request_fn,
             response_fn=construct_get_response,
-            error_fn=CacheGetResponse.Error.from_sdkexception,
+            error_fn=CacheGet.Error.from_sdkexception,
             metadata=metadata,
         )
 
-    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponseBase:
+    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
         metadata = make_metadata(cache_name)
 
         async def execute_delete_request_fn(req: _DeleteRequest) -> _DeleteResponse:
@@ -127,7 +127,7 @@ class _ScsDataClient:
             prepare_request_fn=partial(prepare_delete_request, key=key),
             execute_request_fn=execute_delete_request_fn,
             response_fn=construct_delete_response,
-            error_fn=CacheDeleteResponse.Error.from_sdkexception,
+            error_fn=CacheDelete.Error.from_sdkexception,
             metadata=metadata,
         )
 

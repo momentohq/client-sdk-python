@@ -6,54 +6,54 @@ from momento.errors import SdkException
 from ..mixins import ErrorResponseMixin
 
 
-class CreateCacheResponseBase(ABC):
+class CreateCacheResponse(ABC):
     """Parent response type for a create cache request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
 
-    - `CreateCacheResponse.Success`
-    - `CreateCacheResponse.CacheAlreadyExists`
-    - `CreateCacheResponse.Error`
+    - `CreateCache.Success`
+    - `CreateCache.CacheAlreadyExists`
+    - `CreateCache.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
 
         match response:
-            case CreateCacheResponse.Success():
+            case CreateCache.Success():
                 ...
-            case CreateCacheResponse.CacheAlreadyExists():
+            case CreateCache.CacheAlreadyExists():
                 ...
-            case CreateCacheResponse.Error():
+            case CreateCache.Error():
                 ...
             case _:
                 # Shouldn't happen
 
     or equivalently in earlier versions of python:
 
-        if isinstance(response, CreateCacheResponse.Success):
+        if isinstance(response, CreateCache.Success):
             ...
-        elif isinstance(response, CreateCacheResponse.AlreadyExists):
+        elif isinstance(response, CreateCache.AlreadyExists):
             ...
-        elif isinstance(response, CreateCacheResponse.Error):
+        elif isinstance(response, CreateCache.Error):
             ...
         else:
             # Shouldn't happen
     """
 
 
-class CreateCacheResponse(ABC):
-    """Groups all `CreateCacheResponseBase` derived types under a common namespace."""
+class CreateCache(ABC):
+    """Groups all `CreateCacheResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(CreateCacheResponseBase):
+    class Success(CreateCacheResponse):
         """Indicates the request was successful."""
 
     @dataclass
-    class CacheAlreadyExists(CreateCacheResponseBase):
+    class CacheAlreadyExists(CreateCacheResponse):
         """Indicates that a cache with the requested name has already been created in the requesting account."""
 
     @dataclass
-    class Error(CreateCacheResponseBase, ErrorResponseMixin):
+    class Error(CreateCacheResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.

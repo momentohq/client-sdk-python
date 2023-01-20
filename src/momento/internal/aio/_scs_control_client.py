@@ -18,13 +18,13 @@ from momento.auth.credential_provider import CredentialProvider
 from momento.errors import convert_error
 from momento.internal.aio._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
+    CreateCache,
     CreateCacheResponse,
-    CreateCacheResponseBase,
     CreateSigningKeyResponse,
+    DeleteCache,
     DeleteCacheResponse,
-    DeleteCacheResponseBase,
+    ListCaches,
     ListCachesResponse,
-    ListCachesResponseBase,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
@@ -46,7 +46,7 @@ class _ScsControlClient:
     def endpoint(self) -> str:
         return self._endpoint
 
-    async def create_cache(self, cache_name: str) -> CreateCacheResponseBase:
+    async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         try:
             self._logger.info(f"Creating cache with name: {cache_name}")
             _validate_cache_name(cache_name)
@@ -56,11 +56,11 @@ class _ScsControlClient:
         except Exception as e:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
             if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
-                return CreateCacheResponse.CacheAlreadyExists()
-            return CreateCacheResponse.Error(convert_error(e))
-        return CreateCacheResponse.Success()
+                return CreateCache.CacheAlreadyExists()
+            return CreateCache.Error(convert_error(e))
+        return CreateCache.Success()
 
-    async def delete_cache(self, cache_name: str) -> DeleteCacheResponseBase:
+    async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         try:
             self._logger.info(f"Deleting cache with name: {cache_name}")
             _validate_cache_name(cache_name)
@@ -69,17 +69,17 @@ class _ScsControlClient:
             await self._build_stub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
-            return DeleteCacheResponse.Error(convert_error(e))
-        return DeleteCacheResponse.Success()
+            return DeleteCache.Error(convert_error(e))
+        return DeleteCache.Success()
 
-    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponseBase:
+    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         try:
             list_caches_request = _ListCachesRequest()
             list_caches_request.next_token = next_token if next_token is not None else ""
             response = await self._build_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
-            return ListCachesResponse.Success.from_grpc_response(response)
+            return ListCaches.Success.from_grpc_response(response)
         except Exception as e:
-            return ListCachesResponse.Error(convert_error(e))
+            return ListCaches.Error(convert_error(e))
 
     async def create_signing_key(self, ttl: timedelta, endpoint: str) -> CreateSigningKeyResponse:
         try:

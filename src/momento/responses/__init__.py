@@ -1,20 +1,20 @@
 from .control import (
+    CreateCache,
     CreateCacheResponse,
-    CreateCacheResponseBase,
     CreateSigningKeyResponse,
+    DeleteCache,
     DeleteCacheResponse,
-    DeleteCacheResponseBase,
+    ListCaches,
     ListCachesResponse,
-    ListCachesResponseBase,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
     SigningKey,
 )
 from .scalar_data import (
+    CacheDelete,
     CacheDeleteResponse,
-    CacheDeleteResponseBase,
+    CacheGet,
     CacheGetResponse,
-    CacheGetResponseBase,
+    CacheSet,
     CacheSetResponse,
-    CacheSetResponseBase,
 )
