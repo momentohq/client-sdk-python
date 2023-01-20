@@ -17,13 +17,24 @@ class ListCachesResponseBase(ABC):
     - `ListCachesResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example:
+    For example, in python 3.10+:
     ```
     match response:
-        case ListCachesResponse.Success:
+        case ListCachesResponse.Success():
             ...
-        case ListCachesResponse.Error:
+        case ListCachesResponse.Error():
             ...
+        case _:
+            # Shouldn't happen
+    ```
+    or equivalently in earlier versions of python:
+    ```
+    if isinstance(response, ListCachesResponse.Success):
+        ...
+    elif isinstance(response, ListCachesResponse.Error):
+        ...
+    else:
+        # Shouldn't happen
     ```
     """
 

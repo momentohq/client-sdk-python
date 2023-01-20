@@ -14,13 +14,22 @@ class CacheSetResponseBase(ABC):
     - `CacheSetResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example:
+    For example, in python 3.10+:
     ```
     match response:
-        case CacheSetResponse.Success:
+        case CacheSetResponse.Success():
             ...
-        case CacheSetResponse.Error:
+        case CacheSetResponse.Error():
             ...
+    ```
+    or equivalently in earlier versions of python:
+    ```
+    if isinstance(response, CacheSetResponse.Success):
+        ...
+    elif isinstance(response, CacheSetResponse.Error):
+        ...
+    else:
+        # Shouldn't happen
     ```
     """
 

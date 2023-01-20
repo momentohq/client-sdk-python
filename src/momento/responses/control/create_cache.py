@@ -15,15 +15,28 @@ class CreateCacheResponseBase(ABC):
     - `CreateCacheResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example:
+    For example, in python 3.10+:
     ```
     match response:
-        case CreateCacheResponse.Success:
+        case CreateCacheResponse.Success():
             ...
-        case CreateCacheResponse.CacheAlreadyExists:
+        case CreateCacheResponse.CacheAlreadyExists():
             ...
-        case CreateCacheResponse.Error:
+        case CreateCacheResponse.Error():
             ...
+        case _:
+            # Shouldn't happen
+    ```
+    or equivalently in earlier versions of python:
+    ```
+    if isinstance(response, CreateCacheResponse.Success):
+        ...
+    elif isinstance(response, CreateCacheResponse.AlreadyExists):
+        ...
+    elif isinstance(response, CreateCacheResponse.Error):
+        ...
+    else:
+        # Shouldn't happen
     ```
     """
 

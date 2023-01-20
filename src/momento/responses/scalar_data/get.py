@@ -15,15 +15,26 @@ class CacheGetResponseBase(ABC):
     - `CacheGetResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example:
+    For example, in python 3.10+:
     ```
     match response:
-        case CacheGetResponse.Hit as hit:
+        case CacheGetResponse.Hit() as hit:
             return hit.value_string
-        case CacheGetResponse.Miss:
+        case CacheGetResponse.Miss():
             ... # Handle miss
-        case CacheGetResponse.Error:
-            ... # Handle error as appropriate
+        case CacheGetResponse.Error():
+            ...
+    ```
+    or equivalently in earlier versions of python:
+    ```
+    if isinstance(response, CacheGetResponse.Hit):
+        ...
+    elif isinstance(response, CacheGetResponse.Miss):
+        ...
+    elif isinstance(response, CacheGetResponse.Error):
+        ...
+    else:
+        # Shouldn't happen
     ```
     """
 

@@ -14,13 +14,24 @@ class DeleteCacheResponseBase(ABC):
     - `DeleteCacheResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example:
+    For example, in python 3.10+:
     ```
     match response:
-        case DeleteCacheResponse.Success:
+        case DeleteCacheResponse.Success():
             ...
-        case DeleteCacheResponse.Error:
+        case DeleteCacheResponse.Error():
             ...
+        case _:
+            # Shouldn't happen
+    ```
+    or equivalently in earlier versions of python:
+    ```
+    if isinstance(response, DeleteCacheResponse.Success):
+        ...
+    elif isinstance(response, DeleteCacheResponse.Error):
+        ...
+    else:
+        # Shouldn't happen
     ```
     """
 
