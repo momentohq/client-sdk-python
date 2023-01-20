@@ -10,32 +10,32 @@ class CacheGetResponseBase(ABC):
     """Parent response type for a create get request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
+
     - `CacheGetResponse.Hit`
     - `CacheGetResponse.Miss`
     - `CacheGetResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
-    ```
-    match response:
-        case CacheGetResponse.Hit() as hit:
-            return hit.value_string
-        case CacheGetResponse.Miss():
-            ... # Handle miss
-        case CacheGetResponse.Error():
-            ...
-    ```
+
+        match response:
+            case CacheGetResponse.Hit() as hit:
+                return hit.value_string
+            case CacheGetResponse.Miss():
+                ... # Handle miss
+            case CacheGetResponse.Error():
+                ...
+
     or equivalently in earlier versions of python:
-    ```
-    if isinstance(response, CacheGetResponse.Hit):
-        ...
-    elif isinstance(response, CacheGetResponse.Miss):
-        ...
-    elif isinstance(response, CacheGetResponse.Error):
-        ...
-    else:
-        # Shouldn't happen
-    ```
+
+        if isinstance(response, CacheGetResponse.Hit):
+            ...
+        elif isinstance(response, CacheGetResponse.Miss):
+            ...
+        elif isinstance(response, CacheGetResponse.Error):
+            ...
+        else:
+            # Shouldn't happen
     """
 
 

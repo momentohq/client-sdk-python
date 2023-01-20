@@ -10,27 +10,27 @@ class CacheSetResponseBase(ABC):
     """Parent response type for a create set request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
+
     - `CacheSetResponse.Success`
     - `CacheSetResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
-    ```
-    match response:
-        case CacheSetResponse.Success():
-            ...
-        case CacheSetResponse.Error():
-            ...
-    ```
+
+        match response:
+            case CacheSetResponse.Success():
+                ...
+            case CacheSetResponse.Error():
+                ...
+
     or equivalently in earlier versions of python:
-    ```
-    if isinstance(response, CacheSetResponse.Success):
-        ...
-    elif isinstance(response, CacheSetResponse.Error):
-        ...
-    else:
-        # Shouldn't happen
-    ```
+
+        if isinstance(response, CacheSetResponse.Success):
+            ...
+        elif isinstance(response, CacheSetResponse.Error):
+            ...
+        else:
+            # Shouldn't happen
     """
 
 

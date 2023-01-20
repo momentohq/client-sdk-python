@@ -10,29 +10,29 @@ class DeleteCacheResponseBase(ABC):
     """Parent response type for a delete cache request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
+
     - `DeleteCacheResponse.Success`
     - `DeleteCacheResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
-    ```
-    match response:
-        case DeleteCacheResponse.Success():
-            ...
-        case DeleteCacheResponse.Error():
-            ...
-        case _:
-            # Shouldn't happen
-    ```
+
+        match response:
+            case DeleteCacheResponse.Success():
+                ...
+            case DeleteCacheResponse.Error():
+                ...
+            case _:
+                # Shouldn't happen
+
     or equivalently in earlier versions of python:
-    ```
-    if isinstance(response, DeleteCacheResponse.Success):
-        ...
-    elif isinstance(response, DeleteCacheResponse.Error):
-        ...
-    else:
-        # Shouldn't happen
-    ```
+
+        if isinstance(response, DeleteCacheResponse.Success):
+            ...
+        elif isinstance(response, DeleteCacheResponse.Error):
+            ...
+        else:
+            # Shouldn't happen
     """
 
 

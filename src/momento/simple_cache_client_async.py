@@ -106,30 +106,29 @@ class SimpleCacheClientAsync:
             - `CreateCacheResponse.AlreadyExists`
             - `CreateCacheResponse.Error`
 
-        Pattern matching can be used to operate on the appropriate subtype.
-        For example, in python 3.10+:
-        ```
-        match response:
-            case CreateCacheResponse.Success():
-                ...
-            case CreateCacheResponse.CacheAlreadyExists():
-                ...
-            case CreateCacheResponse.Error():
-                ...
-            case _:
-                # Shouldn't happen
-        ```
-        or equivalently in earlier versions of python:
-        ```
-        if isinstance(response, CreateCacheResponse.Success):
-            ...
-        elif isinstance(response, CreateCacheResponse.AlreadyExists):
-            ...
-        elif isinstance(response, CreateCacheResponse.Error):
-            ...
-        else:
-            # Shouldn't happen
-        ```
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CreateCacheResponse.Success():
+                        ...
+                    case CreateCacheResponse.CacheAlreadyExists():
+                        ...
+                    case CreateCacheResponse.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CreateCacheResponse.Success):
+                    ...
+                elif isinstance(response, CreateCacheResponse.AlreadyExists):
+                    ...
+                elif isinstance(response, CreateCacheResponse.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return await self._control_client.create_cache(cache_name)
 
@@ -146,26 +145,25 @@ class SimpleCacheClientAsync:
             - `DeleteCacheResponse.Success`
             - `DeleteCacheResponse.Error`
 
-        Pattern matching can be used to operate on the appropriate subtype.
-        For example, in python 3.10+:
-        ```
-        match response:
-            case DeleteCacheResponse.Success():
-                ...
-            case DeleteCacheResponse.Error():
-                ...
-            case _:
-                # Shouldn't happen
-        ```
-        or equivalently in earlier versions of python:
-        ```
-        if isinstance(response, DeleteCacheResponse.Success):
-            ...
-        elif isinstance(response, DeleteCacheResponse.Error):
-            ...
-        else:
-            # Shouldn't happen
-        ```
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case DeleteCacheResponse.Success():
+                        ...
+                    case DeleteCacheResponse.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, DeleteCacheResponse.Success):
+                    ...
+                elif isinstance(response, DeleteCacheResponse.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return await self._control_client.delete_cache(cache_name)
 
@@ -182,26 +180,25 @@ class SimpleCacheClientAsync:
             - `ListCachesResponse.Success`
             - `ListCachesResponse.Error`
 
-        Pattern matching can be used to operate on the appropriate subtype.
-        For example, in python 3.10+:
-        ```
-        match response:
-            case ListCachesResponse.Success():
-                ...
-            case ListCachesResponse.Error():
-                ...
-            case _:
-                # Shouldn't happen
-        ```
-        or equivalently in earlier versions of python:
-        ```
-        if isinstance(response, ListCachesResponse.Success):
-            ...
-        elif isinstance(response, ListCachesResponse.Error):
-            ...
-        else:
-            # Shouldn't happen
-        ```
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case ListCachesResponse.Success():
+                        ...
+                    case ListCachesResponse.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, ListCachesResponse.Success):
+                    ...
+                elif isinstance(response, ListCachesResponse.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return await self._control_client.list_caches(next_token)
 
@@ -271,26 +268,25 @@ class SimpleCacheClientAsync:
             - `CacheSetResponse.Success`
             - `CacheSetResponse.Error`
 
-        Pattern matching can be used to operate on the appropriate subtype.
-        For example, in python 3.10+:
-        ```
-        match response:
-            case CacheSetResponse.Success():
-                ...
-            case CacheSetResponse.Error():
-                ...
-            case _:
-                # Shouldn't happen
-        ```
-        or equivalently in earlier versions of python:
-        ```
-        if isinstance(response, CacheSetResponse.Success):
-            ...
-        elif isinstance(response, CacheSetResponse.Error):
-            ...
-        else:
-            # Shouldn't happen
-        ```
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CacheSetResponse.Success():
+                        ...
+                    case CacheSetResponse.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CacheSetResponse.Success):
+                    ...
+                elif isinstance(response, CacheSetResponse.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return await self._get_next_client().set(cache_name, key, value, ttl)
 
@@ -309,28 +305,27 @@ class SimpleCacheClientAsync:
             - `CacheGetResponse.Miss`
             - `CacheGetResponse.Error`
 
-        Pattern matching can be used to operate on the appropriate subtype.
-        For example, in python 3.10+:
-        ```
-        match response:
-            case CacheGetResponse.Hit() as hit:
-                return hit.value_string
-            case CacheGetResponse.Miss():
-                ... # Handle miss
-            case CacheGetResponse.Error():
-                ...
-        ```
-        or equivalently in earlier versions of python:
-        ```
-        if isinstance(response, CacheGetResponse.Hit):
-            ...
-        elif isinstance(response, CacheGetResponse.Miss):
-            ...
-        elif isinstance(response, CacheGetResponse.Error):
-            ...
-        else:
-            # Shouldn't happen
-        ```
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CacheGetResponse.Hit() as hit:
+                        return hit.value_string
+                    case CacheGetResponse.Miss():
+                        ... # Handle miss
+                    case CacheGetResponse.Error():
+                        ...
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CacheGetResponse.Hit):
+                    ...
+                elif isinstance(response, CacheGetResponse.Miss):
+                    ...
+                elif isinstance(response, CacheGetResponse.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return await self._get_next_client().get(cache_name, key)
 
@@ -348,26 +343,25 @@ class SimpleCacheClientAsync:
             - `CacheDeleteResponse.Success`
             - `CacheDeleteResponse.Error`
 
-        Pattern matching can be used to operate on the appropriate subtype.
-        For example, in python 3.10+:
-        ```
-        match response:
-            case CacheDeleteResponse.Success():
-                ...
-            case CacheDeleteResponse.Error():
-                ...
-            case _:
-                # Shouldn't happen
-        ```
-        or equivalently in earlier versions of python:
-        ```
-        if isinstance(response, CacheDeleteResponse.Success):
-            ...
-        elif isinstance(response, CacheDeleteResponse.Error):
-            ...
-        else:
-            # Shouldn't happen
-        ```
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CacheDeleteResponse.Success():
+                        ...
+                    case CacheDeleteResponse.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CacheDeleteResponse.Success):
+                    ...
+                elif isinstance(response, CacheDeleteResponse.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return await self._get_next_client().delete(cache_name, key)
 

@@ -10,27 +10,27 @@ class CacheDeleteResponseBase(ABC):
     """Parent response type for a create set request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
+
     - `CacheDeleteResponse.Success`
     - `CacheDeleteResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
-    ```
-    match response:
-        case CacheDeleteResponse.Success():
-            ...
-        case CacheDeleteResponse.Error():
-            ...
-    ```
+
+        match response:
+            case CacheDeleteResponse.Success():
+                ...
+            case CacheDeleteResponse.Error():
+                ...
+
     or equivalently in earlier versions of python:
-    ```
-    if isinstance(response, CacheDeleteResponse.Success):
-        ...
-    elif isinstance(response, CacheDeleteResponse.Error):
-        ...
-    else:
-        # Shouldn't happen
-    ```
+
+        if isinstance(response, CacheDeleteResponse.Success):
+            ...
+        elif isinstance(response, CacheDeleteResponse.Error):
+            ...
+        else:
+            # Shouldn't happen
     """
 
 

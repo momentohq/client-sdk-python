@@ -13,29 +13,29 @@ class ListCachesResponseBase(ABC):
     """Parent response type for a list caches request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
+
     - `ListCachesResponse.Success`
     - `ListCachesResponse.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
-    ```
-    match response:
-        case ListCachesResponse.Success():
-            ...
-        case ListCachesResponse.Error():
-            ...
-        case _:
-            # Shouldn't happen
-    ```
+
+        match response:
+            case ListCachesResponse.Success():
+                ...
+            case ListCachesResponse.Error():
+                ...
+            case _:
+                # Shouldn't happen
+
     or equivalently in earlier versions of python:
-    ```
-    if isinstance(response, ListCachesResponse.Success):
-        ...
-    elif isinstance(response, ListCachesResponse.Error):
-        ...
-    else:
-        # Shouldn't happen
-    ```
+
+        if isinstance(response, ListCachesResponse.Success):
+            ...
+        elif isinstance(response, ListCachesResponse.Error):
+            ...
+        else:
+            # Shouldn't happen
     """
 
 
