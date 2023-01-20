@@ -1,13 +1,13 @@
 import asyncio
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
 from example_utils.example_logging import initialize_logging
 
 from momento import SimpleCacheClientAsync
 from momento.auth.credential_provider import EnvMomentoTokenProvider
 from momento.config.configurations import Laptop
-from momento.responses import CreateCache, ListCaches, CacheSet, CacheGet
+from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
 _AUTH_PROVIDER = EnvMomentoTokenProvider("MOMENTO_AUTH_TOKEN")
 _CACHE_NAME = "cache"
