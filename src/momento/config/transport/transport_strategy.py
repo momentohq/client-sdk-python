@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import timedelta
 
-from momento._utilities._data_validation import _validate_request_timeout
+from momento.internal._utilities import _validate_request_timeout
 
 from .grpc_configuration import GrpcConfiguration
 

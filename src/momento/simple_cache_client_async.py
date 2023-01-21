@@ -7,7 +7,7 @@ from momento.auth.credential_provider import CredentialProvider
 from momento.config.configuration import Configuration
 
 try:
-    from momento._utilities._data_validation import _validate_request_timeout
+    from momento.internal._utilities import _validate_request_timeout
     from momento.internal.aio._scs_control_client import _ScsControlClient
     from momento.internal.aio._scs_data_client import _ScsDataClient
 except ImportError as e:
