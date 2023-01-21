@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from momento.config.configuration import Configuration
+from momento.config import Configuration
 
 
 def test_configuration_client_timeout_copy_constructor(configuration: Configuration) -> None:

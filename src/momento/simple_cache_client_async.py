@@ -4,7 +4,7 @@ from typing import Optional, Type, Union
 
 from momento import logs
 from momento.auth.credential_provider import CredentialProvider
-from momento.config.configuration import Configuration
+from momento.config import Configuration
 
 try:
     from momento.internal._utilities import _validate_request_timeout

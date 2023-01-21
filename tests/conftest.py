@@ -8,8 +8,7 @@ import pytest_asyncio
 
 from momento import SimpleCacheClient, SimpleCacheClientAsync
 from momento.auth.credential_provider import EnvMomentoTokenProvider
-from momento.config.configuration import Configuration
-from momento.config.configurations import Laptop
+from momento.config import Configuration, Laptop
 
 #######################
 # Integration test data

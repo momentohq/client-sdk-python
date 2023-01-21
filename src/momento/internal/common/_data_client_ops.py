@@ -13,7 +13,7 @@ from momento_wire_types.cacheclient_pb2 import (
 )
 
 from momento import logs
-from momento.config.configuration import Configuration
+from momento.config import Configuration
 from momento.errors import SdkException, convert_error
 from momento.internal._utilities import _as_bytes, _validate_cache_name, _validate_ttl
 from momento.responses import (

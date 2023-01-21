@@ -5,7 +5,7 @@ import pytest
 
 from momento import SimpleCacheClientAsync
 from momento.auth.credential_provider import CredentialProvider, EnvMomentoTokenProvider
-from momento.config.configuration import Configuration
+from momento.config import Configuration
 from momento.errors import InvalidArgumentException
 
 
