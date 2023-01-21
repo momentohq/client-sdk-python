@@ -32,13 +32,13 @@ except ImportError as e:
     raise e
 
 from momento.responses import (
-    CacheDeleteResponseBase,
-    CacheGetResponseBase,
-    CacheSetResponseBase,
-    CreateCacheResponseBase,
+    CacheDeleteResponse,
+    CacheGetResponse,
+    CacheSetResponse,
+    CreateCacheResponse,
     CreateSigningKeyResponse,
-    DeleteCacheResponseBase,
-    ListCachesResponseBase,
+    DeleteCacheResponse,
+    ListCachesResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
@@ -92,110 +92,110 @@ class SimpleCacheClientAsync:
         for data_client in self._data_clients:
             await data_client.close()
 
-    async def create_cache(self, cache_name: str) -> CreateCacheResponseBase:
+    async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a cache if it doesn't exist.
 
         Args:
             cache_name (str): Name of the cache to be created.
 
         Returns:
-            CreateCacheResponseBase: result of the create cache operation. This result
+            CreateCacheResponse: result of the create cache operation. This result
             is resolved to a type-safe object of one of the following subtypes:
 
-            - `CreateCacheResponse.Success`
-            - `CreateCacheResponse.AlreadyExists`
-            - `CreateCacheResponse.Error`
+            - `CreateCache.Success`
+            - `CreateCache.AlreadyExists`
+            - `CreateCache.Error`
 
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+:
 
                 match response:
-                    case CreateCacheResponse.Success():
+                    case CreateCache.Success():
                         ...
-                    case CreateCacheResponse.CacheAlreadyExists():
+                    case CreateCache.CacheAlreadyExists():
                         ...
-                    case CreateCacheResponse.Error():
+                    case CreateCache.Error():
                         ...
                     case _:
                         # Shouldn't happen
 
             or equivalently in earlier versions of python:
 
-                if isinstance(response, CreateCacheResponse.Success):
+                if isinstance(response, CreateCache.Success):
                     ...
-                elif isinstance(response, CreateCacheResponse.AlreadyExists):
+                elif isinstance(response, CreateCache.AlreadyExists):
                     ...
-                elif isinstance(response, CreateCacheResponse.Error):
+                elif isinstance(response, CreateCache.Error):
                     ...
                 else:
                     # Shouldn't happen
         """
         return await self._control_client.create_cache(cache_name)
 
-    async def delete_cache(self, cache_name: str) -> DeleteCacheResponseBase:
+    async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
 
         Args:
             cache_name (str): Name of the cache to be deleted.
 
         Returns:
-            DeleteCacheResponseBase: result of the delete cache operation. This result
+            DeleteCacheResponse: result of the delete cache operation. This result
             is resolved to a type-safe object of one of the following subtypes:
 
-            - `DeleteCacheResponse.Success`
-            - `DeleteCacheResponse.Error`
+            - `DeleteCache.Success`
+            - `DeleteCache.Error`
 
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+:
 
                 match response:
-                    case DeleteCacheResponse.Success():
+                    case DeleteCache.Success():
                         ...
-                    case DeleteCacheResponse.Error():
+                    case DeleteCache.Error():
                         ...
                     case _:
                         # Shouldn't happen
 
             or equivalently in earlier versions of python:
 
-                if isinstance(response, DeleteCacheResponse.Success):
+                if isinstance(response, DeleteCache.Success):
                     ...
-                elif isinstance(response, DeleteCacheResponse.Error):
+                elif isinstance(response, DeleteCache.Error):
                     ...
                 else:
                     # Shouldn't happen
         """
         return await self._control_client.delete_cache(cache_name)
 
-    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponseBase:
+    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         """Lists all caches.
 
         Args:
             next_token: A token to specify where to start paginating. This is the NextToken from a previous response.
 
         Returns:
-            ListCachesResponseBase: result of the delete cache operation. This result
+            ListCachesResponse: result of the delete cache operation. This result
             is resolved to a type-safe object of one of the following subtypes:
 
-            - `ListCachesResponse.Success`
-            - `ListCachesResponse.Error`
+            - `ListCaches.Success`
+            - `ListCaches.Error`
 
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+:
 
                 match response:
-                    case ListCachesResponse.Success():
+                    case ListCaches.Success():
                         ...
-                    case ListCachesResponse.Error():
+                    case ListCaches.Error():
                         ...
                     case _:
                         # Shouldn't happen
 
             or equivalently in earlier versions of python:
 
-                if isinstance(response, ListCachesResponse.Success):
+                if isinstance(response, ListCaches.Success):
                     ...
-                elif isinstance(response, ListCachesResponse.Error):
+                elif isinstance(response, ListCaches.Error):
                     ...
                 else:
                     # Shouldn't happen
@@ -250,7 +250,7 @@ class SimpleCacheClientAsync:
         key: Union[str, bytes],
         value: Union[str, bytes],
         ttl: Optional[timedelta] = None,
-    ) -> CacheSetResponseBase:
+    ) -> CacheSetResponse:
         """Set the value in cache with a given time to live (TTL) seconds.
 
         Args:
@@ -262,35 +262,35 @@ class SimpleCacheClientAsync:
             Defaults to client TTL. If specified must be strictly positive.
 
         Returns:
-            CacheSetResponseBase: result of the set operation. This result
+            CacheSetResponse: result of the set operation. This result
             is resolved to a type-safe object of one of the following subtypes:
 
-            - `CacheSetResponse.Success`
-            - `CacheSetResponse.Error`
+            - `CacheSet.Success`
+            - `CacheSet.Error`
 
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+:
 
                 match response:
-                    case CacheSetResponse.Success():
+                    case CacheSet.Success():
                         ...
-                    case CacheSetResponse.Error():
+                    case CacheSet.Error():
                         ...
                     case _:
                         # Shouldn't happen
 
             or equivalently in earlier versions of python:
 
-                if isinstance(response, CacheSetResponse.Success):
+                if isinstance(response, CacheSet.Success):
                     ...
-                elif isinstance(response, CacheSetResponse.Error):
+                elif isinstance(response, CacheSet.Error):
                     ...
                 else:
                     # Shouldn't happen
         """
         return await self._get_next_client().set(cache_name, key, value, ttl)
 
-    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponseBase:
+    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
         """Get the cache value stored for the given key.
 
         Args:
@@ -298,38 +298,38 @@ class SimpleCacheClientAsync:
             key (Union[str, bytes]): The key to lookup.
 
         Returns:
-            CacheGetResponseBase: the status of the get operation and the associated value. This result
+            CacheGetResponse: the status of the get operation and the associated value. This result
             is resolved to a type-safe object of one of the following subtypes:
 
-            - `CacheGetResponse.Hit`
-            - `CacheGetResponse.Miss`
-            - `CacheGetResponse.Error`
+            - `CacheGet.Hit`
+            - `CacheGet.Miss`
+            - `CacheGet.Error`
 
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+:
 
                 match response:
-                    case CacheGetResponse.Hit() as hit:
+                    case CacheGet.Hit() as hit:
                         return hit.value_string
-                    case CacheGetResponse.Miss():
+                    case CacheGet.Miss():
                         ... # Handle miss
-                    case CacheGetResponse.Error():
+                    case CacheGet.Error():
                         ...
 
             or equivalently in earlier versions of python:
 
-                if isinstance(response, CacheGetResponse.Hit):
+                if isinstance(response, CacheGet.Hit):
                     ...
-                elif isinstance(response, CacheGetResponse.Miss):
+                elif isinstance(response, CacheGet.Miss):
                     ...
-                elif isinstance(response, CacheGetResponse.Error):
+                elif isinstance(response, CacheGet.Error):
                     ...
                 else:
                     # Shouldn't happen
         """
         return await self._get_next_client().get(cache_name, key)
 
-    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponseBase:
+    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
         """Remove the key from the cache.
 
         Args:
@@ -337,28 +337,28 @@ class SimpleCacheClientAsync:
             key (Union[str, bytes]): The key to delete.
 
         Returns:
-            CacheDeleteResponseBase: result of the delete operation. This result
+            CacheDeleteResponse: result of the delete operation. This result
             is resolved to a type-safe object of one of the following subtypes:
 
-            - `CacheDeleteResponse.Success`
-            - `CacheDeleteResponse.Error`
+            - `CacheDelete.Success`
+            - `CacheDelete.Error`
 
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+:
 
                 match response:
-                    case CacheDeleteResponse.Success():
+                    case CacheDelete.Success():
                         ...
-                    case CacheDeleteResponse.Error():
+                    case CacheDelete.Error():
                         ...
                     case _:
                         # Shouldn't happen
 
             or equivalently in earlier versions of python:
 
-                if isinstance(response, CacheDeleteResponse.Success):
+                if isinstance(response, CacheDelete.Success):
                     ...
-                elif isinstance(response, CacheDeleteResponse.Error):
+                elif isinstance(response, CacheDelete.Error):
                     ...
                 else:
                     # Shouldn't happen

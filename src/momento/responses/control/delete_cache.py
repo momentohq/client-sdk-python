@@ -6,45 +6,45 @@ from momento.errors import SdkException
 from ..mixins import ErrorResponseMixin
 
 
-class DeleteCacheResponseBase(ABC):
+class DeleteCacheResponse(ABC):
     """Parent response type for a delete cache request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
 
-    - `DeleteCacheResponse.Success`
-    - `DeleteCacheResponse.Error`
+    - `DeleteCache.Success`
+    - `DeleteCache.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
 
         match response:
-            case DeleteCacheResponse.Success():
+            case DeleteCache.Success():
                 ...
-            case DeleteCacheResponse.Error():
+            case DeleteCache.Error():
                 ...
             case _:
                 # Shouldn't happen
 
     or equivalently in earlier versions of python:
 
-        if isinstance(response, DeleteCacheResponse.Success):
+        if isinstance(response, DeleteCache.Success):
             ...
-        elif isinstance(response, DeleteCacheResponse.Error):
+        elif isinstance(response, DeleteCache.Error):
             ...
         else:
             # Shouldn't happen
     """
 
 
-class DeleteCacheResponse(ABC):
-    """Groups all `DeleteCacheResponseBase` derived types under a common namespace."""
+class DeleteCache(ABC):
+    """Groups all `DeleteCacheResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(DeleteCacheResponseBase):
+    class Success(DeleteCacheResponse):
         """Indicates the request was successful."""
 
     @dataclass
-    class Error(DeleteCacheResponseBase, ErrorResponseMixin):
+    class Error(DeleteCacheResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.

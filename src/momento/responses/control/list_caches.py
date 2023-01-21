@@ -9,30 +9,30 @@ from momento.errors import SdkException
 from ..mixins import ErrorResponseMixin
 
 
-class ListCachesResponseBase(ABC):
+class ListCachesResponse(ABC):
     """Parent response type for a list caches request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
 
-    - `ListCachesResponse.Success`
-    - `ListCachesResponse.Error`
+    - `ListCaches.Success`
+    - `ListCaches.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+:
 
         match response:
-            case ListCachesResponse.Success():
+            case ListCaches.Success():
                 ...
-            case ListCachesResponse.Error():
+            case ListCaches.Error():
                 ...
             case _:
                 # Shouldn't happen
 
     or equivalently in earlier versions of python:
 
-        if isinstance(response, ListCachesResponse.Success):
+        if isinstance(response, ListCaches.Success):
             ...
-        elif isinstance(response, ListCachesResponse.Error):
+        elif isinstance(response, ListCaches.Error):
             ...
         else:
             # Shouldn't happen
@@ -47,11 +47,11 @@ class CacheInfo:
     """Holds the name of the cache."""
 
 
-class ListCachesResponse(ABC):
-    """Groups all `ListCachesResponseBase` derived types under a common namespace."""
+class ListCaches(ABC):
+    """Groups all `ListCachesResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(ListCachesResponseBase):
+    class Success(ListCachesResponse):
         """Indicates the request was successful."""
 
         caches: List[CacheInfo]
@@ -60,7 +60,7 @@ class ListCachesResponse(ABC):
         """A token to specify where to start paging. This is the `NextToken` from a previous response."""
 
         @staticmethod
-        def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> "ListCachesResponse.Success":  # type: ignore[misc] # noqa: E501
+        def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> "ListCaches.Success":  # type: ignore[misc] # noqa: E501
             """Initializes ListCacheResponse to handle list cache response.
 
             Args:
@@ -72,10 +72,10 @@ class ListCachesResponse(ABC):
                 else None
             )
             caches = [CacheInfo(cache.cache_name) for cache in grpc_list_cache_response.cache]  # type: ignore[misc]
-            return ListCachesResponse.Success(caches=caches, next_token=next_token)
+            return ListCaches.Success(caches=caches, next_token=next_token)
 
     @dataclass
-    class Error(ListCachesResponseBase, ErrorResponseMixin):
+    class Error(ListCachesResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.

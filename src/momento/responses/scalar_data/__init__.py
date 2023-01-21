@@ -1,3 +1,3 @@
-from .delete import CacheDeleteResponse, CacheDeleteResponseBase
-from .get import CacheGetResponse, CacheGetResponseBase
-from .set import CacheSetResponse, CacheSetResponseBase
+from .delete import CacheDelete, CacheDeleteResponse
+from .get import CacheGet, CacheGetResponse
+from .set import CacheSet, CacheSetResponse

@@ -21,12 +21,12 @@ from momento._utilities._data_validation import (
 from momento.config.configuration import Configuration
 from momento.errors import SdkException, convert_error
 from momento.responses import (
+    CacheDelete,
     CacheDeleteResponse,
-    CacheDeleteResponseBase,
+    CacheGet,
     CacheGetResponse,
-    CacheGetResponseBase,
+    CacheSet,
     CacheSetResponse,
-    CacheSetResponseBase,
 )
 
 TResponse = TypeVar("TResponse")
@@ -94,9 +94,9 @@ def prepare_set_request(
     return set_request
 
 
-def construct_set_response(req: _SetRequest, resp: _SetResponse) -> CacheSetResponseBase:
+def construct_set_response(req: _SetRequest, resp: _SetResponse) -> CacheSetResponse:
     _logger.log(logs.TRACE, "Set succeeded for key: %s", str(req.cache_key))
-    return CacheSetResponse.Success()
+    return CacheSet.Success()
 
 
 def prepare_get_request(key: Union[str, bytes]) -> _GetRequest:
@@ -106,11 +106,11 @@ def prepare_get_request(key: Union[str, bytes]) -> _GetRequest:
     return get_request
 
 
-def construct_get_response(req: _GetRequest, resp: _GetResponse) -> CacheGetResponseBase:
+def construct_get_response(req: _GetRequest, resp: _GetResponse) -> CacheGetResponse:
     _logger.log(logs.TRACE, "Received a get response for %s", str(req.cache_key))
     if resp.result == Miss:
-        return CacheGetResponse.Miss()
-    return CacheGetResponse.Hit(resp.cache_body)
+        return CacheGet.Miss()
+    return CacheGet.Hit(resp.cache_body)
 
 
 def prepare_delete_request(key: Union[str, bytes]) -> _DeleteRequest:
@@ -120,9 +120,9 @@ def prepare_delete_request(key: Union[str, bytes]) -> _DeleteRequest:
     return delete_request
 
 
-def construct_delete_response(req: _DeleteRequest, resp: _DeleteResponse) -> CacheDeleteResponseBase:
+def construct_delete_response(req: _DeleteRequest, resp: _DeleteResponse) -> CacheDeleteResponse:
     _logger.log(logs.TRACE, "Received a delete response for %s", str(req.cache_key))
-    return CacheDeleteResponse.Success()
+    return CacheDelete.Success()
 
 
 def get_default_client_deadline(configuration: Configuration) -> timedelta:
