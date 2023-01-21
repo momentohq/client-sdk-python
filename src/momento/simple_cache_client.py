@@ -3,7 +3,7 @@ from types import TracebackType
 from typing import Optional, Type, Union
 
 from momento import logs
-from momento.auth.credential_provider import CredentialProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
 
 try:

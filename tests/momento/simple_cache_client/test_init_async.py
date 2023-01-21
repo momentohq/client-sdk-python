@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 
 from momento import SimpleCacheClientAsync
-from momento.auth.credential_provider import CredentialProvider, EnvMomentoTokenProvider
+from momento.auth import CredentialProvider, EnvMomentoTokenProvider
 from momento.config import Configuration
 from momento.errors import InvalidArgumentException
 

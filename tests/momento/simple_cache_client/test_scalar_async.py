@@ -2,7 +2,7 @@ import time
 from datetime import timedelta
 
 from momento import SimpleCacheClientAsync
-from momento.auth.credential_provider import EnvMomentoTokenProvider
+from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet

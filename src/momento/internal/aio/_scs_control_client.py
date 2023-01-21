@@ -13,7 +13,7 @@ from momento_wire_types.controlclient_pb2 import (
 from momento_wire_types.controlclient_pb2_grpc import ScsControlStub
 
 from momento import logs
-from momento.auth.credential_provider import CredentialProvider
+from momento.auth import CredentialProvider
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_cache_name, _validate_ttl
 from momento.internal.aio._scs_grpc_manager import _ControlGrpcManager
