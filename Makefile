@@ -31,7 +31,9 @@ gen-sync:
 	@poetry run python -m momento.internal.codegen src/momento/internal/aio/_scs_data_client.py src/momento/internal/synchronous/_scs_data_client.py
 # We comment out the below as the generation is imperfect, though still useful as a guide.
 #	@poetry run python -m momento.internal.codegen src/momento/simple_cache_client_async.py src/momento/simple_cache_client.py
-	@poetry run python -m momento.internal.codegen tests/test_momento_async.py tests/test_momento.py
+	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_init_async.py tests/momento/simple_cache_client/test_init.py
+	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_control_async.py tests/momento/simple_cache_client/test_control.py
+	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_scalar_async.py tests/momento/simple_cache_client/test_scalar.py
 
 .PHONY: test
 ## Run unit and integration tests with pytest
