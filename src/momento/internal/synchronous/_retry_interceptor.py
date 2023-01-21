@@ -96,4 +96,4 @@ class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
                 MAX_ATTEMPTS,
             )
 
-        raise momento.errors.ClientSdkError("Failed to return from RetryInterceptor!  This is a bug.")
+        raise momento.errors.UnknownException("Failed to return from RetryInterceptor!  This is a bug.")

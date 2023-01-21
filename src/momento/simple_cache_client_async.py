@@ -8,8 +8,8 @@ from momento.config.configuration import Configuration
 
 try:
     from momento._utilities._data_validation import _validate_request_timeout
-    from momento.internal.synchronous._scs_control_client import _ScsControlClient
-    from momento.internal.synchronous._scs_data_client import _ScsDataClient
+    from momento.internal.aio._scs_control_client import _ScsControlClient
+    from momento.internal.aio._scs_data_client import _ScsDataClient
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -44,16 +44,23 @@ from momento.responses import (
 )
 
 
-class SimpleCacheClient:
-    """Synchronous Simple Cache Client"""
+class SimpleCacheClientAsync:
+    """Async Simple Cache Client"""
 
-    def __init__(
-        self,
-        configuration: Configuration,
-        credential_provider: CredentialProvider,
-        default_ttl: timedelta,
-    ):
-        """Creates a synchronous SimpleCacheClient
+    # For high load, we might get better performance with multiple clients, because the server is
+    # configured to allow a max of 100 streams per connection.  In the javascript SDK, multiple
+    # clients resulted in an obvious performance improvement.  However, in the python SDK I have
+    # not yet been able to observe a clear benefit.  So for now, we are putting the plumbing in
+    # place so that we can more easily test performance with multiple connections in the future,
+    # but we are leaving the default value set to 1.
+    #
+    # We are hard-coding the value for now, because we haven't yet designed the API for
+    # users to use to configure tunables:
+    # https://github.com/momentohq/dev-eco-issue-tracker/issues/85
+    _NUM_CLIENTS = 1
+
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
+        """Creates an async SimpleCacheClient
 
         Args:
             configuration (Configuration): An object holding configuration settings for communication with the server.
@@ -63,29 +70,29 @@ class SimpleCacheClient:
         Raises:
             IllegalArgumentException: If method arguments fail validations.
         """
-        self._logger = logs.logger
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
-        self._configuration = configuration
+        self._logger = logs.logger
+        self._next_client_index = 0
         self._control_client = _ScsControlClient(credential_provider)
-        self._data_client = _ScsDataClient(
-            configuration,
-            credential_provider,
-            default_ttl,
-        )
+        self._data_clients = [
+            _ScsDataClient(configuration, credential_provider, default_ttl)
+            for _ in range(SimpleCacheClientAsync._NUM_CLIENTS)
+        ]
 
-    def __enter__(self) -> "SimpleCacheClient":
+    async def __aenter__(self) -> "SimpleCacheClientAsync":
         return self
 
-    def __exit__(
+    async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        self._control_client.close()
-        self._data_client.close()
+        await self._control_client.close()
+        for data_client in self._data_clients:
+            await data_client.close()
 
-    def create_cache(self, cache_name: str) -> CreateCacheResponse:
+    async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a cache if it doesn't exist.
 
         Args:
@@ -123,9 +130,9 @@ class SimpleCacheClient:
                 else:
                     # Shouldn't happen
         """
-        return self._control_client.create_cache(cache_name)
+        return await self._control_client.create_cache(cache_name)
 
-    def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
+    async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
 
         Args:
@@ -158,9 +165,9 @@ class SimpleCacheClient:
                 else:
                     # Shouldn't happen
         """
-        return self._control_client.delete_cache(cache_name)
+        return await self._control_client.delete_cache(cache_name)
 
-    def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
+    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         """Lists all caches.
 
         Args:
@@ -193,9 +200,9 @@ class SimpleCacheClient:
                 else:
                     # Shouldn't happen
         """
-        return self._control_client.list_caches(next_token)
+        return await self._control_client.list_caches(next_token)
 
-    def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
+    async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
         """Creates a Momento signing key
 
         Args:
@@ -207,9 +214,9 @@ class SimpleCacheClient:
         Raises:
             SdkException: validation, server-side, or other runtime error
         """
-        return self._control_client.create_signing_key(ttl, self._data_client.endpoint)
+        return await self._control_client.create_signing_key(ttl, self._get_next_client().endpoint)
 
-    def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+    async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         """Revokes a Momento signing key, all tokens signed by which will be invalid
 
         Args:
@@ -221,9 +228,9 @@ class SimpleCacheClient:
         Raises:
             SdkException: validation, server-side, or other runtime error
         """
-        return self._control_client.revoke_signing_key(key_id)
+        return await self._control_client.revoke_signing_key(key_id)
 
-    def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+    async def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
 
         Args:
@@ -235,9 +242,9 @@ class SimpleCacheClient:
         Raises:
             SdkException: validation, server-side, or other runtime error
         """
-        return self._control_client.list_signing_keys(self._data_client.endpoint, next_token)
+        return await self._control_client.list_signing_keys(self._get_next_client().endpoint, next_token)
 
-    def set(
+    async def set(
         self,
         cache_name: str,
         key: Union[str, bytes],
@@ -281,9 +288,9 @@ class SimpleCacheClient:
                 else:
                     # Shouldn't happen
         """
-        return self._data_client.set(cache_name, key, value, ttl)
+        return await self._get_next_client().set(cache_name, key, value, ttl)
 
-    def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
+    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
         """Get the cache value stored for the given key.
 
         Args:
@@ -320,9 +327,9 @@ class SimpleCacheClient:
                 else:
                     # Shouldn't happen
         """
-        return self._data_client.get(cache_name, key)
+        return await self._get_next_client().get(cache_name, key)
 
-    def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
+    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
         """Remove the key from the cache.
 
         Args:
@@ -356,4 +363,9 @@ class SimpleCacheClient:
                 else:
                     # Shouldn't happen
         """
-        return self._data_client.delete(cache_name, key)
+        return await self._get_next_client().delete(cache_name, key)
+
+    def _get_next_client(self) -> _ScsDataClient:
+        client = self._data_clients[self._next_client_index]
+        self._next_client_index = (self._next_client_index + 1) % len(self._data_clients)
+        return client

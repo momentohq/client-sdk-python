@@ -24,10 +24,14 @@ lint:
 	@poetry run mypy src
 	@poetry run flake8 src
 
-.PHONY: gen-test
-## Generate synchronous test scripts from async test scripts. 
-gen-test:
-	@bash tests/scripts/sync_from_async.sh
+.PHONY: gen-sync
+## Generate synchronous code and tests from asynchronous code.
+gen-sync:
+	@poetry run python -m momento.internal.codegen src/momento/internal/aio/_scs_control_client.py src/momento/internal/synchronous/_scs_control_client.py
+	@poetry run python -m momento.internal.codegen src/momento/internal/aio/_scs_data_client.py src/momento/internal/synchronous/_scs_data_client.py
+# We comment out the below as the generation is imperfect, though still useful as a guide.
+#	@poetry run python -m momento.internal.codegen src/momento/simple_cache_client_async.py src/momento/simple_cache_client.py
+	@poetry run python -m momento.internal.codegen tests/test_momento_async.py tests/test_momento.py
 
 .PHONY: test
 ## Run unit and integration tests with pytest
@@ -36,7 +40,7 @@ test:
 
 .PHONY: precommit
 ## Run format, lint, and test as a step before committing.
-precommit: gen-test format lint test
+precommit: gen-sync format lint test
 	@echo.
 
 .PHONY: clean

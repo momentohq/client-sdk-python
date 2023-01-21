@@ -6,12 +6,10 @@ from typing import Optional, cast
 import pytest
 import pytest_asyncio
 
-import momento.errors as errors
-from momento.aio.simple_cache_client import SimpleCacheClient as SimpleCacheClientAsync
+from momento import SimpleCacheClient, SimpleCacheClientAsync
 from momento.auth.credential_provider import EnvMomentoTokenProvider
 from momento.config.configuration import Configuration
 from momento.config.configurations import Laptop
-from momento.simple_cache_client import SimpleCacheClient
 
 #######################
 # Integration test data
@@ -66,7 +64,7 @@ def bad_auth_token() -> str:
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> asyncio.AbstractEventLoop:
+def event_loop() -> asyncio.AbstractEventLoop:  # type: ignore
     """cf https://github.com/pytest-dev/pytest-asyncio#event_loop"""
     policy = asyncio.get_event_loop_policy()
     loop = policy.new_event_loop()
@@ -80,11 +78,7 @@ def client() -> SimpleCacheClient:
     credential_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
     with SimpleCacheClient(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
-        try:
-            _client.create_cache(TEST_CACHE_NAME)
-        except errors.AlreadyExistsError:
-            pass
-
+        _client.create_cache(TEST_CACHE_NAME)
         yield _client
 
 
@@ -94,10 +88,6 @@ async def client_async() -> SimpleCacheClientAsync:
     credential_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
     async with SimpleCacheClientAsync(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
-        try:
-            # TODO consider deleting cache on when test runner shuts down
-            await _client.create_cache(TEST_CACHE_NAME)
-        except errors.AlreadyExistsError:
-            pass
-
+        # TODO consider deleting cache on when test runner shuts down
+        await _client.create_cache(TEST_CACHE_NAME)
         yield _client

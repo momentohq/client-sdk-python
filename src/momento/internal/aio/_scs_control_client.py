@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 
+import grpc
 from momento_wire_types.controlclient_pb2 import (
     _CreateCacheRequest,
     _CreateSigningKeyRequest,
@@ -9,19 +10,24 @@ from momento_wire_types.controlclient_pb2 import (
     _ListSigningKeysRequest,
     _RevokeSigningKeyRequest,
 )
+from momento_wire_types.controlclient_pb2_grpc import ScsControlStub
 
-from .. import _cache_service_errors_converter, logs
-from .._utilities._data_validation import _validate_cache_name, _validate_ttl
-from ..auth.credential_provider import CredentialProvider
-from ..cache_operation_types import (
+from momento import logs
+from momento._utilities._data_validation import _validate_cache_name, _validate_ttl
+from momento.auth.credential_provider import CredentialProvider
+from momento.errors import convert_error
+from momento.internal.aio._scs_grpc_manager import _ControlGrpcManager
+from momento.responses import (
+    CreateCache,
     CreateCacheResponse,
     CreateSigningKeyResponse,
+    DeleteCache,
     DeleteCacheResponse,
+    ListCaches,
     ListCachesResponse,
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from . import _scs_grpc_manager
 
 _DEADLINE_SECONDS = 60.0  # 1 minute
 
@@ -33,82 +39,87 @@ class _ScsControlClient:
         endpoint = credential_provider.get_control_endpoint()
         self._logger = logs.logger
         self._logger.debug("Simple cache control client instantiated with endpoint: %s", endpoint)
-        self._grpc_manager = _scs_grpc_manager._ControlGrpcManager(credential_provider)
+        self._grpc_manager = _ControlGrpcManager(credential_provider)
+        self._endpoint = endpoint
+
+    @property
+    def endpoint(self) -> str:
+        return self._endpoint
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponse:
-        _validate_cache_name(cache_name)
         try:
             self._logger.info(f"Creating cache with name: {cache_name}")
+            _validate_cache_name(cache_name)
             request = _CreateCacheRequest()
             request.cache_name = cache_name
-            await self._grpc_manager.async_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)
-            return CreateCacheResponse()
+            await self._build_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
-            raise _cache_service_errors_converter.convert(e) from None
+            if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
+                return CreateCache.CacheAlreadyExists()
+            return CreateCache.Error(convert_error(e))
+        return CreateCache.Success()
 
     async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
-        _validate_cache_name(cache_name)
         try:
             self._logger.info(f"Deleting cache with name: {cache_name}")
+            _validate_cache_name(cache_name)
             request = _DeleteCacheRequest()
             request.cache_name = cache_name
-            await self._grpc_manager.async_stub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
-            return DeleteCacheResponse()
+            await self._build_stub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
-            raise _cache_service_errors_converter.convert(e) from None
+            return DeleteCache.Error(convert_error(e))
+        return DeleteCache.Success()
 
     async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
         try:
             list_caches_request = _ListCachesRequest()
             list_caches_request.next_token = next_token if next_token is not None else ""
-            return ListCachesResponse.from_grpc_response(
-                await self._grpc_manager.async_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
-            )
+            response = await self._build_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
+            return ListCaches.Success.from_grpc_response(response)
         except Exception as e:
-            raise _cache_service_errors_converter.convert(e)
+            return ListCaches.Error(convert_error(e))
 
     async def create_signing_key(self, ttl: timedelta, endpoint: str) -> CreateSigningKeyResponse:
-        _validate_ttl(ttl)
         try:
+            _validate_ttl(ttl)
             ttl_minutes = round(ttl.total_seconds() / 60)
             self._logger.info(f"Creating signing key with ttl (in minutes): {ttl_minutes}")
             create_signing_key_request = _CreateSigningKeyRequest()
             create_signing_key_request.ttl_minutes = ttl_minutes
             return CreateSigningKeyResponse.from_grpc_response(
-                await self._grpc_manager.async_stub().CreateSigningKey(
-                    create_signing_key_request, timeout=_DEADLINE_SECONDS
-                ),
+                await self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS),
                 endpoint,
             )
         except Exception as e:
             self._logger.warning(f"Failed to create signing key with exception: {e}")
-            raise _cache_service_errors_converter.convert(e)
+            raise convert_error(e)
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         try:
             self._logger.info(f"Revoking signing key with key_id {key_id}")
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
-            await self._grpc_manager.async_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
+            await self._build_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
             return RevokeSigningKeyResponse()
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
-            raise _cache_service_errors_converter.convert(e)
+            raise convert_error(e)
 
     async def list_signing_keys(self, endpoint: str, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         try:
             list_signing_keys_request = _ListSigningKeysRequest()
             list_signing_keys_request.next_token = next_token if next_token is not None else ""
             return ListSigningKeysResponse.from_grpc_response(
-                await self._grpc_manager.async_stub().ListSigningKeys(
-                    list_signing_keys_request, timeout=_DEADLINE_SECONDS
-                ),
+                await self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS),
                 endpoint,
             )
         except Exception as e:
-            raise _cache_service_errors_converter.convert(e)
+            raise convert_error(e)
+
+    def _build_stub(self) -> ScsControlStub:
+        return self._grpc_manager.async_stub()
 
     async def close(self) -> None:
         await self._grpc_manager.close()

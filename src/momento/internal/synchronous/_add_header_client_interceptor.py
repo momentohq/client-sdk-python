@@ -3,7 +3,7 @@ from typing import Callable, List, TypeVar
 
 import grpc
 
-from momento.errors import InvalidArgumentError
+from momento.errors import InvalidArgumentException
 
 RequestType = TypeVar("RequestType")
 ResponseType = TypeVar("ResponseType")
@@ -90,7 +90,7 @@ def sanitize_client_call_details(client_call_details: grpc.ClientCallDetails) ->
         return client_call_details
     else:
         # Else we raise exception for now since we don't know how to handle an unknown type
-        raise InvalidArgumentError(
+        raise InvalidArgumentException(
             "unexpected grpc client request metadata property passed to interceptor "
             "type=" + str(type(client_call_details.metadata))
         )
