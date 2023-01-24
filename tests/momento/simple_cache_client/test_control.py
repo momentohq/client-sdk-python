@@ -2,8 +2,8 @@ from datetime import timedelta
 
 import momento.errors as errors
 from momento import SimpleCacheClient
-from momento.auth.credential_provider import EnvMomentoTokenProvider
-from momento.config.configuration import Configuration
+from momento.auth import EnvMomentoTokenProvider
+from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheGet, CacheSet, CreateCache, DeleteCache, ListCaches
 from tests.utils import unique_test_cache_name, uuid_str

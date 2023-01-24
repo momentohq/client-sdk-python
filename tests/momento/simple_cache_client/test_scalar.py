@@ -2,8 +2,8 @@ import time
 from datetime import timedelta
 
 from momento import SimpleCacheClient
-from momento.auth.credential_provider import EnvMomentoTokenProvider
-from momento.config.configuration import Configuration
+from momento.auth import EnvMomentoTokenProvider
+from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str

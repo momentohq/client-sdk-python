@@ -13,9 +13,9 @@ from momento_wire_types.cacheclient_pb2 import (
 from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 
 from momento import logs
-from momento._utilities._data_validation import _validate_ttl
-from momento.auth.credential_provider import CredentialProvider
-from momento.config.configuration import Configuration
+from momento.auth import CredentialProvider
+from momento.config import Configuration
+from momento.internal._utilities import _validate_ttl
 from momento.internal.common._data_client_ops import (
     construct_delete_response,
     construct_get_response,

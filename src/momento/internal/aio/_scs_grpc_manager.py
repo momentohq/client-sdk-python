@@ -5,7 +5,7 @@ import momento_wire_types.cacheclient_pb2_grpc as cache_client
 import momento_wire_types.controlclient_pb2_grpc as control_client
 import pkg_resources
 
-from momento.auth.credential_provider import CredentialProvider
+from momento.auth import CredentialProvider
 
 from ._add_header_client_interceptor import AddHeaderClientInterceptor, Header
 from ._retry_interceptor import get_retry_interceptor_if_enabled
