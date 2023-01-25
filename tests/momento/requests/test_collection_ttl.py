@@ -9,10 +9,10 @@ from momento.requests import CollectionTtl
 @pytest.mark.parametrize(
     "collection_ttl, expected_ttl, expected_refresh_ttl",
     [
-        (CollectionTtl(None, False), None, False),
-        (CollectionTtl(timedelta(days=1), False), timedelta(days=1), False),
+        (CollectionTtl(ttl=None, refresh_ttl=False), None, False),
+        (CollectionTtl(ttl=timedelta(days=1), refresh_ttl=False), timedelta(days=1), False),
         (CollectionTtl.from_cache_ttl(), None, True),
-        (CollectionTtl.of(timedelta(days=1)), timedelta(days=1), True),
+        (CollectionTtl.of(ttl=timedelta(days=1)), timedelta(days=1), True),
         (CollectionTtl.refresh_ttl_if_provided(ttl=None), None, False),
         (CollectionTtl.refresh_ttl_if_provided(ttl=timedelta(days=1)), timedelta(days=1), True),
     ],
