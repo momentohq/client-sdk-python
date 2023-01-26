@@ -102,9 +102,9 @@ async def client_async() -> SimpleCacheClientAsync:
 @pytest.fixture
 def unique_cache_name(client: SimpleCacheClient) -> str:
     """Synchronous version of unique_cache_name_async"""
-    
+
     cache_names = []
-    
+
     def _unique_cache_name(client: SimpleCacheClient) -> str:
         cache_name = unique_test_cache_name()
         cache_names.append(cache_name)
@@ -122,18 +122,18 @@ def unique_cache_name(client: SimpleCacheClient) -> str:
 async def unique_cache_name_async(client_async: SimpleCacheClientAsync) -> str:
     """Returns unique cache name for testing, and ensures the cache is deleted after the test,
     even if the test fails.
-    
+
     It does not create the cache for you.
-    
+
     Args:
         client_async (SimpleCacheClientAsync): The client to use to delete the cache.
-    
+
     Returns:
         str: the unique cache name
     """
-    
+
     cache_names = []
-    
+
     def _unique_cache_name_async(client: SimpleCacheClientAsync) -> str:
         cache_name = unique_test_cache_name()
         cache_names.append(cache_name)

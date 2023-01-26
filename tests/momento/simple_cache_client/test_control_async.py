@@ -63,7 +63,10 @@ async def test_create_cache_with_bad_cache_name_throws_exception(
 
 
 async def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta, unique_cache_name_async
+    bad_token_credential_provider: EnvMomentoTokenProvider,
+    configuration: Configuration,
+    default_ttl_seconds: timedelta,
+    unique_cache_name_async,
 ) -> None:
     async with SimpleCacheClientAsync(
         configuration, bad_token_credential_provider, default_ttl_seconds
