@@ -7,6 +7,38 @@ from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
+from pytest import fixture
+from pytest_describe import behaves_like
+
+
+def a_cache_name_validator():
+    async def with_non_existent_cache_name_it_throws_not_found(
+        client_async: SimpleCacheClientAsync, cache_name_validator
+    ) -> None:
+        cache_name = uuid_str()
+        response = await cache_name_validator(cache_name)
+        assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+
+    async def with_null_cache_name_it_throws_exception(
+        client_async: SimpleCacheClientAsync, cache_name_validator
+    ) -> None:
+        response = await cache_name_validator(None)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert response.inner_exception.message == "Cache name must be a non-empty string"
+
+    async def with_empty_cache_name_it_throws_exception(
+        client_async: SimpleCacheClientAsync, cache_name_validator
+    ) -> None:
+        response = await cache_name_validator("")
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert response.inner_exception.message == "Cache header is empty"
+
+    async def with_bad_cache_name_throws_exception(
+        client_async: SimpleCacheClientAsync, cache_name_validator
+    ) -> None:
+        response = await cache_name_validator(1)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
 def describe_set_and_get():
@@ -34,49 +66,26 @@ def describe_set_and_get():
         assert get_resp.value_bytes == value
 
 
+@behaves_like(a_cache_name_validator)
 def describe_get():
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync, cache_name):
+        def _cache_name_validator(cache_name):
+            key = uuid_str()
+            return client_async.get(cache_name, key)
+        
+        return _cache_name_validator
+    
     async def returns_miss(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
 
         get_resp = await client_async.get(cache_name, key)
         assert isinstance(get_resp, CacheGet.Miss)
 
-    async def with_non_existent_cache_name_throws_not_found(
-        client_async: SimpleCacheClientAsync,
-    ) -> None:
-        cache_name = uuid_str()
-        get_response = await client_async.get(cache_name, "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
-
-    async def with_null_cache_name_throws_exception(
-        client_async: SimpleCacheClientAsync,
-    ) -> None:
-        get_response = await client_async.get(None, "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert get_response.inner_exception.message == "Cache name must be a non-empty string"
-
-    async def with_empty_cache_name_throws_exception(
-        client_async: SimpleCacheClientAsync,
-    ) -> None:
-        get_response = await client_async.get("", "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert get_response.inner_exception.message == "Cache header is empty"
-
     async def with_null_key_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         get_response = await client_async.get(cache_name, None)
         assert isinstance(get_response, CacheGet.Error)
         assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-
-    async def with_bad_cache_name_throws_exception(
-        client_async: SimpleCacheClientAsync,
-    ) -> None:
-        get_response = await client_async.get(1, "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert get_response.inner_exception.message == "Cache name must be a non-empty string"
 
     async def with_bad_key_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         get_response = await client_async.get(cache_name, 1)
@@ -110,7 +119,17 @@ def describe_get():
             assert get_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
 
 
+@behaves_like(a_cache_name_validator)
 def describe_set():
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync, cache_name):
+        def _cache_name_validator(cache_name):
+            key = uuid_str()
+            value = uuid_str()
+            return client_async.set(cache_name, key, value)
+        
+        return _cache_name_validator
+    
     async def expires_items_after_ttl(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
         val = uuid_str()
@@ -144,28 +163,6 @@ def describe_set():
         get_response = await client_async.get(cache_name, key2)
         assert isinstance(get_response, CacheGet.Hit)
 
-    async def with_non_existent_cache_name_throws_not_found(
-        client_async: SimpleCacheClientAsync,
-    ) -> None:
-        cache_name = uuid_str()
-        set_response = await client_async.set(cache_name, "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
-
-    async def with_null_cache_name_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
-        set_response = await client_async.set(None, "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "Cache name must be a non-empty string"
-
-    async def with_empty_cache_name_throws_exception(
-        client_async: SimpleCacheClientAsync,
-    ) -> None:
-        set_response = await client_async.set("", "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "Cache header is empty"
-
     async def with_null_key_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         set_response = await client_async.set(cache_name, None, "bar")
         assert isinstance(set_response, CacheSet.Error)
@@ -182,13 +179,6 @@ def describe_set():
         assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert set_response.inner_exception.message == "TTL timedelta must be a non-negative integer"
 
-    async def with_bad_cache_name_throws_exception(
-        client_async: SimpleCacheClientAsync,
-    ) -> None:
-        set_response = await client_async.set(1, "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "Cache name must be a non-empty string"
 
     async def with_bad_key_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         set_response = await client_async.set(cache_name, 1, "bar")
@@ -228,7 +218,16 @@ def describe_set():
             assert set_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
 
 
+@behaves_like(a_cache_name_validator)
 def describe_delete():
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync, cache_name):
+        def _cache_name_validator(cache_name):
+            key = uuid_str()
+            return client_async.delete(cache_name, key)
+        
+        return _cache_name_validator
+    
     async def key_doesnt_exist(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
         get_response = await client_async.get(cache_name, key)

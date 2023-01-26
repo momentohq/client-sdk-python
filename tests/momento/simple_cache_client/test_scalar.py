@@ -7,6 +7,38 @@ from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
+from pytest import fixture
+from pytest_describe import behaves_like
+
+
+def a_cache_name_validator():
+    def with_non_existent_cache_name_it_throws_not_found(
+        client: SimpleCacheClient, cache_name_validator
+    ) -> None:
+        cache_name = uuid_str()
+        response = cache_name_validator(cache_name)
+        assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+
+    def with_null_cache_name_it_throws_exception(
+        client: SimpleCacheClient, cache_name_validator
+    ) -> None:
+        response = cache_name_validator(None)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert response.inner_exception.message == "Cache name must be a non-empty string"
+
+    def with_empty_cache_name_it_throws_exception(
+        client: SimpleCacheClient, cache_name_validator
+    ) -> None:
+        response = cache_name_validator("")
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert response.inner_exception.message == "Cache header is empty"
+
+    def with_bad_cache_name_throws_exception(
+        client: SimpleCacheClient, cache_name_validator
+    ) -> None:
+        response = cache_name_validator(1)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
 def describe_set_and_get():
@@ -34,49 +66,26 @@ def describe_set_and_get():
         assert get_resp.value_bytes == value
 
 
+@behaves_like(a_cache_name_validator)
 def describe_get():
+    @fixture
+    def cache_name_validator(client: SimpleCacheClient, cache_name):
+        def _cache_name_validator(cache_name):
+            key = uuid_str()
+            return client.get(cache_name, key)
+        
+        return _cache_name_validator
+    
     def returns_miss(client: SimpleCacheClient, cache_name: str) -> None:
         key = uuid_str()
 
         get_resp = client.get(cache_name, key)
         assert isinstance(get_resp, CacheGet.Miss)
 
-    def with_non_existent_cache_name_throws_not_found(
-        client: SimpleCacheClient,
-    ) -> None:
-        cache_name = uuid_str()
-        get_response = client.get(cache_name, "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
-
-    def with_null_cache_name_throws_exception(
-        client: SimpleCacheClient,
-    ) -> None:
-        get_response = client.get(None, "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert get_response.inner_exception.message == "Cache name must be a non-empty string"
-
-    def with_empty_cache_name_throws_exception(
-        client: SimpleCacheClient,
-    ) -> None:
-        get_response = client.get("", "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert get_response.inner_exception.message == "Cache header is empty"
-
     def with_null_key_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
         get_response = client.get(cache_name, None)
         assert isinstance(get_response, CacheGet.Error)
         assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-
-    def with_bad_cache_name_throws_exception(
-        client: SimpleCacheClient,
-    ) -> None:
-        get_response = client.get(1, "foo")
-        assert isinstance(get_response, CacheGet.Error)
-        assert get_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert get_response.inner_exception.message == "Cache name must be a non-empty string"
 
     def with_bad_key_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
         get_response = client.get(cache_name, 1)
@@ -108,7 +117,17 @@ def describe_get():
             assert get_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
 
 
+@behaves_like(a_cache_name_validator)
 def describe_set():
+    @fixture
+    def cache_name_validator(client: SimpleCacheClient, cache_name):
+        def _cache_name_validator(cache_name):
+            key = uuid_str()
+            value = uuid_str()
+            return client.set(cache_name, key, value)
+        
+        return _cache_name_validator
+    
     def expires_items_after_ttl(client: SimpleCacheClient, cache_name: str) -> None:
         key = uuid_str()
         val = uuid_str()
@@ -142,28 +161,6 @@ def describe_set():
         get_response = client.get(cache_name, key2)
         assert isinstance(get_response, CacheGet.Hit)
 
-    def with_non_existent_cache_name_throws_not_found(
-        client: SimpleCacheClient,
-    ) -> None:
-        cache_name = uuid_str()
-        set_response = client.set(cache_name, "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
-
-    def with_null_cache_name_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = client.set(None, "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "Cache name must be a non-empty string"
-
-    def with_empty_cache_name_throws_exception(
-        client: SimpleCacheClient,
-    ) -> None:
-        set_response = client.set("", "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "Cache header is empty"
-
     def with_null_key_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
         set_response = client.set(cache_name, None, "bar")
         assert isinstance(set_response, CacheSet.Error)
@@ -180,13 +177,6 @@ def describe_set():
         assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert set_response.inner_exception.message == "TTL timedelta must be a non-negative integer"
 
-    def with_bad_cache_name_throws_exception(
-        client: SimpleCacheClient,
-    ) -> None:
-        set_response = client.set(1, "foo", "bar")
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "Cache name must be a non-empty string"
 
     def with_bad_key_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
         set_response = client.set(cache_name, 1, "bar")
@@ -224,7 +214,16 @@ def describe_set():
             assert set_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
 
 
+@behaves_like(a_cache_name_validator)
 def describe_delete():
+    @fixture
+    def cache_name_validator(client: SimpleCacheClient, cache_name):
+        def _cache_name_validator(cache_name):
+            key = uuid_str()
+            return client.delete(cache_name, key)
+        
+        return _cache_name_validator
+    
     def key_doesnt_exist(client: SimpleCacheClient, cache_name: str) -> None:
         key = uuid_str()
         get_response = client.get(cache_name, key)
