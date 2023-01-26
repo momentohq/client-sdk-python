@@ -6,22 +6,22 @@ from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheGet, CacheSet, CreateCache, DeleteCache, ListCaches
-from tests.utils import unique_test_cache_name, uuid_str
+from tests.utils import uuid_str
 
 
 async def test_create_cache_get_set_values_and_delete_cache(
-    client_async: SimpleCacheClientAsync, cache_name: str
+    client_async: SimpleCacheClientAsync, cache_name: str, unique_cache_name_async
 ) -> None:
-    random_cache_name = unique_test_cache_name()
     key = uuid_str()
     value = uuid_str()
+    unique_cache_name = unique_cache_name_async(client_async)
 
-    await client_async.create_cache(random_cache_name)
+    await client_async.create_cache(unique_cache_name)
 
-    set_resp = await client_async.set(random_cache_name, key, value)
+    set_resp = await client_async.set(unique_cache_name, key, value)
     assert isinstance(set_resp, CacheSet.Success)
 
-    get_resp = await client_async.get(random_cache_name, key)
+    get_resp = await client_async.get(unique_cache_name, key)
     assert isinstance(get_resp, CacheGet.Hit)
     assert get_resp.value_string == value
 
@@ -63,12 +63,13 @@ async def test_create_cache_with_bad_cache_name_throws_exception(
 
 
 async def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
+    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta, unique_cache_name_async
 ) -> None:
     async with SimpleCacheClientAsync(
         configuration, bad_token_credential_provider, default_ttl_seconds
     ) as client_async:
-        response = await client_async.create_cache(unique_test_cache_name())
+        unique_cache_name = unique_cache_name_async(client_async)
+        response = await client_async.create_cache(unique_cache_name)
         assert isinstance(response, CreateCache.Error)
         assert response.error_code == errors.MomentoErrorCode.AUTHENTICATION_ERROR
 

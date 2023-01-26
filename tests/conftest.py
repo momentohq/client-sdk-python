@@ -9,6 +9,7 @@ import pytest_asyncio
 from momento import SimpleCacheClient, SimpleCacheClientAsync
 from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration, Laptop
+from tests.utils import unique_test_cache_name
 
 #######################
 # Integration test data
@@ -78,7 +79,10 @@ def client() -> SimpleCacheClient:
     with SimpleCacheClient(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         _client.create_cache(TEST_CACHE_NAME)
-        yield _client
+        try:
+            yield _client
+        finally:
+            _client.delete_cache(TEST_CACHE_NAME)
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -89,4 +93,39 @@ async def client_async() -> SimpleCacheClientAsync:
         # Ensure test cache exists
         # TODO consider deleting cache on when test runner shuts down
         await _client.create_cache(TEST_CACHE_NAME)
-        yield _client
+        try:
+            yield _client
+        finally:
+            await _client.delete_cache(TEST_CACHE_NAME)
+
+
+@pytest.fixture
+def unique_cache_name(client):
+    cache_names = []
+    
+    def _unique_cache_name(client):
+        cache_name = unique_test_cache_name()
+        cache_names.append(cache_name)
+        return cache_name
+
+    try:
+        yield _unique_cache_name
+    finally:
+        for cache_name in cache_names:
+            client.delete_cache(cache_name)
+
+
+@pytest_asyncio.fixture
+async def unique_cache_name_async(client_async):
+    cache_names = []
+    
+    def _unique_cache_name_async(client):
+        cache_name = unique_test_cache_name()
+        cache_names.append(cache_name)
+        return cache_name
+
+    try:
+        yield _unique_cache_name_async
+    finally:
+        for cache_name in cache_names:
+            await client_async.delete_cache(cache_name)

@@ -151,7 +151,9 @@ def test_set_throws_authentication_exception_for_bad_token(
     cache_name: str,
     default_ttl_seconds: timedelta,
 ) -> None:
-    with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
+    with SimpleCacheClient(
+        configuration, bad_token_credential_provider, default_ttl_seconds
+    ) as client:
         set_response = client.set(cache_name, "foo", "bar")
         assert isinstance(set_response, CacheSet.Error)
         assert set_response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
@@ -226,7 +228,9 @@ def test_get_throws_authentication_exception_for_bad_token(
     cache_name: str,
     default_ttl_seconds: timedelta,
 ) -> None:
-    with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
+    with SimpleCacheClient(
+        configuration, bad_token_credential_provider, default_ttl_seconds
+    ) as client:
         get_response = client.get(cache_name, "foo")
         assert isinstance(get_response, CacheGet.Error)
         assert get_response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
