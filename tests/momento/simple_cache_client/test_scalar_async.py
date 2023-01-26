@@ -1,14 +1,15 @@
 import time
 from datetime import timedelta
 
+from pytest import fixture
+from pytest_describe import behaves_like
+
 from momento import SimpleCacheClientAsync
 from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
-from pytest import fixture
-from pytest_describe import behaves_like
 
 
 def a_cache_name_validator():
@@ -33,23 +34,52 @@ def a_cache_name_validator():
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Cache header is empty"
 
-    async def with_bad_cache_name_throws_exception(
-        client_async: SimpleCacheClientAsync, cache_name_validator
-    ) -> None:
+    async def with_bad_cache_name_throws_exception(client_async: SimpleCacheClientAsync, cache_name_validator) -> None:
         response = await cache_name_validator(1)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
 def a_key_validator():
-    async def with_null_key_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str, key_validator) -> None:
+    async def with_null_key_throws_exception(
+        client_async: SimpleCacheClientAsync, cache_name: str, key_validator
+    ) -> None:
         response = await key_validator(cache_name, None)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
-    async def with_bad_key_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str, key_validator) -> None:
+    async def with_bad_key_throws_exception(
+        client_async: SimpleCacheClientAsync, cache_name: str, key_validator
+    ) -> None:
         response = await key_validator(cache_name, 1)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Unsupported type for key: <class 'int'>"
+
+
+def a_connection_validator():
+    async def throws_authentication_exception_for_bad_token(
+        bad_token_credential_provider: EnvMomentoTokenProvider,
+        configuration: Configuration,
+        cache_name: str,
+        default_ttl_seconds: timedelta,
+        connection_validator,
+    ) -> None:
+        async with SimpleCacheClientAsync(
+            configuration, bad_token_credential_provider, default_ttl_seconds
+        ) as client_async:
+            response = await connection_validator(client_async, cache_name)
+            assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
+
+    async def throws_timeout_error_for_short_request_timeout(
+        configuration: Configuration,
+        credential_provider: EnvMomentoTokenProvider,
+        cache_name: str,
+        default_ttl_seconds: timedelta,
+        connection_validator,
+    ) -> None:
+        configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
+        async with SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds) as client_async:
+            response = await connection_validator(client_async, cache_name)
+            assert response.error_code == MomentoErrorCode.TIMEOUT_ERROR
 
 
 def describe_set_and_get():
@@ -79,73 +109,67 @@ def describe_set_and_get():
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
+@behaves_like(a_connection_validator)
 def describe_get():
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync, cache_name):
+    def cache_name_validator(client_async: SimpleCacheClientAsync):
         def _cache_name_validator(cache_name):
             key = uuid_str()
             return client_async.get(cache_name, key)
-        
+
         return _cache_name_validator
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name):
+    def key_validator(client_async: SimpleCacheClientAsync):
         def _key_validator(cache_name, key):
             return client_async.get(cache_name, key)
-        
+
         return _key_validator
-    
+
+    @fixture
+    def connection_validator():
+        def _connection_validator(client_async, cache_name):
+            key = uuid_str()
+            return client_async.get(cache_name, key)
+
+        return _connection_validator
+
     async def returns_miss(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
 
         get_resp = await client_async.get(cache_name, key)
         assert isinstance(get_resp, CacheGet.Miss)
 
-    async def throws_authentication_exception_for_bad_token(
-        bad_token_credential_provider: EnvMomentoTokenProvider,
-        configuration: Configuration,
-        cache_name: str,
-        default_ttl_seconds: timedelta,
-    ) -> None:
-        async with SimpleCacheClientAsync(
-            configuration, bad_token_credential_provider, default_ttl_seconds
-        ) as client_async:
-            get_response = await client_async.get(cache_name, "foo")
-            assert isinstance(get_response, CacheGet.Error)
-            assert get_response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
-
-    async def throws_timeout_error_for_short_request_timeout(
-        configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
-        cache_name: str,
-        default_ttl_seconds: timedelta,
-    ) -> None:
-        configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
-        async with SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds) as client_async:
-            get_response = await client_async.get(cache_name, "foo")
-            assert isinstance(get_response, CacheGet.Error)
-            assert get_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
-
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
+@behaves_like(a_connection_validator)
 def describe_set():
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync, cache_name):
+    def cache_name_validator(client_async: SimpleCacheClientAsync):
         def _cache_name_validator(cache_name):
             key = uuid_str()
             value = uuid_str()
             return client_async.set(cache_name, key, value)
-        
+
         return _cache_name_validator
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name):
+    def key_validator(client_async: SimpleCacheClientAsync):
         def _key_validator(cache_name, key):
             value = uuid_str()
             return client_async.set(cache_name, key, value)
-        
+
         return _key_validator
+
+    @fixture
+    def connection_validator():
+        def _connection_validator(client_async, cache_name):
+            key = uuid_str()
+            value = uuid_str()
+            return client_async.set(cache_name, key, value)
+
+        return _connection_validator
 
     async def expires_items_after_ttl(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
@@ -197,49 +221,33 @@ def describe_set():
         assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert set_response.inner_exception.message == "Unsupported type for value: <class 'int'>"
 
-    async def throws_authentication_exception_for_bad_token(
-        bad_token_credential_provider: EnvMomentoTokenProvider,
-        configuration: Configuration,
-        cache_name: str,
-        default_ttl_seconds: timedelta,
-    ) -> None:
-        async with SimpleCacheClientAsync(
-            configuration, bad_token_credential_provider, default_ttl_seconds
-        ) as client_async:
-            set_response = await client_async.set(cache_name, "foo", "bar")
-            assert isinstance(set_response, CacheSet.Error)
-            assert set_response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
-
-    async def throws_timeout_error_for_short_request_timeout(
-        configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
-        cache_name: str,
-        default_ttl_seconds: timedelta,
-    ) -> None:
-        configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
-        async with SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds) as client_async:
-            set_response = await client_async.set(cache_name, "foo", "bar")
-            assert isinstance(set_response, CacheSet.Error)
-            assert set_response.error_code == MomentoErrorCode.TIMEOUT_ERROR
-
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
+@behaves_like(a_connection_validator)
 def describe_delete():
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync, cache_name):
+    def cache_name_validator(client_async: SimpleCacheClientAsync):
         def _cache_name_validator(cache_name):
             key = uuid_str()
             return client_async.delete(cache_name, key)
-        
+
         return _cache_name_validator
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name):
+    def key_validator(client_async: SimpleCacheClientAsync):
         def _key_validator(cache_name, key):
             return client_async.delete(cache_name, key)
-        
+
         return _key_validator
+
+    @fixture
+    def connection_validator():
+        def _connection_validator(client_async, cache_name):
+            key = uuid_str()
+            return client_async.delete(cache_name, key)
+
+        return _connection_validator
 
     async def key_doesnt_exist(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
