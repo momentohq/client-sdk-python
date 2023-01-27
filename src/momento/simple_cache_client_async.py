@@ -36,11 +36,8 @@ from momento.responses import (
     CacheGetResponse,
     CacheSetResponse,
     CreateCacheResponse,
-    CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
-    ListSigningKeysResponse,
-    RevokeSigningKeyResponse,
 )
 
 
@@ -201,48 +198,6 @@ class SimpleCacheClientAsync:
                     # Shouldn't happen
         """
         return await self._control_client.list_caches(next_token)
-
-    async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
-        """Creates a Momento signing key
-
-        Args:
-            ttl: The key's time-to-live represented as a timedelta
-
-        Returns:
-            CreateSigningKeyResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
-        """
-        return await self._control_client.create_signing_key(ttl, self._get_next_client().endpoint)
-
-    async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
-        """Revokes a Momento signing key, all tokens signed by which will be invalid
-
-        Args:
-            key_id: The id of the Momento signing key to revoke
-
-        Returns:
-            RevokeSigningKeyResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
-        """
-        return await self._control_client.revoke_signing_key(key_id)
-
-    async def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
-        """Lists all Momento signing keys for the provided auth token.
-
-        Args:
-            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
-
-        Returns:
-            ListSigningKeysResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
-        """
-        return await self._control_client.list_signing_keys(self._get_next_client().endpoint, next_token)
 
     async def set(
         self,
