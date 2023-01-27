@@ -1,5 +1,7 @@
 import time
 from datetime import timedelta
+from functools import partial
+from typing import Callable, Union
 
 from pytest import fixture
 from pytest_describe import behaves_like
@@ -9,49 +11,58 @@ from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet
+from momento.responses.mixins import ErrorResponseMixin
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
+TCacheNameValidator = Callable[[str], ErrorResponseMixin]
 
-def a_cache_name_validator():
-    def with_non_existent_cache_name_it_throws_not_found(client: SimpleCacheClient, cache_name_validator) -> None:
+
+def a_cache_name_validator() -> None:
+    def with_non_existent_cache_name_it_throws_not_found(cache_name_validator: TCacheNameValidator) -> None:
         cache_name = uuid_str()
         response = cache_name_validator(cache_name)
         assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
 
-    def with_null_cache_name_it_throws_exception(client: SimpleCacheClient, cache_name_validator) -> None:
-        response = cache_name_validator(None)
+    def with_null_cache_name_it_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
+        response = cache_name_validator(None)  # type: ignore
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Cache name must be a non-empty string"
 
-    def with_empty_cache_name_it_throws_exception(client: SimpleCacheClient, cache_name_validator) -> None:
+    def with_empty_cache_name_it_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
         response = cache_name_validator("")
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Cache header is empty"
 
-    def with_bad_cache_name_throws_exception(client: SimpleCacheClient, cache_name_validator) -> None:
-        response = cache_name_validator(1)
+    def with_bad_cache_name_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
+        response = cache_name_validator(1)  # type: ignore
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
-def a_key_validator():
-    def with_null_key_throws_exception(client: SimpleCacheClient, cache_name: str, key_validator) -> None:
-        response = key_validator(cache_name, None)
+TKeyValidator = Callable[[str, Union[str, bytes]], ErrorResponseMixin]
+
+
+def a_key_validator() -> None:
+    def with_null_key_throws_exception(cache_name: str, key_validator: TKeyValidator) -> None:
+        response = key_validator(cache_name, None)  # type: ignore
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
-    def with_bad_key_throws_exception(client: SimpleCacheClient, cache_name: str, key_validator) -> None:
-        response = key_validator(cache_name, 1)
+    def with_bad_key_throws_exception(cache_name: str, key_validator: TKeyValidator) -> None:
+        response = key_validator(cache_name, 1)  # type: ignore
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Unsupported type for key: <class 'int'>"
 
 
-def a_connection_validator():
+TConnectionValidator = Callable[[SimpleCacheClient, str], ErrorResponseMixin]
+
+
+def a_connection_validator() -> None:
     def throws_authentication_exception_for_bad_token(
         bad_token_credential_provider: EnvMomentoTokenProvider,
         configuration: Configuration,
         cache_name: str,
         default_ttl_seconds: timedelta,
-        connection_validator,
+        connection_validator: TConnectionValidator,
     ) -> None:
         with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
             response = connection_validator(client, cache_name)
@@ -62,7 +73,7 @@ def a_connection_validator():
         credential_provider: EnvMomentoTokenProvider,
         cache_name: str,
         default_ttl_seconds: timedelta,
-        connection_validator,
+        connection_validator: TConnectionValidator,
     ) -> None:
         configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
         with SimpleCacheClient(configuration, credential_provider, default_ttl_seconds) as client:
@@ -70,7 +81,7 @@ def a_connection_validator():
             assert response.error_code == MomentoErrorCode.TIMEOUT_ERROR
 
 
-def describe_set_and_get():
+def describe_set_and_get() -> None:
     def with_hit(client: SimpleCacheClient, cache_name: str) -> None:
         key = uuid_str()
         value = uuid_str()
@@ -98,25 +109,19 @@ def describe_set_and_get():
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
-def describe_get():
+def describe_get() -> None:
     @fixture
-    def cache_name_validator(client: SimpleCacheClient):
-        def _cache_name_validator(cache_name):
-            key = uuid_str()
-            return client.get(cache_name, key)
-
-        return _cache_name_validator
+    def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
+        key = uuid_str()
+        return partial(client.get, key=key)
 
     @fixture
-    def key_validator(client: SimpleCacheClient):
-        def _key_validator(cache_name, key):
-            return client.get(cache_name, key)
-
-        return _key_validator
+    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
+        return partial(client.get)
 
     @fixture
-    def connection_validator():
-        def _connection_validator(client, cache_name):
+    def connection_validator() -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
             key = uuid_str()
             return client.get(cache_name, key)
 
@@ -132,27 +137,21 @@ def describe_get():
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
-def describe_set():
+def describe_set() -> None:
     @fixture
-    def cache_name_validator(client: SimpleCacheClient):
-        def _cache_name_validator(cache_name):
-            key = uuid_str()
-            value = uuid_str()
-            return client.set(cache_name, key, value)
-
-        return _cache_name_validator
+    def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
+        key = uuid_str()
+        value = uuid_str()
+        return partial(client.set, key=key, value=value)
 
     @fixture
-    def key_validator(client: SimpleCacheClient):
-        def _key_validator(cache_name, key):
-            value = uuid_str()
-            return client.set(cache_name, key, value)
-
-        return _key_validator
+    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
+        value = uuid_str()
+        return partial(client.set, value=value)
 
     @fixture
-    def connection_validator():
-        def _connection_validator(client, cache_name):
+    def connection_validator() -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
             key = uuid_str()
             value = uuid_str()
             return client.set(cache_name, key, value)
@@ -213,25 +212,19 @@ def describe_set():
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
-def describe_delete():
+def describe_delete() -> None:
     @fixture
-    def cache_name_validator(client: SimpleCacheClient):
-        def _cache_name_validator(cache_name):
-            key = uuid_str()
-            return client.delete(cache_name, key)
-
-        return _cache_name_validator
+    def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
+        key = uuid_str()
+        return partial(client.delete, key=key)
 
     @fixture
-    def key_validator(client: SimpleCacheClient):
-        def _key_validator(cache_name, key):
-            return client.delete(cache_name, key)
-
-        return _key_validator
+    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
+        return partial(client.delete)
 
     @fixture
-    def connection_validator():
-        def _connection_validator(client, cache_name):
+    def connection_validator() -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
             key = uuid_str()
             return client.delete(cache_name, key)
 

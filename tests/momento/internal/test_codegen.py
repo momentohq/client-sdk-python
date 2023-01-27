@@ -30,6 +30,22 @@ class A:
         return result
 """,
         ),
+        (
+            """
+TFunction = Callable[[str, int], Awaitable[ErrorResponseMixin]]
+""",
+            """
+TFunction = Callable[[str, int], ErrorResponseMixin]
+""",
+        ),
+        (
+            """
+from typing import Awaitable, BC, CD
+""",
+            """
+from typing import BC, CD
+""",
+        ),
         ("2+2", "2+2"),
         (
             """
