@@ -12,7 +12,7 @@ jobs:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
     env:
       TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
-      TEST_CACHE_NAME: python-integration-test-cache
+      TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v3
@@ -70,6 +70,16 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Verify README generation
+        uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v1
+        with:
+          project_status: official
+          project_stability: alpha
+          project_type: sdk
+          sdk_language: Python
+          usage_example_path: ./examples/example.py
+
       - name: Run samples for python ${{ matrix.python-version }}
         id: validation
         continue-on-error: true

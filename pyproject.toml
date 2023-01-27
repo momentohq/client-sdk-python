@@ -25,6 +25,8 @@ classifiers = [
   "Typing :: Typed",
 ]
 
+exclude = ["src/momento/internal/codegen.py"]
+
 [tool.poetry.dependencies]
 python = ">=3.7,<3.12"
 
@@ -32,12 +34,6 @@ momento-wire-types = "0.31.1"
 grpcio = "1.50.0"
 # note if you bump this presigned url test need be updated
 pyjwt = "2.4.0"
-# We need this for pyjwt, but the pyjwt crypto extra uses version >=3.4
-# Since this depends on glibc, which is external to python,
-# the crytography version introduces incompatibilities in specific
-# environments (eg Lambda). We pin to 3.4.8 to prevent a moving target.
-# see: https://github.com/jpadilla/pyjwt/issues/800
-cryptography = "3.4.8"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.1.3"
@@ -52,6 +48,10 @@ types-setuptools = "^65.3.0"
 [tool.poetry.group.format.dependencies]
 black = "^22.8.0"
 isort = "^5.10.1"
+
+
+[tool.poetry.group.codegen.dependencies]
+libcst = "^0.4.9"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -73,6 +73,7 @@ exclude = """
 [tool.isort]
 profile = "black"
 src_paths = ["src", "tests"]
+extend_skip_glob = ["src/momento/errors/__init__.py"]
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

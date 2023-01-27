@@ -1,9 +1,37 @@
+from datetime import timedelta
 from types import TracebackType
 from typing import Optional, Type, Union
 
-from . import _momento_endpoint_resolver
-from ._utilities._data_validation import _validate_request_timeout
-from .cache_operation_types import (
+from momento import logs
+from momento.auth import CredentialProvider
+from momento.config import Configuration
+
+try:
+    from momento.internal._utilities import _validate_request_timeout
+    from momento.internal.synchronous._scs_control_client import _ScsControlClient
+    from momento.internal.synchronous._scs_data_client import _ScsDataClient
+except ImportError as e:
+    if e.name == "cygrpc":
+        import sys
+
+        print(
+            "There is an issue on M1 macs between GRPC native packaging and Python wheel tags. "
+            "See https://github.com/grpc/grpc/issues/28387",
+            file=sys.stderr,
+        )
+        print("-".join("" for _ in range(99)), file=sys.stderr)
+        print("    TO WORK AROUND:", file=sys.stderr)
+        print("    * Install Rosetta 2", file=sys.stderr)
+        print(
+            "    * Install Python from python.org (you might need to do this if you're using an arm-only build)",
+            file=sys.stderr,
+        )
+        print("    * re-run with:", file=sys.stderr)
+        print("arch -x86_64 {} {}".format(sys.executable, *sys.argv), file=sys.stderr)
+        print("-".join("" for _ in range(99)), file=sys.stderr)
+    raise e
+
+from momento.responses import (
     CacheDeleteResponse,
     CacheGetResponse,
     CacheSetResponse,
@@ -11,38 +39,35 @@ from .cache_operation_types import (
     DeleteCacheResponse,
     ListCachesResponse,
 )
-from .internal.synchronous._scs_control_client import _ScsControlClient
-from .internal.synchronous._scs_data_client import _ScsDataClient
 
 
 class SimpleCacheClient:
+    """Synchronous Simple Cache Client"""
+
     def __init__(
         self,
-        auth_token: str,
-        default_ttl_seconds: int,
-        request_timeout_ms: Optional[int] = None,
+        configuration: Configuration,
+        credential_provider: CredentialProvider,
+        default_ttl: timedelta,
     ):
-        """Creates an async SimpleCacheClient
+        """Creates a synchronous SimpleCacheClient
 
         Args:
-            auth_token (str): Momento Token to authenticate the requests with Simple Cache Service
-            default_ttl_seconds (int): A default Time To Live in seconds for cache objects created by this client. It is
-                possible to override this setting when calling the set method.
-            request_timeout_ms (Optional[int], optional): An optional timeout in milliseconds to allow for Get and Set
-                operations to complete. The request will be terminated if it takes longer than this value and will
-                result in TimeoutError. Defaults to None, in which case a 5 second timeout is used.
+            configuration (Configuration): An object holding configuration settings for communication with the server.
+            credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
+            default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
+                It is possible to override this setting when calling the set method.
         Raises:
-            IllegalArgumentError: If method arguments fail validations.
+            IllegalArgumentException: If method arguments fail validations.
         """
-        _validate_request_timeout(request_timeout_ms)
-
-        endpoints = _momento_endpoint_resolver.resolve(auth_token)
-        self._control_client = _ScsControlClient(auth_token, endpoints.control_endpoint)
+        self._logger = logs.logger
+        _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
+        self._configuration = configuration
+        self._control_client = _ScsControlClient(credential_provider)
         self._data_client = _ScsDataClient(
-            auth_token,
-            endpoints.cache_endpoint,
-            default_ttl_seconds,
-            request_timeout_ms,
+            configuration,
+            credential_provider,
+            default_ttl,
         )
 
     def __enter__(self) -> "SimpleCacheClient":
@@ -58,38 +83,77 @@ class SimpleCacheClient:
         self._data_client.close()
 
     def create_cache(self, cache_name: str) -> CreateCacheResponse:
-        """Creates a new cache in your Momento account.
+        """Creates a cache if it doesn't exist.
 
         Args:
-            cache_name: String used to create cache.
+            cache_name (str): Name of the cache to be created.
 
         Returns:
-            CreateCacheResponse
+            CreateCacheResponse: result of the create cache operation. This result
+            is resolved to a type-safe object of one of the following subtypes:
 
-        Raises:
-            InvalidArgumentError: If provided cache_name is None.
-            BadRequestError: If the cache name provided doesn't follow the naming conventions
-            AlreadyExistsError: If cache with the given name already exists.
-            AuthenticationError: If the provided Momento Auth Token is invalid.
-            ClientSdkError: For any SDK checks that fail.
+            - `CreateCache.Success`
+            - `CreateCache.AlreadyExists`
+            - `CreateCache.Error`
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CreateCache.Success():
+                        ...
+                    case CreateCache.CacheAlreadyExists():
+                        ...
+                    case CreateCache.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CreateCache.Success):
+                    ...
+                elif isinstance(response, CreateCache.AlreadyExists):
+                    ...
+                elif isinstance(response, CreateCache.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return self._control_client.create_cache(cache_name)
 
     def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
-        """Deletes a cache and all the items within it.
+        """Deletes a cache and all of the items within it.
 
         Args:
-            cache_name: String cache name to delete.
+            cache_name (str): Name of the cache to be deleted.
 
         Returns:
-            DeleteCacheResponse
+            DeleteCacheResponse: result of the delete cache operation. This result
+            is resolved to a type-safe object of one of the following subtypes:
 
-        Raises:
-            InvalidArgumentError: If provided cache_name is None.
-            BadRequestError: If the cache name provided doesn't follow the naming conventions
-            NotFoundError: If an attempt is made to delete a MomentoCache that doesn't exist.
-            AuthenticationError: If the provided Momento Auth Token is invalid.
-            ClientSdkError: For any SDK checks that fail.
+            - `DeleteCache.Success`
+            - `DeleteCache.Error`
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case DeleteCache.Success():
+                        ...
+                    case DeleteCache.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, DeleteCache.Success):
+                    ...
+                elif isinstance(response, DeleteCache.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return self._control_client.delete_cache(cache_name)
 
@@ -97,13 +161,34 @@ class SimpleCacheClient:
         """Lists all caches.
 
         Args:
-            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+            next_token: A token to specify where to start paginating. This is the NextToken from a previous response.
 
         Returns:
-            ListCachesResponse
+            ListCachesResponse: result of the delete cache operation. This result
+            is resolved to a type-safe object of one of the following subtypes:
 
-        Raises:
-            AuthenticationError: If the provided Momento Auth Token is invalid.
+            - `ListCaches.Success`
+            - `ListCaches.Error`
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case ListCaches.Success():
+                        ...
+                    case ListCaches.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, ListCaches.Success):
+                    ...
+                elif isinstance(response, ListCaches.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return self._control_client.list_caches(next_token)
 
@@ -112,65 +197,118 @@ class SimpleCacheClient:
         cache_name: str,
         key: Union[str, bytes],
         value: Union[str, bytes],
-        ttl_seconds: Optional[int] = None,
+        ttl: Optional[timedelta] = None,
     ) -> CacheSetResponse:
-        """Stores an item in cache
+        """Set the value in cache with a given time to live (TTL) seconds.
 
         Args:
-            cache_name: Name of the cache to store the item in.
-            key (string or bytes): The key to be used to store item.
-            value (string or bytes): The value to be stored.
-            ttl_seconds (Optional): Time to live in cache in seconds. If not provided, then default TTL for the cache
-                client instance is used.
+            cache_name (str): Name of the cache to store the item in.
+            key (Union[str, bytes]): The key to set.
+            value (Union[str, bytes]): The value to be stored.
+            ttl (Optional[timedelta], optional): TTL for the item in cache.
+            This TTL takes precedence over the TTL used when initializing a cache client.
+            Defaults to client TTL. If specified must be strictly positive.
 
         Returns:
-            CacheSetResponse
+            CacheSetResponse: result of the set operation. This result
+            is resolved to a type-safe object of one of the following subtypes:
 
-        Raises:
-            InvalidArgumentError: If validation fails for the provided method arguments.
-            BadRequestError: If the provided inputs are rejected by server because they are invalid
-            NotFoundError: If the cache with the given name doesn't exist.
-            AuthenticationError: If the provided Momento Auth Token is invalid.
-            InternalServerError: If server encountered an unknown error while trying to store the item.
+            - `CacheSet.Success`
+            - `CacheSet.Error`
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CacheSet.Success():
+                        ...
+                    case CacheSet.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CacheSet.Success):
+                    ...
+                elif isinstance(response, CacheSet.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
-        return self._data_client.set(cache_name, key, value, ttl_seconds)
+        return self._data_client.set(cache_name, key, value, ttl)
 
     def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
-        """Retrieve an item from the cache
+        """Get the cache value stored for the given key.
 
         Args:
-            cache_name: Name of the cache to get the item from
-            key (string or bytes): The key to be used to retrieve the item.
+            cache_name (str): Name of the cache to perform the lookup in.
+            key (Union[str, bytes]): The key to lookup.
 
         Returns:
-            CacheGetResponse
+            CacheGetResponse: the status of the get operation and the associated value. This result
+            is resolved to a type-safe object of one of the following subtypes:
 
-        Raises:
-            InvalidArgumentError: If validation fails for the provided method arguments.
-            BadRequestError: If the provided inputs are rejected by server because they are invalid
-            NotFoundError: If the cache with the given name doesn't exist.
-            AuthenticationError: If the provided Momento Auth Token is invalid.
-            InternalServerError: If server encountered an unknown error while trying to retrieve the item.
+            - `CacheGet.Hit`
+            - `CacheGet.Miss`
+            - `CacheGet.Error`
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CacheGet.Hit() as hit:
+                        return hit.value_string
+                    case CacheGet.Miss():
+                        ... # Handle miss
+                    case CacheGet.Error():
+                        ...
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CacheGet.Hit):
+                    ...
+                elif isinstance(response, CacheGet.Miss):
+                    ...
+                elif isinstance(response, CacheGet.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return self._data_client.get(cache_name, key)
 
     def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
-        """Delete an item from the cache.
-
-        Performs a no-op if the item is not in the cache.
+        """Remove the key from the cache.
 
         Args:
-            cache_name: Name of the cache to delete the item from.
-            key (string or bytes): The key to delete.
+            cache_name (str): Name of the cache to delete the key from.
+            key (Union[str, bytes]): The key to delete.
 
         Returns:
-            CacheDeleteResponse
+            CacheDeleteResponse: result of the delete operation. This result
+            is resolved to a type-safe object of one of the following subtypes:
 
-        Raises:
-            InvalidArgumentError: If validation fails for provided method arguments.
-            BadRequestError: If the provided inputs are rejected by server because they are invalid
-            NotFoundError: If the cache with the given name doesn't exist.
-            AuthenticationError: If the provided Momento Auth Token is invalid.
-            InternalServerError: If server encountered an unknown error while trying to delete the item.
+            - `CacheDelete.Success`
+            - `CacheDelete.Error`
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+:
+
+                match response:
+                    case CacheDelete.Success():
+                        ...
+                    case CacheDelete.Error():
+                        ...
+                    case _:
+                        # Shouldn't happen
+
+            or equivalently in earlier versions of python:
+
+                if isinstance(response, CacheDelete.Success):
+                    ...
+                elif isinstance(response, CacheDelete.Error):
+                    ...
+                else:
+                    # Shouldn't happen
         """
         return self._data_client.delete(cache_name, key)
