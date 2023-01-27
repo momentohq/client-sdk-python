@@ -1,11 +1,11 @@
 import asyncio
 import logging
+import sys
 from dataclasses import dataclass
 from datetime import timedelta
 from enum import Enum
 from time import perf_counter_ns
 from typing import Callable, Coroutine, Optional, Tuple, TypeVar
-import sys
 
 import colorlog  # type: ignore
 from hdrh.histogram import HdrHistogram
@@ -14,8 +14,14 @@ import momento.errors
 from momento import SimpleCacheClientAsync
 from momento.auth import EnvMomentoTokenProvider
 from momento.config import Laptop
-from momento.responses import CreateCache, CacheGet, CacheSet, CacheGetResponse, CacheSetResponse
 from momento.logs import initialize_momento_logging
+from momento.responses import (
+    CacheGet,
+    CacheGetResponse,
+    CacheSet,
+    CacheSetResponse,
+    CreateCache,
+)
 
 
 def initialize_logging(level: int) -> None:
