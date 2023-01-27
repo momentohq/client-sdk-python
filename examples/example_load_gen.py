@@ -1,17 +1,20 @@
 import asyncio
 import logging
-import os
 from dataclasses import dataclass
+from datetime import timedelta
 from enum import Enum
 from time import perf_counter_ns
 from typing import Callable, Coroutine, Optional, Tuple, TypeVar
+import sys
 
 import colorlog  # type: ignore
 from hdrh.histogram import HdrHistogram
 
 import momento.errors
-from momento.aio import simple_cache_client as scc
-from momento.cache_operation_types import CacheGetResponse, CacheSetResponse
+from momento import SimpleCacheClientAsync
+from momento.auth import EnvMomentoTokenProvider
+from momento.config import Laptop
+from momento.responses import CreateCache, CacheGet, CacheSet, CacheGetResponse, CacheSetResponse
 from momento.logs import initialize_momento_logging
 
 
@@ -68,22 +71,29 @@ class BasicPythonLoadGen:
 
     def __init__(self, options: BasicPythonLoadGenOptions):
         self.logger = logging.getLogger("load-gen")
-        self.auth_token = os.getenv("MOMENTO_AUTH_TOKEN")
-        if not self.auth_token:
-            raise ValueError("Missing required environment variable MOMENTO_AUTH_TOKEN")
+        self.auth_provider = EnvMomentoTokenProvider("MOMENTO_AUTH_TOKEN")
         self.options = options
         self.cache_value = "x" * options.cache_item_payload_bytes
         self.request_interval_ms = options.number_of_concurrent_requests / options.max_requests_per_second * 1000
 
     async def run(self) -> None:
-        cache_item_ttl_seconds = 60
-        async with scc.SimpleCacheClient(
-            self.auth_token, cache_item_ttl_seconds, self.options.request_timeout_ms
+        cache_item_ttl_seconds = timedelta(seconds=60)
+        config = Laptop.latest().with_client_timeout(timedelta(milliseconds=self.options.request_timeout_ms))
+        async with SimpleCacheClientAsync(
+            config, self.auth_provider, cache_item_ttl_seconds
         ) as cache_client:
-            try:
-                await cache_client.create_cache(BasicPythonLoadGen.cache_name)
-            except momento.errors.AlreadyExistsError:
-                self.logger.info(f"Cache with name: {BasicPythonLoadGen.cache_name} already exists.")
+            create_cache_response = await cache_client.create_cache(BasicPythonLoadGen.cache_name)
+            match create_cache_response:
+                case CreateCache.Success():
+                    pass
+                case CreateCache.CacheAlreadyExists():
+                    self.logger.info(f"Cache with name: {BasicPythonLoadGen.cache_name} already exists.")
+                case CreateCache.Error() as e:
+                    self.logger.error(f"Error creating cache: {e}")
+                    sys.exit(1)
+                case _:
+                    self.logger.error("Unreachable case arm")
+                    sys.exit(1)
 
             self.context = BasicPythonLoadGenContext(
                 start_time=perf_counter_ns(),
@@ -116,7 +126,7 @@ class BasicPythonLoadGen:
 
     async def start(
         self,
-        cache_client: scc.SimpleCacheClient,
+        cache_client: SimpleCacheClientAsync,
     ) -> None:
         async_get_set_results = (
             self.launch_and_run_worker(
@@ -148,7 +158,7 @@ class BasicPythonLoadGen:
 
     async def launch_and_run_worker(
         self,
-        client: scc.SimpleCacheClient,
+        client: SimpleCacheClientAsync,
         worker_id: int,
     ) -> None:
         operation_id = 1
@@ -163,7 +173,7 @@ class BasicPythonLoadGen:
 
     async def issue_async_set_get(
         self,
-        client: scc.SimpleCacheClient,
+        client: SimpleCacheClientAsync,
         worker_id: int,
         operation_id: int,
     ) -> None:
@@ -196,28 +206,41 @@ class BasicPythonLoadGen:
         self.update_context_counts_for_request(result)
         return response
 
-    async def execute_request(
+    async def execute_get_request_and_update_context_counts(
+        self,
+        block: Callable[[], Coroutine[None, None, T]],
+    ) -> Optional[T]:
+        result, response = await self.execute_request(block)
+        self.update_context_counts_for_request(result)
+        return response
+
+    async def execute_request(  # type: ignore[return]
         self,
         block: Callable[[], Coroutine[None, None, T]],
     ) -> Tuple[AsyncSetGetResult, Optional[T]]:
-        try:
-            result = await block()
-            return AsyncSetGetResult.SUCCESS, result
-        except momento.errors.InternalServerError as e:
-            # TODO verify exception type
-            self.logger.error(f"Caught InternalServerError: {e}")
-            return AsyncSetGetResult.UNAVAILABLE, None
-        except momento.errors.TimeoutError as e:
-            # TODO need to verify exception type
-            self.logger.error(f"Caught TimeoutError: {e}")
-            return AsyncSetGetResult.DEADLINE_EXCEEDED, None
-        except momento.errors.LimitExceededError:
-            if self.context.global_throttle_count % 5_000 == 0:
-                self.logger.warning("Received limit exceeded responses from the server.")
-                self.logger.warning(
-                    "Default limit is 100tps; please contact support@momentohq.com for a limit increase!"
-                )
-            return AsyncSetGetResult.THROTTLE, None
+        result = await block()
+
+        match result:
+            case CacheGet.Hit() | CacheGet.Miss() | CacheSet.Success():
+                return AsyncSetGetResult.SUCCESS, result
+            case CacheGet.Error() | CacheSet.Error():
+                match result.inner_exception:
+                    case momento.errors.InternalServerException() as e:
+                        self.logger.error(f"Caught InternalServerException: {e}")
+                        return AsyncSetGetResult.UNAVAILABLE, None
+                    case momento.errors.TimeoutException() as e:
+                        self.logger.error(f"Caught TimeoutException: {e}")
+                        return AsyncSetGetResult.DEADLINE_EXCEEDED, None
+                    case momento.errors.LimitExceededException() as e:
+                        if self.context.global_throttle_count % 5_000 == 0:
+                            self.logger.warning("Received limit exceeded responses from the server.")
+                            self.logger.warning(
+                                "Default limit is 100tps; please contact support@momentohq.com for a limit increase!"
+                            )
+                        return AsyncSetGetResult.THROTTLE, None
+            case _:
+                self.logger.error("Unreachable match arm")
+                sys.exit(1)
 
     def update_context_counts_for_request(self, result: AsyncSetGetResult):
         self.context.global_request_count += 1

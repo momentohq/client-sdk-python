@@ -6,6 +6,10 @@ name = "pypi"
 [packages]
 colorlog = "==6.6.0"
 hdrhistogram = "*"
-momento = "==0.18.1"
+momento = "==0.19.0"
 
 [dev-packages]
+black = "*"
+flake8 = "*"
+isort = "*"
+mypy = "*"
