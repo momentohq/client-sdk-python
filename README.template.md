@@ -31,4 +31,12 @@ Here is a quickstart you can use in your own project:
 Note that the above code requires an environment variable named MOMENTO_AUTH_TOKEN which must
 be set to a valid [Momento authentication token](https://docs.momentohq.com/docs/getting-started#obtain-an-auth-token).
 
+### Error Handling
+
+Coming Soon!
+
+### Tuning
+
+Coming Soon!
+
 {{ ossFooter }}
