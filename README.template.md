@@ -24,7 +24,7 @@ pip install momento
 
 Here is a quickstart you can use in your own project:
 
-```csharp
+```python
 {{ usageExampleCode }}
 ```
 
