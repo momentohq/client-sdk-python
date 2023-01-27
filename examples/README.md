@@ -12,23 +12,34 @@ _Read this in other languages_: [日本語](README.ja.md)
 - Developer libraries (gcc/python dev headers) installed on machine you intend to run on
 
 **Amazon Linux**
+
 ```bash
-sudo yum groupinstall "Development Tools" 
+sudo yum groupinstall "Development Tools"
 sudo yum install python3-devel
 ```
+
 **Ubuntu**
+
 ```bash
 sudo apt install build-essential
 sudo apt-get install python3-dev
 ```
+
 **OSX**
+
 ```bash
 xcode-select --install
 ```
 
+## To Pattern Match or Not to Pattern Match?
+
+Python introduced [structural pattern matching](https://peps.python.org/pep-0636/) in version 3.10. We believe your experience with our client will really shine with this feature. To demonstrate this, we provide examples with and without pattern matching. The example filenames without pattern matching are suffixed with `_prepy310`. For example, `example_async.py` demonstrates our asynchronous client _with_ pattern matching; `example_async_prepy310.py` demonstrates our asynchronous client _without_ pattern matching.
+
+If you are new to this feature, we invite you to try it. Nevertheless you do _have_ to use it. Our client is perfectly compatible with the legacy `if-elif-else` type checking with `isinstance`.
+
 ## Running the Example Using Pipenv
 
-- This project uses [`pipenv`](https://packaging.python.org/en/latest/tutorials/managing-dependencies/) to manage dependencies.  This keeps your project dependencies separate from your system python packages.
+- This project uses [`pipenv`](https://packaging.python.org/en/latest/tutorials/managing-dependencies/) to manage dependencies. This keeps your project dependencies separate from your system python packages.
 
 To install `pipenv` if you don't already have it:
 
@@ -57,6 +68,7 @@ DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example_async.py
 ```
 
 ## Running the Example Using pip
+
 Install the prerequisites:
 
 ```bash
@@ -98,13 +110,13 @@ pip install --user momento==0.14.0
 ## Running the load generator example
 
 This repo includes a very basic load generator, to allow you to experiment
-with performance in your environment based on different configurations.  It's
+with performance in your environment based on different configurations. It's
 very simplistic, and only intended to give you a quick way to explore the
 performance of the Momento client running on a single python process.
 
 Note that because python has a global interpreter lock, user code runs on
-a single thread and cannot take advantage of multiple CPU cores.  Thus, the
-limiting factor in request throughput will often be CPU.  Keep an eye on your CPU
+a single thread and cannot take advantage of multiple CPU cores. Thus, the
+limiting factor in request throughput will often be CPU. Keep an eye on your CPU
 consumption while running the load generator, and if you reach 100%
 of a CPU core then you most likely won't be able to improve throughput further
 without running additional python processes.
@@ -128,5 +140,5 @@ To run the load generator:
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> pipenv run python example_load_gen.py
 ```
 
-You can check out the example code in [example_load_gen.py](example_load_gen.py).  The configurable
+You can check out the example code in [example_load_gen.py](example_load_gen.py). The configurable
 settings are at the bottom of the file.
