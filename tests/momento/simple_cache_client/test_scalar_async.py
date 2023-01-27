@@ -12,7 +12,7 @@ from momento.responses import CacheDelete, CacheGet, CacheSet
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
 
-def a_cache_name_validator():
+def a_cache_name_validator() -> None:
     async def with_non_existent_cache_name_it_throws_not_found(
         client_async: SimpleCacheClientAsync, cache_name_validator
     ) -> None:
@@ -40,7 +40,7 @@ def a_cache_name_validator():
         assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
-def a_key_validator():
+def a_key_validator() -> None:
     async def with_null_key_throws_exception(
         client_async: SimpleCacheClientAsync, cache_name: str, key_validator
     ) -> None:
@@ -55,7 +55,7 @@ def a_key_validator():
         assert response.inner_exception.message == "Unsupported type for key: <class 'int'>"
 
 
-def a_connection_validator():
+def a_connection_validator() -> None:
     async def throws_authentication_exception_for_bad_token(
         bad_token_credential_provider: EnvMomentoTokenProvider,
         configuration: Configuration,
@@ -82,7 +82,7 @@ def a_connection_validator():
             assert response.error_code == MomentoErrorCode.TIMEOUT_ERROR
 
 
-def describe_set_and_get():
+def describe_set_and_get() -> None:
     async def with_hit(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
         value = uuid_str()
@@ -110,10 +110,10 @@ def describe_set_and_get():
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
-def describe_get():
+def describe_get() -> None:
     @fixture
     def cache_name_validator(client_async: SimpleCacheClientAsync):
-        def _cache_name_validator(cache_name):
+        def _cache_name_validator(cache_name: str):
             key = uuid_str()
             return client_async.get(cache_name, key)
 
@@ -121,14 +121,14 @@ def describe_get():
 
     @fixture
     def key_validator(client_async: SimpleCacheClientAsync):
-        def _key_validator(cache_name, key):
+        def _key_validator(cache_name: str, key: str):
             return client_async.get(cache_name, key)
 
         return _key_validator
 
     @fixture
     def connection_validator():
-        def _connection_validator(client_async, cache_name):
+        def _connection_validator(client_async: SimpleCacheClientAsync, cache_name: str):
             key = uuid_str()
             return client_async.get(cache_name, key)
 
@@ -144,10 +144,10 @@ def describe_get():
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
-def describe_set():
+def describe_set() -> None:
     @fixture
     def cache_name_validator(client_async: SimpleCacheClientAsync):
-        def _cache_name_validator(cache_name):
+        def _cache_name_validator(cache_name: str):
             key = uuid_str()
             value = uuid_str()
             return client_async.set(cache_name, key, value)
@@ -156,7 +156,7 @@ def describe_set():
 
     @fixture
     def key_validator(client_async: SimpleCacheClientAsync):
-        def _key_validator(cache_name, key):
+        def _key_validator(cache_name: str, key: str):
             value = uuid_str()
             return client_async.set(cache_name, key, value)
 
@@ -164,7 +164,7 @@ def describe_set():
 
     @fixture
     def connection_validator():
-        def _connection_validator(client_async, cache_name):
+        def _connection_validator(client_async: SimpleCacheClientAsync, cache_name: str):
             key = uuid_str()
             value = uuid_str()
             return client_async.set(cache_name, key, value)
@@ -225,10 +225,10 @@ def describe_set():
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
-def describe_delete():
+def describe_delete() -> None:
     @fixture
     def cache_name_validator(client_async: SimpleCacheClientAsync):
-        def _cache_name_validator(cache_name):
+        def _cache_name_validator(cache_name: str):
             key = uuid_str()
             return client_async.delete(cache_name, key)
 
@@ -236,14 +236,14 @@ def describe_delete():
 
     @fixture
     def key_validator(client_async: SimpleCacheClientAsync):
-        def _key_validator(cache_name, key):
+        def _key_validator(cache_name: str, key: str):
             return client_async.delete(cache_name, key)
 
         return _key_validator
 
     @fixture
     def connection_validator():
-        def _connection_validator(client_async, cache_name):
+        def _connection_validator(client_async: SimpleCacheClientAsync, cache_name: str):
             key = uuid_str()
             return client_async.delete(cache_name, key)
 
