@@ -1,4 +1,6 @@
-# Python Client SDK
+<img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
+
+# Momento Python Client Examples
 
 _Read this in other languages_: [日本語](README.ja.md)
 <br>

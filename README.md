@@ -1,8 +1,4 @@
-# Momento client-sdk-python
-
-Python SDK for Momento, a serverless cache that automatically scales without any of the operational overhead required by traditional caching solutions.
-
-<br/>
+{{ ossHeader }}
 
 ## Getting Started :running:
 
@@ -11,40 +7,28 @@ Python SDK for Momento, a serverless cache that automatically scales without any
 - [Python 3.7](https://www.python.org/downloads/) or above is required
 - A Momento Auth Token is required, you can generate one using the [Momento CLI](https://github.com/momentohq/momento-cli)
 
-<br/>
+### Examples
 
-### Installing Momento and Running the Example
+Ready to dive right in? Just check out the [examples](./examples/README.md) directory for complete, working examples of
+how to use the SDK.
 
-Check out our [Python SDK example](/examples/)!
+### Installation
 
-<br/>
+The [Momento SDK is available on PyPi](https://pypi.org/project/momento/).  To install via pip:
 
-### Using Momento
-
-```python
-import os
-from momento import simple_cache_client as scc
-
-# Initializing Momento
-_MOMENTO_AUTH_TOKEN = os.getenv('MOMENTO_AUTH_TOKEN')
-_ITEM_DEFAULT_TTL_SECONDS = 60
-with scc.SimpleCacheClient(_MOMENTO_AUTH_TOKEN, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
-    # Creating a cache named "cache"
-    _CACHE_NAME = 'cache'
-    cache_client.create_cache(_CACHE_NAME)
-
-    # Sets key with default TTL and get value with that key
-    _KEY = 'MyKey'
-    _VALUE = 'MyValue'
-    cache_client.set(_CACHE_NAME, _KEY, _VALUE)
-    get_resp = cache_client.get(_CACHE_NAME, _KEY)
-    print(f'Looked up Value: {str(get_resp.value())}')
-
-    # Sets key with TTL of 5 seconds
-    cache_client.set(_CACHE_NAME, _KEY, _VALUE, 5)
-
-    # Permanently deletes cache
-    cache_client.delete_cache(_CACHE_NAME)
+```bash
+pip install momento
 ```
 
-<br/>
+### Usage
+
+Here is a quickstart you can use in your own project:
+
+```csharp
+{{ usageExampleCode }}
+```
+
+Note that the above code requires an environment variable named MOMENTO_AUTH_TOKEN which must
+be set to a valid [Momento authentication token](https://docs.momentohq.com/docs/getting-started#obtain-an-auth-token).
+
+{{ ossFooter }}
