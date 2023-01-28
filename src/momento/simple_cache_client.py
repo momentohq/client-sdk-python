@@ -312,3 +312,9 @@ class SimpleCacheClient:
                     # Shouldn't happen
         """
         return self._data_client.delete(cache_name, key)
+
+    # DICTIONARY COLLECTION METHODS
+
+    # LIST COLLECTION METHODS
+
+    # SET COLLECTION METHODS

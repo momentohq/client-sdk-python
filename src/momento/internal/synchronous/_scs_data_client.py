@@ -133,6 +133,12 @@ class _ScsDataClient:
             metadata=metadata,
         )
 
+    # DICTIONARY COLLECTION METHODS
+
+    # LIST COLLECTION METHODS
+
+    # SET COLLECTION METHODS
+
     def _build_stub(self) -> ScsStub:
         return self._grpc_manager.stub()
 
