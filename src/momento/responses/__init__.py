@@ -6,6 +6,7 @@ from .control import (
     ListCaches,
     ListCachesResponse,
 )
+from .response import CacheResponse
 from .scalar_data import (
     CacheDelete,
     CacheDeleteResponse,
