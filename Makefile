@@ -43,7 +43,7 @@ test:
 .PHONY: precommit
 ## Run format, lint, and test as a step before committing.
 precommit: gen-sync format lint test
-	@echo.
+
 
 .PHONY: clean
 ## Remove intermediate files
