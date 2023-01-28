@@ -19,14 +19,16 @@ from momento.internal._utilities import _validate_ttl
 from momento.internal.aio._scs_grpc_manager import _DataGrpcManager
 from momento.internal.aio._utilities import make_metadata
 from momento.internal.common._data_client_ops import (
+    get_default_client_deadline,
+    wrap_async_with_error_handling,
+)
+from momento.internal.common._data_client_scalar_ops import (
     construct_delete_response,
     construct_get_response,
     construct_set_response,
-    get_default_client_deadline,
     prepare_delete_request,
     prepare_get_request,
     prepare_set_request,
-    wrap_async_with_error_handling,
 )
 from momento.responses import (
     CacheDelete,
