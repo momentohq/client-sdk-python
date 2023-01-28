@@ -134,8 +134,10 @@ class _ScsDataClient:
         )
 
     # DICTIONARY COLLECTION METHODS
-    # SET COLLECTION METHODS
+
     # LIST COLLECTION METHODS
+
+    # SET COLLECTION METHODS
 
     def _build_stub(self) -> ScsStub:
         return self._grpc_manager.async_stub()
