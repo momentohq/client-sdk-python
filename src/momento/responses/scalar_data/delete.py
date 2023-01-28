@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from momento.errors import SdkException
 
 from ..mixins import ErrorResponseMixin
+from ..response import CacheResponse
 
 
-class CacheDeleteResponse(ABC):
+class CacheDeleteResponse(CacheResponse):
     """Parent response type for a create set request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
