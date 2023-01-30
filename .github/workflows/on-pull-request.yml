@@ -82,7 +82,7 @@ jobs:
 
       - name: Verify README generation
         uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v1
-        if: matrix.python-version == '3.10'
+        if: ${{ matrix.python-version }} == '3.10'
         with:
           project_status: official
           project_stability: alpha
