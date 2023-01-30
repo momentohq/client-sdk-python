@@ -11,3 +11,10 @@ updates:
       interval: "daily"
     allow:
       - dependency-name: "momento"
+
+  - package-ecosystem: "poetry" # See documentation for possible values
+    directory: "/examples" # Location of package manifests
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "momento"
