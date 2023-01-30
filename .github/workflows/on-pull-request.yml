@@ -61,13 +61,13 @@ jobs:
         # TODO: one of the examples dependencies does not support 3.11
         include:
           - python-version: "3.7"
-            working-dir: ./examples/prepy310
+            package: prepy310
           - python-version: "3.8"
-            working-dir: ./examples/prepy310
+            package: prepy310
           - python-version: "3.9"
-            working-dir: ./examples/prepy310
+            package: prepy310
           - python-version: "3.10"
-            working-dir: ./examples/py310
+            package: py310
 
     env:
       # TODO: remove token stored as secret in favor of using a
@@ -98,29 +98,56 @@ jobs:
         run: poetry config virtualenvs.in-project true
 
       - name: Install dependencies
-        working-directory: ${{ matrix.working-dir }}
+        working-directory: ./examples
         run: poetry install
 
       - name: Run mypy
-        working-directory: ${{ matrix.working-dir }}
-        run: poetry run mypy .
+        id: mypy
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run mypy ${{ matrix.package }}
 
       - name: Run flake8
-        working-directory: ${{ matrix.working-dir }}
-        run: poetry run flake8 .
+        id: flake8
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run flake8 ${{ matrix.package }}
 
       - name: Run black
-        working-directory: ${{ matrix.working-dir }}
-        run: poetry run black . --check --diff
+        id: black
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run black ${{ matrix.package }} --check --diff
 
       - name: Run isort
-        working-directory: ${{ matrix.working-dir }}
-        run: poetry run isort . --check --diff
+        id: isort
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run isort ${{ matrix.package }} --check --diff
       
       - name: Run samples for python ${{ matrix.python-version }}
         id: validation
         continue-on-error: true
-        working-directory: ${{ matrix.working-dir }}
+        working-directory: ./examples
         run: |
-          poetry run python example.py
-          poetry run python example_async.py
+          poetry run python -m ${{ matrix.package }}.example
+          poetry run python -m ${{ matrix.package }}.example_async
+
+      - name: Send CI failure mail
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' }}
+        uses: momentohq/standards-and-practices/github-actions/error-email-action@gh-actions-v1
+        with:
+          username: ${{secrets.MOMENTO_ROBOT_GMAIL_USERNAME}}
+          password: ${{secrets.MOMENTO_ROBOT_GMAIL_PASSWORD}}
+
+      - name: Flag Job Failure
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' }}
+        run: |
+          echo "Job statuses"
+          echo "============"
+          echo "sample scripts: ${{ steps.validation.outcome }}"
+          echo "mypy: ${{ steps.outputs.mypy }}"
+          echo "flake8: ${{ steps.outputs.flake8 }}"
+          echo "black: ${{ steps.outputs.black }}"
+          echo "isort: ${{ steps.outputs.isort }}"
+          exit 1
