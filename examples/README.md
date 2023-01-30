@@ -31,40 +31,42 @@ sudo apt-get install python3-dev
 xcode-select --install
 ```
 
-## To Pattern Match or Not to Pattern Match?
+## Running the Example Using Poetry (Recommended)
 
-Python introduced [structural pattern matching](https://peps.python.org/pep-0636/) in version 3.10. We believe your experience with our client will really shine with this feature. To demonstrate this, we provide examples with and without pattern matching. The example filenames without pattern matching are suffixed with `_prepy310`. For example, `example_async.py` demonstrates our asynchronous client _with_ pattern matching; `example_async_prepy310.py` demonstrates our asynchronous client _without_ pattern matching.
+- We use [poetry](https://python-poetry.org/docs/) to manage dependencies and packaging. This allows us to cleanly separate release vs development dependencies, as well as streamline deployment. See the [poetry docs](https://python-poetry.org/docs/#installation) for installation instructions.
 
-If you are new to this feature, we invite you to try it. Nevertheless you do _have_ to use it. Our client is perfectly compatible with the legacy `if-elif-else` type checking with `isinstance`.
-
-## Running the Example Using Pipenv
-
-- This project uses [`pipenv`](https://packaging.python.org/en/latest/tutorials/managing-dependencies/) to manage dependencies. This keeps your project dependencies separate from your system python packages.
-
-To install `pipenv` if you don't already have it:
+To set up the `poetry` environment for this project:
 
 ```bash
-python3 -m pip install --user pipenv
+poetry install
 ```
 
-To set up the `pipenv` environment for this project:
+To run the python version 3.10+ examples:
 
 ```bash
-pipenv install
-```
-
-To run the examples:
-
-```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example.py
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example_async.py
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example_async
 ```
 
 To run the examples with SDK debug logging enabled:
 
 ```bash
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example.py
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example_async.py
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example_async
+```
+
+To run the python version <3.10 examples:
+
+```bash
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example_async
+```
+
+To run the examples with SDK debug logging enabled:
+
+```bash
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example_async
 ```
 
 ## Running the Example Using pip
@@ -75,36 +77,32 @@ Install the prerequisites:
 pip install -r requirements.txt
 ```
 
-To run the examples:
+To run the python version 3.10+ examples:
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python example.py
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python example_async.py
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example_async
 ```
 
 To run the examples with SDK debug logging enabled:
 
 ```bash
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python example.py
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python example_async.py
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example_async
 ```
 
-## Using SDK in your project
-
-via `pipenv`:
+To run the python version <3.10 examples:
 
 ```bash
-pipenv install momento==0.14.0
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example
+MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example_async
 ```
 
-via `pip` and `requirements.txt`:
-
-Add `momento==0.14.0` to `requirements.txt` or any other dependency management framework used by your project.
-
-To install directly to your system:
+To run the examples with SDK debug logging enabled:
 
 ```bash
-pip install --user momento==0.14.0
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example
+DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example_async
 ```
 
 ## Running the load generator example
@@ -137,8 +135,8 @@ To run the load generator:
 
 ```bash
 # Run example load generator
-MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> pipenv run python example_load_gen.py
+MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> poetry run python -m py310.example_load_gen
 ```
 
-You can check out the example code in [example_load_gen.py](example_load_gen.py). The configurable
+You can check out the example code in [example_load_gen.py](py310/example_load_gen.py). The configurable
 settings are at the bottom of the file.

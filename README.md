@@ -4,15 +4,12 @@
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
-[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-alpha.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md) 
+[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-alpha.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 
 # Momento Python Client Library
 
-
 Python client SDK for Momento Serverless Cache: a fast, simple, pay-as-you-go caching solution without
 any of the operational overhead required by traditional caching solutions!
-
-
 
 ## Getting Started :running:
 
@@ -28,7 +25,7 @@ how to use the SDK.
 
 ### Installation
 
-The [Momento SDK is available on PyPi](https://pypi.org/project/momento/).  To install via pip:
+The [Momento SDK is available on PyPi](https://pypi.org/project/momento/). To install via pip:
 
 ```bash
 pip install momento
@@ -113,9 +110,16 @@ be set to a valid [Momento authentication token](https://docs.momentohq.com/docs
 
 Coming Soon!
 
+## Responses: To Pattern Match or Not to Pattern Match?
+
+Python introduced [structural pattern matching](https://peps.python.org/pep-0636/) in version 3.10. We believe your experience with our client will really shine with this feature. To demonstrate this, we provide examples with and without pattern matching. The example filenames without pattern matching are suffixed with `_prepy310`. For example, `example_async.py` demonstrates our asynchronous client _with_ pattern matching; `example_async_prepy310.py` demonstrates our asynchronous client _without_ pattern matching.
+
+If you are new to this feature, we invite you to try it. Nevertheless you do _have_ to use it. Our client is perfectly compatible with the legacy `if-elif-else` type checking with `isinstance`.
+
 ### Tuning
 
 Coming Soon!
 
-----------------------------------------------------------------------------------------
+---
+
 For more info, visit our website at [https://gomomento.com](https://gomomento.com)!
