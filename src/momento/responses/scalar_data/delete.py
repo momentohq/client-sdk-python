@@ -8,7 +8,7 @@ from ..response import CacheResponse
 
 
 class CacheDeleteResponse(CacheResponse):
-    """Parent response type for a cache delete request. It's subtypes are:
+    """Parent response type for a cache delete request. Its subtypes are:
 
     - `CacheDelete.Success`
     - `CacheDelete.Error`

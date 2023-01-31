@@ -8,7 +8,7 @@ from ..response import CacheResponse
 
 
 class CacheGetResponse(CacheResponse):
-    """Parent response type for a cache get request. It's subtypes are:
+    """Parent response type for a cache get request. Its subtypes are:
 
     - `CacheGet.Hit`
     - `CacheGet.Miss`
