@@ -8,7 +8,7 @@ from ..response import CacheResponse
 
 
 class CacheSetResponse(CacheResponse):
-    """Parent response type for a create set request. The
+    """Parent response type for a cache set request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
 
