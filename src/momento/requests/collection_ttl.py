@@ -18,6 +18,9 @@ class CollectionTtl:
     The default behavior is to refresh the TTL (to prolong the life of the
     collection) each time it is written.  This behavior can be modified
     by calling the method `with_no_refresh_ttl_on_updates`.
+
+    Raises:
+        ValueError: if the ttl is not a positive amount of time.
     """
 
     ttl: Optional[timedelta] = None
@@ -29,6 +32,10 @@ class CollectionTtl:
     on every update.  If `False`, the collection's TTL will only be set when the collection is
     initially created.
     """
+
+    def __post_init__(self) -> None:
+        if self.ttl is not None and self.ttl.total_seconds() <= 0:
+            raise ValueError("the TTL must be a positive amount of time")
 
     @staticmethod
     def from_cache_ttl() -> "CollectionTtl":
