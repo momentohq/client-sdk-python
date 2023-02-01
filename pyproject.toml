@@ -30,7 +30,7 @@ exclude = ["src/momento/internal/codegen.py"]
 [tool.poetry.dependencies]
 python = ">=3.7,<3.12"
 
-momento-wire-types = "0.31.1"
+momento-wire-types = "^0.39"
 grpcio = "^1.50.0"
 # note if you bump this presigned url test need be updated
 pyjwt = "^2.4.0"

@@ -36,6 +36,7 @@ except ImportError as e:
 from momento.responses import (
     CacheDeleteResponse,
     CacheGetResponse,
+    CacheListFetchResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -399,6 +400,8 @@ class SimpleCacheClientAsync:
     # DICTIONARY COLLECTION METHODS
 
     # LIST COLLECTION METHODS
+    async def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
+        return await self._data_client.list_fetch(cache_name, list_name)
 
     # SET COLLECTION METHODS
 

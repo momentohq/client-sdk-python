@@ -7,6 +7,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _DeleteResponse,
     _GetRequest,
     _GetResponse,
+    _ListFetchRequest,
     _SetRequest,
     _SetResponse,
 )
@@ -15,7 +16,13 @@ from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
-from momento.internal._utilities import _validate_ttl
+from momento.errors import convert_error
+from momento.internal._utilities import (
+    _as_bytes,
+    _validate_cache_name,
+    _validate_list_name,
+    _validate_ttl,
+)
 from momento.internal.aio._scs_grpc_manager import _DataGrpcManager
 from momento.internal.aio._utilities import make_metadata
 from momento.internal.common._data_client_ops import (
@@ -35,6 +42,8 @@ from momento.responses import (
     CacheDeleteResponse,
     CacheGet,
     CacheGetResponse,
+    CacheListFetch,
+    CacheListFetchResponse,
     CacheSet,
     CacheSetResponse,
 )
@@ -137,8 +146,30 @@ class _ScsDataClient:
     # DICTIONARY COLLECTION METHODS
 
     # LIST COLLECTION METHODS
+    async def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
+        try:
+            self._logger.log(logs.TRACE, "Issuing a ListFetch request with list_name %s", str(list_name))
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+            request = _ListFetchRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            response = await self._build_stub().ListFetch(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._logger.log(logs.TRACE, "Received a ListFetch response for %s", str(request.list_name))
+            if response.missing:
+                return CacheListFetch.Miss()
+            return CacheListFetch.Hit(response.found)
+        except Exception as e:
+            self._log_request_error("list_fetch", e)
+            return CacheListFetch.Error(convert_error(e))
 
     # SET COLLECTION METHODS
+
+    def _log_request_error(self, request_type: str, e: Exception) -> None:
+        self._logger.warning("%s failed with exception: %s", request_type, e)
 
     def _build_stub(self) -> ScsStub:
         return self._grpc_manager.async_stub()

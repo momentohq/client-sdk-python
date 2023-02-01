@@ -36,6 +36,7 @@ except ImportError as e:
 from momento.responses import (
     CacheDeleteResponse,
     CacheGetResponse,
+    CacheListFetchResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -57,7 +58,7 @@ class SimpleCacheClient:
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+ if you're deleting a key:
 
-        response = client.delete(cache_name, key)
+        response = await client.delete(cache_name, key)
         match response:
             case CacheDelete.Success():
                 ...they key was deleted or not found...
@@ -66,7 +67,7 @@ class SimpleCacheClient:
 
     or equivalently in earlier versions of python:
 
-        response = client.delete(cache_name, key)
+        response = await client.delete(cache_name, key)
         if isinstance(response, CacheDelete.Success):
             ...
         elif isinstance(response, CacheDelete.Error):
@@ -399,6 +400,8 @@ class SimpleCacheClient:
     # DICTIONARY COLLECTION METHODS
 
     # LIST COLLECTION METHODS
+    def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
+        return self._data_client.list_fetch(cache_name, list_name)
 
     # SET COLLECTION METHODS
 
