@@ -7,6 +7,7 @@ from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheResponse
 from momento.responses.mixins import ErrorResponseMixin
+from momento.typing import TScalarKey
 from tests.utils import uuid_str
 
 TCacheNameValidator = Callable[[str], CacheResponse]
@@ -38,7 +39,7 @@ def a_cache_name_validator() -> None:
         assert response.inner_exception.message == "Cache name must be a non-empty string"
 
 
-TKeyValidator = Callable[[str, Union[str, bytes]], CacheResponse]
+TKeyValidator = Callable[[str, TScalarKey], CacheResponse]
 
 
 def a_key_validator() -> None:

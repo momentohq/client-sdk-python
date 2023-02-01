@@ -1,6 +1,6 @@
 from datetime import timedelta
 from types import TracebackType
-from typing import Optional, Type, Union
+from typing import Optional, Type
 
 from momento import logs
 from momento.auth import CredentialProvider
@@ -42,6 +42,7 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
+from momento.typing import TScalarKey, TScalarValue
 
 
 class SimpleCacheClient:
@@ -231,16 +232,16 @@ class SimpleCacheClient:
     def set(
         self,
         cache_name: str,
-        key: Union[str, bytes],
-        value: Union[str, bytes],
+        key: TScalarKey,
+        value: TScalarValue,
         ttl: Optional[timedelta] = None,
     ) -> CacheSetResponse:
         """Set the value in cache with a given time to live (TTL) seconds.
 
         Args:
             cache_name (str): Name of the cache to store the item in.
-            key (Union[str, bytes]): The key to set.
-            value (Union[str, bytes]): The value to be stored.
+            key (TScalarKey): The key to set.
+            value (TScalarValue): The value to be stored.
             ttl (Optional[timedelta], optional): TTL for the item in cache.
             This TTL takes precedence over the TTL used when initializing a cache client.
             Defaults to client TTL. If specified must be strictly positive.
@@ -274,12 +275,12 @@ class SimpleCacheClient:
         """
         return self._data_client.set(cache_name, key, value, ttl)
 
-    def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
+    def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         """Get the cache value stored for the given key.
 
         Args:
             cache_name (str): Name of the cache to perform the lookup in.
-            key (Union[str, bytes]): The key to lookup.
+            key (TScalarKey): The key to lookup.
 
         Returns:
             CacheGetResponse: the status of the get operation and the associated value. This result
@@ -313,12 +314,12 @@ class SimpleCacheClient:
         """
         return self._data_client.get(cache_name, key)
 
-    def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
+    def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
         """Remove the key from the cache.
 
         Args:
             cache_name (str): Name of the cache to delete the key from.
-            key (Union[str, bytes]): The key to delete.
+            key (TScalarKey): The key to delete.
 
         Returns:
             CacheDeleteResponse: result of the delete operation. This result
