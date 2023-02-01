@@ -8,30 +8,12 @@ from ..response import CacheResponse
 
 
 class CacheSetResponse(CacheResponse):
-    """Parent response type for a cache set request. The
-    response object is resolved to a type-safe object of one of
-    the following subtypes:
+    """Parent response type for a cache set request. Its subtypes are:
 
     - `CacheSet.Success`
     - `CacheSet.Error`
 
-    Pattern matching can be used to operate on the appropriate subtype.
-    For example, in python 3.10+:
-
-        match response:
-            case CacheSet.Success():
-                ...
-            case CacheSet.Error():
-                ...
-
-    or equivalently in earlier versions of python:
-
-        if isinstance(response, CacheSet.Success):
-            ...
-        elif isinstance(response, CacheSet.Error):
-            ...
-        else:
-            # Shouldn't happen
+    See `SimpleCacheClient` for how to work with responses.
     """
 
 

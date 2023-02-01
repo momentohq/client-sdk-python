@@ -48,7 +48,32 @@ from momento.typing import TScalarKey, TScalarValue
 
 
 class SimpleCacheClientAsync:
-    """Async Simple Cache Client"""
+    """Async Simple Cache Client
+
+    Cache and control methods return a response object unique to each request.
+    The response object is resolved to a type-safe object of one of several
+    sub-types. See the documentation for each response type for details.
+
+    Pattern matching can be used to operate on the appropriate subtype.
+    For example, in python 3.10+ if you're deleting a key:
+
+        response = await client.delete(cache_name, key)
+        match response:
+            case CacheDelete.Success():
+                ...they key was deleted or not found...
+            case CacheDelete.Error():
+                ...there was an error trying to delete the key...
+
+    or equivalently in earlier versions of python:
+
+        response = await client.delete(cache_name, key)
+        if isinstance(response, CacheDelete.Success):
+            ...
+        elif isinstance(response, CacheDelete.Error):
+            ...
+        else:
+            raise Exception("This should never happen")
+    """
 
     _NUM_CLIENTS = 1
     """(async client only) For high load, we might get better performance with multiple clients,
