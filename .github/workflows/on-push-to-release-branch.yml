@@ -38,7 +38,7 @@ jobs:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
     env:
       TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
-      TEST_CACHE_NAME: python-integration-test-cache
+      TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ github.sha }}
     steps:
       - uses: actions/checkout@v3
 
