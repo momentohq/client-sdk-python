@@ -1,6 +1,6 @@
 from datetime import timedelta
 from functools import partial
-from typing import Optional, Union
+from typing import Optional
 
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
@@ -38,6 +38,7 @@ from momento.responses import (
     CacheSet,
     CacheSetResponse,
 )
+from momento.typing import TScalarKey, TScalarValue
 
 
 class _ScsDataClient:
@@ -64,8 +65,8 @@ class _ScsDataClient:
     async def set(
         self,
         cache_name: str,
-        key: Union[str, bytes],
-        value: Union[str, bytes],
+        key: TScalarKey,
+        value: TScalarValue,
         ttl: Optional[timedelta],
     ) -> CacheSetResponse:
         metadata = make_metadata(cache_name)
@@ -93,7 +94,7 @@ class _ScsDataClient:
             metadata=metadata,
         )
 
-    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
+    async def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         metadata = make_metadata(cache_name)
 
         async def execute_get_request_fn(req: _GetRequest) -> _GetResponse:
@@ -113,7 +114,7 @@ class _ScsDataClient:
             metadata=metadata,
         )
 
-    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
+    async def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
         metadata = make_metadata(cache_name)
 
         async def execute_delete_request_fn(req: _DeleteRequest) -> _DeleteResponse:
