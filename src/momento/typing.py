@@ -5,7 +5,7 @@ TScalarKey = Union[str, bytes]
 TScalarValue = Union[str, bytes]
 
 # Collections
-TCollectionKey = str
+TCollectionName = str
 
 # Dictionary Types
 
