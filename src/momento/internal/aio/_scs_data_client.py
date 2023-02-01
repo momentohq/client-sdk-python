@@ -1,6 +1,6 @@
 from datetime import timedelta
 from functools import partial
-from typing import Optional, Union
+from typing import Optional
 
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
@@ -19,14 +19,16 @@ from momento.internal._utilities import _validate_ttl
 from momento.internal.aio._scs_grpc_manager import _DataGrpcManager
 from momento.internal.aio._utilities import make_metadata
 from momento.internal.common._data_client_ops import (
+    get_default_client_deadline,
+    wrap_async_with_error_handling,
+)
+from momento.internal.common._data_client_scalar_ops import (
     construct_delete_response,
     construct_get_response,
     construct_set_response,
-    get_default_client_deadline,
     prepare_delete_request,
     prepare_get_request,
     prepare_set_request,
-    wrap_async_with_error_handling,
 )
 from momento.responses import (
     CacheDelete,
@@ -36,6 +38,7 @@ from momento.responses import (
     CacheSet,
     CacheSetResponse,
 )
+from momento.typing import TScalarKey, TScalarValue
 
 
 class _ScsDataClient:
@@ -62,8 +65,8 @@ class _ScsDataClient:
     async def set(
         self,
         cache_name: str,
-        key: Union[str, bytes],
-        value: Union[str, bytes],
+        key: TScalarKey,
+        value: TScalarValue,
         ttl: Optional[timedelta],
     ) -> CacheSetResponse:
         metadata = make_metadata(cache_name)
@@ -91,7 +94,7 @@ class _ScsDataClient:
             metadata=metadata,
         )
 
-    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
+    async def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         metadata = make_metadata(cache_name)
 
         async def execute_get_request_fn(req: _GetRequest) -> _GetResponse:
@@ -111,7 +114,7 @@ class _ScsDataClient:
             metadata=metadata,
         )
 
-    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
+    async def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
         metadata = make_metadata(cache_name)
 
         async def execute_delete_request_fn(req: _DeleteRequest) -> _DeleteResponse:
@@ -130,6 +133,12 @@ class _ScsDataClient:
             error_fn=CacheDelete.Error.from_sdkexception,
             metadata=metadata,
         )
+
+    # DICTIONARY COLLECTION METHODS
+
+    # LIST COLLECTION METHODS
+
+    # SET COLLECTION METHODS
 
     def _build_stub(self) -> ScsStub:
         return self._grpc_manager.async_stub()

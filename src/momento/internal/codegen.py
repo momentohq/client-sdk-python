@@ -14,7 +14,7 @@ code from the async code, we do the following transformations:
 """
 import argparse
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import libcst as cst
 
@@ -23,15 +23,38 @@ class AsyncToSyncTransformer(cst.CSTTransformer):
     """Convert async methods, async context managers, and awaited expressions into synchronous ones."""
 
     def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.BaseStatement:
+        """Remove async function keyword"""
         updated_node = updated_node.with_changes(asynchronous=None)
         return updated_node
 
     def leave_Await(self, original_node: cst.Await, updated_node: cst.BaseExpression) -> cst.BaseExpression:
+        """Remove await keywords and lift awaited expressions"""
         return original_node.expression
 
     def leave_With(self, original_node: cst.With, updated_node: cst.With) -> cst.With:
+        """Remove the async keyword from context managers"""
         updated_node = updated_node.with_changes(asynchronous=None)
         return updated_node
+
+    def leave_Subscript(self, original_node: cst.Subscript, updated_node: cst.Subscript) -> cst.BaseExpression:
+        """Removes "Awaitable" from type hints and lifts the awaited types one level higher."""
+        # You only await one thing so we test the slice is length one
+        if (
+            isinstance(original_node.value, cst.Name)
+            and original_node.value.value == "Awaitable"
+            and original_node.slice is not None
+            and len(original_node.slice) == 1
+        ):
+            return original_node.slice[0]  # type: ignore
+        return updated_node
+
+    def leave_ImportFrom(
+        self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
+    ) -> Union[cst.BaseSmallStatement, cst.FlattenSentinel[cst.BaseSmallStatement], cst.RemovalSentinel]:
+        if isinstance(original_node.names, cst.ImportStar):
+            return original_node
+        names = [import_alias for import_alias in original_node.names if import_alias.name.value != "Awaitable"]
+        return updated_node.with_changes(names=names)
 
 
 class NameReplacement(cst.CSTTransformer):

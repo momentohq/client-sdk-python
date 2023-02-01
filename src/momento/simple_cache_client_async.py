@@ -1,6 +1,6 @@
 from datetime import timedelta
 from types import TracebackType
-from typing import Optional, Type, Union
+from typing import Optional, Type
 
 from momento import logs
 from momento.auth import CredentialProvider
@@ -36,9 +36,13 @@ from momento.responses import (
     CacheGetResponse,
     CacheSetResponse,
     CreateCacheResponse,
+    CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
 )
+from momento.typing import TScalarKey, TScalarValue
 
 
 class SimpleCacheClientAsync:
@@ -71,6 +75,7 @@ class SimpleCacheClientAsync:
         self._logger = logs.logger
         self._next_client_index = 0
         self._control_client = _ScsControlClient(credential_provider)
+        self._cache_endpoint = credential_provider.get_cache_endpoint()
         self._data_clients = [
             _ScsDataClient(configuration, credential_provider, default_ttl)
             for _ in range(SimpleCacheClientAsync._NUM_CLIENTS)
@@ -199,19 +204,61 @@ class SimpleCacheClientAsync:
         """
         return await self._control_client.list_caches(next_token)
 
+    async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
+        """Creates a Momento signing key
+
+        Args:
+            ttl: The key's time-to-live represented as a timedelta
+
+        Returns:
+            CreateSigningKeyResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return await self._control_client.create_signing_key(ttl, self._cache_endpoint)
+
+    async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+        """Revokes a Momento signing key, all tokens signed by which will be invalid
+
+        Args:
+            key_id: The id of the Momento signing key to revoke
+
+        Returns:
+            RevokeSigningKeyResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return await self._control_client.revoke_signing_key(key_id)
+
+    async def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+        """Lists all Momento signing keys for the provided auth token.
+
+        Args:
+            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+
+        Returns:
+            ListSigningKeysResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return await self._control_client.list_signing_keys(self._cache_endpoint, next_token)
+
     async def set(
         self,
         cache_name: str,
-        key: Union[str, bytes],
-        value: Union[str, bytes],
+        key: TScalarKey,
+        value: TScalarValue,
         ttl: Optional[timedelta] = None,
     ) -> CacheSetResponse:
         """Set the value in cache with a given time to live (TTL) seconds.
 
         Args:
             cache_name (str): Name of the cache to store the item in.
-            key (Union[str, bytes]): The key to set.
-            value (Union[str, bytes]): The value to be stored.
+            key (TScalarKey): The key to set.
+            value (TScalarValue): The value to be stored.
             ttl (Optional[timedelta], optional): TTL for the item in cache.
             This TTL takes precedence over the TTL used when initializing a cache client.
             Defaults to client TTL. If specified must be strictly positive.
@@ -245,12 +292,12 @@ class SimpleCacheClientAsync:
         """
         return await self._get_next_client().set(cache_name, key, value, ttl)
 
-    async def get(self, cache_name: str, key: Union[str, bytes]) -> CacheGetResponse:
+    async def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         """Get the cache value stored for the given key.
 
         Args:
             cache_name (str): Name of the cache to perform the lookup in.
-            key (Union[str, bytes]): The key to lookup.
+            key (TScalarKey): The key to lookup.
 
         Returns:
             CacheGetResponse: the status of the get operation and the associated value. This result
@@ -284,12 +331,12 @@ class SimpleCacheClientAsync:
         """
         return await self._get_next_client().get(cache_name, key)
 
-    async def delete(self, cache_name: str, key: Union[str, bytes]) -> CacheDeleteResponse:
+    async def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
         """Remove the key from the cache.
 
         Args:
             cache_name (str): Name of the cache to delete the key from.
-            key (Union[str, bytes]): The key to delete.
+            key (TScalarKey): The key to delete.
 
         Returns:
             CacheDeleteResponse: result of the delete operation. This result
@@ -319,6 +366,12 @@ class SimpleCacheClientAsync:
                     # Shouldn't happen
         """
         return await self._get_next_client().delete(cache_name, key)
+
+    # DICTIONARY COLLECTION METHODS
+
+    # LIST COLLECTION METHODS
+
+    # SET COLLECTION METHODS
 
     def _get_next_client(self) -> _ScsDataClient:
         client = self._data_clients[self._next_client_index]

@@ -533,6 +533,21 @@ typing-extensions = {version = ">=3.7.2", markers = "python_version < \"3.8\""}
 testing = ["coverage (>=6.2)", "flaky (>=3.5.0)", "hypothesis (>=5.7.1)", "mypy (>=0.931)", "pytest-trio (>=0.7.0)"]
 
 [[package]]
+name = "pytest-describe"
+version = "2.0.1"
+description = "Describe-style plugin for pytest"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pytest-describe-2.0.1.tar.gz", hash = "sha256:e5cbaa31169f0060348ad5ca0191027e5f1f41f3f27fdeef208365e09c55eb9a"},
+    {file = "pytest_describe-2.0.1-py3-none-any.whl", hash = "sha256:ea347838bdf774b498ee7cb4a0b802a40be89e667a399fb63d860e3223bf4183"},
+]
+
+[package.dependencies]
+pytest = ">=4.0.0"
+
+[[package]]
 name = "pytest-sugar"
 version = "0.9.6"
 description = "pytest-sugar is a plugin for pytest that changes the default look and feel of pytest (e.g. progressbar, show tests that fail instantly)."
@@ -746,4 +761,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.12"
-content-hash = "b09e58366133a133568a13d16f421ff00c440b55e0f3e2a6d195d3c9ef561a25"
+content-hash = "dcf18dc890cc23e8188317d0b412ed05c14980de6f58182520e0086847a5e30c"
