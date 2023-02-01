@@ -57,6 +57,16 @@ with slow_func():
     pass
 """,
         ),
+        (
+            """
+class A:
+    \"\"\"Async Simple Cache Client\"\"\"
+""",
+            """
+class A:
+    \"\"\"Synchronous Simple Cache Client\"\"\"
+""",
+        ),
     ],
 )
 def test_async_to_sync(input_: str, expected: str) -> None:

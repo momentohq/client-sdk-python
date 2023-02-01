@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import timedelta
 from types import TracebackType
 from typing import Optional, Type
@@ -48,8 +50,22 @@ from momento.typing import TScalarKey, TScalarValue
 class SimpleCacheClient:
     """Synchronous Simple Cache Client"""
 
+    _NUM_CLIENTS = 1
+    """(async client only) For high load, we might get better performance with multiple clients,
+    because the server is configured to allow a max of 100 streams per connection.
+`
+    In the javascript SDK, multiple clients resulted in an obvious performance improvement.
+    However, in the python SDK I have not yet been able to observe a clear benefit.
+    So for now, we are putting the plumbing in place so that we can more easily test performance
+    with multiple connections in the future, but we are leaving the default value set to 1.
+
+    We are hard-coding the value for now, because we haven't yet designed the API for
+    users to use to configure tunables:
+    https://github.com/momentohq/dev-eco-issue-tracker/issues/85
+    """
+
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
-        """Creates an async SimpleCacheClient
+        """Instantiate a client.
 
         Args:
             configuration (Configuration): An object holding configuration settings for communication with the server.
@@ -61,11 +77,15 @@ class SimpleCacheClient:
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
+        self._next_client_index = 0
         self._control_client = _ScsControlClient(credential_provider)
         self._cache_endpoint = credential_provider.get_cache_endpoint()
-        self._data_client = _ScsDataClient(configuration, credential_provider, default_ttl)
+        self._data_clients = [
+            _ScsDataClient(configuration, credential_provider, default_ttl)
+            for _ in range(SimpleCacheClient._NUM_CLIENTS)
+        ]
 
-    def __enter__(self) -> "SimpleCacheClient":
+    def __enter__(self) -> SimpleCacheClient:
         return self
 
     def __exit__(
@@ -75,7 +95,8 @@ class SimpleCacheClient:
         traceback: Optional[TracebackType],
     ) -> None:
         self._control_client.close()
-        self._data_client.close()
+        for data_client in self._data_clients:
+            data_client.close()
 
     def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a cache if it doesn't exist.
@@ -355,3 +376,9 @@ class SimpleCacheClient:
     # LIST COLLECTION METHODS
 
     # SET COLLECTION METHODS
+
+    @property
+    def _data_client(self) -> _ScsDataClient:
+        client = self._data_clients[self._next_client_index]
+        self._next_client_index = (self._next_client_index + 1) % len(self._data_clients)
+        return client

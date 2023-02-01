@@ -24,17 +24,19 @@ lint:
 	@poetry run mypy src
 	@poetry run flake8 src
 
-.PHONY: gen-sync
-## Generate synchronous code and tests from asynchronous code.
-gen-sync:
+.PHONY: do-gen-sync
+do-gen-sync:
 	@poetry run python -m momento.internal.codegen src/momento/internal/aio/_scs_control_client.py src/momento/internal/synchronous/_scs_control_client.py
 	@poetry run python -m momento.internal.codegen src/momento/internal/aio/_scs_data_client.py src/momento/internal/synchronous/_scs_data_client.py
-# We comment out the below as the generation is imperfect, though still useful as a guide.
-#	@poetry run python -m momento.internal.codegen src/momento/simple_cache_client_async.py src/momento/simple_cache_client.py
+	@poetry run python -m momento.internal.codegen src/momento/simple_cache_client_async.py src/momento/simple_cache_client.py
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/shared_behaviors_async.py tests/momento/simple_cache_client/shared_behaviors.py 
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_init_async.py tests/momento/simple_cache_client/test_init.py
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_control_async.py tests/momento/simple_cache_client/test_control.py
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_scalar_async.py tests/momento/simple_cache_client/test_scalar.py
+
+.PHONY: gen-sync
+## Generate synchronous code and tests from asynchronous code.
+gen-sync: do-gen-sync format
 
 .PHONY: test
 ## Run unit and integration tests with pytest
