@@ -290,7 +290,7 @@ class SimpleCacheClientAsync:
                 else:
                     # Shouldn't happen
         """
-        return await self._get_next_client().set(cache_name, key, value, ttl)
+        return await self._data_client.set(cache_name, key, value, ttl)
 
     async def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         """Get the cache value stored for the given key.
@@ -329,7 +329,7 @@ class SimpleCacheClientAsync:
                 else:
                     # Shouldn't happen
         """
-        return await self._get_next_client().get(cache_name, key)
+        return await self._data_client.get(cache_name, key)
 
     async def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
         """Remove the key from the cache.
@@ -365,7 +365,7 @@ class SimpleCacheClientAsync:
                 else:
                     # Shouldn't happen
         """
-        return await self._get_next_client().delete(cache_name, key)
+        return await self._data_client.delete(cache_name, key)
 
     # DICTIONARY COLLECTION METHODS
 
@@ -373,7 +373,8 @@ class SimpleCacheClientAsync:
 
     # SET COLLECTION METHODS
 
-    def _get_next_client(self) -> _ScsDataClient:
+    @property
+    def _data_client(self) -> _ScsDataClient:
         client = self._data_clients[self._next_client_index]
         self._next_client_index = (self._next_client_index + 1) % len(self._data_clients)
         return client
