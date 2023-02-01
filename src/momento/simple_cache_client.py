@@ -7,6 +7,7 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
+from momento.requests import CollectionTtl
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -36,6 +37,7 @@ except ImportError as e:
 from momento.responses import (
     CacheDeleteResponse,
     CacheGetResponse,
+    CacheListConcatenateBackResponse,
     CacheListFetchResponse,
     CacheSetResponse,
     CreateCacheResponse,
@@ -45,7 +47,7 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.typing import TScalarKey, TScalarValue
+from momento.typing import TCacheName, TListName, TListValues, TScalarKey, TScalarValue
 
 
 class SimpleCacheClient:
@@ -400,7 +402,17 @@ class SimpleCacheClient:
     # DICTIONARY COLLECTION METHODS
 
     # LIST COLLECTION METHODS
-    def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
+    def list_concatenate_back(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values: TListValues,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_front_to_size: Optional[int] = None,
+    ) -> CacheListConcatenateBackResponse:
+        return self._data_client.list_concatenate_back(cache_name, list_name, values, ttl, truncate_front_to_size)
+
+    def list_fetch(self, cache_name: TCacheName, list_name: TListName) -> CacheListFetchResponse:
         return self._data_client.list_fetch(cache_name, list_name)
 
     # SET COLLECTION METHODS

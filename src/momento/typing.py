@@ -1,4 +1,6 @@
-from typing import Union
+from typing import List, Union
+
+TCacheName = str
 
 # Scalar Types
 TScalarKey = Union[str, bytes]
@@ -10,5 +12,7 @@ TCollectionName = str
 # Dictionary Types
 
 # List Types
+TListName = TCollectionName
+TListValues = Union[List[str], List[bytes]]
 
 # Set Types

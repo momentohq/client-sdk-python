@@ -1,12 +1,13 @@
 from datetime import timedelta
 from functools import partial
-from typing import Optional
+from typing import Dict, Optional
 
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
     _DeleteResponse,
     _GetRequest,
     _GetResponse,
+    _ListConcatenateBackRequest,
     _ListFetchRequest,
     _SetRequest,
     _SetResponse,
@@ -19,6 +20,7 @@ from momento.config import Configuration
 from momento.errors import convert_error
 from momento.internal._utilities import (
     _as_bytes,
+    _list_as_bytes,
     _validate_cache_name,
     _validate_list_name,
     _validate_ttl,
@@ -37,17 +39,20 @@ from momento.internal.common._data_client_scalar_ops import (
 )
 from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
 from momento.internal.synchronous._utilities import make_metadata
+from momento.requests import CollectionTtl
 from momento.responses import (
     CacheDelete,
     CacheDeleteResponse,
     CacheGet,
     CacheGetResponse,
+    CacheListConcatenateBack,
+    CacheListConcatenateBackResponse,
     CacheListFetch,
     CacheListFetchResponse,
     CacheSet,
     CacheSetResponse,
 )
-from momento.typing import TScalarKey, TScalarValue
+from momento.typing import TCacheName, TListName, TListValues, TScalarKey, TScalarValue
 
 
 class _ScsDataClient:
@@ -146,9 +151,42 @@ class _ScsDataClient:
     # DICTIONARY COLLECTION METHODS
 
     # LIST COLLECTION METHODS
-    def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
+    def list_concatenate_back(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values: TListValues,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_front_to_size: Optional[int] = None,
+    ) -> CacheListConcatenateBackResponse:
         try:
-            self._logger.log(logs.TRACE, "Issuing a ListFetch request with list_name %s", str(list_name))
+            self._log_issuing_request("ListConcatenateBack", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
+            request = _ListConcatenateBackRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.values.extend(_list_as_bytes(values, "Unsupported type for values: "))
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.refresh_ttl = ttl.refresh_ttl
+            if truncate_front_to_size is not None:
+                request.truncate_front_to_size = truncate_front_to_size
+
+            self._build_stub().ListConcatenateBack(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListConcatenateBack", {"list_name": str(request.list_name)})
+            return CacheListConcatenateBack.Success()
+        except Exception as e:
+            self._log_request_error("list_concatenate_back", e)
+            return CacheListConcatenateBack.Error(convert_error(e))
+
+    def list_fetch(self, cache_name: TCacheName, list_name: TListName) -> CacheListFetchResponse:
+        try:
+            self._log_issuing_request("ListFetch", {"list_name": str(list_name)})
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
             request = _ListFetchRequest()
@@ -158,7 +196,7 @@ class _ScsDataClient:
                 metadata=make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
-            self._logger.log(logs.TRACE, "Received a ListFetch response for %s", str(request.list_name))
+            self._log_received_response("ListFetch", {"list_name": str(request.list_name)})
             if response.missing:
                 return CacheListFetch.Miss()
             return CacheListFetch.Hit(response.found)
@@ -168,8 +206,14 @@ class _ScsDataClient:
 
     # SET COLLECTION METHODS
 
+    def _log_received_response(self, request_type: str, request_args: Dict[str, str]) -> None:
+        self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")
+
+    def _log_issuing_request(self, request_type: str, request_args: Dict[str, str]) -> None:
+        self._logger.log(logs.TRACE, f"Issuing a {request_type} request with {request_args}")
+
     def _log_request_error(self, request_type: str, e: Exception) -> None:
-        self._logger.warning("%s failed with exception: %s", request_type, e)
+        self._logger.warning(f"{request_type} failed with exception: {e}")
 
     def _build_stub(self) -> ScsStub:
         return self._grpc_manager.stub()
