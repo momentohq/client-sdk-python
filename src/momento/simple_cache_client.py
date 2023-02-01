@@ -36,21 +36,19 @@ from momento.responses import (
     CacheGetResponse,
     CacheSetResponse,
     CreateCacheResponse,
+    CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
 )
 
 
 class SimpleCacheClient:
     """Synchronous Simple Cache Client"""
 
-    def __init__(
-        self,
-        configuration: Configuration,
-        credential_provider: CredentialProvider,
-        default_ttl: timedelta,
-    ):
-        """Creates a synchronous SimpleCacheClient
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
+        """Creates an async SimpleCacheClient
 
         Args:
             configuration (Configuration): An object holding configuration settings for communication with the server.
@@ -60,15 +58,11 @@ class SimpleCacheClient:
         Raises:
             IllegalArgumentException: If method arguments fail validations.
         """
-        self._logger = logs.logger
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
-        self._configuration = configuration
+        self._logger = logs.logger
         self._control_client = _ScsControlClient(credential_provider)
-        self._data_client = _ScsDataClient(
-            configuration,
-            credential_provider,
-            default_ttl,
-        )
+        self._cache_endpoint = credential_provider.get_cache_endpoint()
+        self._data_client = _ScsDataClient(configuration, credential_provider, default_ttl)
 
     def __enter__(self) -> "SimpleCacheClient":
         return self
@@ -191,6 +185,48 @@ class SimpleCacheClient:
                     # Shouldn't happen
         """
         return self._control_client.list_caches(next_token)
+
+    def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
+        """Creates a Momento signing key
+
+        Args:
+            ttl: The key's time-to-live represented as a timedelta
+
+        Returns:
+            CreateSigningKeyResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return self._control_client.create_signing_key(ttl, self._cache_endpoint)
+
+    def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+        """Revokes a Momento signing key, all tokens signed by which will be invalid
+
+        Args:
+            key_id: The id of the Momento signing key to revoke
+
+        Returns:
+            RevokeSigningKeyResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return self._control_client.revoke_signing_key(key_id)
+
+    def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+        """Lists all Momento signing keys for the provided auth token.
+
+        Args:
+            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+
+        Returns:
+            ListSigningKeysResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return self._control_client.list_signing_keys(self._cache_endpoint, next_token)
 
     def set(
         self,
