@@ -21,4 +21,4 @@ jobs:
           project_stability: alpha
           project_type: sdk
           sdk_language: Python
-          usage_example_path: ./examples/example.py
+          usage_example_path: ./examples/py310/example.py
