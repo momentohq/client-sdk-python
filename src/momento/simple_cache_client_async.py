@@ -36,8 +36,11 @@ from momento.responses import (
     CacheGetResponse,
     CacheSetResponse,
     CreateCacheResponse,
+    CreateSigningKeyResponse,
     DeleteCacheResponse,
     ListCachesResponse,
+    ListSigningKeysResponse,
+    RevokeSigningKeyResponse,
 )
 
 
@@ -71,6 +74,7 @@ class SimpleCacheClientAsync:
         self._logger = logs.logger
         self._next_client_index = 0
         self._control_client = _ScsControlClient(credential_provider)
+        self._cache_endpoint = credential_provider.get_cache_endpoint()
         self._data_clients = [
             _ScsDataClient(configuration, credential_provider, default_ttl)
             for _ in range(SimpleCacheClientAsync._NUM_CLIENTS)
@@ -198,6 +202,48 @@ class SimpleCacheClientAsync:
                     # Shouldn't happen
         """
         return await self._control_client.list_caches(next_token)
+
+    async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
+        """Creates a Momento signing key
+
+        Args:
+            ttl: The key's time-to-live represented as a timedelta
+
+        Returns:
+            CreateSigningKeyResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return await self._control_client.create_signing_key(ttl, self._cache_endpoint)
+
+    async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+        """Revokes a Momento signing key, all tokens signed by which will be invalid
+
+        Args:
+            key_id: The id of the Momento signing key to revoke
+
+        Returns:
+            RevokeSigningKeyResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return await self._control_client.revoke_signing_key(key_id)
+
+    async def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+        """Lists all Momento signing keys for the provided auth token.
+
+        Args:
+            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+
+        Returns:
+            ListSigningKeysResponse
+
+        Raises:
+            SdkException: validation, server-side, or other runtime error
+        """
+        return await self._control_client.list_signing_keys(self._cache_endpoint, next_token)
 
     async def set(
         self,
