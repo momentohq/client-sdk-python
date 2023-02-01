@@ -56,6 +56,12 @@ class AsyncToSyncTransformer(cst.CSTTransformer):
         names = [import_alias for import_alias in original_node.names if import_alias.name.value != "Awaitable"]
         return updated_node.with_changes(names=names)
 
+    def leave_SimpleString(self, original_node: cst.SimpleString, updated_node: cst.SimpleString) -> cst.BaseExpression:
+        """_Alter comments and docstrings"""
+        return updated_node.with_changes(
+            value=original_node.value.replace("Async Simple Cache Client", "Synchronous Simple Cache Client")
+        )
+
 
 class NameReplacement(cst.CSTTransformer):
     """Applies regex-based substitutions to names in the AST."""
