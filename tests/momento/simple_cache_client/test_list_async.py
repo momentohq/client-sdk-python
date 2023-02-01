@@ -9,7 +9,7 @@ from momento.errors import MomentoErrorCode
 from momento.responses import CacheListConcatenateBack, CacheListFetch, CacheResponse
 from momento.responses.mixins import ErrorResponseMixin
 from momento.typing import TCacheName, TListName, TListValuesBytes, TListValuesStr
-from tests.utils import uuid_bytes, uuid_str
+from tests.utils import uuid_str
 
 from .shared_behaviors_async import (
     TCacheNameValidator,
@@ -90,6 +90,48 @@ def describe_list_concatenate_back() -> None:
             return await client_async.list_concatenate_back(cache_name, list_name, [uuid_str()])
 
         return _connection_validator
+
+    async def it_returns_the_new_list_length(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values_bytes: TListValuesBytes,
+    ) -> None:
+        resp = await client_async.list_concatenate_back(cache_name, list_name, values_bytes)
+        length = len(values_bytes)
+        assert resp.list_length == length
+
+        resp = await client_async.list_concatenate_back(cache_name, list_name, values_bytes)
+        length += len(values_bytes)
+        assert resp.list_length == length
+
+    async def it_truncates_the_front(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        truncate_to = 4
+
+        concat_resp = await client_async.list_concatenate_back(
+            cache_name=cache_name,
+            list_name=list_name,
+            values=["one", "two", "three"],
+            truncate_front_to_size=truncate_to,
+        )
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success)
+        assert concat_resp.list_length <= truncate_to
+
+        concat_resp = await client_async.list_concatenate_back(
+            cache_name=cache_name,
+            list_name=list_name,
+            values=["four", "five", "six"],
+            truncate_front_to_size=truncate_to,
+        )
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success)
+        assert concat_resp.list_length <= truncate_to
+
+        fetch_resp = await client_async.list_fetch(cache_name, list_name)
+        assert fetch_resp.values_string == ["three", "four", "five", "six"]
 
     async def with_bytes_it_succeeds(
         client_async: SimpleCacheClientAsync,

@@ -24,6 +24,9 @@ class CacheListConcatenateBack(ABC):
     class Success(CacheListConcatenateBackResponse):
         """Indicates the concatenation was successful."""
 
+        list_length: int
+        """The number of values in the list after this concatenation"""
+
     @dataclass
     class Error(CacheListConcatenateBackResponse, ErrorResponseMixin):
         """Indicates an error occured in the request:

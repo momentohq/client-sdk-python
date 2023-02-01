@@ -173,13 +173,13 @@ class _ScsDataClient:
             if truncate_front_to_size is not None:
                 request.truncate_front_to_size = truncate_front_to_size
 
-            self._build_stub().ListConcatenateBack(
+            response = self._build_stub().ListConcatenateBack(
                 request,
                 metadata=make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
             )
             self._log_received_response("ListConcatenateBack", {"list_name": str(request.list_name)})
-            return CacheListConcatenateBack.Success()
+            return CacheListConcatenateBack.Success(response.list_length)
         except Exception as e:
             self._log_request_error("list_concatenate_back", e)
             return CacheListConcatenateBack.Error(convert_error(e))
