@@ -93,11 +93,19 @@ def describe_list_concatenate_back() -> None:
         list_name: TListName,
         values_bytes: TListValuesBytes,
     ) -> None:
-        resp = client.list_concatenate_back(cache_name, list_name, values_bytes)
-        assert isinstance(resp, CacheListConcatenateBack.Success)
+        concat_resp = client.list_concatenate_back(cache_name, list_name, values_bytes)
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success)
+
+        fetch_resp = client.list_fetch(cache_name, list_name)
+        assert isinstance(fetch_resp, CacheListFetch.Hit)
+        assert fetch_resp.values_bytes == values_bytes
 
     def with_strings_it_succeeds(
         client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values_str: TListValuesStr
     ) -> None:
         resp = client.list_concatenate_back(cache_name, list_name, values_str)
         assert isinstance(resp, CacheListConcatenateBack.Success)
+
+        fetch_resp = client.list_fetch(cache_name, list_name)
+        assert isinstance(fetch_resp, CacheListFetch.Hit)
+        assert fetch_resp.values_string == values_str

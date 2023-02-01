@@ -17,7 +17,7 @@ from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
-from momento.errors import convert_error
+from momento.errors import UnknownException, convert_error
 from momento.internal._utilities import (
     _as_bytes,
     _list_as_bytes,
@@ -197,9 +197,14 @@ class _ScsDataClient:
                 timeout=self._default_deadline_seconds,
             )
             self._log_received_response("ListFetch", {"list_name": str(request.list_name)})
-            if response.missing:
+
+            type = response.WhichOneof("list")
+            if type == "missing":
                 return CacheListFetch.Miss()
-            return CacheListFetch.Hit(response.found)
+            elif type == "found":
+                return CacheListFetch.Hit(response.found.values)
+            else:
+                raise UnknownException("Unknown list field")
         except Exception as e:
             self._log_request_error("list_fetch", e)
             return CacheListFetch.Error(convert_error(e))
