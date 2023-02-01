@@ -57,16 +57,6 @@ with slow_func():
     pass
 """,
         ),
-        (
-            """
-class A:
-    \"\"\"Async Simple Cache Client\"\"\"
-""",
-            """
-class A:
-    \"\"\"Synchronous Simple Cache Client\"\"\"
-""",
-        ),
     ],
 )
 def test_async_to_sync(input_: str, expected: str) -> None:
@@ -114,6 +104,51 @@ def ok():
 )
 def test_name_replacement(input_: str, expected: str) -> None:
     async_to_sync = codegen.name_replacements
+    input_module = codegen.parse_module(input_)
+    output_module = input_module.visit(async_to_sync)
+    output_program = output_module.code
+    assert expected == output_program
+
+
+@pytest.mark.parametrize(
+    "input_, expected",
+    [
+        (
+            """
+class A:
+    \"\"\"Async Simple Cache Client\"\"\"
+""",
+            """
+class A:
+    \"\"\"Synchronous Simple Cache Client\"\"\"
+""",
+        ),
+        (
+            """
+class A:
+    \"\"\"Here is an example: result = await call()\"\"\"
+""",
+            """
+class A:
+    \"\"\"Here is an example: result = call()\"\"\"
+""",
+        ),
+        (
+            """
+class A:
+    \"\"\"Here is an example: result = await call()
+    result2 = await call2()\"\"\"
+""",
+            """
+class A:
+    \"\"\"Here is an example: result = call()
+    result2 = call2()\"\"\"
+""",
+        ),
+    ],
+)
+def test_simple_string_replacement(input_: str, expected: str) -> None:
+    async_to_sync = codegen.simple_string_replacements
     input_module = codegen.parse_module(input_)
     output_module = input_module.visit(async_to_sync)
     output_program = output_module.code
