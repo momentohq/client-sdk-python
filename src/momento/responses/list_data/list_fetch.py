@@ -45,7 +45,7 @@ class CacheListFetch(ABC):
 
     @dataclass
     class Miss(CacheListFetchResponse):
-        """Indicates the list is empty."""
+        """Indicates the list does not exist."""
 
     @dataclass
     class Error(CacheListFetchResponse, ErrorResponseMixin):
