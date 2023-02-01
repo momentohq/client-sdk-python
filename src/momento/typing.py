@@ -13,6 +13,8 @@ TCollectionName = str
 
 # List Types
 TListName = TCollectionName
-TListValues = Union[List[str], List[bytes]]
+TListValuesBytes = List[bytes]
+TListValuesStr = List[str]
+TListValues = Union[TListValuesBytes, TListValuesStr]
 
 # Set Types

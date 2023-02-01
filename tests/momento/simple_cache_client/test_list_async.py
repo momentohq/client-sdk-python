@@ -8,8 +8,8 @@ from momento import SimpleCacheClientAsync
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheListConcatenateBack, CacheListFetch, CacheResponse
 from momento.responses.mixins import ErrorResponseMixin
-from momento.typing import TCacheName
-from tests.utils import uuid_str
+from momento.typing import TCacheName, TListName, TListValuesBytes, TListValuesStr
+from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors_async import (
     TCacheNameValidator,
@@ -22,8 +22,9 @@ TListNameValidator = Callable[[str], Awaitable[CacheResponse]]
 
 
 def a_list_name_validator() -> None:
-    async def with_non_existent_list_name_it_throws_not_found(list_name_validator: TListNameValidator) -> None:
-        list_name = uuid_str()
+    async def with_non_existent_list_name_it_throws_not_found(
+        list_name_validator: TListNameValidator, list_name: TListName
+    ) -> None:
         response = await list_name_validator(list_name)
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
@@ -65,9 +66,9 @@ def describe_list_fetch() -> None:
 
         return _connection_validator
 
-    async def misses_when_the_list_does_not_exist(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> None:
-        list_name = uuid_str()
-
+    async def misses_when_the_list_does_not_exist(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> None:
         resp = await client_async.list_fetch(cache_name, list_name)
         assert isinstance(resp, CacheListFetch.Miss)
 
@@ -90,9 +91,17 @@ def describe_list_concatenate_back() -> None:
 
         return _connection_validator
 
-    async def with_strings_it_succeeds(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> None:
-        list_name = uuid_str()
-        values = [uuid_str(), uuid_str()]
+    async def with_bytes_it_succeeds(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values_bytes: TListValuesBytes,
+    ) -> None:
+        resp = await client_async.list_concatenate_back(cache_name, list_name, values_bytes)
+        assert isinstance(resp, CacheListConcatenateBack.Success)
 
-        resp = await client_async.list_concatenate_back(cache_name, list_name, values)
+    async def with_strings_it_succeeds(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName, values_str: TListValuesStr
+    ) -> None:
+        resp = await client_async.list_concatenate_back(cache_name, list_name, values_str)
         assert isinstance(resp, CacheListConcatenateBack.Success)

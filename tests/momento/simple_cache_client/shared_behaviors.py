@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Callable, Union
+from typing import Callable
 
 from momento import SimpleCacheClient
 from momento.auth import EnvMomentoTokenProvider
@@ -7,10 +7,10 @@ from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheResponse
 from momento.responses.mixins import ErrorResponseMixin
-from momento.typing import TScalarKey
+from momento.typing import TCacheName, TScalarKey
 from tests.utils import uuid_str
 
-TCacheNameValidator = Callable[[str], CacheResponse]
+TCacheNameValidator = Callable[[TCacheName], CacheResponse]
 
 
 def a_cache_name_validator() -> None:
