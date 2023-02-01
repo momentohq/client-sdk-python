@@ -4,12 +4,15 @@
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
-[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-alpha.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
+[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-alpha.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md) 
 
 # Momento Python Client Library
 
+
 Python client SDK for Momento Serverless Cache: a fast, simple, pay-as-you-go caching solution without
 any of the operational overhead required by traditional caching solutions!
+
+
 
 ## Getting Started :running:
 
@@ -25,7 +28,7 @@ how to use the SDK.
 
 ### Installation
 
-The [Momento SDK is available on PyPi](https://pypi.org/project/momento/). To install via pip:
+The [Momento SDK is available on PyPi](https://pypi.org/project/momento/).  To install via pip:
 
 ```bash
 pip install momento
@@ -37,16 +40,18 @@ Here is a quickstart you can use in your own project:
 
 ```python
 import logging
-import os
+from datetime import timedelta
 
 from example_utils.example_logging import initialize_logging
 
-import momento.errors as errors
-import momento.simple_cache_client as scc
+from momento import SimpleCacheClient
+from momento.auth.credential_provider import EnvMomentoTokenProvider
+from momento.config.configurations import Laptop
+from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
-_MOMENTO_AUTH_TOKEN = os.getenv("MOMENTO_AUTH_TOKEN")
+_AUTH_PROVIDER = EnvMomentoTokenProvider("MOMENTO_AUTH_TOKEN")
 _CACHE_NAME = "cache"
-_ITEM_DEFAULT_TTL_SECONDS = 60
+_ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
 _KEY = "MyKey"
 _VALUE = "MyValue"
 
@@ -65,40 +70,68 @@ def _print_end_banner() -> None:
     _logger.info("******************************************************************")
 
 
-def _create_cache(cache_client: scc.SimpleCacheClient, cache_name: str) -> None:
-    try:
-        cache_client.create_cache(cache_name)
-    except errors.AlreadyExistsError:
-        _logger.info(f"Cache with name: {cache_name!r} already exists.")
+def _create_cache(cache_client: SimpleCacheClient, cache_name: str) -> None:
+    create_cache_response = cache_client.create_cache(cache_name)
+    match create_cache_response:
+        case CreateCache.Success():
+            pass
+        case CreateCache.CacheAlreadyExists():
+            _logger.info(f"Cache with name: {cache_name!r} already exists.")
+        case CreateCache.Error() as error:
+            _logger.error(f"Error creating cache: {error.message}")
+        case _:
+            _logger.error("Unreachable")
 
 
-def _list_caches(cache_client: scc.SimpleCacheClient) -> None:
+def _list_caches(cache_client: SimpleCacheClient) -> None:
     _logger.info("Listing caches:")
-    list_cache_result = cache_client.list_caches()
+    list_caches_response = cache_client.list_caches()
     while True:
-        for cache_info in list_cache_result.caches():
-            _logger.info(f"- {cache_info.name()!r}")
-        next_token = list_cache_result.next_token()
-        if next_token is None:
-            break
-        list_cache_result = cache_client.list_caches(next_token)
+        match list_caches_response:
+            case ListCaches.Success() as success:
+                for cache_info in success.caches:
+                    _logger.info(f"- {cache_info.name!r}")
+                next_token = success.next_token
+                if next_token is None:
+                    break
+            case ListCaches.Error() as error:
+                _logger.error(f"Error creating cache: {error.message}")
+            case _:
+                _logger.error("Unreachable")
+
+        list_caches_response = cache_client.list_caches(next_token)
     _logger.info("")
 
 
 if __name__ == "__main__":
     initialize_logging()
     _print_start_banner()
-    with scc.SimpleCacheClient(_MOMENTO_AUTH_TOKEN, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    with SimpleCacheClient(Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         _create_cache(cache_client, _CACHE_NAME)
         _list_caches(cache_client)
 
         _logger.info(f"Setting Key: {_KEY!r} Value: {_VALUE!r}")
-        cache_client.set(_CACHE_NAME, _KEY, _VALUE)
+        set_response = cache_client.set(_CACHE_NAME, _KEY, _VALUE)
+        match set_response:
+            case CacheSet.Success():
+                pass
+            case CacheSet.Error() as error:
+                _logger.error(f"Error creating cache: {error.message}")
+            case _:
+                _logger.error("Unreachable")
 
         _logger.info(f"Getting Key: {_KEY!r}")
-        get_resp = cache_client.get(_CACHE_NAME, _KEY)
-        _logger.info(f"Look up resulted in a : {str(get_resp.status())}")
-        _logger.info(f"Looked up Value: {str(get_resp.value())!r}")
+        get_response = cache_client.get(_CACHE_NAME, _KEY)
+        match get_response:
+            case CacheGet.Hit() as hit:
+                _logger.info(f"Look up resulted in a hit: {hit}")
+                _logger.info(f"Looked up Value: {hit.value_string!r}")
+            case CacheGet.Miss():
+                _logger.info("Look up resulted in a: miss. This is unexpected.")
+            case CacheGet.Error() as error:
+                _logger.error(f"Error creating cache: {error.message}")
+            case _:
+                _logger.error("Unreachable")
     _print_end_banner()
 
 ```
@@ -110,16 +143,9 @@ be set to a valid [Momento authentication token](https://docs.momentohq.com/docs
 
 Coming Soon!
 
-## Responses: To Pattern Match or Not to Pattern Match?
-
-Python introduced [structural pattern matching](https://peps.python.org/pep-0636/) in version 3.10. We believe your experience with our client will really shine with this feature. To demonstrate this, we provide examples with and without pattern matching. The example filenames without pattern matching are suffixed with `_prepy310`. For example, `example_async.py` demonstrates our asynchronous client _with_ pattern matching; `example_async_prepy310.py` demonstrates our asynchronous client _without_ pattern matching.
-
-If you are new to this feature, we invite you to try it. Nevertheless you do _have_ to use it. Our client is perfectly compatible with the legacy `if-elif-else` type checking with `isinstance`.
-
 ### Tuning
 
 Coming Soon!
 
----
-
+----------------------------------------------------------------------------------------
 For more info, visit our website at [https://gomomento.com](https://gomomento.com)!
