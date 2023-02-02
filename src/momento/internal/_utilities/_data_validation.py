@@ -31,12 +31,14 @@ def _as_bytes(
         return data.encode("utf-8")
     if isinstance(data, bytes):
         return data
-    raise InvalidArgumentException(error_message + str(type(data)))
+    raise InvalidArgumentException(f"{error_message}{type(data)}")
 
 
 def _list_as_bytes(
     values: TListValues, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR
 ) -> TListValuesBytes:
+    if not isinstance(values, list):
+        raise InvalidArgumentException(f"{error_message}{type(values)}")
     return [_as_bytes(value) for value in values]
 
 

@@ -398,7 +398,7 @@ class _ScsDataClient:
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListPushFrontRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG)
+            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:

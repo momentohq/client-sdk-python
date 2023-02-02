@@ -11,7 +11,7 @@ from pytest_describe import behaves_like
 from momento import SimpleCacheClientAsync
 from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration
-from momento.errors import MomentoErrorCode
+from momento.errors import InvalidArgumentException, MomentoErrorCode
 from momento.requests import CollectionTtl
 from momento.responses import (
     CacheListConcatenateBack,
@@ -41,9 +41,6 @@ from .shared_behaviors_async import (
     a_cache_name_validator,
     a_connection_validator,
 )
-
-TListConcatenator = Callable[[TListName, TListValues], Awaitable[CacheResponse]]
-
 
 TListAdder = Callable[[SimpleCacheClientAsync, TListName, TListValue, CollectionTtl], Awaitable[CacheResponse]]
 
@@ -109,6 +106,9 @@ def a_list_adder() -> None:
             assert isinstance(fetch_resp, CacheListFetch.Miss)
 
 
+TListConcatenator = Callable[[TCacheName, TListName, TListValues], Awaitable[CacheResponse]]
+
+
 def a_list_concatenator() -> None:
     async def it_returns_the_new_list_length(
         list_concatenator: TListConcatenator,
@@ -153,6 +153,17 @@ def a_list_concatenator() -> None:
         assert isinstance(fetch_resp, CacheListFetch.Hit)
         assert fetch_resp.values_string == values_str
 
+    async def with_other_values_type_it_errors(
+        list_concatenator: TListConcatenator,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        resp = await list_concatenator(cache_name, list_name, 234)
+        assert isinstance(resp, ErrorResponseMixin)
+        assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert resp.message == "Invalid argument passed to Momento client: Unsupported type for values: <class 'int'>"
+
 
 TListNameValidator = Callable[[TListName], Awaitable[CacheResponse]]
 
@@ -183,7 +194,7 @@ def a_list_name_validator() -> None:
         assert response.inner_exception.message == "List name must be a string"
 
 
-TListPusher = Callable[[TListName, TListValue], Awaitable[CacheResponse]]
+TListPusher = Callable[[TCacheName, TListName, TListValue], Awaitable[CacheResponse]]
 
 
 def a_list_pusher() -> None:
@@ -227,6 +238,17 @@ def a_list_pusher() -> None:
         fetch_resp = await client_async.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
         assert fetch_resp.values_string == [value]
+
+    async def with_other_value_type_it_errors(
+        list_pusher: TListPusher,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        resp = await list_pusher(cache_name, list_name, 234)
+        assert isinstance(resp, ErrorResponseMixin)
+        assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        assert resp.message == "Invalid argument passed to Momento client: Unsupported type for value: <class 'int'>"
 
 
 @behaves_like(a_cache_name_validator)
@@ -272,7 +294,7 @@ def describe_list_concatenate_back() -> None:
 
     @fixture
     def list_concatenator(
-        client_async: SimpleCacheClientAsync, list_name: TListName, values: TListValues
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName, values: TListValues
     ) -> TListConcatenator:
         return partial(client_async.list_concatenate_back)
 
@@ -348,7 +370,7 @@ def describe_list_concatenate_front() -> None:
 
     @fixture
     def list_concatenator(
-        client_async: SimpleCacheClientAsync, list_name: TListName, values: TListValues
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName, values: TListValues
     ) -> TListConcatenator:
         return partial(client_async.list_concatenate_front)
 
