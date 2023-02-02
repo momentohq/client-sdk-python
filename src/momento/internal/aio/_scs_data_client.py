@@ -10,6 +10,8 @@ from momento_wire_types.cacheclient_pb2 import (
     _ListConcatenateBackRequest,
     _ListConcatenateFrontRequest,
     _ListFetchRequest,
+    _ListPushBackRequest,
+    _ListPushFrontRequest,
     _SetRequest,
     _SetResponse,
 )
@@ -52,10 +54,21 @@ from momento.responses import (
     CacheListConcatenateFrontResponse,
     CacheListFetch,
     CacheListFetchResponse,
+    CacheListPushBack,
+    CacheListPushBackResponse,
+    CacheListPushFront,
+    CacheListPushFrontResponse,
     CacheSet,
     CacheSetResponse,
 )
-from momento.typing import TCacheName, TListName, TListValues, TScalarKey, TScalarValue
+from momento.typing import (
+    TCacheName,
+    TListName,
+    TListValue,
+    TListValues,
+    TScalarKey,
+    TScalarValue,
+)
 
 
 class _ScsDataClient:
@@ -244,6 +257,72 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("list_fetch", e)
             return CacheListFetch.Error(convert_error(e))
+
+    async def list_push_back(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_front_to_size: Optional[int] = None,
+    ) -> CacheListPushBackResponse:
+        try:
+            self._log_issuing_request("ListPushBack", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
+            request = _ListPushBackRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.value = _as_bytes(value, "Unsupported type for value: ")
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.refresh_ttl = ttl.refresh_ttl
+            if truncate_front_to_size is not None:
+                request.truncate_front_to_size = truncate_front_to_size
+
+            response = await self._build_stub().ListPushBack(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPushBack", {"list_name": str(request.list_name)})
+            return CacheListPushBack.Success(response.list_length)
+        except Exception as e:
+            self._log_request_error("list_push_back", e)
+            return CacheListPushBack.Error(convert_error(e))
+
+    async def list_push_front(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_back_to_size: Optional[int] = None,
+    ) -> CacheListPushFrontResponse:
+        try:
+            self._log_issuing_request("ListPushFront", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
+            request = _ListPushFrontRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.value = _as_bytes(value, "Unsupported type for values: ")
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.refresh_ttl = ttl.refresh_ttl
+            if truncate_back_to_size is not None:
+                request.truncate_back_to_size = truncate_back_to_size
+
+            response = await self._build_stub().ListPushFront(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPushFront", {"list_name": str(request.list_name)})
+            return CacheListPushFront.Success(response.list_length)
+        except Exception as e:
+            self._log_request_error("list_push_front", e)
+            return CacheListPushFront.Error(convert_error(e))
 
     # SET COLLECTION METHODS
 

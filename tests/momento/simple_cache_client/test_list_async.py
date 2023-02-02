@@ -10,17 +10,20 @@ from momento.responses import (
     CacheListConcatenateBack,
     CacheListConcatenateFront,
     CacheListFetch,
+    CacheListPushBack,
+    CacheListPushFront,
     CacheResponse,
 )
 from momento.responses.mixins import ErrorResponseMixin
 from momento.typing import (
     TCacheName,
     TListName,
+    TListValue,
     TListValues,
     TListValuesBytes,
     TListValuesStr,
 )
-from tests.utils import uuid_str
+from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors_async import (
     TCacheNameValidator,
@@ -29,7 +32,6 @@ from .shared_behaviors_async import (
     a_connection_validator,
 )
 
-TListNameValidator = Callable[[TListName], Awaitable[CacheResponse]]
 TListConcatenator = Callable[[TListName, TListValues], Awaitable[CacheResponse]]
 
 
@@ -78,6 +80,9 @@ def a_list_concatenator() -> None:
         assert fetch_resp.values_string == values_str
 
 
+TListNameValidator = Callable[[TListName], Awaitable[CacheResponse]]
+
+
 def a_list_name_validator() -> None:
     async def with_null_list_name_it_returns_invalid(
         list_name_validator: TListNameValidator, cache_name: TCacheName
@@ -102,6 +107,52 @@ def a_list_name_validator() -> None:
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "List name must be a string"
+
+
+TListPusher = Callable[[TListName, TListValue], Awaitable[CacheResponse]]
+
+
+def a_list_pusher() -> None:
+    async def it_returns_the_new_list_length(
+        list_pusher: TListPusher,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values: TListValues,
+    ) -> None:
+        length = 0
+        for value in values:
+            resp = await list_pusher(cache_name, list_name, value)
+            length += 1
+            assert resp.list_length == length
+
+    async def with_bytes_it_succeeds(
+        list_pusher: TListConcatenator,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        value = uuid_bytes()
+        concat_resp = await list_pusher(cache_name, list_name, value)
+        assert concat_resp.list_length == 1
+
+        fetch_resp = await client_async.list_fetch(cache_name, list_name)
+        assert isinstance(fetch_resp, CacheListFetch.Hit)
+        assert fetch_resp.values_bytes == [value]
+
+    async def with_strings_it_succeeds(
+        list_pusher: TListConcatenator,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        value = uuid_str()
+        concat_resp = await list_pusher(cache_name, list_name, value)
+        assert concat_resp.list_length == 1
+
+        fetch_resp = await client_async.list_fetch(cache_name, list_name)
+        assert isinstance(fetch_resp, CacheListFetch.Hit)
+        assert fetch_resp.values_string == [value]
 
 
 @behaves_like(a_cache_name_validator)
@@ -256,3 +307,107 @@ def describe_list_concatenate_front() -> None:
 
         fetch_resp = await client_async.list_fetch(cache_name, list_name)
         assert fetch_resp.values_string == ["four", "five", "six", "one"]
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+@behaves_like(a_list_pusher)
+def describe_list_push_back() -> None:
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client_async.list_push_back, list_name=list_name, value=uuid_str())
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        async def _connection_validator(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return await client_async.list_push_back(cache_name=cache_name, list_name=list_name, value=uuid_str())
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        value = uuid_str()
+        return partial(client_async.list_push_back, value=value)
+
+    @fixture
+    def list_pusher(client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName) -> TListPusher:
+        return partial(client_async.list_push_back)
+
+    async def it_truncates_the_front(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        values = ["1", "2", "3"]
+        truncate_to = len(values) - 1
+        for value in values:
+            concat_resp = await client_async.list_push_back(
+                cache_name=cache_name,
+                list_name=list_name,
+                value=value,
+                truncate_front_to_size=truncate_to,
+            )
+            assert isinstance(concat_resp, CacheListPushBack.Success)
+
+        fetch_resp = await client_async.list_fetch(cache_name, list_name)
+        assert fetch_resp.values_string == ["2", "3"]
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+@behaves_like(a_list_pusher)
+def describe_list_push_front() -> None:
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client_async.list_push_front, list_name=list_name, value=uuid_str())
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        async def _connection_validator(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return await client_async.list_push_front(cache_name=cache_name, list_name=list_name, value=uuid_str())
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        value = uuid_str()
+        return partial(client_async.list_push_front, value=value)
+
+    @fixture
+    def list_pusher(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName, list_value: TListValue
+    ) -> TListPusher:
+        return partial(client_async.list_push_front)
+
+    async def it_truncates_the_back(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        values = ["1", "2", "3"]
+        truncate_to = len(values) - 1
+        for value in values:
+            concat_resp = await client_async.list_push_front(
+                cache_name=cache_name,
+                list_name=list_name,
+                value=value,
+                truncate_back_to_size=truncate_to,
+            )
+            assert isinstance(concat_resp, CacheListPushFront.Success)
+
+        fetch_resp = await client_async.list_fetch(cache_name, list_name)
+        assert fetch_resp.values_string == ["3", "2"]

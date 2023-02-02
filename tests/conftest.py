@@ -13,6 +13,7 @@ from momento.config import Configuration, Laptop
 from momento.typing import (
     TCacheName,
     TListName,
+    TListValue,
     TListValues,
     TListValuesBytes,
     TListValuesStr,
@@ -64,6 +65,11 @@ def cache_name() -> TCacheName:
 @pytest.fixture
 def list_name() -> TListName:
     return uuid_str()
+
+
+@pytest.fixture
+def list_value() -> TListValue:
+    return random.choice((uuid_bytes(), uuid_str()))
 
 
 @pytest.fixture

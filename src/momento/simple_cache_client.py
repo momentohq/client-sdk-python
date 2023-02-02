@@ -48,6 +48,8 @@ from momento.responses import (
     CacheListConcatenateBackResponse,
     CacheListConcatenateFrontResponse,
     CacheListFetchResponse,
+    CacheListPushBackResponse,
+    CacheListPushFrontResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -64,6 +66,7 @@ from momento.typing import (
     TDictionaryName,
     TDictionaryValue,
     TListName,
+    TListValue,
     TListValues,
     TScalarKey,
     TScalarValue,
@@ -480,6 +483,56 @@ class SimpleCacheClient:
         """
 
         return self._data_client.list_fetch(cache_name, list_name)
+
+    def list_push_back(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_front_to_size: Optional[int] = None,
+    ) -> CacheListPushBackResponse:
+        """
+        Add values to the end of the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to push to.
+            values: (TListValues): The values to push.
+            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            truncate_front_to_size (Optional[int]): If the list exceeds this size, remove values from
+                                                    the start of the list.
+
+        Returns:
+            CacheListPushBackResponse:
+        """
+
+        return self._data_client.list_push_back(cache_name, list_name, value, ttl, truncate_front_to_size)
+
+    def list_push_front(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_back_to_size: Optional[int] = None,
+    ) -> CacheListPushFrontResponse:
+        """
+        Add values to the start of the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to push to.
+            values: (TListValues): The values to push.
+            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            truncate_back_to_size (Optional[int]): If the list exceeds this size, remove values from
+                                                   the end of the list.
+
+        Returns:
+            CacheListPushFrontResponse:
+        """
+
+        return self._data_client.list_push_front(cache_name, list_name, value, ttl, truncate_back_to_size)
 
     # SET COLLECTION METHODS
 
