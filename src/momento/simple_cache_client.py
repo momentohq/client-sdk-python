@@ -48,6 +48,12 @@ from momento.responses import (
     CacheListConcatenateBackResponse,
     CacheListConcatenateFrontResponse,
     CacheListFetchResponse,
+    CacheListLengthResponse,
+    CacheListPopBackResponse,
+    CacheListPopFrontResponse,
+    CacheListPushBackResponse,
+    CacheListPushFrontResponse,
+    CacheListRemoveValueResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -64,7 +70,8 @@ from momento.typing import (
     TDictionaryName,
     TDictionaryValue,
     TListName,
-    TListValues,
+    TListValue,
+    TListValuesInput,
     TScalarKey,
     TScalarValue,
 )
@@ -421,7 +428,7 @@ class SimpleCacheClient:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
@@ -431,7 +438,7 @@ class SimpleCacheClient:
         Args:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to concatenate.
-            values: (TListValues): The values to concatenate.
+            values: (TListValuesInput): The values to concatenate.
             ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_front_to_size (Optional[int]): If the list exceeds this size, remove values from
                                                     the start of the list.
@@ -446,7 +453,7 @@ class SimpleCacheClient:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListConcatenateFrontResponse:
@@ -456,7 +463,7 @@ class SimpleCacheClient:
         Args:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to concatenate.
-            values: (TListValues): The values to concatenate.
+            values: (TListValuesInput): The values to concatenate.
             ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_back_to_size (Optional[int]): If the list exceeds this size, remove values from
                                                    the end of the list.
@@ -480,6 +487,123 @@ class SimpleCacheClient:
         """
 
         return self._data_client.list_fetch(cache_name, list_name)
+
+    def list_length(self, cache_name: TCacheName, list_name: TListName) -> CacheListLengthResponse:
+        """
+        Gets the number of values in the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to fetch.
+
+        Returns:
+            CacheListLengthResponse:
+        """
+
+        return self._data_client.list_length(cache_name, list_name)
+
+    def list_pop_back(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopBackResponse:
+        """
+        Gets removes and returns the last value from the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to fetch.
+
+        Returns:
+            CacheListPopBackResponse:
+        """
+
+        return self._data_client.list_pop_back(cache_name, list_name)
+
+    def list_pop_front(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopFrontResponse:
+        """
+        Gets removes and returns the first value from the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to fetch.
+
+        Returns:
+            CacheListPopFrontResponse:
+        """
+
+        return self._data_client.list_pop_front(cache_name, list_name)
+
+    def list_push_back(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_front_to_size: Optional[int] = None,
+    ) -> CacheListPushBackResponse:
+        """
+        Add values to the end of the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to push to.
+            values: (TListValuesInput): The values to push.
+            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            truncate_front_to_size (Optional[int]): If the list exceeds this size, remove values from
+                                                    the start of the list.
+
+        Returns:
+            CacheListPushBackResponse:
+        """
+
+        return self._data_client.list_push_back(cache_name, list_name, value, ttl, truncate_front_to_size)
+
+    def list_push_front(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_back_to_size: Optional[int] = None,
+    ) -> CacheListPushFrontResponse:
+        """
+        Add values to the start of the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to push to.
+            values: (TListValuesInput): The values to push.
+            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            truncate_back_to_size (Optional[int]): If the list exceeds this size, remove values from
+                                                   the end of the list.
+
+        Returns:
+            CacheListPushFrontResponse:
+        """
+
+        return self._data_client.list_push_front(cache_name, list_name, value, ttl, truncate_back_to_size)
+
+    def list_remove_value(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+    ) -> CacheListRemoveValueResponse:
+        """
+        Removes all matching values from the list.
+
+        Example:
+            client.list_concatenate_front(cache_name, list_name, ['up', 'up', 'down', 'down', 'left', 'right'])
+            client.list_remove_value(cache_name, list_name, 'up')
+            fetch_resp = client.list_fetch(cache_name, list_name)
+
+            # ['down', 'down', 'left', 'right']
+            print(fetch_resp.values_string)
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to remove values from.
+            value: (TListValue): The value to remove.
+        """
+
+        return self._data_client.list_remove_value(cache_name, list_name, value)
 
     # SET COLLECTION METHODS
 

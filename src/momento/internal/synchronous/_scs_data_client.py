@@ -10,6 +10,12 @@ from momento_wire_types.cacheclient_pb2 import (
     _ListConcatenateBackRequest,
     _ListConcatenateFrontRequest,
     _ListFetchRequest,
+    _ListLengthRequest,
+    _ListPopBackRequest,
+    _ListPopFrontRequest,
+    _ListPushBackRequest,
+    _ListPushFrontRequest,
+    _ListRemoveRequest,
     _SetRequest,
     _SetResponse,
 )
@@ -52,14 +58,37 @@ from momento.responses import (
     CacheListConcatenateFrontResponse,
     CacheListFetch,
     CacheListFetchResponse,
+    CacheListLength,
+    CacheListLengthResponse,
+    CacheListPopBack,
+    CacheListPopBackResponse,
+    CacheListPopFront,
+    CacheListPopFrontResponse,
+    CacheListPushBack,
+    CacheListPushBackResponse,
+    CacheListPushFront,
+    CacheListPushFrontResponse,
+    CacheListRemoveValue,
+    CacheListRemoveValueResponse,
     CacheSet,
     CacheSetResponse,
 )
-from momento.typing import TCacheName, TListName, TListValues, TScalarKey, TScalarValue
+from momento.typing import (
+    TCacheName,
+    TListName,
+    TListValue,
+    TListValuesInput,
+    TScalarKey,
+    TScalarValue,
+)
 
 
 class _ScsDataClient:
     """Internal"""
+
+    __UNSUPPORTED_LIST_NAME_TYPE_MSG = "Unsupported type for list_name: "
+    __UNSUPPORTED_LIST_VALUE_TYPE_MSG = "Unsupported type for value: "
+    __UNSUPPORTED_LIST_VALUES_TYPE_MSG = "Unsupported type for values: "
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.get_cache_endpoint()
@@ -158,7 +187,7 @@ class _ScsDataClient:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
@@ -169,8 +198,8 @@ class _ScsDataClient:
 
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListConcatenateBackRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
-            request.values.extend(_list_as_bytes(values, "Unsupported type for values: "))
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
@@ -191,7 +220,7 @@ class _ScsDataClient:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListConcatenateFrontResponse:
@@ -202,8 +231,8 @@ class _ScsDataClient:
 
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListConcatenateFrontRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
-            request.values.extend(_list_as_bytes(values, "Unsupported type for values: "))
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
@@ -226,7 +255,7 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
             request = _ListFetchRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             response = self._build_stub().ListFetch(
                 request,
                 metadata=make_metadata(cache_name),
@@ -244,6 +273,173 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("list_fetch", e)
             return CacheListFetch.Error(convert_error(e))
+
+    def list_length(self, cache_name: TCacheName, list_name: TListName) -> CacheListLengthResponse:
+        try:
+            self._log_issuing_request("ListLength", {"list_name": str(list_name)})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+            request = _ListLengthRequest()
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            response = self._build_stub().ListLength(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListLength", {"list_name": str(request.list_name)})
+
+            type = response.WhichOneof("list")
+            if type == "missing":
+                return CacheListLength.Miss()
+            elif type == "found":
+                return CacheListLength.Hit(response.found.length)
+            else:
+                raise UnknownException("Unknown list field")
+        except Exception as e:
+            self._log_request_error("list_length", e)
+            return CacheListLength.Error(convert_error(e))
+
+    def list_pop_back(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopBackResponse:
+        try:
+            self._log_issuing_request("ListPopBack", {"list_name": str(list_name)})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+            request = _ListPopBackRequest()
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            response = self._build_stub().ListPopBack(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPopBack", {"list_name": str(request.list_name)})
+
+            type = response.WhichOneof("list")
+            if type == "missing":
+                return CacheListPopBack.Miss()
+            elif type == "found":
+                return CacheListPopBack.Hit(response.found.back)
+            else:
+                raise UnknownException("Unknown list field")
+        except Exception as e:
+            self._log_request_error("list_pop_back", e)
+            return CacheListPopBack.Error(convert_error(e))
+
+    def list_pop_front(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopFrontResponse:
+        try:
+            self._log_issuing_request("ListPopFront", {"list_name": str(list_name)})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+            request = _ListPopFrontRequest()
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            response = self._build_stub().ListPopFront(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPopFront", {"list_name": str(request.list_name)})
+
+            type = response.WhichOneof("list")
+            if type == "missing":
+                return CacheListPopFront.Miss()
+            elif type == "found":
+                return CacheListPopFront.Hit(response.found.front)
+            else:
+                raise UnknownException("Unknown list field")
+        except Exception as e:
+            self._log_request_error("list_pop_front", e)
+            return CacheListPopFront.Error(convert_error(e))
+
+    def list_push_back(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_front_to_size: Optional[int] = None,
+    ) -> CacheListPushBackResponse:
+        try:
+            self._log_issuing_request("ListPushBack", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
+            request = _ListPushBackRequest()
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.refresh_ttl = ttl.refresh_ttl
+            if truncate_front_to_size is not None:
+                request.truncate_front_to_size = truncate_front_to_size
+
+            response = self._build_stub().ListPushBack(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPushBack", {"list_name": str(request.list_name)})
+            return CacheListPushBack.Success(response.list_length)
+        except Exception as e:
+            self._log_request_error("list_push_back", e)
+            return CacheListPushBack.Error(convert_error(e))
+
+    def list_push_front(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_back_to_size: Optional[int] = None,
+    ) -> CacheListPushFrontResponse:
+        try:
+            self._log_issuing_request("ListPushFront", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
+            request = _ListPushFrontRequest()
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.refresh_ttl = ttl.refresh_ttl
+            if truncate_back_to_size is not None:
+                request.truncate_back_to_size = truncate_back_to_size
+
+            response = self._build_stub().ListPushFront(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPushFront", {"list_name": str(request.list_name)})
+            return CacheListPushFront.Success(response.list_length)
+        except Exception as e:
+            self._log_request_error("list_push_front", e)
+            return CacheListPushFront.Error(convert_error(e))
+
+    def list_remove_value(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+    ) -> CacheListRemoveValueResponse:
+        try:
+            self._log_issuing_request("ListRemoveValue", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            request = _ListRemoveRequest()
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.all_elements_with_value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
+
+            self._build_stub().ListRemove(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListRemoveValue", {"list_name": str(request.list_name)})
+            return CacheListRemoveValue.Success()
+        except Exception as e:
+            self._log_request_error("list_remove_value", e)
+            return CacheListRemoveValue.Error(convert_error(e))
 
     # SET COLLECTION METHODS
 

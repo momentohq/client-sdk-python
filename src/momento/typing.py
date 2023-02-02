@@ -22,8 +22,12 @@ TDictionaryStrStr = Dict[str, str]
 
 # List Types
 TListName = TCollectionName
-TListValuesBytes = List[bytes]
-TListValuesStr = List[str]
-TListValues = Union[TListValuesBytes, TListValuesStr]
+TListValue = Union[str, bytes]
+TListValuesInputBytes = Iterable[bytes]
+TListValuesInputStr = Iterable[str]
+TListValuesInput = Iterable[TListValue]
+TListValuesOutputBytes = List[bytes]
+TListValuesOutputStr = List[str]
+TLIstValuesOutput = Union[TListValuesOutputBytes, TListValuesOutputStr]
 
 # Set Types
