@@ -48,6 +48,7 @@ from momento.responses import (
     CacheListConcatenateBackResponse,
     CacheListConcatenateFrontResponse,
     CacheListFetchResponse,
+    CacheListLengthResponse,
     CacheListPushBackResponse,
     CacheListPushFrontResponse,
     CacheSetResponse,
@@ -483,6 +484,20 @@ class SimpleCacheClient:
         """
 
         return self._data_client.list_fetch(cache_name, list_name)
+
+    def list_length(self, cache_name: TCacheName, list_name: TListName) -> CacheListLengthResponse:
+        """
+        Gets the number of values in the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to fetch.
+
+        Returns:
+            CacheListLengthResponse:
+        """
+
+        return self._data_client.list_length(cache_name, list_name)
 
     def list_push_back(
         self,

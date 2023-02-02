@@ -10,6 +10,7 @@ from momento.responses import (
     CacheListConcatenateBack,
     CacheListConcatenateFront,
     CacheListFetch,
+    CacheListLength,
     CacheListPushBack,
     CacheListPushFront,
     CacheResponse,
@@ -293,6 +294,45 @@ def describe_list_concatenate_front() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert fetch_resp.values_string == ["four", "five", "six", "one"]
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+def describe_list_length() -> None:
+    @fixture
+    def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client.list_length, list_name=list_name)
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return client.list_length(cache_name, list_name)
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        return partial(client.list_length)
+
+    def it_returns_the_list_length(
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValues
+    ) -> None:
+        client.list_concatenate_back(cache_name, list_name, values)
+
+        resp = client.list_length(cache_name, list_name)
+        assert isinstance(resp, CacheListLength.Hit)
+        assert resp.length == len(values)
+
+    def it_misses_when_the_list_does_not_exist(
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
+    ) -> None:
+        resp = client.list_length(cache_name, list_name)
+        assert isinstance(resp, CacheListLength.Miss)
 
 
 @behaves_like(a_cache_name_validator)

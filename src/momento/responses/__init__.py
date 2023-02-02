@@ -35,6 +35,8 @@ from .list_data import (
     CacheListConcatenateFrontResponse,
     CacheListFetch,
     CacheListFetchResponse,
+    CacheListLength,
+    CacheListLengthResponse,
     CacheListPushBack,
     CacheListPushBackResponse,
     CacheListPushFront,

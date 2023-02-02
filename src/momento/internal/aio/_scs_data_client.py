@@ -10,6 +10,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _ListConcatenateBackRequest,
     _ListConcatenateFrontRequest,
     _ListFetchRequest,
+    _ListLengthRequest,
     _ListPushBackRequest,
     _ListPushFrontRequest,
     _SetRequest,
@@ -54,6 +55,8 @@ from momento.responses import (
     CacheListConcatenateFrontResponse,
     CacheListFetch,
     CacheListFetchResponse,
+    CacheListLength,
+    CacheListLengthResponse,
     CacheListPushBack,
     CacheListPushBackResponse,
     CacheListPushFront,
@@ -257,6 +260,31 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("list_fetch", e)
             return CacheListFetch.Error(convert_error(e))
+
+    async def list_length(self, cache_name: TCacheName, list_name: TListName) -> CacheListLengthResponse:
+        try:
+            self._log_issuing_request("ListLength", {"list_name": str(list_name)})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+            request = _ListLengthRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            response = await self._build_stub().ListLength(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListLength", {"list_name": str(request.list_name)})
+
+            type = response.WhichOneof("list")
+            if type == "missing":
+                return CacheListLength.Miss()
+            elif type == "found":
+                return CacheListLength.Hit(response.found.length)
+            else:
+                raise UnknownException("Unknown list field")
+        except Exception as e:
+            self._log_request_error("list_length", e)
+            return CacheListLength.Error(convert_error(e))
 
     async def list_push_back(
         self,
