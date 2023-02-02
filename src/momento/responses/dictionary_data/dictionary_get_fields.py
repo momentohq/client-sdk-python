@@ -3,7 +3,12 @@ from dataclasses import dataclass
 from typing import List
 
 from momento.errors import SdkException
-from momento.typing import TDictionaryBytesBytes, TDictionaryStrBytes, TDictionaryStrStr
+from momento.typing import (
+    TDictionaryBytesBytes,
+    TDictionaryBytesStr,
+    TDictionaryStrBytes,
+    TDictionaryStrStr,
+)
 
 from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import CacheResponse
@@ -44,6 +49,19 @@ class CacheDictionaryGetFields(ABC):
             """
             return {
                 response.field_bytes: response.value_bytes
+                for response in self.responses
+                if isinstance(response, CacheDictionaryGetField.Hit)
+            }
+
+        @property
+        def value_dictionary_bytes_string(self) -> TDictionaryBytesStr:
+            """The items for the dictionary fields, as a mapping from bytes to utf-8 encoded strings.
+
+            Returns:
+                TDictionaryBytesStr
+            """
+            return {
+                response.field_bytes: response.value_string
                 for response in self.responses
                 if isinstance(response, CacheDictionaryGetField.Hit)
             }

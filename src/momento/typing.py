@@ -16,6 +16,7 @@ TDictionaryValue = Union[str, bytes]
 TDictionaryFields = Sequence[TDictionaryField]
 TDictionaryItems = Mapping[TDictionaryField, TDictionaryValue]
 TDictionaryBytesBytes = Dict[bytes, bytes]
+TDictionaryBytesStr = Dict[bytes, str]
 TDictionaryStrBytes = Dict[str, bytes]
 TDictionaryStrStr = Dict[str, str]
 
