@@ -35,8 +35,6 @@ class CacheDictionaryGetFields(ABC):
         """The value returned from the cache for the specified field. Use the
         `value_string` property to access the value as a string."""
 
-        fields: List[bytes]
-
         @property
         def value_dictionary_bytes_bytes(self) -> TDictionaryBytesBytes:
             """The items for the dictionary fields, as a mapping from bytes to bytes.
@@ -45,8 +43,8 @@ class CacheDictionaryGetFields(ABC):
                 TDictionaryBytesBytes
             """
             return {
-                field: response.value_bytes
-                for field, response in zip(self.fields, self.responses)
+                response.field_bytes: response.value_bytes
+                for response in self.responses
                 if isinstance(response, CacheDictionaryGetField.Hit)
             }
 
@@ -58,8 +56,8 @@ class CacheDictionaryGetFields(ABC):
                 TDictionaryStrBytes
             """
             return {
-                field.decode("utf-8"): response.value_bytes
-                for field, response in zip(self.fields, self.responses)
+                response.field_string: response.value_bytes
+                for response in self.responses
                 if isinstance(response, CacheDictionaryGetField.Hit)
             }
 
@@ -71,8 +69,8 @@ class CacheDictionaryGetFields(ABC):
                 TDictionaryStrStr
             """
             return {
-                field.decode("utf-8"): response.value_string
-                for field, response in zip(self.fields, self.responses)
+                response.field_string: response.value_string
+                for response in self.responses
                 if isinstance(response, CacheDictionaryGetField.Hit)
             }
 
