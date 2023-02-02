@@ -72,8 +72,14 @@ from momento.responses import (
     CacheListRemoveValue,
     CacheListRemoveValueResponse,
     CacheSet,
+    CacheSetAddElements,
+    CacheSetAddElementsResponse,
+    CacheSetFetch,
+    CacheSetFetchResponse,
     CacheSetIfNotExists,
     CacheSetIfNotExistsResponse,
+    CacheSetRemoveElements,
+    CacheSetRemoveElementsResponse,
     CacheSetResponse,
 )
 from momento.typing import (
@@ -83,6 +89,8 @@ from momento.typing import (
     TListValuesInput,
     TScalarKey,
     TScalarValue,
+    TSetElementsInput,
+    TSetName,
 )
 
 
@@ -476,6 +484,26 @@ class _ScsDataClient:
             return CacheListRemoveValue.Error(convert_error(e))
 
     # SET COLLECTION METHODS
+    def set_add_elements(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements: TSetElementsInput,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSetAddElementsResponse:
+        None
+
+    def set_fetch(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> CacheSetFetchResponse:
+        None
+
+    def set_remove_elements(
+        self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
+    ) -> CacheSetRemoveElementsResponse:
+        None
 
     def _log_received_response(self, request_type: str, request_args: Dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")

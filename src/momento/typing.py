@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List, Mapping, Union
+from typing import Dict, Iterable, List, Mapping, Set, Union
 
 TCacheName = str
 
@@ -31,3 +31,9 @@ TListValuesOutputStr = List[str]
 TLIstValuesOutput = Union[TListValuesOutputBytes, TListValuesOutputStr]
 
 # Set Types
+TSetName = TCollectionName
+TSetElement = Union[str, bytes]
+TSetElementsInput = Iterable[TSetElement]
+TSetElementsOutputStr = Set[str]
+TSetElementsOutputBytes = Set[bytes]
+TSetElementsOutput = Union[TSetElementsOutputBytes, TSetElementsOutputStr]

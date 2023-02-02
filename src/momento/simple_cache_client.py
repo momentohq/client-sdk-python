@@ -7,6 +7,7 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
+from momento.errors import UnknownException
 from momento.requests import CollectionTtl
 
 try:
@@ -54,7 +55,16 @@ from momento.responses import (
     CacheListPushBackResponse,
     CacheListPushFrontResponse,
     CacheListRemoveValueResponse,
+    CacheSetAddElement,
+    CacheSetAddElementResponse,
+    CacheSetAddElements,
+    CacheSetAddElementsResponse,
+    CacheSetFetchResponse,
     CacheSetIfNotExistsResponse,
+    CacheSetRemoveElement,
+    CacheSetRemoveElementResponse,
+    CacheSetRemoveElements,
+    CacheSetRemoveElementsResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -75,6 +85,9 @@ from momento.typing import (
     TListValuesInput,
     TScalarKey,
     TScalarValue,
+    TSetElement,
+    TSetElementsInput,
+    TSetName,
 )
 
 
@@ -629,6 +642,53 @@ class SimpleCacheClient:
         return self._data_client.list_remove_value(cache_name, list_name, value)
 
     # SET COLLECTION METHODS
+    def set_add_element(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        element: TSetElement,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSetAddElementResponse:
+        resp = self.set_add_elements(cache_name, set_name, [element], ttl)
+
+        if isinstance(resp, CacheSetAddElements.Success):
+            return CacheSetAddElement.Success()
+        elif isinstance(resp, CacheSetAddElements.Error):
+            return CacheSetAddElement.Error(resp.inner_exception)
+        else:
+            raise UnknownException(f"Unknown response type: {type(resp)}")
+
+    def set_add_elements(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements: TSetElementsInput,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSetAddElementsResponse:
+        None
+
+    def set_fetch(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> CacheSetFetchResponse:
+        None
+
+    def set_remove_element(
+        self, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+    ) -> CacheSetRemoveElementResponse:
+        resp = self.set_remove_elements(cache_name, set_name, [element])
+        if isinstance(resp, CacheSetRemoveElements.Success):
+            return CacheSetRemoveElement.Success()
+        elif isinstance(resp, CacheSetRemoveElements.Error):
+            return CacheSetRemoveElement.Error(resp.inner_exception)
+        else:
+            raise UnknownException(f"Unknown response type: {type(resp)}")
+
+    def set_remove_elements(
+        self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
+    ) -> CacheSetRemoveElementsResponse:
+        None
 
     @property
     def _data_client(self) -> _ScsDataClient:
