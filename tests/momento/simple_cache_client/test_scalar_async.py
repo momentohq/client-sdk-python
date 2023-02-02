@@ -140,7 +140,7 @@ def describe_set() -> None:
         set_response = await client_async.set(cache_name, "foo", "bar", timedelta(seconds=-1))
         assert isinstance(set_response, CacheSet.Error)
         assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "TTL timedelta must be a non-negative integer"
+        assert set_response.inner_exception.message == "TTL must be a positive amount of time."
 
     async def with_bad_value_throws_exception(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
         set_response = await client_async.set(cache_name, "foo", 1)

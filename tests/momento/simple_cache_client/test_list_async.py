@@ -85,7 +85,7 @@ def a_list_name_validator() -> None:
         response = await list_name_validator(cache_name, None)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "List name must be a non-empty string"
+        assert response.inner_exception.message == "List name must be a string"
 
     async def with_empty_list_name_it_returns_invalid(
         list_name_validator: TListNameValidator, cache_name: TCacheName
@@ -93,7 +93,7 @@ def a_list_name_validator() -> None:
         response = await list_name_validator(cache_name, "")
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "List name must be a non-empty string"
+        assert response.inner_exception.message == "List name must not be empty"
 
     async def with_bad_list_name_it_returns_invalid(
         list_name_validator: TCacheNameValidator, cache_name: TCacheName
@@ -101,7 +101,7 @@ def a_list_name_validator() -> None:
         response = await list_name_validator(cache_name, 1)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "List name must be a non-empty string"
+        assert response.inner_exception.message == "List name must be a string"
 
 
 @behaves_like(a_cache_name_validator)

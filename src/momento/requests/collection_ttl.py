@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Optional
 
+from momento.internal._utilities import _validate_timedelta_ttl
+
 
 @dataclass
 class CollectionTtl:
@@ -34,8 +36,9 @@ class CollectionTtl:
     """
 
     def __post_init__(self) -> None:
-        if self.ttl is not None and self.ttl.total_seconds() <= 0:
-            raise ValueError("the TTL must be a positive amount of time")
+        if self.ttl is None:
+            return
+        _validate_timedelta_ttl(ttl=self.ttl, field_name="ttl")
 
     @staticmethod
     def from_cache_ttl() -> "CollectionTtl":
