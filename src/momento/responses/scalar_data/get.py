@@ -23,7 +23,7 @@ class CacheGet(ABC):
 
     @dataclass
     class Hit(CacheGetResponse, ValueStringMixin):
-        """Indicates the request was successful."""
+        """Contains the result of a cache hit."""
 
         value_bytes: bytes
         """The value returned from the cache for the specified key. Use the
