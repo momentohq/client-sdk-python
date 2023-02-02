@@ -328,7 +328,8 @@ class SimpleCacheClientAsync:
             field (TDictionaryField): The field to increment.
             amount (int, optional): The quantity to add to the value. May be positive, negative, or zero. Defaults to 1.
             ttl (CollectionTtl, optional): TTL for the dictionary in cache. This TTL takes precedence over the TTL
-                used when initializing a cache client. Defaults to client TTL. Defaults to CollectionTtl.from_cache_ttl().
+                used when initializing a cache client. Defaults to client TTL.
+                Defaults to CollectionTtl.from_cache_ttl().
 
         Returns:
             CacheDictionaryIncrementResponse: result of the increment operation.
@@ -350,7 +351,9 @@ class SimpleCacheClientAsync:
             dictionary_name (TDictionaryName): Name of the dictionary to set.
             field (TDictionaryField): The field in the dictionary to set.
             value (TDictionaryValue): The value to be stored.
-            ttl (CollectionTtl, optional): TTL for the dictionary in cache. This TTL takes precedence over the TTL used when initializing a cache client. Defaults to CollectionTtl.from_cache_ttl().
+            ttl (CollectionTtl, optional): TTL for the dictionary in cache.
+                This TTL takes precedence over the TTL used when initializing a cache client.
+                Defaults to CollectionTtl.from_cache_ttl().
 
         Returns:
             CacheDictionarySetFieldResponse: result of the set operation.
@@ -370,7 +373,9 @@ class SimpleCacheClientAsync:
             cache_name (TCacheName): Name of the cache to perform the lookup in.
             dictionary_name (TDictionaryName): Name of the dictionary to set.
             items (TDictionaryItems): Field value pairs to store.
-            ttl (CollectionTtl, optional): TTL for the dictionary in cache. This TTL takes precedence over the TTL used when initializing a cache client. Defaults to CollectionTtl.from_cache_ttl().
+            ttl (CollectionTtl, optional): TTL for the dictionary in cache.
+                This TTL takes precedence over the TTL used when initializing a cache client.
+                Defaults to CollectionTtl.from_cache_ttl().
 
         Returns:
             CacheDictionarySetFieldsResponse: result of the set fields operation.
