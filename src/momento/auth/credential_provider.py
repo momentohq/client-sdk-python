@@ -33,14 +33,34 @@ class CredentialProvider:
             Defaults to None.
 
         Raises:
-            RuntimeError: _description_
+            RuntimeError: if the environment variable is missing
 
         Returns:
-            CredentialProvider: _description_
+            CredentialProvider
         """
         auth_token = os.getenv(env_var_name)
         if not auth_token:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")
+        return CredentialProvider.from_string(auth_token, control_endpoint, cache_endpoint)
+
+    @staticmethod
+    def from_string(
+        auth_token: str,
+        control_endpoint: Optional[str] = None,
+        cache_endpoint: Optional[str] = None,
+    ) -> CredentialProvider:
+        """Reads and parses a Momento auth token.
+
+        Args:
+            auth_token (str): the Momento auth token
+            control_endpoint (Optional[str], optional): Optionally overrides the default control endpoint.
+            Defaults to None.
+            cache_endpoint (Optional[str], optional): Optionally overrides the default control endpoint.
+            Defaults to None.
+
+        Returns:
+            CredentialProvider
+        """
         endpoints = momento_endpoint_resolver.resolve(auth_token)
         control_endpoint = control_endpoint or endpoints.control_endpoint
         cache_endpoint = cache_endpoint or endpoints.cache_endpoint
