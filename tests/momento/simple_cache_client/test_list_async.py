@@ -18,7 +18,7 @@ from .shared_behaviors_async import (
     a_connection_validator,
 )
 
-TListNameValidator = Callable[[str], Awaitable[CacheResponse]]
+TListNameValidator = Callable[[TListName], Awaitable[CacheResponse]]
 
 
 def a_list_name_validator() -> None:

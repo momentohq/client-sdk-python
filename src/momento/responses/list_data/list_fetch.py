@@ -1,8 +1,8 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import List
 
 from momento.errors import SdkException
+from momento.typing import TListValuesBytes, TListValuesStr
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
@@ -26,19 +26,19 @@ class CacheListFetch(ABC):
     class Hit(CacheListFetchResponse):
         """Indicates the list exists and its values were fetched."""
 
-        values_bytes: List[bytes]
+        values_bytes: TListValuesBytes
         """The values for the fetched list, as bytes.
 
         Returns:
-            List[bytes]
+            TListValuesBytes
         """
 
         @property
-        def values_string(self) -> List[str]:
+        def values_string(self) -> TListValuesStr:
             """The values for the fetched list, as utf-8 encoded strings.
 
             Returns:
-                List[str]
+                TListValuesStr
             """
 
             return [v.decode("utf-8") for v in self.values_bytes]
