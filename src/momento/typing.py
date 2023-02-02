@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Mapping, Sequence, Union
+from typing import Dict, Iterable, Iterator, List, Mapping, Union
 
 TCacheName = str
 
@@ -23,8 +23,11 @@ TDictionaryStrStr = Dict[str, str]
 # List Types
 TListName = TCollectionName
 TListValue = Union[str, bytes]
-TListValuesBytes = Sequence[bytes]
-TListValuesStr = Sequence[str]
-TListValues = Union[TListValuesBytes, TListValuesStr]
+TListValuesInputBytes = Iterator[bytes]
+TListValuesInputStr = Iterator[str]
+TListValuesInput = Union[TListValuesInputBytes, TListValuesInputStr]
+TListValuesOutputBytes = List[bytes]
+TListValuesOutputStr = List[str]
+TLIstValuesOutput = Union[TListValuesOutputBytes, TListValuesOutputStr]
 
 # Set Types

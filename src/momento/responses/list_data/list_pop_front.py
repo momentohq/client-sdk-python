@@ -26,12 +26,11 @@ class CacheListPopFront(ABC):
         """Indicates the request was successful."""
 
         value_bytes: bytes
-        """The value returned from the cache for the specified key. Use the
-        `value_string` property to access the value as a string."""
+        """The value popped from the list. Use the `value_string` property to access the value as a string."""
 
     @dataclass
     class Miss(CacheListPopFrontResponse):
-        """Contains the results of a cache miss"""
+        """Indicates the list does not exist."""
 
     @dataclass
     class Error(CacheListPopFrontResponse, ErrorResponseMixin):

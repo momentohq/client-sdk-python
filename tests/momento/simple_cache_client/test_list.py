@@ -29,9 +29,9 @@ from momento.typing import (
     TCacheName,
     TListName,
     TListValue,
-    TListValues,
-    TListValuesBytes,
-    TListValuesStr,
+    TListValuesInput,
+    TListValuesInputBytes,
+    TListValuesInputStr,
 )
 from tests.utils import uuid_bytes, uuid_str
 
@@ -52,7 +52,7 @@ def a_list_adder() -> None:
         list_adder: TListAdder,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
     ) -> None:
         with SimpleCacheClient(configuration, credential_provider, timedelta(hours=1)) as client:
             ttl_seconds = 0.5
@@ -106,7 +106,7 @@ def a_list_adder() -> None:
             assert isinstance(fetch_resp, CacheListFetch.Miss)
 
 
-TListConcatenator = Callable[[TCacheName, TListName, TListValues], CacheResponse]
+TListConcatenator = Callable[[TCacheName, TListName, TListValuesInput], CacheResponse]
 
 
 def a_list_concatenator() -> None:
@@ -115,7 +115,7 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
     ) -> None:
         resp = list_concatenator(cache_name, list_name, values)
         length = len(values)
@@ -130,7 +130,7 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_bytes: TListValuesBytes,
+        values_bytes: TListValuesInputBytes,
     ) -> None:
         concat_resp = list_concatenator(cache_name, list_name, values_bytes)
         assert concat_resp.list_length == len(values_bytes)
@@ -144,7 +144,7 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_str: TListValuesStr,
+        values_str: TListValuesInputStr,
     ) -> None:
         concat_resp = list_concatenator(cache_name, list_name, values_str)
         assert concat_resp.list_length == len(values_str)
@@ -199,7 +199,7 @@ def a_list_pusher() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
     ) -> None:
         length = 0
         for value in values:
@@ -282,13 +282,13 @@ def describe_list_concatenate_back() -> None:
 
     @fixture
     def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValues
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
     ) -> TListNameValidator:
         return partial(client.list_concatenate_back, values=values)
 
     @fixture
     def list_concatenator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValues
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
     ) -> TListConcatenator:
         return partial(client.list_concatenate_back)
 
@@ -356,13 +356,13 @@ def describe_list_concatenate_front() -> None:
 
     @fixture
     def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValues
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
     ) -> TListNameValidator:
         return partial(client.list_concatenate_front, values=values)
 
     @fixture
     def list_concatenator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValues
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
     ) -> TListConcatenator:
         return partial(client.list_concatenate_front)
 
@@ -449,7 +449,7 @@ def describe_list_length() -> None:
         return partial(client.list_length)
 
     def it_returns_the_list_length(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValues
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
     ) -> None:
         client.list_concatenate_back(cache_name, list_name, values)
 
@@ -708,9 +708,9 @@ def describe_list_remove_value() -> None:
         ],
     )
     def it_removes_values(
-        values: TListValues,
+        values: TListValuesInput,
         to_remove: TListValue,
-        expected_values: TListValuesStr,
+        expected_values: TListValuesInputStr,
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,

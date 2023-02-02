@@ -71,7 +71,7 @@ from momento.typing import (
     TDictionaryValue,
     TListName,
     TListValue,
-    TListValues,
+    TListValuesInput,
     TScalarKey,
     TScalarValue,
 )
@@ -428,7 +428,7 @@ class SimpleCacheClientAsync:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
@@ -438,7 +438,7 @@ class SimpleCacheClientAsync:
         Args:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to concatenate.
-            values: (TListValues): The values to concatenate.
+            values: (TListValuesInput): The values to concatenate.
             ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_front_to_size (Optional[int]): If the list exceeds this size, remove values from
                                                     the start of the list.
@@ -453,7 +453,7 @@ class SimpleCacheClientAsync:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListConcatenateFrontResponse:
@@ -463,7 +463,7 @@ class SimpleCacheClientAsync:
         Args:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to concatenate.
-            values: (TListValues): The values to concatenate.
+            values: (TListValuesInput): The values to concatenate.
             ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_back_to_size (Optional[int]): If the list exceeds this size, remove values from
                                                    the end of the list.
@@ -544,7 +544,7 @@ class SimpleCacheClientAsync:
         Args:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to push to.
-            values: (TListValues): The values to push.
+            values: (TListValuesInput): The values to push.
             ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_front_to_size (Optional[int]): If the list exceeds this size, remove values from
                                                     the start of the list.
@@ -569,7 +569,7 @@ class SimpleCacheClientAsync:
         Args:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to push to.
-            values: (TListValues): The values to push.
+            values: (TListValuesInput): The values to push.
             ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_back_to_size (Optional[int]): If the list exceeds this size, remove values from
                                                    the end of the list.

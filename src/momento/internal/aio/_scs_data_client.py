@@ -77,7 +77,7 @@ from momento.typing import (
     TCacheName,
     TListName,
     TListValue,
-    TListValues,
+    TListValuesInput,
     TScalarKey,
     TScalarValue,
 )
@@ -187,7 +187,7 @@ class _ScsDataClient:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
@@ -220,7 +220,7 @@ class _ScsDataClient:
         self,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValues,
+        values: TListValuesInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListConcatenateFrontResponse:

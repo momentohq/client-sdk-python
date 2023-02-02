@@ -26,11 +26,7 @@ class CacheListLength(ABC):
         """Indicates the list exists and its length was fetched."""
 
         length: int
-        """The number of values in the list.
-
-        Returns:
-            int
-        """
+        """The number of values in the list."""
 
     @dataclass
     class Miss(CacheListLengthResponse):
