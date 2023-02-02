@@ -153,6 +153,21 @@ def a_list_concatenator() -> None:
         assert isinstance(fetch_resp, CacheListFetch.Hit)
         assert fetch_resp.values_string == values_str
 
+    async def with_iterable_values_it_succeeds(
+        list_concatenator: TListConcatenator,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values_str: TListValuesInputStr,
+    ) -> None:
+        iterator = iter(values_str)
+        concat_resp = await list_concatenator(cache_name, list_name, iterator)
+        assert concat_resp.list_length == len(values_str)
+
+        fetch_resp = await client_async.list_fetch(cache_name, list_name)
+        assert isinstance(fetch_resp, CacheListFetch.Hit)
+        assert fetch_resp.values_string == values_str
+
     async def with_other_values_type_it_errors(
         list_concatenator: TListConcatenator,
         client_async: SimpleCacheClientAsync,

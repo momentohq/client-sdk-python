@@ -1,3 +1,4 @@
+import collections.abc
 from datetime import timedelta
 from typing import Optional, Union
 
@@ -37,7 +38,7 @@ def _as_bytes(
 def _list_as_bytes(
     values: TListValuesInput, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR
 ) -> TListValuesInputBytes:
-    if not isinstance(values, list):
+    if not isinstance(values, collections.abc.Iterable):
         raise InvalidArgumentException(f"{error_message}{type(values)}")
     return iter([_as_bytes(value) for value in values])
 
