@@ -1,5 +1,6 @@
 import asyncio
 import os
+import random
 from datetime import timedelta
 from typing import Optional, cast
 
@@ -9,7 +10,13 @@ import pytest_asyncio
 from momento import SimpleCacheClient, SimpleCacheClientAsync
 from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration, Laptop
-from momento.typing import TCacheName, TListName, TListValuesBytes, TListValuesStr
+from momento.typing import (
+    TCacheName,
+    TListName,
+    TListValues,
+    TListValuesBytes,
+    TListValuesStr,
+)
 from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
 #######################
@@ -62,6 +69,11 @@ def list_name() -> TListName:
 @pytest.fixture
 def values_bytes() -> TListValuesBytes:
     return [uuid_bytes(), uuid_bytes(), uuid_bytes()]
+
+
+@pytest.fixture()
+def values() -> TListValues:
+    return random.choice(([uuid_bytes(), uuid_bytes(), uuid_bytes()], [uuid_str(), uuid_str(), uuid_str()]))
 
 
 @pytest.fixture

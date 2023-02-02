@@ -30,7 +30,7 @@ def a_cache_name_validator() -> None:
         response = cache_name_validator("")
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "Cache header is empty"
+        assert response.inner_exception.message == "Cache name must be a non-empty string"
 
     def with_bad_cache_name_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
         response = cache_name_validator(1)  # type: ignore

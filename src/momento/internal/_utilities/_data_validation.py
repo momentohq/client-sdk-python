@@ -9,7 +9,7 @@ DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
 
 
 def _is_valid_name(name: str) -> bool:
-    return name is not None and isinstance(name, str)
+    return name is not None and isinstance(name, str) and name != ""
 
 
 def _validate_cache_name(cache_name: str) -> None:
