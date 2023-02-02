@@ -36,6 +36,14 @@ except ImportError as e:
 
 from momento.responses import (
     CacheDeleteResponse,
+    CacheDictionaryFetchResponse,
+    CacheDictionaryGetFieldResponse,
+    CacheDictionaryGetFieldsResponse,
+    CacheDictionaryIncrementResponse,
+    CacheDictionaryRemoveFieldResponse,
+    CacheDictionaryRemoveFieldsResponse,
+    CacheDictionarySetFieldResponse,
+    CacheDictionarySetFieldsResponse,
     CacheGetResponse,
     CacheListConcatenateBackResponse,
     CacheListConcatenateFrontResponse,
@@ -48,7 +56,18 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.typing import TCacheName, TListName, TListValues, TScalarKey, TScalarValue
+from momento.typing import (
+    TCacheName,
+    TDictionaryField,
+    TDictionaryFields,
+    TDictionaryItems,
+    TDictionaryName,
+    TDictionaryValue,
+    TListName,
+    TListValues,
+    TScalarKey,
+    TScalarValue,
+)
 
 
 class SimpleCacheClient:
@@ -135,12 +154,6 @@ class SimpleCacheClient:
 
         Returns:
             CreateCacheResponse:
-
-            This response is resolved to one of:
-
-            - `CreateCache.Success`
-            - `CreateCache.AlreadyExists`
-            - `CreateCache.Error`
         """
         return self._control_client.create_cache(cache_name)
 
@@ -152,11 +165,6 @@ class SimpleCacheClient:
 
         Returns:
             DeleteCacheResponse:
-
-            This response is resolved to one of:
-
-            - `DeleteCache.Success`
-            - `DeleteCache.Error`
         """
         return self._control_client.delete_cache(cache_name)
 
@@ -168,11 +176,6 @@ class SimpleCacheClient:
 
         Returns:
             ListCachesResponse:
-
-            This response is resolved to one of:
-
-            - `ListCaches.Success`
-            - `ListCaches.Error`
         """
         return self._control_client.list_caches(next_token)
 
@@ -237,11 +240,6 @@ class SimpleCacheClient:
 
         Returns:
             CacheSetResponse:
-
-            This response is resolved to one of:
-
-            - `CacheSet.Success`
-            - `CacheSet.Error`
         """
         return self._data_client.set(cache_name, key, value, ttl)
 
@@ -254,12 +252,6 @@ class SimpleCacheClient:
 
         Returns:
             CacheGetResponse:
-
-            This response is resolved to one of:
-
-            - `CacheGet.Hit`
-            - `CacheGet.Miss`
-            - `CacheGet.Error`
         """
         return self._data_client.get(cache_name, key)
 
@@ -272,15 +264,157 @@ class SimpleCacheClient:
 
         Returns:
             CacheDeleteResponse:
-
-            This response is resolved to one of:
-
-            - `CacheDelete.Success`
-            - `CacheDelete.Error`
         """
         return self._data_client.delete(cache_name, key)
 
     # DICTIONARY COLLECTION METHODS
+    def dictionary_fetch(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName
+    ) -> CacheDictionaryFetchResponse:
+        """Fetch the entire dictionary from the cache.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): The name of the dictionary to fetch.
+
+        Returns:
+            CacheDictionaryFetchResponse: result of the fetch operation and the associated dictionary.
+        """
+        pass
+
+    def dictionary_get_field(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
+    ) -> CacheDictionaryGetFieldResponse:
+        """Get the cache value stored for the given dictionary and field.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): The dictionary to lookup.
+            field (TDictionaryField): The field in the dictionary to lookup.
+
+        Returns:
+            CacheDictionaryGetFieldResponse: the status and value for the field.
+        """
+        pass
+
+    def dictionary_get_fields(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
+    ) -> CacheDictionaryGetFieldsResponse:
+        """Get several values from a dictionary.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): The dictionary to lookup.
+            fields (TDictionaryFields): The fields in the dictionary to lookup.
+
+        Returns:
+            CacheDictionaryGetFieldsResponse: the status and associated value for each field.
+        """
+        pass
+
+    def dictionary_increment(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        field: TDictionaryField,
+        amount: int = 1,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheDictionaryIncrementResponse:
+        """Add an integer quantity to a dictionary value.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to store the dictionary in.
+            dictionary_name (TDictionaryName): Name of the dictionary to increment in.
+            field (TDictionaryField): The field to increment.
+            amount (int, optional): The quantity to add to the value. May be positive, negative, or zero. Defaults to 1.
+            ttl (CollectionTtl, optional): TTL for the dictionary in cache. This TTL takes precedence over the TTL
+                used when initializing a cache client. Defaults to client TTL.
+                Defaults to CollectionTtl.from_cache_ttl().
+
+        Returns:
+            CacheDictionaryIncrementResponse: result of the increment operation.
+        """
+        pass
+
+    def dictionary_set_field(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        field: TDictionaryField,
+        value: TDictionaryValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheDictionarySetFieldResponse:
+        """Set the dictionary field to a value with a given time to live (TTL) seconds.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to store the dictionary in.
+            dictionary_name (TDictionaryName): Name of the dictionary to set.
+            field (TDictionaryField): The field in the dictionary to set.
+            value (TDictionaryValue): The value to be stored.
+            ttl (CollectionTtl, optional): TTL for the dictionary in cache.
+                This TTL takes precedence over the TTL used when initializing a cache client.
+                Defaults to CollectionTtl.from_cache_ttl().
+
+        Returns:
+            CacheDictionarySetFieldResponse: result of the set operation.
+        """
+        pass
+
+    def dictionary_set_fields(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        items: TDictionaryItems,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheDictionarySetFieldsResponse:
+        """Set several dictionary field-value pairs in the cache.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): Name of the dictionary to set.
+            items (TDictionaryItems): Field value pairs to store.
+            ttl (CollectionTtl, optional): TTL for the dictionary in cache.
+                This TTL takes precedence over the TTL used when initializing a cache client.
+                Defaults to CollectionTtl.from_cache_ttl().
+
+        Returns:
+            CacheDictionarySetFieldsResponse: result of the set fields operation.
+        """
+        pass
+
+    def dictionary_remove_field(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
+    ) -> CacheDictionaryRemoveFieldResponse:
+        """Remove a field from a dictionary.
+
+        Performs a no-op if the dictionary or field do not exist.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): Name of the dictionary to remove the field from.
+            field (TDictionaryField): Name of the field to remove from the dictionary.
+
+        Returns:
+            CacheDictionaryRemoveFieldResponse: result of the remove operation.
+        """
+        pass
+
+    def dictionary_remove_fields(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
+    ) -> CacheDictionaryRemoveFieldsResponse:
+        """Remove fields from a dictionary.
+
+        Performs a no-op if the dictionary or a particular field does not exist.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): Name of the dictionary to remove the fields from.
+            fields (TDictionaryFields): The fields to remove from the dictionary.
+
+        Returns:
+            CacheDictionaryRemoveFieldsResponse: result of the remove fields operation.
+        """
+        pass
 
     # LIST COLLECTION METHODS
     def list_concatenate_back(
@@ -304,11 +438,6 @@ class SimpleCacheClient:
 
         Returns:
             CacheListConcatenateBackResponse:
-
-            This response is resolved to one of:
-
-            - `CacheListConcatenateBack.Success`
-            - `CacheListConcatenateBack.Error`
         """
 
         return self._data_client.list_concatenate_back(cache_name, list_name, values, ttl, truncate_front_to_size)
@@ -334,11 +463,6 @@ class SimpleCacheClient:
 
         Returns:
             CacheListConcatenateFrontResponse:
-
-            This response is resolved to one of:
-
-            - `CacheListConcatenateFront.Success`
-            - `CacheListConcatenateFront.Error`
         """
 
         return self._data_client.list_concatenate_front(cache_name, list_name, values, ttl, truncate_back_to_size)
@@ -353,12 +477,6 @@ class SimpleCacheClient:
 
         Returns:
             CacheListFetchResponse:
-
-            This response is resolved to one of:
-
-            - `CacheListFetch.Hit`
-            - `CacheListFetch.Miss`
-            - `CacheListFetch.Error`
         """
 
         return self._data_client.list_fetch(cache_name, list_name)
