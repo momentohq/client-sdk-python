@@ -79,27 +79,26 @@ def a_list_concatenator() -> None:
 
 
 def a_list_name_validator() -> None:
-    async def with_non_existent_list_name_it_throws_not_found(
-        list_name_validator: TListNameValidator, list_name: TListName
+    async def with_null_list_name_it_returns_invalid(
+        list_name_validator: TListNameValidator, cache_name: TCacheName
     ) -> None:
-        response = await list_name_validator(list_name)
-        assert isinstance(response, ErrorResponseMixin)
-        assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
-
-    async def with_null_list_name_it_throws_exception(list_name_validator: TListNameValidator) -> None:
-        response = await list_name_validator(None)  # type: ignore
+        response = await list_name_validator(cache_name, None)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "List name must be a non-empty string"
 
-    async def with_empty_list_name_it_throws_exception(list_name_validator: TListNameValidator) -> None:
-        response = await list_name_validator("")
+    async def with_empty_list_name_it_returns_invalid(
+        list_name_validator: TListNameValidator, cache_name: TCacheName
+    ) -> None:
+        response = await list_name_validator(cache_name, "")
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "List name is empty"
+        assert response.inner_exception.message == "List name must be a non-empty string"
 
-    async def with_bad_list_name_throws_exception(list_name_validator: TCacheNameValidator) -> None:
-        response = await list_name_validator(1)  # type: ignore
+    async def with_bad_list_name_it_returns_invalid(
+        list_name_validator: TCacheNameValidator, cache_name: TCacheName
+    ) -> None:
+        response = await list_name_validator(cache_name, 1)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "List name must be a non-empty string"
@@ -107,6 +106,7 @@ def a_list_name_validator() -> None:
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
 def describe_list_fetch() -> None:
     @fixture
     def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
@@ -123,6 +123,12 @@ def describe_list_fetch() -> None:
 
         return _connection_validator
 
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        return partial(client_async.list_fetch)
+
     async def misses_when_the_list_does_not_exist(
         client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
     ) -> None:
@@ -132,6 +138,7 @@ def describe_list_fetch() -> None:
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
 @behaves_like(a_list_concatenator)
 def describe_list_concatenate_back() -> None:
     @fixture
@@ -148,6 +155,12 @@ def describe_list_concatenate_back() -> None:
             return await client_async.list_concatenate_back(cache_name, list_name, [uuid_str()])
 
         return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName, values: TListValues
+    ) -> TListNameValidator:
+        return partial(client_async.list_concatenate_back, values=values)
 
     @fixture
     def list_concatenator(
@@ -186,6 +199,7 @@ def describe_list_concatenate_back() -> None:
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
 @behaves_like(a_list_concatenator)
 def describe_list_concatenate_front() -> None:
     @fixture
@@ -202,6 +216,12 @@ def describe_list_concatenate_front() -> None:
             return await client_async.list_concatenate_front(cache_name, list_name, [uuid_str()])
 
         return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName, values: TListValues
+    ) -> TListNameValidator:
+        return partial(client_async.list_concatenate_front, values=values)
 
     @fixture
     def list_concatenator(
