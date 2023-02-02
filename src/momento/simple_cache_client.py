@@ -49,6 +49,8 @@ from momento.responses import (
     CacheListConcatenateFrontResponse,
     CacheListFetchResponse,
     CacheListLengthResponse,
+    CacheListPopBackResponse,
+    CacheListPopFrontResponse,
     CacheListPushBackResponse,
     CacheListPushFrontResponse,
     CacheSetResponse,
@@ -498,6 +500,34 @@ class SimpleCacheClient:
         """
 
         return self._data_client.list_length(cache_name, list_name)
+
+    def list_pop_back(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopBackResponse:
+        """
+        Gets removes and returns the last value from the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to fetch.
+
+        Returns:
+            CacheListPopBackResponse:
+        """
+
+        return self._data_client.list_pop_back(cache_name, list_name)
+
+    def list_pop_front(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopFrontResponse:
+        """
+        Gets removes and returns the first value from the list.
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to fetch.
+
+        Returns:
+            CacheListPopFrontResponse:
+        """
+
+        return self._data_client.list_pop_front(cache_name, list_name)
 
     def list_push_back(
         self,

@@ -8,5 +8,7 @@ from .list_concatenate_front import (
 )
 from .list_fetch import CacheListFetch, CacheListFetchResponse
 from .list_length import CacheListLength, CacheListLengthResponse
+from .list_pop_back import CacheListPopBack, CacheListPopBackResponse
+from .list_pop_front import CacheListPopFront, CacheListPopFrontResponse
 from .list_push_back import CacheListPushBack, CacheListPushBackResponse
 from .list_push_front import CacheListPushFront, CacheListPushFrontResponse

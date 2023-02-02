@@ -11,6 +11,8 @@ from momento.responses import (
     CacheListConcatenateFront,
     CacheListFetch,
     CacheListLength,
+    CacheListPopBack,
+    CacheListPopFront,
     CacheListPushBack,
     CacheListPushFront,
     CacheResponse,
@@ -349,6 +351,92 @@ def describe_list_length() -> None:
     ) -> None:
         resp = await client_async.list_length(cache_name, list_name)
         assert isinstance(resp, CacheListLength.Miss)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+def describe_list_pop_back() -> None:
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client_async.list_pop_back, list_name=list_name)
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        async def _connection_validator(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return await client_async.list_pop_back(cache_name, list_name)
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        return partial(client_async.list_pop_back)
+
+    async def it_pops_the_back(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> None:
+        values = ["one", "two", "three"]
+        await client_async.list_concatenate_front(cache_name, list_name, values)
+
+        resp = await client_async.list_pop_back(cache_name, list_name)
+        assert isinstance(resp, CacheListPopBack.Hit)
+        assert resp.value_string == "three"
+        assert resp.value_bytes == b"three"
+
+    async def it_misses_when_the_list_does_not_exist(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> None:
+        resp = await client_async.list_pop_back(cache_name, list_name)
+        assert isinstance(resp, CacheListPopBack.Miss)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+def describe_list_pop_front() -> None:
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client_async.list_pop_front, list_name=list_name)
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        async def _connection_validator(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return await client_async.list_pop_front(cache_name, list_name)
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        return partial(client_async.list_pop_front)
+
+    async def it_pops_the_front(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> None:
+        values = ["one", "two", "three"]
+        await client_async.list_concatenate_front(cache_name, list_name, values)
+
+        resp = await client_async.list_pop_front(cache_name, list_name)
+        assert isinstance(resp, CacheListPopFront.Hit)
+        assert resp.value_string == "one"
+        assert resp.value_bytes == b"one"
+
+    async def it_misses_when_the_list_does_not_exist(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> None:
+        resp = await client_async.list_pop_front(cache_name, list_name)
+        assert isinstance(resp, CacheListPopFront.Miss)
 
 
 @behaves_like(a_cache_name_validator)

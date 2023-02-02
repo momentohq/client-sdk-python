@@ -11,6 +11,8 @@ from momento_wire_types.cacheclient_pb2 import (
     _ListConcatenateFrontRequest,
     _ListFetchRequest,
     _ListLengthRequest,
+    _ListPopBackRequest,
+    _ListPopFrontRequest,
     _ListPushBackRequest,
     _ListPushFrontRequest,
     _SetRequest,
@@ -57,6 +59,10 @@ from momento.responses import (
     CacheListFetchResponse,
     CacheListLength,
     CacheListLengthResponse,
+    CacheListPopBack,
+    CacheListPopBackResponse,
+    CacheListPopFront,
+    CacheListPopFrontResponse,
     CacheListPushBack,
     CacheListPushBackResponse,
     CacheListPushFront,
@@ -285,6 +291,56 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("list_length", e)
             return CacheListLength.Error(convert_error(e))
+
+    async def list_pop_back(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopBackResponse:
+        try:
+            self._log_issuing_request("ListPopBack", {"list_name": str(list_name)})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+            request = _ListPopBackRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            response = await self._build_stub().ListPopBack(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPopBack", {"list_name": str(request.list_name)})
+
+            type = response.WhichOneof("list")
+            if type == "missing":
+                return CacheListPopBack.Miss()
+            elif type == "found":
+                return CacheListPopBack.Hit(response.found.back)
+            else:
+                raise UnknownException("Unknown list field")
+        except Exception as e:
+            self._log_request_error("list_pop_back", e)
+            return CacheListPopBack.Error(convert_error(e))
+
+    async def list_pop_front(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopFrontResponse:
+        try:
+            self._log_issuing_request("ListPopFront", {"list_name": str(list_name)})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+            request = _ListPopFrontRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            response = await self._build_stub().ListPopFront(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListPopFront", {"list_name": str(request.list_name)})
+
+            type = response.WhichOneof("list")
+            if type == "missing":
+                return CacheListPopFront.Miss()
+            elif type == "found":
+                return CacheListPopFront.Hit(response.found.front)
+            else:
+                raise UnknownException("Unknown list field")
+        except Exception as e:
+            self._log_request_error("list_pop_front", e)
+            return CacheListPopFront.Error(convert_error(e))
 
     async def list_push_back(
         self,
