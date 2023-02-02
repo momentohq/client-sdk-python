@@ -45,6 +45,8 @@ from .list_data import (
     CacheListPushBackResponse,
     CacheListPushFront,
     CacheListPushFrontResponse,
+    CacheListRemoveValue,
+    CacheListRemoveValueResponse,
 )
 from .response import CacheResponse
 from .scalar_data import (

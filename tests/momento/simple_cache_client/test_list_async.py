@@ -1,3 +1,5 @@
+import pytest
+
 from functools import partial
 from typing import Awaitable, Callable
 
@@ -541,3 +543,55 @@ def describe_list_push_front() -> None:
 
         fetch_resp = await client_async.list_fetch(cache_name, list_name)
         assert fetch_resp.values_string == ["3", "2"]
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+def describe_list_remove_value() -> None:
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client_async.list_remove_value, list_name=list_name, value=uuid_str())
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        async def _connection_validator(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return await client_async.list_remove_value(cache_name=cache_name, list_name=list_name, value=uuid_str())
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        value = uuid_str()
+        return partial(client_async.list_remove_value, value=value)
+
+    @pytest.mark.parametrize(
+        "values, to_remove, expected_values",
+        [
+            # strings
+            (["up", "up", "down", "down", "left", "right"], "up", ["down", "down", "left", "right"]),
+            # bytes
+            ([b"number 9", b"that", b"number 9", b"this"], b"number 9", ["that", "this"]),
+            # no match
+            (["a", "b", "c"], "z", ["a", "b", "c"]),
+        ],
+    )
+    async def it_removes_values(
+        values: TListValues,
+        to_remove: TListValue,
+        expected_values: TListValuesStr,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        await client_async.list_concatenate_front(cache_name, list_name, values)
+        await client_async.list_remove_value(cache_name, list_name, to_remove)
+
+        fetch_resp = await client_async.list_fetch(cache_name, list_name)
+        assert fetch_resp.values_string == expected_values

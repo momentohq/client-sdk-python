@@ -2,6 +2,7 @@ from functools import partial
 from typing import Callable
 
 from pytest import fixture
+from pytest.mark import parametrize
 from pytest_describe import behaves_like
 
 from momento import SimpleCacheClient
@@ -513,3 +514,50 @@ def describe_list_push_front() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert fetch_resp.values_string == ["3", "2"]
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+def describe_list_remove_value() -> None:
+    @fixture
+    def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client.list_remove_value, list_name=list_name, value=uuid_str())
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return client.list_remove_value(cache_name=cache_name, list_name=list_name, value=uuid_str())
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        value = uuid_str()
+        return partial(client.list_remove_value, value=value)
+
+    @parametrize(
+        "values, to_remove, expected_values",
+        [
+            (["up", "up", "down", "down", "left", "right"], "up", ["down", "down", "left", "right"]),
+            ([b"number 9", b"that", b"number 9", b"this"], "b'number 9'", ["that", "this"]),
+            (["a", "b", "c"], "z", ["a", "b", "c"]),
+        ],
+    )
+    def it_removes_values(
+        values: TListValues,
+        to_remove: TListValue,
+        expected_values: TListValuesStr,
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        list_name: TListName,
+    ) -> None:
+        client.list_concatenate_front(cache_name, list_name, values)
+        client.list_remove_value(cache_name, list_name, to_remove)
+
+        fetch_resp = client.list_fetch(cache_name, list_name)
+        assert fetch_resp.values_string == expected_values

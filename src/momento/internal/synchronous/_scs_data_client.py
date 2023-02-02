@@ -15,6 +15,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _ListPopFrontRequest,
     _ListPushBackRequest,
     _ListPushFrontRequest,
+    _ListRemoveRequest,
     _SetRequest,
     _SetResponse,
 )
@@ -67,6 +68,8 @@ from momento.responses import (
     CacheListPushBackResponse,
     CacheListPushFront,
     CacheListPushFrontResponse,
+    CacheListRemoveValue,
+    CacheListRemoveValueResponse,
     CacheSet,
     CacheSetResponse,
 )
@@ -407,6 +410,32 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("list_push_front", e)
             return CacheListPushFront.Error(convert_error(e))
+
+    def list_remove_value(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+    ) -> CacheListRemoveValueResponse:
+        try:
+            self._log_issuing_request("ListRemoveValue", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            request = _ListRemoveRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.all_elements_with_value = _as_bytes(value, "Unsupported type for value: ")
+
+            self._build_stub().ListRemove(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListRemoveValue", {"list_name": str(request.list_name)})
+            return CacheListRemoveValue.Success()
+        except Exception as e:
+            self._log_request_error("list_remove_value", e)
+            return CacheListRemoveValue.Error(convert_error(e))
 
     # SET COLLECTION METHODS
 

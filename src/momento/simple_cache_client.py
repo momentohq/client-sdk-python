@@ -53,6 +53,7 @@ from momento.responses import (
     CacheListPopFrontResponse,
     CacheListPushBackResponse,
     CacheListPushFrontResponse,
+    CacheListRemoveValueResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -578,6 +579,31 @@ class SimpleCacheClient:
         """
 
         return self._data_client.list_push_front(cache_name, list_name, value, ttl, truncate_back_to_size)
+
+    def list_remove_value(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+    ) -> CacheListRemoveValueResponse:
+        """
+        Removes all matching values from the list.
+
+        Example:
+            client.list_concatenate_front(cache_name, list_name, ['up', 'up', 'down', 'down', 'left', 'right'])
+            client.list_remove_value(cache_name, list_name, 'up')
+            fetch_resp = client.list_fetch(cache_name, list_name)
+
+            # ['down', 'down', 'left', 'right']
+            print(fetch_resp.values_string)
+
+        Args:
+            cache_name (TCacheName): The cache where the list is.
+            list_name (TListName): The name of the list to remove values from.
+            value: (TListValue): The value to remove.
+        """
+
+        return self._data_client.list_remove_value(cache_name, list_name, value)
 
     # SET COLLECTION METHODS
 
