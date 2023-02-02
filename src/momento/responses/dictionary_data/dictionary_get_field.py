@@ -29,6 +29,18 @@ class CacheDictionaryGetField(ABC):
         """The value returned from the cache for the specified field. Use the
         `value_string` property to access the value as a string."""
 
+        field_bytes: bytes
+        """The dictionary field that was queried."""
+
+        @property
+        def field_string(self) -> str:
+            """Convert the bytes `field` to a UTF-8 string
+
+            Returns:
+                str: UTF-8 representation of the `field`
+            """
+            return self.field_bytes.decode("utf-8")
+
     @dataclass
     class Miss(CacheDictionaryGetFieldResponse):
         """Indicates the dictionary or dictionary field does not exist."""
