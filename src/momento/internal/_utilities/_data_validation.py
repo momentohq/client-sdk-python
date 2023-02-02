@@ -1,8 +1,8 @@
 from datetime import timedelta
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from momento.errors import InvalidArgumentException
-from momento.typing import TListValues
+from momento.typing import TListValues, TListValuesBytes
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
@@ -34,7 +34,9 @@ def _as_bytes(
     raise InvalidArgumentException(error_message + str(type(data)))
 
 
-def _list_as_bytes(values: TListValues, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR) -> List[bytes]:
+def _list_as_bytes(
+    values: TListValues, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR
+) -> TListValuesBytes:
     return [_as_bytes(value) for value in values]
 
 
