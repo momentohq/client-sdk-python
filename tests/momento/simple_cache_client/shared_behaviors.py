@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import Callable, Union
 
 from momento import SimpleCacheClient
-from momento.auth import EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheResponse
@@ -60,7 +60,7 @@ TConnectionValidator = Callable[[SimpleCacheClient, str], CacheResponse]
 
 def a_connection_validator() -> None:
     def throws_authentication_exception_for_bad_token(
-        bad_token_credential_provider: EnvMomentoTokenProvider,
+        bad_token_credential_provider: CredentialProvider,
         configuration: Configuration,
         cache_name: str,
         default_ttl_seconds: timedelta,
@@ -73,7 +73,7 @@ def a_connection_validator() -> None:
 
     def throws_timeout_error_for_short_request_timeout(
         configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
+        credential_provider: CredentialProvider,
         cache_name: str,
         default_ttl_seconds: timedelta,
         connection_validator: TConnectionValidator,

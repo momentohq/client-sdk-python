@@ -45,7 +45,7 @@ class _ScsDataClient:
     """Internal"""
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
-        endpoint = credential_provider.get_cache_endpoint()
+        endpoint = credential_provider.cache_endpoint
         self._logger = logs.logger
         self._logger.debug("Simple cache data client instantiated with endpoint: %s", endpoint)
         self._endpoint = endpoint

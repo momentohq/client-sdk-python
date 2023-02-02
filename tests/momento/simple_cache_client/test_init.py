@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 
 from momento import SimpleCacheClient
-from momento.auth import CredentialProvider, EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import InvalidArgumentException
 
@@ -19,7 +19,7 @@ def test_init_throws_exception_when_client_uses_negative_default_ttl(
 def test_init_throws_exception_for_non_jwt_token(configuration: Configuration, default_ttl_seconds: timedelta) -> None:
     with pytest.raises(InvalidArgumentException, match="Invalid Auth token."):
         os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
-        credential_provider = EnvMomentoTokenProvider("BAD_AUTH_TOKEN")
+        credential_provider = CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
         SimpleCacheClient(configuration, credential_provider, default_ttl_seconds)
 
 
