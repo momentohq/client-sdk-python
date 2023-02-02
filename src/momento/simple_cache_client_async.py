@@ -336,6 +336,40 @@ class SimpleCacheClientAsync:
         """
         pass
 
+    async def dictionary_remove_field(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
+    ) -> CacheDictionaryRemoveFieldResponse:
+        """Remove a field from a dictionary.
+
+        Performs a no-op if the dictionary or field do not exist.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): Name of the dictionary to remove the field from.
+            field (TDictionaryField): Name of the field to remove from the dictionary.
+
+        Returns:
+            CacheDictionaryRemoveFieldResponse: result of the remove operation.
+        """
+        pass
+
+    async def dictionary_remove_fields(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
+    ) -> CacheDictionaryRemoveFieldsResponse:
+        """Remove fields from a dictionary.
+
+        Performs a no-op if the dictionary or a particular field does not exist.
+
+        Args:
+            cache_name (TCacheName): Name of the cache to perform the lookup in.
+            dictionary_name (TDictionaryName): Name of the dictionary to remove the fields from.
+            fields (TDictionaryFields): The fields to remove from the dictionary.
+
+        Returns:
+            CacheDictionaryRemoveFieldsResponse: result of the remove fields operation.
+        """
+        pass
+
     async def dictionary_set_field(
         self,
         cache_name: TCacheName,
@@ -379,40 +413,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CacheDictionarySetFieldsResponse: result of the set fields operation.
-        """
-        pass
-
-    async def dictionary_remove_field(
-        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
-    ) -> CacheDictionaryRemoveFieldResponse:
-        """Remove a field from a dictionary.
-
-        Performs a no-op if the dictionary or field do not exist.
-
-        Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): Name of the dictionary to remove the field from.
-            field (TDictionaryField): Name of the field to remove from the dictionary.
-
-        Returns:
-            CacheDictionaryRemoveFieldResponse: result of the remove operation.
-        """
-        pass
-
-    async def dictionary_remove_fields(
-        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
-    ) -> CacheDictionaryRemoveFieldsResponse:
-        """Remove fields from a dictionary.
-
-        Performs a no-op if the dictionary or a particular field does not exist.
-
-        Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): Name of the dictionary to remove the fields from.
-            fields (TDictionaryFields): The fields to remove from the dictionary.
-
-        Returns:
-            CacheDictionaryRemoveFieldsResponse: result of the remove fields operation.
         """
         pass
 
