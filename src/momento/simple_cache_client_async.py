@@ -135,12 +135,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CreateCacheResponse:
-
-            This response is resolved to one of:
-
-            - `CreateCache.Success`
-            - `CreateCache.AlreadyExists`
-            - `CreateCache.Error`
         """
         return await self._control_client.create_cache(cache_name)
 
@@ -152,11 +146,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             DeleteCacheResponse:
-
-            This response is resolved to one of:
-
-            - `DeleteCache.Success`
-            - `DeleteCache.Error`
         """
         return await self._control_client.delete_cache(cache_name)
 
@@ -168,11 +157,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             ListCachesResponse:
-
-            This response is resolved to one of:
-
-            - `ListCaches.Success`
-            - `ListCaches.Error`
         """
         return await self._control_client.list_caches(next_token)
 
@@ -237,11 +221,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CacheSetResponse:
-
-            This response is resolved to one of:
-
-            - `CacheSet.Success`
-            - `CacheSet.Error`
         """
         return await self._data_client.set(cache_name, key, value, ttl)
 
@@ -254,12 +233,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CacheGetResponse:
-
-            This response is resolved to one of:
-
-            - `CacheGet.Hit`
-            - `CacheGet.Miss`
-            - `CacheGet.Error`
         """
         return await self._data_client.get(cache_name, key)
 
@@ -272,11 +245,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CacheDeleteResponse:
-
-            This response is resolved to one of:
-
-            - `CacheDelete.Success`
-            - `CacheDelete.Error`
         """
         return await self._data_client.delete(cache_name, key)
 
@@ -304,11 +272,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CacheListConcatenateBackResponse:
-
-            This response is resolved to one of:
-
-            - `CacheListConcatenateBack.Success`
-            - `CacheListConcatenateBack.Error`
         """
 
         return await self._data_client.list_concatenate_back(cache_name, list_name, values, ttl, truncate_front_to_size)
@@ -334,11 +297,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CacheListConcatenateFrontResponse:
-
-            This response is resolved to one of:
-
-            - `CacheListConcatenateFront.Success`
-            - `CacheListConcatenateFront.Error`
         """
 
         return await self._data_client.list_concatenate_front(cache_name, list_name, values, ttl, truncate_back_to_size)
@@ -353,12 +311,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             CacheListFetchResponse:
-
-            This response is resolved to one of:
-
-            - `CacheListFetch.Hit`
-            - `CacheListFetch.Miss`
-            - `CacheListFetch.Error`
         """
 
         return await self._data_client.list_fetch(cache_name, list_name)
