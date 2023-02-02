@@ -10,6 +10,24 @@ from .control import (
     RevokeSigningKeyResponse,
     SigningKey,
 )
+from .dictionary_data import (
+    CacheDictionaryFetch,
+    CacheDictionaryFetchResponse,
+    CacheDictionaryGetField,
+    CacheDictionaryGetFieldResponse,
+    CacheDictionaryGetFields,
+    CacheDictionaryGetFieldsResponse,
+    CacheDictionaryIncrement,
+    CacheDictionaryIncrementResponse,
+    CacheDictionaryRemoveField,
+    CacheDictionaryRemoveFieldResponse,
+    CacheDictionaryRemoveFields,
+    CacheDictionaryRemoveFieldsResponse,
+    CacheDictionarySetField,
+    CacheDictionarySetFieldResponse,
+    CacheDictionarySetFields,
+    CacheDictionarySetFieldsResponse,
+)
 from .list_data import (
     CacheListConcatenateBack,
     CacheListConcatenateBackResponse,

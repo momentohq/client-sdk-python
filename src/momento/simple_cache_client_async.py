@@ -36,6 +36,14 @@ except ImportError as e:
 
 from momento.responses import (
     CacheDeleteResponse,
+    CacheDictionaryFetchResponse,
+    CacheDictionaryGetFieldResponse,
+    CacheDictionaryGetFieldsResponse,
+    CacheDictionaryIncrementResponse,
+    CacheDictionaryRemoveFieldResponse,
+    CacheDictionaryRemoveFieldsResponse,
+    CacheDictionarySetFieldResponse,
+    CacheDictionarySetFieldsResponse,
     CacheGetResponse,
     CacheListConcatenateBackResponse,
     CacheListConcatenateFrontResponse,
@@ -260,17 +268,19 @@ class SimpleCacheClientAsync:
         return await self._data_client.delete(cache_name, key)
 
     # DICTIONARY COLLECTION METHODS
-    async def dictionary_fetch(self, cache_name: TCacheName, dictionary_name: TDictionaryName) -> None:
+    async def dictionary_fetch(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName
+    ) -> CacheDictionaryFetchResponse:
         pass
 
     async def dictionary_get_field(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
-    ) -> None:
+    ) -> CacheDictionaryGetFieldResponse:
         pass
 
     async def dictionary_get_fields(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
-    ) -> None:
+    ) -> CacheDictionaryGetFieldsResponse:
         pass
 
     async def dictionary_increment(
@@ -280,7 +290,7 @@ class SimpleCacheClientAsync:
         field: TDictionaryField,
         amount: int = 1,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
-    ) -> None:
+    ) -> CacheDictionaryIncrementResponse:
         pass
 
     async def dictionary_set_field(
@@ -290,7 +300,7 @@ class SimpleCacheClientAsync:
         field: TDictionaryField,
         value: TDictionaryValue,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
-    ) -> None:
+    ) -> CacheDictionarySetFieldResponse:
         pass
 
     async def dictionary_set_fields(
@@ -299,17 +309,17 @@ class SimpleCacheClientAsync:
         dictionary_name: TDictionaryName,
         items: TDictionaryItems,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
-    ) -> None:
+    ) -> CacheDictionarySetFieldsResponse:
         pass
 
     async def dictionary_remove_field(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
-    ) -> None:
+    ) -> CacheDictionaryRemoveFieldResponse:
         pass
 
     async def dictionary_remove_fields(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
-    ) -> None:
+    ) -> CacheDictionaryRemoveFieldsResponse:
         pass
 
     # LIST COLLECTION METHODS
