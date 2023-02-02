@@ -9,7 +9,8 @@ import pytest_asyncio
 from momento import SimpleCacheClient, SimpleCacheClientAsync
 from momento.auth import EnvMomentoTokenProvider
 from momento.config import Configuration, Laptop
-from tests.utils import unique_test_cache_name
+from momento.typing import TCacheName, TListName, TListValuesBytes, TListValuesStr
+from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
 #######################
 # Integration test data
@@ -49,8 +50,23 @@ def configuration() -> Configuration:
 
 
 @pytest.fixture(scope="session")
-def cache_name() -> str:
+def cache_name() -> TCacheName:
     return cast(str, TEST_CACHE_NAME)
+
+
+@pytest.fixture
+def list_name() -> TListName:
+    return uuid_str()
+
+
+@pytest.fixture
+def values_bytes() -> TListValuesBytes:
+    return [uuid_bytes(), uuid_bytes(), uuid_bytes()]
+
+
+@pytest.fixture
+def values_str() -> TListValuesStr:
+    return [uuid_str(), uuid_str(), uuid_str()]
 
 
 @pytest.fixture(scope="session")

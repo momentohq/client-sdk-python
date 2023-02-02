@@ -1,14 +1,25 @@
 from datetime import timedelta
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from momento.errors import InvalidArgumentException
+from momento.typing import TListValues
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
+DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
+
+
+def _is_valid_name(name: str) -> bool:
+    return name is not None and isinstance(name, str)
 
 
 def _validate_cache_name(cache_name: str) -> None:
-    if cache_name is None or not isinstance(cache_name, str):
+    if not _is_valid_name(cache_name):
         raise InvalidArgumentException("Cache name must be a non-empty string")
+
+
+def _validate_list_name(list_name: str) -> None:
+    if not _is_valid_name(list_name):
+        raise InvalidArgumentException("List name must be a non-empty string")
 
 
 def _as_bytes(
@@ -20,6 +31,10 @@ def _as_bytes(
     if isinstance(data, bytes):
         return data
     raise InvalidArgumentException(error_message + str(type(data)))
+
+
+def _list_as_bytes(values: TListValues, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR) -> List[bytes]:
+    return [_as_bytes(value) for value in values]
 
 
 def _validate_ttl(ttl: timedelta) -> None:
