@@ -45,3 +45,15 @@ def test_with_and_without_refresh_ttl_on_updates(collection_ttl: CollectionTtl) 
     assert (
         not new_collection_ttl.refresh_ttl
     ), "refresh_ttl should be false after with_no_refresh_ttl_on_updates but wasn't"
+
+
+@pytest.mark.parametrize(
+    "ttl",
+    [
+        (timedelta(seconds=-1)),
+        (timedelta(seconds=42, minutes=-99)),
+    ],
+)
+def test_negative_ttl(ttl: timedelta) -> None:
+    with pytest.raises(ValueError, match=r"TTL must be a positive amount of time"):
+        CollectionTtl(ttl=ttl)
