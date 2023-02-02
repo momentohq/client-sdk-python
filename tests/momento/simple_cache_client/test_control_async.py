@@ -50,7 +50,7 @@ async def test_create_cache_throws_validation_exception_for_null_cache_name(
     response = await client_async.create_cache(None)
     assert isinstance(response, CreateCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-    assert response.inner_exception.message == "Cache name must be a non-empty string"
+    assert response.inner_exception.message == "Cache name must be a string"
 
 
 async def test_create_cache_with_bad_cache_name_throws_exception(
@@ -59,7 +59,7 @@ async def test_create_cache_with_bad_cache_name_throws_exception(
     response = await client_async.create_cache(1)
     assert isinstance(response, CreateCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-    assert response.inner_exception.message == "Cache name must be a non-empty string"
+    assert response.inner_exception.message == "Cache name must be a string"
 
 
 async def test_create_cache_throws_authentication_exception_for_bad_token(
@@ -123,7 +123,7 @@ async def test_delete_with_bad_cache_name_throws_exception(
     response = await client_async.delete_cache(1)
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-    assert response.inner_exception.message == "Cache name must be a non-empty string"
+    assert response.inner_exception.message == "Cache name must be a string"
 
 
 async def test_delete_cache_throws_authentication_exception_for_bad_token(
