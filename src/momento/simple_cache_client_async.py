@@ -249,6 +249,29 @@ class SimpleCacheClientAsync:
         return await self._data_client.delete(cache_name, key)
 
     # DICTIONARY COLLECTION METHODS
+    async def dictionary_fetch(self) -> None:
+        pass
+
+    async def dictionary_get_field(self) -> None:
+        pass
+
+    async def dictionary_get_fields(self) -> None:
+        pass
+
+    async def dictionary_increment(self) -> None:
+        pass
+
+    async def dictionary_set_field(self) -> None:
+        pass
+
+    async def dictionary_set_fields(self) -> None:
+        pass
+
+    async def dictionary_remove_field(self) -> None:
+        pass
+
+    async def dictionary_remove_fields(self) -> None:
+        pass
 
     # LIST COLLECTION METHODS
     async def list_concatenate_back(
