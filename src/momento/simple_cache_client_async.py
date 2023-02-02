@@ -48,7 +48,18 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.typing import TCacheName, TListName, TListValues, TScalarKey, TScalarValue
+from momento.typing import (
+    TCacheName,
+    TDictionaryField,
+    TDictionaryFields,
+    TDictionaryItems,
+    TDictionaryName,
+    TDictionaryValue,
+    TListName,
+    TListValues,
+    TScalarKey,
+    TScalarValue,
+)
 
 
 class SimpleCacheClientAsync:
@@ -249,28 +260,56 @@ class SimpleCacheClientAsync:
         return await self._data_client.delete(cache_name, key)
 
     # DICTIONARY COLLECTION METHODS
-    async def dictionary_fetch(self) -> None:
+    async def dictionary_fetch(self, cache_name: TCacheName, dictionary_name: TDictionaryName) -> None:
         pass
 
-    async def dictionary_get_field(self) -> None:
+    async def dictionary_get_field(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
+    ) -> None:
         pass
 
-    async def dictionary_get_fields(self) -> None:
+    async def dictionary_get_fields(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
+    ) -> None:
         pass
 
-    async def dictionary_increment(self) -> None:
+    async def dictionary_increment(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        field: TDictionaryField,
+        amount: int = 1,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> None:
         pass
 
-    async def dictionary_set_field(self) -> None:
+    async def dictionary_set_field(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        field: TDictionaryField,
+        value: TDictionaryValue,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> None:
         pass
 
-    async def dictionary_set_fields(self) -> None:
+    async def dictionary_set_fields(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        items: TDictionaryItems,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> None:
         pass
 
-    async def dictionary_remove_field(self) -> None:
+    async def dictionary_remove_field(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
+    ) -> None:
         pass
 
-    async def dictionary_remove_fields(self) -> None:
+    async def dictionary_remove_fields(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
+    ) -> None:
         pass
 
     # LIST COLLECTION METHODS
