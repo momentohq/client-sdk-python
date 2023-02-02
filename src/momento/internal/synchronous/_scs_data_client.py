@@ -86,6 +86,10 @@ from momento.typing import (
 class _ScsDataClient:
     """Internal"""
 
+    __UNSUPPORTED_LIST_NAME_TYPE_MSG = "Unsupported type for list_name: "
+    __UNSUPPORTED_LIST_VALUE_TYPE_MSG = "Unsupported type for value: "
+    __UNSUPPORTED_LIST_VALUES_TYPE_MSG = "Unsupported type for values: "
+
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.get_cache_endpoint()
         self._logger = logs.logger
@@ -194,8 +198,8 @@ class _ScsDataClient:
 
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListConcatenateBackRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
-            request.values.extend(_list_as_bytes(values, "Unsupported type for values: "))
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
@@ -227,8 +231,8 @@ class _ScsDataClient:
 
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListConcatenateFrontRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
-            request.values.extend(_list_as_bytes(values, "Unsupported type for values: "))
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
@@ -251,7 +255,7 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
             request = _ListFetchRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             response = self._build_stub().ListFetch(
                 request,
                 metadata=make_metadata(cache_name),
@@ -276,7 +280,7 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
             request = _ListLengthRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             response = self._build_stub().ListLength(
                 request,
                 metadata=make_metadata(cache_name),
@@ -301,7 +305,7 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
             request = _ListPopBackRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             response = self._build_stub().ListPopBack(
                 request,
                 metadata=make_metadata(cache_name),
@@ -326,7 +330,7 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
             request = _ListPopFrontRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             response = self._build_stub().ListPopFront(
                 request,
                 metadata=make_metadata(cache_name),
@@ -360,8 +364,8 @@ class _ScsDataClient:
 
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListPushBackRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
-            request.value = _as_bytes(value, "Unsupported type for value: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
@@ -393,8 +397,8 @@ class _ScsDataClient:
 
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListPushFrontRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
-            request.value = _as_bytes(value, "Unsupported type for values: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG)
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
@@ -423,8 +427,8 @@ class _ScsDataClient:
             _validate_list_name(list_name)
 
             request = _ListRemoveRequest()
-            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
-            request.all_elements_with_value = _as_bytes(value, "Unsupported type for value: ")
+            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request.all_elements_with_value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
 
             self._build_stub().ListRemove(
                 request,
