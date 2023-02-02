@@ -8,7 +8,7 @@ from ..response import CacheResponse
 
 
 class CacheSetResponse(CacheResponse):
-    """Parent response type for a cache set request. Its subtypes are:
+    """Parent response type for a cache `set` request. Its subtypes are:
 
     - `CacheSet.Success`
     - `CacheSet.Error`

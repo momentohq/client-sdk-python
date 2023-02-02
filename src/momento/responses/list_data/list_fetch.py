@@ -9,7 +9,7 @@ from ..response import CacheResponse
 
 
 class CacheListFetchResponse(CacheResponse):
-    """Response type for a list fetch request. Its subtypes are:
+    """Response type for a `list_fetch` request. Its subtypes are:
 
     - `CacheListFetch.Hit`
     - `CacheListFetch.Miss`

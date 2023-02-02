@@ -8,7 +8,7 @@ from ..response import CacheResponse
 
 
 class CacheListConcatenateBackResponse(CacheResponse):
-    """Response type for a list_concatenate_back request. Its subtypes are:
+    """Response type for a `list_concatenate_back` request. Its subtypes are:
 
     - `CacheListConcatenateBack.Success`
     - `CacheListConcatenateBack.Error`
