@@ -13,6 +13,8 @@ from .control import (
 from .list_data import (
     CacheListConcatenateBack,
     CacheListConcatenateBackResponse,
+    CacheListConcatenateFront,
+    CacheListConcatenateFrontResponse,
     CacheListFetch,
     CacheListFetchResponse,
 )

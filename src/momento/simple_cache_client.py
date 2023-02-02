@@ -38,6 +38,7 @@ from momento.responses import (
     CacheDeleteResponse,
     CacheGetResponse,
     CacheListConcatenateBackResponse,
+    CacheListConcatenateFrontResponse,
     CacheListFetchResponse,
     CacheSetResponse,
     CreateCacheResponse,
@@ -411,6 +412,16 @@ class SimpleCacheClient:
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
         return self._data_client.list_concatenate_back(cache_name, list_name, values, ttl, truncate_front_to_size)
+
+    def list_concatenate_front(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values: TListValues,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_back_to_size: Optional[int] = None,
+    ) -> CacheListConcatenateFrontResponse:
+        return self._data_client.list_concatenate_front(cache_name, list_name, values, ttl, truncate_back_to_size)
 
     def list_fetch(self, cache_name: TCacheName, list_name: TListName) -> CacheListFetchResponse:
         return self._data_client.list_fetch(cache_name, list_name)

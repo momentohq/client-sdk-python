@@ -8,6 +8,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _GetRequest,
     _GetResponse,
     _ListConcatenateBackRequest,
+    _ListConcatenateFrontRequest,
     _ListFetchRequest,
     _SetRequest,
     _SetResponse,
@@ -47,6 +48,8 @@ from momento.responses import (
     CacheGetResponse,
     CacheListConcatenateBack,
     CacheListConcatenateBackResponse,
+    CacheListConcatenateFront,
+    CacheListConcatenateFrontResponse,
     CacheListFetch,
     CacheListFetchResponse,
     CacheSet,
@@ -183,6 +186,39 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("list_concatenate_back", e)
             return CacheListConcatenateBack.Error(convert_error(e))
+
+    async def list_concatenate_front(
+        self,
+        cache_name: TCacheName,
+        list_name: TListName,
+        values: TListValues,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        truncate_back_to_size: Optional[int] = None,
+    ) -> CacheListConcatenateFrontResponse:
+        try:
+            self._log_issuing_request("ListConcatenateFront", {})
+            _validate_cache_name(cache_name)
+            _validate_list_name(list_name)
+
+            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
+            request = _ListConcatenateFrontRequest()
+            request.list_name = _as_bytes(list_name, "Unsupported type for list_name: ")
+            request.values.extend(_list_as_bytes(values, "Unsupported type for values: "))
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.refresh_ttl = ttl.refresh_ttl
+            if truncate_back_to_size is not None:
+                request.truncate_back_to_size = truncate_back_to_size
+
+            response = await self._build_stub().ListConcatenateFront(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("ListConcatenateFront", {"list_name": str(request.list_name)})
+            return CacheListConcatenateFront.Success(response.list_length)
+        except Exception as e:
+            self._log_request_error("list_concatenate_front", e)
+            return CacheListConcatenateFront.Error(convert_error(e))
 
     async def list_fetch(self, cache_name: TCacheName, list_name: TListName) -> CacheListFetchResponse:
         try:
