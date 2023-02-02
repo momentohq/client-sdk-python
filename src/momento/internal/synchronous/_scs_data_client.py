@@ -29,6 +29,8 @@ from momento.internal._utilities import (
     _validate_list_name,
     _validate_ttl,
 )
+from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
+from momento.internal.synchronous._utilities import make_metadata
 from momento.internal.common._data_client_ops import (
     get_default_client_deadline,
     wrap_with_error_handling,
@@ -41,8 +43,6 @@ from momento.internal.common._data_client_scalar_ops import (
     prepare_get_request,
     prepare_set_request,
 )
-from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
-from momento.internal.synchronous._utilities import make_metadata
 from momento.requests import CollectionTtl
 from momento.responses import (
     CacheDelete,

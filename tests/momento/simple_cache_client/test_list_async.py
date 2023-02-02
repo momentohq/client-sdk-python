@@ -159,38 +159,6 @@ def a_list_pusher() -> None:
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
 @behaves_like(a_list_name_validator)
-def describe_list_fetch() -> None:
-    @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
-        list_name = uuid_str()
-        return partial(client_async.list_fetch, list_name=list_name)
-
-    @fixture
-    def connection_validator() -> TConnectionValidator:
-        async def _connection_validator(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName
-        ) -> ErrorResponseMixin:
-            list_name = uuid_str()
-            return await client_async.list_fetch(cache_name, list_name)
-
-        return _connection_validator
-
-    @fixture
-    def list_name_validator(
-        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
-        return partial(client_async.list_fetch)
-
-    async def misses_when_the_list_does_not_exist(
-        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
-    ) -> None:
-        resp = await client_async.list_fetch(cache_name, list_name)
-        assert isinstance(resp, CacheListFetch.Miss)
-
-
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_name_validator)
 @behaves_like(a_list_concatenator)
 def describe_list_concatenate_back() -> None:
     @fixture
@@ -308,6 +276,38 @@ def describe_list_concatenate_front() -> None:
 
         fetch_resp = await client_async.list_fetch(cache_name, list_name)
         assert fetch_resp.values_string == ["four", "five", "six", "one"]
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_list_name_validator)
+def describe_list_fetch() -> None:
+    @fixture
+    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+        list_name = uuid_str()
+        return partial(client_async.list_fetch, list_name=list_name)
+
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        async def _connection_validator(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ) -> ErrorResponseMixin:
+            list_name = uuid_str()
+            return await client_async.list_fetch(cache_name, list_name)
+
+        return _connection_validator
+
+    @fixture
+    def list_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> TListNameValidator:
+        return partial(client_async.list_fetch)
+
+    async def misses_when_the_list_does_not_exist(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, list_name: TListName
+    ) -> None:
+        resp = await client_async.list_fetch(cache_name, list_name)
+        assert isinstance(resp, CacheListFetch.Miss)
 
 
 @behaves_like(a_cache_name_validator)

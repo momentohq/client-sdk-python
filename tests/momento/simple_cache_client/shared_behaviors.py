@@ -66,7 +66,9 @@ def a_connection_validator() -> None:
         default_ttl_seconds: timedelta,
         connection_validator: TConnectionValidator,
     ) -> None:
-        with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
+        with SimpleCacheClient(
+            configuration, bad_token_credential_provider, default_ttl_seconds
+        ) as client:
             response = connection_validator(client, cache_name)
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
