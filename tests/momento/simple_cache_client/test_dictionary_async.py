@@ -25,8 +25,6 @@ from momento.typing import (
     TDictionaryName,
     TDictionaryValue,
 )
-from tests.utils import uuid_bytes, uuid_str
-
 from .shared_behaviors_async import (
     TCacheNameValidator,
     TConnectionValidator,
@@ -182,6 +180,49 @@ def a_dictionary_setter() -> None:
             )
 
 
+TItemsValidator = Callable[[TDictionaryItems], Awaitable[CacheResponse]]
+
+
+def a_dictionary_items_validator() -> None:
+    async def with_null_items_throws_exception(dictionary_items_validator: TItemsValidator) -> None:
+        response = await dictionary_items_validator(items=None)  # type: ignore
+        assert isinstance(response, ErrorResponseMixin)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+
+    async def with_wrong_container_throws_exception(dictionary_items_validator: TItemsValidator) -> None:
+        response = await dictionary_items_validator(items=[1, 2, 3])  # type: ignore
+        assert isinstance(response, ErrorResponseMixin)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_dictionary_name_validator)
+def describe_list_fetch() -> None:
+    @fixture
+    def cache_name_validator(
+        client_async: SimpleCacheClientAsync, dictionary_name: TDictionaryName
+    ) -> TCacheNameValidator:
+        return partial(client_async.dictionary_fetch, dictionary_name=dictionary_name)
+
+    @fixture
+    def connection_validator(dictionary_name: TDictionaryName) -> TConnectionValidator:
+        async def _connection_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> CacheResponse:
+            return await client_async.dictionary_fetch(cache_name, dictionary_name=dictionary_name)
+
+        return _connection_validator
+
+    @fixture
+    def dictionary_name_validator(client_async: SimpleCacheClientAsync) -> TDictionaryNameValidator:
+        return partial(client_async.dictionary_fetch)
+
+    async def misses_when_the_dictionary_does_not_exist(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, dictionary_name: TDictionaryName
+    ) -> None:
+        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
+
+
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
 @behaves_like(a_dictionary_setter)
@@ -242,27 +283,59 @@ def describe_dictionary_set_field() -> None:
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_dictionary_setter)
 @behaves_like(a_dictionary_name_validator)
-def describe_list_fetch() -> None:
+@behaves_like(a_dictionary_items_validator)
+def describe_dictionary_set_fields() -> None:
     @fixture
     def cache_name_validator(
-        client_async: SimpleCacheClientAsync, dictionary_name: TDictionaryName
+        client_async: SimpleCacheClientAsync,
+        dictionary_name: TDictionaryName,
+        dictionary_items: TDictionaryItems,
     ) -> TCacheNameValidator:
-        return partial(client_async.dictionary_fetch, dictionary_name=dictionary_name)
+        return partial(client_async.dictionary_set_fields, dictionary_name=dictionary_name, items=dictionary_items)
 
     @fixture
-    def connection_validator(dictionary_name: TDictionaryName) -> TConnectionValidator:
+    def connection_validator(
+        dictionary_name: TDictionaryName, dictionary_items: TDictionaryItems
+    ) -> TConnectionValidator:
         async def _connection_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> CacheResponse:
-            return await client_async.dictionary_fetch(cache_name, dictionary_name=dictionary_name)
+            return await client_async.dictionary_set_fields(
+                cache_name, dictionary_name=dictionary_name, items=dictionary_items
+            )
 
         return _connection_validator
 
     @fixture
-    def dictionary_name_validator(client_async: SimpleCacheClientAsync) -> TDictionaryNameValidator:
-        return partial(client_async.dictionary_fetch)
+    def dictionary_items_validator(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+    ) -> TDictionaryNameValidator:
+        return partial(
+            client_async.dictionary_set_fields,
+            cache_name=cache_name,
+            dictionary_name=dictionary_name,
+            ttl=CollectionTtl(),
+        )
 
-    async def misses_when_the_dictionary_does_not_exist(
-        client_async: SimpleCacheClientAsync, cache_name: TCacheName, dictionary_name: TDictionaryName
-    ) -> None:
-        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
-        assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
+    @fixture
+    def dictionary_name_validator(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_items: TDictionaryItems,
+    ) -> TDictionaryNameValidator:
+        return partial(client_async.dictionary_set_fields, items=dictionary_items, ttl=CollectionTtl())
+
+    @fixture
+    def dictionary_setter(cache_name: TCacheName) -> TDictionarySetter:
+        async def _dictionary_setter(
+            client_async: SimpleCacheClientAsync,
+            dictionary_name: TDictionaryName,
+            field: TDictionaryField,
+            value: TDictionaryValue,
+            ttl: CollectionTtl,
+        ) -> CacheResponse:
+            return await client_async.dictionary_set_fields(cache_name, dictionary_name, {field: value}, ttl=ttl)
+
+        return _dictionary_setter
