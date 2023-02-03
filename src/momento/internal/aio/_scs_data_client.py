@@ -206,7 +206,6 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_dictionary_name(dictionary_name)
 
-            item_ttl = ttl.this_ttl_or_default(self._default_ttl)
             request = _DictionarySetRequest()
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
             for field, value in _items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG):
@@ -214,7 +213,7 @@ class _ScsDataClient:
                 field_value_pair.field = field
                 field_value_pair.value = value
                 request.items.append(field_value_pair)
-            request.ttl_milliseconds = total_milliseconds(item_ttl)
+            request.ttl_milliseconds = total_milliseconds(ttl.this_ttl_or_default(self._default_ttl))
             request.refresh_ttl = ttl.refresh_ttl
 
             await self._build_stub().DictionarySet(
