@@ -365,6 +365,56 @@ def describe_set_remove_element() -> None:
     def set_name_validator(client_async: SimpleCacheClientAsync, element: TSetElement) -> TSetNameValidator:
         return partial(client_async.set_remove_element, element=element)
 
+    async def it_removes_a_string_element(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> None:
+        element = uuid_str()
+
+        remove_resp = await client_async.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        new_elements = {uuid_str(), uuid_str()}
+        await client_async.set_add_element(cache_name, set_name, element)
+        await client_async.set_add_elements(cache_name, set_name, new_elements)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == {element}.union(new_elements)
+
+        remove_resp = await client_async.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == new_elements
+
+    async def it_removes_a_byte_element(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> None:
+        element = uuid_bytes()
+
+        remove_resp = await client_async.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        new_elements = {uuid_bytes(), uuid_bytes()}
+        await client_async.set_add_element(cache_name, set_name, element)
+        await client_async.set_add_elements(cache_name, set_name, new_elements)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == {element}.union(new_elements)
+
+        remove_resp = await client_async.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == new_elements
+
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
@@ -390,3 +440,49 @@ def describe_set_remove_elements() -> None:
     @fixture
     def set_name_validator(client_async: SimpleCacheClientAsync, elements: TSetElementsInput) -> TSetNameValidator:
         return partial(client_async.set_remove_elements, elements=elements)
+
+    async def it_removes_string_elements(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_str: TSetElementsInputStr,
+    ) -> None:
+        remove_resp = await client_async.set_remove_elements(cache_name, set_name, elements_str)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        new_elements = {uuid_str(), uuid_str()}
+        await client_async.set_add_elements(cache_name, set_name, elements_str.union(new_elements))
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == elements_str.union(new_elements)
+
+        remove_resp = await client_async.set_remove_elements(cache_name, set_name, elements_str)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == new_elements
+
+    async def it_removes_bytes_elements(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_bytes: TSetElementsInputStr,
+    ) -> None:
+        remove_resp = await client_async.set_remove_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        new_elements = {uuid_bytes(), uuid_bytes()}
+        await client_async.set_add_elements(cache_name, set_name, elements_bytes.union(new_elements))
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == elements_bytes.union(new_elements)
+
+        remove_resp = await client_async.set_remove_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == new_elements

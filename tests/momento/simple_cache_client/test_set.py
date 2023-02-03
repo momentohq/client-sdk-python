@@ -3,6 +3,7 @@ from functools import partial
 from time import sleep
 from typing import Callable
 
+import pytest
 from pytest import fixture
 from pytest_describe import behaves_like
 
@@ -20,8 +21,15 @@ from momento.responses import (
     CacheSetRemoveElements,
 )
 from momento.responses.mixins import ErrorResponseMixin
-from momento.typing import TCacheName, TSetElement, TSetElementsInput, TSetName
-from tests.utils import uuid_str
+from momento.typing import (
+    TCacheName,
+    TSetElement,
+    TSetElementsInput,
+    TSetElementsInputBytes,
+    TSetElementsInputStr,
+    TSetName,
+)
+from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors import (
     TCacheNameValidator,
@@ -154,6 +162,46 @@ def describe_set_add_element() -> None:
     def set_name_validator(client: SimpleCacheClient, element: TSetElement) -> TSetNameValidator:
         return partial(client.set_add_element, element=element)
 
+    def it_adds_a_string_element(client: SimpleCacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
+        element1 = uuid_str()
+        element2 = uuid_str()
+
+        add_resp = client.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == {element1}
+
+        add_resp = client.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+        add_resp = client.set_add_element(cache_name, set_name, element2)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == {element1, element2}
+
+    def it_adds_a_byte_element(client: SimpleCacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
+        element1 = uuid_bytes()
+        element2 = uuid_bytes()
+
+        add_resp = client.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == {element1}
+
+        add_resp = client.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+        add_resp = client.set_add_element(cache_name, set_name, element2)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == {element1, element2}
+
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
@@ -191,6 +239,49 @@ def describe_set_add_elements() -> None:
     @fixture
     def set_name_validator(client: SimpleCacheClient, elements: TSetElementsInput) -> TSetNameValidator:
         return partial(client.set_add_elements, elements=elements)
+
+    def it_adds_string_elements(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_str: TSetElementsInputStr,
+    ) -> None:
+        add_resp = client.set_add_elements(cache_name, set_name, elements_str)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == elements_str
+
+        elements_str.add("another")
+        add_resp = client.set_add_elements(cache_name, set_name, elements_str)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == elements_str
+
+    def it_adds_byte_elements(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_bytes: TSetElementsInputBytes,
+    ) -> None:
+        add_resp = client.set_add_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == elements_bytes
+
+        elements_bytes.add(b"another")
+
+        add_resp = client.set_add_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == elements_bytes
 
 
 @behaves_like(a_cache_name_validator)
@@ -252,6 +343,56 @@ def describe_set_remove_element() -> None:
     def set_name_validator(client: SimpleCacheClient, element: TSetElement) -> TSetNameValidator:
         return partial(client.set_remove_element, element=element)
 
+    def it_removes_a_string_element(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> None:
+        element = uuid_str()
+
+        remove_resp = client.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        new_elements = {uuid_str(), uuid_str()}
+        client.set_add_element(cache_name, set_name, element)
+        client.set_add_elements(cache_name, set_name, new_elements)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == {element}.union(new_elements)
+
+        remove_resp = client.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == new_elements
+
+    def it_removes_a_byte_element(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> None:
+        element = uuid_bytes()
+
+        remove_resp = client.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        new_elements = {uuid_bytes(), uuid_bytes()}
+        client.set_add_element(cache_name, set_name, element)
+        client.set_add_elements(cache_name, set_name, new_elements)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == {element}.union(new_elements)
+
+        remove_resp = client.set_remove_element(cache_name, set_name, element)
+        assert isinstance(remove_resp, CacheSetRemoveElement.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == new_elements
+
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
@@ -275,3 +416,49 @@ def describe_set_remove_elements() -> None:
     @fixture
     def set_name_validator(client: SimpleCacheClient, elements: TSetElementsInput) -> TSetNameValidator:
         return partial(client.set_remove_elements, elements=elements)
+
+    def it_removes_string_elements(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_str: TSetElementsInputStr,
+    ) -> None:
+        remove_resp = client.set_remove_elements(cache_name, set_name, elements_str)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        new_elements = {uuid_str(), uuid_str()}
+        client.set_add_elements(cache_name, set_name, elements_str.union(new_elements))
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == elements_str.union(new_elements)
+
+        remove_resp = client.set_remove_elements(cache_name, set_name, elements_str)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == new_elements
+
+    def it_removes_bytes_elements(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_bytes: TSetElementsInputStr,
+    ) -> None:
+        remove_resp = client.set_remove_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        new_elements = {uuid_bytes(), uuid_bytes()}
+        client.set_add_elements(cache_name, set_name, elements_bytes.union(new_elements))
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == elements_bytes.union(new_elements)
+
+        remove_resp = client.set_remove_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(remove_resp, CacheSetRemoveElements.Success)
+
+        fetch_resp = client.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == new_elements
