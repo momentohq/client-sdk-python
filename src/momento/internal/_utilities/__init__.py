@@ -9,4 +9,3 @@ from ._data_validation import (
     _validate_timedelta_ttl,
     _validate_ttl,
 )
-from .datetime import total_milliseconds

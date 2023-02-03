@@ -35,7 +35,6 @@ from momento.internal._utilities import (
     _validate_dictionary_name,
     _validate_list_name,
     _validate_ttl,
-    total_milliseconds,
 )
 from momento.internal.aio._scs_grpc_manager import _DataGrpcManager
 from momento.internal.aio._utilities import make_metadata
@@ -213,7 +212,7 @@ class _ScsDataClient:
                 field_value_pair.field = field
                 field_value_pair.value = value
                 request.items.append(field_value_pair)
-            request.ttl_milliseconds = total_milliseconds(ttl.this_ttl_or_default(self._default_ttl))
+            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
 
             await self._build_stub().DictionarySet(
@@ -407,11 +406,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListPushBackRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
                 request.truncate_front_to_size = truncate_front_to_size
@@ -496,6 +494,16 @@ class _ScsDataClient:
 
     def _log_request_error(self, request_type: str, e: Exception) -> None:
         self._logger.warning(f"{request_type} failed with exception: {e}")
+
+    def collection_ttl_or_default_milliseconds(self, collection_ttl: CollectionTtl) -> int:
+        return self.ttl_or_default_milliseconds(collection_ttl.ttl)
+
+    def ttl_or_default_milliseconds(self, ttl: Optional[timedelta]) -> int:
+        which_ttl = self._default_ttl
+        if ttl is not None:
+            which_ttl = ttl
+
+        return int(which_ttl.total_seconds() * 1000)
 
     def _build_stub(self) -> ScsStub:
         return self._grpc_manager.async_stub()
