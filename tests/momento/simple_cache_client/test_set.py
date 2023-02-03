@@ -8,7 +8,7 @@ from pytest import fixture
 from pytest_describe import behaves_like
 
 from momento import SimpleCacheClient
-from momento.auth import EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.requests import CollectionTtl
@@ -44,7 +44,7 @@ TSetAdder = Callable[[SimpleCacheClient, TCacheName, TSetName, TSetElement, Coll
 def a_set_adder() -> None:
     def it_sets_the_ttl(
         configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
+        credential_provider: CredentialProvider,
         set_adder: TSetAdder,
         cache_name: TCacheName,
         set_name: TSetName,
@@ -79,7 +79,7 @@ def a_set_adder() -> None:
 
     def it_uses_the_default_ttl_when_the_collection_ttl_has_no_ttl(
         configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
+        credential_provider: CredentialProvider,
         set_adder: TSetAdder,
         cache_name: TCacheName,
         set_name: TSetName,
