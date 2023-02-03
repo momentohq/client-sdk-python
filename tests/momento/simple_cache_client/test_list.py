@@ -9,9 +9,9 @@ from pytest import fixture
 from pytest_describe import behaves_like
 
 from momento import SimpleCacheClient
-from momento.auth import EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
-from momento.errors import InvalidArgumentException, MomentoErrorCode
+from momento.errors import MomentoErrorCode
 from momento.requests import CollectionTtl
 from momento.responses import (
     CacheListConcatenateBack,
@@ -48,7 +48,7 @@ TListAdder = Callable[[SimpleCacheClient, TListName, TListValue, CollectionTtl],
 def a_list_adder() -> None:
     def it_sets_the_ttl(
         configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
+        credential_provider: CredentialProvider,
         list_adder: TListAdder,
         cache_name: TCacheName,
         list_name: TListName,
@@ -83,7 +83,7 @@ def a_list_adder() -> None:
 
     def it_uses_the_default_ttl_when_the_collection_ttl_has_no_ttl(
         configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
+        credential_provider: CredentialProvider,
         list_adder: TListAdder,
         cache_name: TCacheName,
         list_name: TListName,
