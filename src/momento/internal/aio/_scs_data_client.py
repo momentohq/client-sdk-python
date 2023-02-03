@@ -10,6 +10,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _DictionaryFetchRequest,
     _DictionaryFieldValuePair,
     _DictionaryGetRequest,
+    _DictionaryIncrementRequest,
     _DictionarySetRequest,
     _GetRequest,
     _GetResponse,
@@ -65,6 +66,8 @@ from momento.responses import (
     CacheDictionaryGetFieldResponse,
     CacheDictionaryGetFields,
     CacheDictionaryGetFieldsResponse,
+    CacheDictionaryIncrement,
+    CacheDictionaryIncrementResponse,
     CacheDictionaryRemoveFields,
     CacheDictionaryRemoveFieldsResponse,
     CacheDictionarySetFields,
@@ -94,6 +97,7 @@ from momento.responses import (
 )
 from momento.typing import (
     TCacheName,
+    TDictionaryField,
     TDictionaryFields,
     TDictionaryItems,
     TDictionaryName,
@@ -113,6 +117,7 @@ class _ScsDataClient:
     __UNSUPPORTED_LIST_VALUES_TYPE_MSG = "Unsupported type for values: "
 
     __UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG = "Unsupported type for dictionary_name: "
+    __UNSUPPORTED_DICTIONARY_FIELD_TYPE_MSG = "Unsupported type for field: "
     __UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG = "Unsupported type for fields: "
     __UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG = "Unsupported type for items: "
 
@@ -275,6 +280,37 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("dictionary_fetch", e)
             return CacheDictionaryFetch.Error(convert_error(e))
+
+    async def dictionary_increment(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        field: TDictionaryField,
+        amount: int = 1,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheDictionaryIncrementResponse:
+        try:
+            self._log_issuing_request("DictionaryIncrement", {"dictionary_name": dictionary_name})
+            _validate_cache_name(cache_name)
+            _validate_dictionary_name(dictionary_name)
+
+            request = _DictionaryIncrementRequest()
+            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
+            request.field = _as_bytes(field, self.__UNSUPPORTED_DICTIONARY_FIELD_TYPE_MSG)
+            request.amount = amount
+            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
+            request.refresh_ttl = ttl.refresh_ttl
+
+            response = await self._build_stub().DictionaryIncrement(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("DictionaryIncrement", {"dictionary_name": dictionary_name})
+            return CacheDictionaryIncrement.Success(response.value)
+        except Exception as e:
+            self._log_request_error("dictionary_set", e)
+            return CacheDictionaryIncrement.Error(convert_error(e))
 
     async def dictionary_remove_fields(
         self,

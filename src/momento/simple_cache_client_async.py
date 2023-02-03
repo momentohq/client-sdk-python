@@ -358,7 +358,7 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionaryIncrementResponse: result of the increment operation.
         """
-        pass
+        return await self._data_client.dictionary_increment(cache_name, dictionary_name, field, amount, ttl)
 
     async def dictionary_remove_field(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField

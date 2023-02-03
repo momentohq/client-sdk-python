@@ -127,6 +127,11 @@ def dictionary_items() -> TDictionaryItems:
     return dict([(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())])
 
 
+@pytest.fixture
+def increment_amount() -> int:
+    return random.randint(0, 42)
+
+
 @pytest.fixture(scope="session")
 def default_ttl_seconds() -> timedelta:
     return DEFAULT_TTL_SECONDS
