@@ -16,9 +16,12 @@ from momento_wire_types.cacheclient_pb2 import (
     _ListPushBackRequest,
     _ListPushFrontRequest,
     _ListRemoveRequest,
+    _SetDifferenceRequest,
+    _SetFetchRequest,
     _SetIfNotExistsRequest,
     _SetRequest,
     _SetResponse,
+    _SetUnionRequest,
 )
 from momento_wire_types.cacheclient_pb2_grpc import ScsStub
 
@@ -29,8 +32,10 @@ from momento.errors import UnknownException, convert_error
 from momento.internal._utilities import (
     _as_bytes,
     _list_as_bytes,
+    _set_as_bytes,
     _validate_cache_name,
     _validate_list_name,
+    _validate_set_name,
     _validate_ttl,
 )
 from momento.internal.aio._scs_grpc_manager import _DataGrpcManager
@@ -100,6 +105,8 @@ class _ScsDataClient:
     __UNSUPPORTED_LIST_NAME_TYPE_MSG = "Unsupported type for list_name: "
     __UNSUPPORTED_LIST_VALUE_TYPE_MSG = "Unsupported type for value: "
     __UNSUPPORTED_LIST_VALUES_TYPE_MSG = "Unsupported type for values: "
+    __UNSUPPORTED_SET_NAME_TYPE_MSG = "Unsupported type for set_name: "
+    __UNSUPPORTED_SET_ELEMENTS_TYPE_MSG = "Unsupported tyoe for elements: "
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.cache_endpoint
@@ -491,19 +498,87 @@ class _ScsDataClient:
         elements: TSetElementsInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementsResponse:
-        None
+        try:
+            self._log_issuing_request("SetAddElements", {})
+            _validate_cache_name(cache_name)
+            _validate_set_name(set_name)
+
+            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
+            request = _SetUnionRequest()
+            request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
+            request.elements.extend(_set_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.refresh_ttl = ttl.refresh_ttl
+
+            await self._build_stub().SetUnionRequest(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("SetAddElements", {"set_name": str(request.set_name)})
+            return CacheSetAddElements.Success()
+        except Exception as e:
+            self._log_request_error("set_remove_elements", e)
+            return CacheSetAddElements.Error(convert_error(e))
 
     async def set_fetch(
         self,
         cache_name: TCacheName,
         set_name: TSetName,
     ) -> CacheSetFetchResponse:
-        None
+        try:
+            self._log_issuing_request("SetFetch", {"set_name": str(set_name)})
+            _validate_cache_name(cache_name)
+            _validate_set_name(set_name)
+
+            request = _SetFetchRequest()
+            request.set_name = _as_bytes(set_name, "Unsupported type for set_name: ")
+            response = await self._build_stub().SetFetch(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("SetFetch", {"set_name": str(request.set_name)})
+
+            type = response.WhichOneof("set")
+            if type == "missing":
+                return CacheSetFetch.Miss()
+            elif type == "found":
+                return CacheSetFetch.Hit(response.found.values)
+            else:
+                raise UnknownException(f"Unknown set field in response: {type}")
+        except Exception as e:
+            self._log_request_error("set_fetch", e)
+            return CacheSetFetch.Error(convert_error(e))
 
     async def set_remove_elements(
         self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
     ) -> CacheSetRemoveElementsResponse:
-        None
+        try:
+            self._log_issuing_request("SetRemoveElements", {})
+            _validate_cache_name(cache_name)
+            _validate_set_name(set_name)
+
+            set = _SetDifferenceRequest()._Subtrahend._Set()
+            set.elements = _set_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG)
+
+            subtrahend = _SetDifferenceRequest()._Subtrahend()
+            subtrahend.set = set
+
+            request = _SetDifferenceRequest()
+            request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
+            request.subtrahend = subtrahend
+
+            await self._build_stub()._SetDifferenceRequest(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("SetRemoveElements", {"set_name": str(request.set_name)})
+            return CacheSetRemoveElements.Success()
+        except Exception as e:
+            self._log_request_error("set_remove_elements", e)
+            return CacheSetRemoveElements.Error(convert_error(e))
 
     def _log_received_response(self, request_type: str, request_args: Dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")

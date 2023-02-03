@@ -665,14 +665,14 @@ class SimpleCacheClientAsync:
         elements: TSetElementsInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementsResponse:
-        None
+        return await self._data_client.set_add_elements(cache_name, set_name, elements, ttl)
 
     async def set_fetch(
         self,
         cache_name: TCacheName,
         set_name: TSetName,
     ) -> CacheSetFetchResponse:
-        None
+        return await self._data_client.set_fetch(cache_name, set_name)
 
     async def set_remove_element(
         self, cache_name: TCacheName, set_name: TSetName, element: TSetElement
@@ -688,7 +688,7 @@ class SimpleCacheClientAsync:
     async def set_remove_elements(
         self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
     ) -> CacheSetRemoveElementsResponse:
-        None
+        return await self._data_client.set_remove_elements(cache_name, set_name, elements)
 
     @property
     def _data_client(self) -> _ScsDataClient:

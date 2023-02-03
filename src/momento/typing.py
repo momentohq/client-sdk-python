@@ -33,6 +33,7 @@ TLIstValuesOutput = Union[TListValuesOutputBytes, TListValuesOutputStr]
 # Set Types
 TSetName = TCollectionName
 TSetElement = Union[str, bytes]
+TSetElementsInputBytes = Iterable[bytes]
 TSetElementsInput = Iterable[TSetElement]
 TSetElementsOutputStr = Set[str]
 TSetElementsOutputBytes = Set[bytes]
