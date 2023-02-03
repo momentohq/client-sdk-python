@@ -223,7 +223,7 @@ class _ScsDataClient:
             self._log_request_error("dictionary_fetch", e)
             return CacheDictionaryFetch.Error(convert_error(e))
 
-    def dictionary_set(
+    def dictionary_set_fields(
         self,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
@@ -237,7 +237,7 @@ class _ScsDataClient:
 
             request = _DictionarySetRequest()
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            for field, value in _items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG):
+            for field, value in _items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG).items():
                 field_value_pair = _DictionaryFieldValuePair()
                 field_value_pair.field = field
                 field_value_pair.value = value

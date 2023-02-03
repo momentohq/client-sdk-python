@@ -12,10 +12,10 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration, Laptop
 from momento.typing import (
     TCacheName,
-    TDictionaryName,
     TDictionaryField,
-    TDictionaryValue,
     TDictionaryItems,
+    TDictionaryName,
+    TDictionaryValue,
     TListName,
     TListValue,
     TListValuesInput,

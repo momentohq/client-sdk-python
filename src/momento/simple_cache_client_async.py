@@ -402,7 +402,9 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionarySetFieldResponse: result of the set operation.
         """
-        set_fields_response = self.dictionary_set_fields(cache_name, dictionary_name, items={field: value}, ttl=ttl)
+        set_fields_response = await self.dictionary_set_fields(
+            cache_name, dictionary_name, items={field: value}, ttl=ttl
+        )
         if isinstance(set_fields_response, CacheDictionarySetFields.Success):
             return CacheDictionarySetField.Success()
         elif isinstance(set_fields_response, CacheDictionarySetFields.Error):
@@ -432,7 +434,7 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionarySetFieldsResponse: result of the set fields operation.
         """
-        return await self._data_client.dictionary_set(cache_name, dictionary_name, items, ttl)
+        return await self._data_client.dictionary_set_fields(cache_name, dictionary_name, items, ttl)
 
     # LIST COLLECTION METHODS
     async def list_concatenate_back(
