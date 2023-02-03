@@ -7,6 +7,7 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
+from momento.errors import UnknownException
 from momento.requests import CollectionTtl
 
 try:
@@ -42,7 +43,9 @@ from momento.responses import (
     CacheDictionaryIncrementResponse,
     CacheDictionaryRemoveFieldResponse,
     CacheDictionaryRemoveFieldsResponse,
+    CacheDictionarySetField,
     CacheDictionarySetFieldResponse,
+    CacheDictionarySetFields,
     CacheDictionarySetFieldsResponse,
     CacheGetResponse,
     CacheListConcatenateBackResponse,
@@ -399,7 +402,15 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionarySetFieldResponse: result of the set operation.
         """
-        pass
+        set_fields_response = self.dictionary_set_fields(cache_name, dictionary_name, items={field: value}, ttl=ttl)
+        if isinstance(set_fields_response, CacheDictionarySetFields.Success):
+            return CacheDictionarySetField.Success()
+        elif isinstance(set_fields_response, CacheDictionarySetFields.Error):
+            return CacheDictionarySetField.Error(set_fields_response.inner_exception)
+        else:
+            return CacheDictionarySetField.Error(
+                UnknownException(f"Unknown set fields response: {set_fields_response}")
+            )
 
     async def dictionary_set_fields(
         self,
