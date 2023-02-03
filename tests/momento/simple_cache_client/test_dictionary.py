@@ -16,6 +16,8 @@ from momento.responses import (
     CacheDictionaryFetch,
     CacheDictionaryGetField,
     CacheDictionaryGetFieldResponse,
+    CacheDictionaryGetFields,
+    CacheDictionaryGetFieldsResponse,
     CacheDictionaryRemoveField,
     CacheDictionaryRemoveFields,
     CacheDictionarySetField,
@@ -29,8 +31,10 @@ from momento.typing import (
     TDictionaryFields,
     TDictionaryItems,
     TDictionaryName,
+    TDictionaryStrStr,
     TDictionaryValue,
 )
+from tests.utils import uuid_str
 
 from .shared_behaviors import (
     TCacheNameValidator,
@@ -373,6 +377,111 @@ def describe_dictionary_get_field() -> None:
     ) -> None:
         get_response = client.dictionary_get_field(cache_name, dictionary_name, dictionary_field)
         assert isinstance(get_response, CacheDictionaryGetField.Miss)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_dictionary_getter)
+@behaves_like(a_dictionary_name_validator)
+@behaves_like(a_dictionary_fields_validator)
+def describe_dictionary_get_fields() -> None:
+    @fixture
+    def cache_name_validator(
+        client: SimpleCacheClient, dictionary_name: TDictionaryName, dictionary_fields: TDictionaryFields
+    ) -> TCacheNameValidator:
+        return partial(client.dictionary_get_fields, dictionary_name=dictionary_name, fields=dictionary_fields)
+
+    @fixture
+    def connection_validator(
+        dictionary_name: TDictionaryName, dictionary_fields: TDictionaryFields
+    ) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> CacheResponse:
+            return client.dictionary_get_fields(cache_name, dictionary_name, dictionary_fields)
+
+        return _connection_validator
+
+    @fixture
+    def dictionary_fields_validator(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+    ) -> TDictionaryNameValidator:
+        return partial(client.dictionary_get_fields, cache_name=cache_name, dictionary_name=dictionary_name)
+
+    @fixture
+    def dictionary_name_validator(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_field: TDictionaryField,
+    ) -> TDictionaryNameValidator:
+        return partial(client.dictionary_get_fields, cache_name=cache_name, fields=dictionary_field)
+
+    @fixture
+    def dictionary_getter(client: SimpleCacheClient, cache_name: TCacheName) -> TDictionaryGetter:
+        def _dictionary_getter(
+            dictionary_name: TDictionaryName, field: TDictionaryField
+        ) -> CacheDictionaryGetFieldResponse:
+            response = client.dictionary_get_fields(cache_name, dictionary_name, [field])
+            if isinstance(response, CacheDictionaryGetFields.Error):
+                return CacheDictionaryGetField.Error(response.inner_exception)
+            elif isinstance(response, CacheDictionaryGetFields.Miss):
+                return CacheDictionaryGetField.Miss()
+            assert isinstance(response, CacheDictionaryGetFields.Hit)
+            return response.responses[0]
+
+        return _dictionary_getter
+
+    def it_misses_when_the_dictionary_does_not_exist(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_fields: TDictionaryFields,
+    ) -> None:
+        get_response = client.dictionary_get_fields(cache_name, dictionary_name, dictionary_fields)
+        assert isinstance(get_response, CacheDictionaryGetFields.Miss)
+
+    def it_decodes_responses_to_dictionaries_correctly(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+    ) -> None:
+        dictionary_items: TDictionaryStrStr = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
+        assert isinstance(set_response, CacheDictionarySetFields.Success)
+
+        get_response = client.dictionary_get_fields(cache_name, dictionary_name, dictionary_items.keys())
+        assert isinstance(get_response, CacheDictionaryGetFields.Hit)
+        assert len(get_response.responses) == 2
+        for (key, value), response in zip(dictionary_items.items(), get_response.responses):
+            assert isinstance(response, CacheDictionaryGetField.Hit)
+            assert key == response.field_string and value == response.value_string
+
+        assert get_response.value_dictionary_bytes_bytes == {
+            k.encode(): v.encode() for k, v in dictionary_items.items()
+        }
+        assert get_response.value_dictionary_bytes_string == {k.encode(): v for k, v in dictionary_items.items()}
+        assert get_response.value_dictionary_string_bytes == {k: v.encode() for k, v in dictionary_items.items()}
+        assert get_response.value_dictionary_string_string == dictionary_items
+
+    def it_excludes_misses_from_dictionary(
+        client: SimpleCacheClient, cache_name: TCacheName, dictionary_name: TDictionaryName
+    ) -> None:
+        dictionary_items: TDictionaryStrStr = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
+        assert isinstance(set_response, CacheDictionarySetFields.Success)
+
+        missing_key = uuid_str()
+        get_response = client.dictionary_get_fields(
+            cache_name, dictionary_name, list(dictionary_items.keys()) + [missing_key]
+        )
+        assert isinstance(get_response, CacheDictionaryGetFields.Hit)
+        assert len(get_response.responses) == 3
+        for (key, value), response in zip(dictionary_items.items(), get_response.responses[:3]):
+            assert isinstance(response, CacheDictionaryGetField.Hit)
+            assert key == response.field_string and value == response.value_string
+        assert isinstance(get_response.responses[-1], CacheDictionaryGetField.Miss)
+
+        assert missing_key not in get_response.value_dictionary_string_string
 
 
 @behaves_like(a_cache_name_validator)

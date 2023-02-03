@@ -119,7 +119,7 @@ def dictionary_value_bytes() -> TDictionaryValue:
 
 @pytest.fixture
 def dictionary_fields() -> TDictionaryFields:
-    return [(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())]
+    return [uuid_str(), uuid_str(), uuid_bytes(), uuid_bytes()]
 
 
 @pytest.fixture

@@ -14,7 +14,15 @@ TDictionaryName = TCollectionName
 TDictionaryField = Union[str, bytes]
 TDictionaryValue = Union[str, bytes]
 TDictionaryFields = Iterable[TDictionaryField]
-TDictionaryItems = Mapping[TDictionaryField, TDictionaryValue]
+TDictionaryItems = Union[
+    Mapping[TDictionaryField, TDictionaryValue],
+    # Mapping[Union[bytes, str], Union[bytes, str]] doesn't accept Mapping[str, str],
+    # So we need to add those types here too[]
+    Mapping[bytes, bytes],
+    Mapping[bytes, str],
+    Mapping[str, bytes],
+    Mapping[str, str],
+]
 TDictionaryBytesBytes = Dict[bytes, bytes]
 TDictionaryBytesStr = Dict[bytes, str]
 TDictionaryStrBytes = Dict[str, bytes]
