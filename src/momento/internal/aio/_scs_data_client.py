@@ -32,8 +32,8 @@ from momento.internal._utilities import (
     _items_as_bytes,
     _list_as_bytes,
     _validate_cache_name,
-    _validate_list_name,
     _validate_dictionary_name,
+    _validate_list_name,
     _validate_ttl,
     total_milliseconds,
 )
@@ -82,13 +82,13 @@ from momento.responses import (
 )
 from momento.typing import (
     TCacheName,
+    TDictionaryItems,
+    TDictionaryName,
     TListName,
     TListValue,
     TListValuesInput,
     TScalarKey,
     TScalarValue,
-    TDictionaryName,
-    TDictionaryItems,
 )
 
 

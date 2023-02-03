@@ -3,7 +3,12 @@ from datetime import timedelta
 from typing import Optional, Union
 
 from momento.errors import InvalidArgumentException
-from momento.typing import TListValuesInput, TListValuesInputBytes, TDictionaryItems, TDictionaryBytesBytes
+from momento.typing import (
+    TDictionaryBytesBytes,
+    TDictionaryItems,
+    TListValuesInput,
+    TListValuesInputBytes,
+)
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
