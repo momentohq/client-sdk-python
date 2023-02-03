@@ -637,6 +637,9 @@ class SimpleCacheClient:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to remove values from.
             value: (TListValue): The value to remove.
+
+        Returns:
+            CacheListRemoveValueResponse
         """
 
         return self._data_client.list_remove_value(cache_name, list_name, value)
@@ -649,6 +652,19 @@ class SimpleCacheClient:
         element: TSetElement,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementResponse:
+        """
+        Adds an element to a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to add to.
+            element (TSetElement): The element to add.
+            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSetAddElementResponse
+        """
+
         resp = self.set_add_elements(cache_name, set_name, [element], ttl)
 
         if isinstance(resp, CacheSetAddElements.Success):
@@ -665,6 +681,18 @@ class SimpleCacheClient:
         elements: TSetElementsInput,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementsResponse:
+        """
+        Add an elements to a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to add to.
+            elements (TSetElementsInput): The element to add.
+            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSetAddElementsResponse
+        """
         return self._data_client.set_add_elements(cache_name, set_name, elements, ttl)
 
     def set_fetch(
@@ -672,11 +700,32 @@ class SimpleCacheClient:
         cache_name: TCacheName,
         set_name: TSetName,
     ) -> CacheSetFetchResponse:
+        """
+        Fetches a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to fetch.
+
+        Returns:
+            CacheSetFetchResponse
+        """
         return self._data_client.set_fetch(cache_name, set_name)
 
     def set_remove_element(
         self, cache_name: TCacheName, set_name: TSetName, element: TSetElement
     ) -> CacheSetRemoveElementResponse:
+        """
+        Remove an element from a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to remove from.
+            element (TSetElementInput): The element to remove.
+
+        Returns:
+            CacheSetRemoveElementResponse
+        """
         resp = self.set_remove_elements(cache_name, set_name, [element])
         if isinstance(resp, CacheSetRemoveElements.Success):
             return CacheSetRemoveElement.Success()
@@ -688,6 +737,17 @@ class SimpleCacheClient:
     def set_remove_elements(
         self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
     ) -> CacheSetRemoveElementsResponse:
+        """
+        Remove elements from a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to remove from.
+            elements (TSetElementsInput): The element to remove.
+
+        Returns:
+            CacheSetRemoveElementsResponse
+        """
         return self._data_client.set_remove_elements(cache_name, set_name, elements)
 
     @property
