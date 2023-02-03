@@ -12,11 +12,11 @@ from momento.errors import MomentoErrorCode
 from momento.requests import CollectionTtl
 from momento.responses import (
     CacheResponse,
-    CacheSetAddElementResponse,
-    CacheSetAddElementsResponse,
-    CacheSetFetchResponse,
-    CacheSetRemoveElementResponse,
-    CacheSetRemoveElementsResponse,
+    CacheSetAddElement,
+    CacheSetAddElements,
+    CacheSetFetch,
+    CacheSetRemoveElement,
+    CacheSetRemoveElements,
 )
 from momento.responses.mixins import ErrorResponseMixin
 from momento.typing import TCacheName, TSetElement, TSetElementsInput, TSetName
@@ -131,6 +131,23 @@ def describe_set_fetch() -> None:
     @fixture
     def set_name_validator(client_async: SimpleCacheClientAsync) -> TSetNameValidator:
         return partial(client_async.set_fetch)
+
+    async def when_the_set_exists_it_fetches(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName
+    ) -> None:
+        elements = {"one", "two"}
+        await client_async.set_add_elements(cache_name, set_name, elements)
+
+        resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(resp, CacheSetFetch.Hit)
+        assert resp.value_set_string == elements
+        assert resp.value_set_bytes == {b"one", b"two"}
+
+    async def when_the_set_does_not_exist_it_misses(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName
+    ) -> None:
+        resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(resp, CacheSetFetch.Miss)
 
 
 @behaves_like(a_cache_name_validator)
