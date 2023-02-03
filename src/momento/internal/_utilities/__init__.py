@@ -1,6 +1,7 @@
 from ._data_validation import (
     _as_bytes,
-    _items_as_bytes,
+    _dictionary_fields_as_bytes,
+    _dictionary_items_as_bytes,
     _list_as_bytes,
     _validate_cache_name,
     _validate_dictionary_name,

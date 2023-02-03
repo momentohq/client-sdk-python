@@ -13,6 +13,7 @@ from momento.config import Configuration, Laptop
 from momento.typing import (
     TCacheName,
     TDictionaryField,
+    TDictionaryFields,
     TDictionaryItems,
     TDictionaryName,
     TDictionaryValue,
@@ -114,6 +115,11 @@ def dictionary_field_bytes() -> TDictionaryField:
 @pytest.fixture
 def dictionary_value_bytes() -> TDictionaryValue:
     return uuid_bytes()
+
+
+@pytest.fixture
+def dictionary_fields() -> TDictionaryFields:
+    return [(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())]
 
 
 @pytest.fixture

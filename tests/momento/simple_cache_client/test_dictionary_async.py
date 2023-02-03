@@ -10,9 +10,11 @@ from momento import SimpleCacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
+from momento.internal._utilities import _dictionary_items_as_bytes
 from momento.requests import CollectionTtl
 from momento.responses import (
     CacheDictionaryFetch,
+    CacheDictionaryRemoveFields,
     CacheDictionarySetField,
     CacheDictionarySetFields,
     CacheResponse,
@@ -21,10 +23,12 @@ from momento.responses.mixins import ErrorResponseMixin
 from momento.typing import (
     TCacheName,
     TDictionaryField,
+    TDictionaryFields,
     TDictionaryItems,
     TDictionaryName,
     TDictionaryValue,
 )
+
 from .shared_behaviors_async import (
     TCacheNameValidator,
     TConnectionValidator,
@@ -59,6 +63,30 @@ def a_dictionary_name_validator() -> None:
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Dictionary name must be a string"
+
+
+TDictionaryRemover = Callable[[SimpleCacheClientAsync, TDictionaryName, TDictionaryField], Awaitable[CacheResponse]]
+
+
+def a_dictionary_remover() -> None:
+    async def it_removes_an_item(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+        dictionary_value: TDictionaryValue,
+        dictionary_remover: TDictionaryRemover,
+    ) -> None:
+        set_response = await client_async.dictionary_set_field(
+            cache_name, dictionary_name, dictionary_field, dictionary_value
+        )
+        assert isinstance(set_response, CacheDictionarySetField.Success)
+
+        remove_response = await dictionary_remover(client_async, dictionary_name, dictionary_field)
+        assert not isinstance(remove_response, ErrorResponseMixin)
+
+        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
 
 
 TDictionarySetter = Callable[
@@ -180,6 +208,21 @@ def a_dictionary_setter() -> None:
             )
 
 
+TFieldsValidator = Callable[[TDictionaryFields], Awaitable[CacheResponse]]
+
+
+def a_dictionary_fields_validator() -> None:
+    async def with_null_fields_throws_exception(dictionary_fields_validator: TFieldsValidator) -> None:
+        response = await dictionary_fields_validator(fields=None)  # type: ignore
+        assert isinstance(response, ErrorResponseMixin)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+
+    async def with_wrong_container_throws_exception(dictionary_fields_validator: TFieldsValidator) -> None:
+        response = await dictionary_fields_validator(fields=Exception())  # type: ignore
+        assert isinstance(response, ErrorResponseMixin)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+
+
 TItemsValidator = Callable[[TDictionaryItems], Awaitable[CacheResponse]]
 
 
@@ -223,6 +266,77 @@ def describe_list_fetch() -> None:
         assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
 
 
+# TODO these don't work for this case?
+# @behaves_like(a_cache_name_validator)
+# @behaves_like(a_connection_validator)
+@behaves_like(a_dictionary_remover)
+@behaves_like(a_dictionary_name_validator)
+@behaves_like(a_dictionary_fields_validator)
+def describe_dictionary_remove_fields() -> None:
+    @fixture
+    def cache_name_validator(
+        client_async: SimpleCacheClientAsync,
+        dictionary_name: TDictionaryName,
+        dictionary_fields: TDictionaryFields,
+    ) -> TCacheNameValidator:
+        return partial(client_async.dictionary_remove_fields, dictionary_name=dictionary_name, fields=dictionary_fields)
+
+    @fixture
+    def connection_validator(
+        dictionary_name: TDictionaryName, dictionary_fields: TDictionaryFields
+    ) -> TConnectionValidator:
+        async def _connection_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> CacheResponse:
+            return await client_async.dictionary_remove_fields(
+                cache_name, dictionary_name=dictionary_name, fields=dictionary_fields
+            )
+
+        return _connection_validator
+
+    @fixture
+    def dictionary_fields_validator(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+    ) -> TDictionaryNameValidator:
+        return partial(client_async.dictionary_remove_fields, cache_name=cache_name, dictionary_name=dictionary_name)
+
+    @fixture
+    def dictionary_name_validator(
+        client_async: SimpleCacheClientAsync,
+        dictionary_fields: TDictionaryFields,
+    ) -> TDictionaryNameValidator:
+        return partial(client_async.dictionary_remove_fields, fields=dictionary_fields)
+
+    @fixture
+    def dictionary_remover(cache_name: TCacheName) -> TDictionaryRemover:
+        async def _dictionary_remover(
+            client_async: SimpleCacheClientAsync,
+            dictionary_name: TDictionaryName,
+            field: TDictionaryField,
+        ) -> CacheResponse:
+            return await client_async.dictionary_remove_fields(cache_name, dictionary_name, [field])
+
+        return _dictionary_remover
+
+    async def removes_multiple_items(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_items: TDictionaryItems,
+    ) -> None:
+        set_response = await client_async.dictionary_set_fields(
+            cache_name, dictionary_name, dictionary_items, CollectionTtl()
+        )
+        assert isinstance(set_response, CacheDictionarySetFields.Success)
+
+        fields = [field for field, _ in dictionary_items.items()]
+        remove_response = await client_async.dictionary_remove_fields(cache_name, dictionary_name, fields)
+        assert isinstance(remove_response, CacheDictionaryRemoveFields.Success)
+
+        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
+
+
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
 @behaves_like(a_dictionary_setter)
@@ -259,7 +373,6 @@ def describe_dictionary_set_field() -> None:
     @fixture
     def dictionary_name_validator(
         client_async: SimpleCacheClientAsync,
-        cache_name: TCacheName,
         dictionary_field: TDictionaryField,
         dictionary_value: TDictionaryValue,
     ) -> TDictionaryNameValidator:
@@ -322,7 +435,6 @@ def describe_dictionary_set_fields() -> None:
     @fixture
     def dictionary_name_validator(
         client_async: SimpleCacheClientAsync,
-        cache_name: TCacheName,
         dictionary_items: TDictionaryItems,
     ) -> TDictionaryNameValidator:
         return partial(client_async.dictionary_set_fields, items=dictionary_items, ttl=CollectionTtl())
@@ -339,3 +451,18 @@ def describe_dictionary_set_fields() -> None:
             return await client_async.dictionary_set_fields(cache_name, dictionary_name, {field: value}, ttl=ttl)
 
         return _dictionary_setter
+
+    async def sets_multiple_items(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_items: TDictionaryItems,
+    ) -> None:
+        set_response = await client_async.dictionary_set_fields(
+            cache_name, dictionary_name, dictionary_items, CollectionTtl()
+        )
+        assert isinstance(set_response, CacheDictionarySetFields.Success)
+
+        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
+        assert fetch_response.value_dictionary_bytes_bytes == _dictionary_items_as_bytes(dictionary_items)

@@ -41,7 +41,9 @@ from momento.responses import (
     CacheDictionaryGetFieldResponse,
     CacheDictionaryGetFieldsResponse,
     CacheDictionaryIncrementResponse,
+    CacheDictionaryRemoveField,
     CacheDictionaryRemoveFieldResponse,
+    CacheDictionaryRemoveFields,
     CacheDictionaryRemoveFieldsResponse,
     CacheDictionarySetField,
     CacheDictionarySetFieldResponse,
@@ -361,7 +363,15 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryRemoveFieldResponse: result of the remove operation.
         """
-        pass
+        remove_fields_response = self.dictionary_remove_fields(cache_name, dictionary_name, fields=[field])
+        if isinstance(remove_fields_response, CacheDictionaryRemoveFields.Success):
+            return CacheDictionaryRemoveField.Success()
+        elif isinstance(remove_fields_response, CacheDictionaryRemoveFields.Error):
+            return CacheDictionaryRemoveField.Error(remove_fields_response.inner_exception)
+        else:
+            return CacheDictionaryRemoveField.Error(
+                UnknownException(f"Unknown remove fields response: {remove_fields_response}")
+            )
 
     def dictionary_remove_fields(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
@@ -378,7 +388,7 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryRemoveFieldsResponse: result of the remove fields operation.
         """
-        pass
+        return self._data_client.dictionary_remove_fields(cache_name, dictionary_name, fields)
 
     def dictionary_set_field(
         self,

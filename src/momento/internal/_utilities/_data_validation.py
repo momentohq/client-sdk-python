@@ -5,6 +5,7 @@ from typing import Optional, Union
 from momento.errors import InvalidArgumentException
 from momento.typing import (
     TDictionaryBytesBytes,
+    TDictionaryFields,
     TDictionaryItems,
     TListValuesInput,
     TListValuesInputBytes,
@@ -13,6 +14,7 @@ from momento.typing import (
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
 DEFAULT_DICTIONARY_CONVERSION_ERROR = "Could not decode Mapping[bytes, bytes] to UTF-8"
+DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR = "Could not decode Iterable[bytes, bytes] to UTF-8"
 
 
 def _validate_name(name: str, field_name: str) -> None:
@@ -50,15 +52,21 @@ def _list_as_bytes(
 ) -> TListValuesInputBytes:
     if not isinstance(values, collections.abc.Iterable):
         raise InvalidArgumentException(f"{error_message}{type(values)}")
-    return iter([_as_bytes(value) for value in values])
+    return [_as_bytes(value) for value in values]
 
 
-def _items_as_bytes(
+def _dictionary_items_as_bytes(
     items: TDictionaryItems, error_message: Optional[str] = DEFAULT_DICTIONARY_CONVERSION_ERROR
 ) -> TDictionaryBytesBytes:
     if not isinstance(items, collections.abc.Mapping):
         raise InvalidArgumentException(f"{error_message}{type(items)}")
     return {_as_bytes(key): _as_bytes(value) for key, value in items.items()}
+
+
+def _dictionary_fields_as_bytes(
+    fields: TDictionaryFields, error_message: Optional[str] = DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR
+) -> TDictionaryFields:
+    return _list_as_bytes(fields, error_message)
 
 
 def _validate_timedelta_ttl(ttl: Optional[timedelta], field_name: str) -> None:

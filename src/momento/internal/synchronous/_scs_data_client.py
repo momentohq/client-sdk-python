@@ -5,6 +5,7 @@ from typing import Dict, Optional
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
     _DeleteResponse,
+    _DictionaryDeleteRequest,
     _DictionaryFetchRequest,
     _DictionaryFieldValuePair,
     _DictionarySetRequest,
@@ -30,7 +31,8 @@ from momento.config import Configuration
 from momento.errors import UnknownException, convert_error
 from momento.internal._utilities import (
     _as_bytes,
-    _items_as_bytes,
+    _dictionary_fields_as_bytes,
+    _dictionary_items_as_bytes,
     _list_as_bytes,
     _validate_cache_name,
     _validate_dictionary_name,
@@ -57,6 +59,8 @@ from momento.responses import (
     CacheDeleteResponse,
     CacheDictionaryFetch,
     CacheDictionaryFetchResponse,
+    CacheDictionaryRemoveFields,
+    CacheDictionaryRemoveFieldsResponse,
     CacheDictionarySetFields,
     CacheDictionarySetFieldsResponse,
     CacheGet,
@@ -84,6 +88,7 @@ from momento.responses import (
 )
 from momento.typing import (
     TCacheName,
+    TDictionaryFields,
     TDictionaryItems,
     TDictionaryName,
     TListName,
@@ -102,8 +107,8 @@ class _ScsDataClient:
     __UNSUPPORTED_LIST_VALUES_TYPE_MSG = "Unsupported type for values: "
 
     __UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG = "Unsupported type for dictionary_name: "
-    # __UNSUPPORTED_DICTIONARY_VALUE_TYPE_MSG = "Unsupported type for value: "
-    __UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG = "Unsupported type for values: "
+    __UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG = "Unsupported type for fields: "
+    __UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG = "Unsupported type for items: "
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.cache_endpoint
@@ -223,6 +228,36 @@ class _ScsDataClient:
             self._log_request_error("dictionary_fetch", e)
             return CacheDictionaryFetch.Error(convert_error(e))
 
+    def dictionary_remove_fields(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        fields: TDictionaryFields,
+    ) -> CacheDictionaryRemoveFieldsResponse:
+        try:
+            self._log_issuing_request("DictionaryDelete", {"dictionary_name": dictionary_name})
+            _validate_cache_name(cache_name)
+            _validate_dictionary_name(dictionary_name)
+
+            request = _DictionaryDeleteRequest()
+            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
+            request.some.fields.extend(
+                _dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
+            )
+            print(request)
+
+            self._build_stub().DictionaryDelete(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("DictionaryDelete", {"dictionary_name": dictionary_name})
+            return CacheDictionaryRemoveFields.Success()
+        except Exception as e:
+            print(e)
+            self._log_request_error("dictionary_remove_fields", e)
+            return CacheDictionaryRemoveFields.Error(convert_error(e))
+
     def dictionary_set_fields(
         self,
         cache_name: TCacheName,
@@ -237,7 +272,7 @@ class _ScsDataClient:
 
             request = _DictionarySetRequest()
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            for field, value in _items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG).items():
+            for field, value in _dictionary_items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG).items():
                 field_value_pair = _DictionaryFieldValuePair()
                 field_value_pair.field = field
                 field_value_pair.value = value
