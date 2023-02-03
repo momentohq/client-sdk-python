@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 
 from momento import SimpleCacheClientAsync
-from momento.auth import CredentialProvider, EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import InvalidArgumentException
 
@@ -21,7 +21,7 @@ async def test_init_throws_exception_for_non_jwt_token(
 ) -> None:
     with pytest.raises(InvalidArgumentException, match="Invalid Auth token."):
         os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
-        credential_provider = EnvMomentoTokenProvider("BAD_AUTH_TOKEN")
+        credential_provider = CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
         SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds)
 
 

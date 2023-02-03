@@ -134,7 +134,7 @@ class SimpleCacheClientAsync:
         self._logger = logs.logger
         self._next_client_index = 0
         self._control_client = _ScsControlClient(credential_provider)
-        self._cache_endpoint = credential_provider.get_cache_endpoint()
+        self._cache_endpoint = credential_provider.cache_endpoint
         self._data_clients = [
             _ScsDataClient(configuration, credential_provider, default_ttl)
             for _ in range(SimpleCacheClientAsync._NUM_CLIENTS)
