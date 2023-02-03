@@ -261,7 +261,7 @@ def describe_list_fetch() -> None:
     def dictionary_name_validator(client_async: SimpleCacheClientAsync) -> TDictionaryNameValidator:
         return partial(client_async.dictionary_fetch)
 
-    async def misses_when_the_list_does_not_exist(
+    async def misses_when_the_dictionary_does_not_exist(
         client_async: SimpleCacheClientAsync, cache_name: TCacheName, dictionary_name: TDictionaryName
     ) -> None:
         fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
