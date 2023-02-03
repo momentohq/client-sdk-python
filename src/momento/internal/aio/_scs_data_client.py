@@ -5,9 +5,9 @@ from typing import Dict, Optional
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
     _DeleteResponse,
+    _DictionaryFetchRequest,
     _DictionaryFieldValuePair,
     _DictionarySetRequest,
-    _DictionaryFetchRequest,
     _GetRequest,
     _GetResponse,
     _ListConcatenateBackRequest,

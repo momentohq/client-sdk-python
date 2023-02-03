@@ -5,6 +5,7 @@ from typing import Dict, Optional
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
     _DeleteResponse,
+    _DictionaryFetchRequest,
     _DictionaryFieldValuePair,
     _DictionarySetRequest,
     _GetRequest,
@@ -54,6 +55,8 @@ from momento.requests import CollectionTtl
 from momento.responses import (
     CacheDelete,
     CacheDeleteResponse,
+    CacheDictionaryFetch,
+    CacheDictionaryFetchResponse,
     CacheDictionarySetFields,
     CacheDictionarySetFieldsResponse,
     CacheGet,
@@ -193,6 +196,33 @@ class _ScsDataClient:
         )
 
     # DICTIONARY COLLECTION METHODS
+    def dictionary_fetch(
+        self, cache_name: TCacheName, dictionary_name: TDictionaryName
+    ) -> CacheDictionaryFetchResponse:
+        try:
+            self._log_issuing_request("DictionaryFetch", {"dictionary_name": dictionary_name})
+            _validate_cache_name(cache_name)
+            _validate_dictionary_name(dictionary_name)
+            request = _DictionaryFetchRequest()
+            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
+            response = self._build_stub().DictionaryFetch(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("DictionaryFetch", {"dictionary_name": dictionary_name})
+
+            type = response.WhichOneof("dictionary")
+            if type == "missing":
+                return CacheDictionaryFetch.Miss()
+            elif type == "found":
+                return CacheDictionaryFetch.Hit({item.field: item.value for item in response.found.items})
+            else:
+                raise UnknownException("Unknown dictionary field")
+        except Exception as e:
+            self._log_request_error("dictionary_fetch", e)
+            return CacheDictionaryFetch.Error(convert_error(e))
+
     def dictionary_set(
         self,
         cache_name: TCacheName,
@@ -201,7 +231,7 @@ class _ScsDataClient:
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheDictionarySetFieldsResponse:
         try:
-            self._log_issuing_request("DictionarySet", {})
+            self._log_issuing_request("DictionarySet", {"dictionary_name": dictionary_name})
             _validate_cache_name(cache_name)
             _validate_dictionary_name(dictionary_name)
 

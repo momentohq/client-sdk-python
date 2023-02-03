@@ -287,7 +287,7 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionaryFetchResponse: result of the fetch operation and the associated dictionary.
         """
-        pass
+        return await self._data_client.dictionary_fetch(cache_name, dictionary_name)
 
     async def dictionary_get_field(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
@@ -421,7 +421,7 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionarySetFieldsResponse: result of the set fields operation.
         """
-        pass
+        return await self._data_client.dictionary_set(cache_name, dictionary_name, items, ttl)
 
     # LIST COLLECTION METHODS
     async def list_concatenate_back(
