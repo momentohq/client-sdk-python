@@ -98,3 +98,16 @@ class CollectionTtl:
             CollectionTtl
         """
         return CollectionTtl(ttl=self.ttl, refresh_ttl=False)
+
+    def this_ttl_or_default(self, default_ttl: timedelta) -> timedelta:
+        """return this ttl if it is specified otherwise a default.
+
+        Args:
+            default_ttl (timedelta): The default TTL to use
+
+        Returns:
+            timedelta
+        """
+        if self.ttl is not None:
+            return self.ttl
+        return default_ttl

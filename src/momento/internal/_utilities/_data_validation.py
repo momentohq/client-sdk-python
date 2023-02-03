@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Optional, Union
 
 from momento.errors import InvalidArgumentException
-from momento.typing import TListValuesInput, TListValuesInputBytes
+from momento.typing import TListValuesInput, TListValuesInputBytes, TDictionaryItems, TDictionaryBytesBytes
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
@@ -24,6 +24,10 @@ def _validate_list_name(list_name: str) -> None:
     _validate_name(list_name, "List name")
 
 
+def _validate_dictionary_name(dictionary_name: str) -> None:
+    _validate_name(dictionary_name, "Dictionary name")
+
+
 def _as_bytes(
     data: Union[str, bytes],
     error_message: Optional[str] = DEFAULT_STRING_CONVERSION_ERROR,
@@ -41,6 +45,14 @@ def _list_as_bytes(
     if not isinstance(values, collections.abc.Iterable):
         raise InvalidArgumentException(f"{error_message}{type(values)}")
     return iter([_as_bytes(value) for value in values])
+
+
+def _items_as_bytes(
+    items: TDictionaryItems, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR
+) -> TDictionaryBytesBytes:
+    if not isinstance(items, collections.abc.Mapping):
+        raise InvalidArgumentException(f"{error_message}{type(items)}")
+    return {_as_bytes(key): _as_bytes(value) for key, value in items.items()}
 
 
 def _validate_timedelta_ttl(ttl: Optional[timedelta], field_name: str) -> None:
