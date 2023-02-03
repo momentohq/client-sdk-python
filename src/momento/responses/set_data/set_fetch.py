@@ -51,7 +51,7 @@ class CacheSetFetch(ABC):
                 TSetElementsOutputStr
             """
 
-            return {v.decode("utf-8") for v in self.value_set_bytes}
+            return {v.decode("utf-8") for v in self.elements}
 
     @dataclass
     class Miss(CacheSetFetchResponse):

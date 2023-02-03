@@ -37,6 +37,7 @@ TLIstValuesOutput = Union[TListValuesOutputBytes, TListValuesOutputStr]
 TSetName = TCollectionName
 TSetElement = TMomentoValue
 TSetElementsInputBytes = Iterable[bytes]
+TSetElementsInputStr = Iterable[str]
 TSetElementsInput = Iterable[TSetElement]
 TSetElementsOutputStr = Set[str]
 TSetElementsOutputBytes = Set[bytes]

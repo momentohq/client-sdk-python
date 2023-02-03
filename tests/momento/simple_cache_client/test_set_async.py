@@ -3,6 +3,7 @@ from functools import partial
 from time import sleep
 from typing import Awaitable, Callable
 
+import pytest
 from pytest import fixture
 from pytest_describe import behaves_like
 
@@ -20,8 +21,15 @@ from momento.responses import (
     CacheSetRemoveElements,
 )
 from momento.responses.mixins import ErrorResponseMixin
-from momento.typing import TCacheName, TSetElement, TSetElementsInput, TSetName
-from tests.utils import uuid_str
+from momento.typing import (
+    TCacheName,
+    TSetElement,
+    TSetElementsInput,
+    TSetElementsInputBytes,
+    TSetElementsInputStr,
+    TSetName,
+)
+from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors_async import (
     TCacheNameValidator,
@@ -164,6 +172,50 @@ def describe_set_add_element() -> None:
     def set_name_validator(client_async: SimpleCacheClientAsync, element: TSetElement) -> TSetNameValidator:
         return partial(client_async.set_add_element, element=element)
 
+    async def it_adds_a_string_element(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName
+    ) -> None:
+        element1 = uuid_str()
+        element2 = uuid_str()
+
+        add_resp = await client_async.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == {element1}
+
+        add_resp = await client_async.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+        add_resp = await client_async.set_add_element(cache_name, set_name, element2)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == {element1, element2}
+
+    async def it_adds_a_byte_element(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName
+    ) -> None:
+        element1 = uuid_bytes()
+        element2 = uuid_bytes()
+
+        add_resp = await client_async.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == {element1}
+
+        add_resp = await client_async.set_add_element(cache_name, set_name, element1)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+        add_resp = await client_async.set_add_element(cache_name, set_name, element2)
+        assert isinstance(add_resp, CacheSetAddElement.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == {element1, element2}
+
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
@@ -203,6 +255,49 @@ def describe_set_add_elements() -> None:
     @fixture
     def set_name_validator(client_async: SimpleCacheClientAsync, elements: TSetElementsInput) -> TSetNameValidator:
         return partial(client_async.set_add_elements, elements=elements)
+
+    async def it_adds_string_elements(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_str: TSetElementsInputStr,
+    ) -> None:
+        add_resp = await client_async.set_add_elements(cache_name, set_name, elements_str)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == elements_str
+
+        elements_str.add("another")
+        add_resp = await client_async.set_add_elements(cache_name, set_name, elements_str)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == elements_str
+
+    async def it_adds_byte_elements(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements_bytes: TSetElementsInputBytes,
+    ) -> None:
+        add_resp = await client_async.set_add_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == elements_bytes
+
+        elements_bytes.add(b"another")
+
+        add_resp = await client_async.set_add_elements(cache_name, set_name, elements_bytes)
+        assert isinstance(add_resp, CacheSetAddElements.Success)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_bytes == elements_bytes
 
 
 @behaves_like(a_cache_name_validator)
