@@ -34,6 +34,7 @@ do-gen-sync:
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_control_async.py tests/momento/simple_cache_client/test_control.py
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_list_async.py tests/momento/simple_cache_client/test_list.py
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_scalar_async.py tests/momento/simple_cache_client/test_scalar.py
+	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_set_async.py tests/momento/simple_cache_client/test_set.py
 
 .PHONY: gen-sync
 ## Generate synchronous code and tests from asynchronous code.
