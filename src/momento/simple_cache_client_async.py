@@ -38,7 +38,9 @@ except ImportError as e:
 from momento.responses import (
     CacheDeleteResponse,
     CacheDictionaryFetchResponse,
+    CacheDictionaryGetField,
     CacheDictionaryGetFieldResponse,
+    CacheDictionaryGetFields,
     CacheDictionaryGetFieldsResponse,
     CacheDictionaryIncrementResponse,
     CacheDictionaryRemoveField,
@@ -307,7 +309,17 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionaryGetFieldResponse: the status and value for the field.
         """
-        pass
+        get_fields_response = await self.dictionary_get_fields(cache_name, dictionary_name, [field])
+        if isinstance(get_fields_response, CacheDictionaryGetFields.Hit):
+            if len(get_fields_response.responses) == 0:
+                return CacheDictionaryGetField.Error(UnknownException("Unknown get fields response had no data"))
+            return get_fields_response.responses[0]
+        elif isinstance(get_fields_response, CacheDictionaryGetFields.Miss):
+            return CacheDictionaryGetField.Miss()
+        elif isinstance(get_fields_response, CacheDictionaryGetFields.Error):
+            return CacheDictionaryGetField.Error(get_fields_response.inner_exception)
+        else:
+            return CacheDictionaryGetField.Error(UnknownException(f"Unknown get field response: {get_fields_response}"))
 
     async def dictionary_get_fields(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
@@ -322,7 +334,7 @@ class SimpleCacheClientAsync:
         Returns:
             CacheDictionaryGetFieldsResponse: the status and associated value for each field.
         """
-        pass
+        return await self._data_client.dictionary_get_fields(cache_name, dictionary_name, fields)
 
     async def dictionary_increment(
         self,

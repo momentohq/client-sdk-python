@@ -1,13 +1,15 @@
 from datetime import timedelta
 from functools import partial
-from typing import Dict, Optional
+from typing import Dict, List, Optional, cast
 
 from momento_wire_types.cacheclient_pb2 import (
+    Miss,
     _DeleteRequest,
     _DeleteResponse,
     _DictionaryDeleteRequest,
     _DictionaryFetchRequest,
     _DictionaryFieldValuePair,
+    _DictionaryGetRequest,
     _DictionarySetRequest,
     _GetRequest,
     _GetResponse,
@@ -59,6 +61,10 @@ from momento.responses import (
     CacheDeleteResponse,
     CacheDictionaryFetch,
     CacheDictionaryFetchResponse,
+    CacheDictionaryGetField,
+    CacheDictionaryGetFieldResponse,
+    CacheDictionaryGetFields,
+    CacheDictionaryGetFieldsResponse,
     CacheDictionaryRemoveFields,
     CacheDictionaryRemoveFieldsResponse,
     CacheDictionarySetFields,
@@ -201,6 +207,48 @@ class _ScsDataClient:
         )
 
     # DICTIONARY COLLECTION METHODS
+    def dictionary_get_fields(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        fields: TDictionaryFields,
+    ) -> CacheDictionaryGetFieldsResponse:
+        try:
+            self._log_issuing_request("DictionaryGet", {"dictionary_name": dictionary_name})
+            _validate_cache_name(cache_name)
+            _validate_dictionary_name(dictionary_name)
+
+            request = _DictionaryGetRequest()
+            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
+            bytes_fields = cast(
+                List[bytes], _dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
+            )
+            request.fields.extend(bytes_fields)
+
+            response = self._build_stub().DictionaryGet(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("DictionaryGet", {"dictionary_name": dictionary_name})
+
+            type = response.WhichOneof("dictionary")
+            if type == "found":
+                get_responses: List[CacheDictionaryGetFieldResponse] = []
+                for field, get_response in zip(bytes_fields, response.found.items):
+                    if get_response.result == Miss:
+                        get_responses.append(CacheDictionaryGetField.Miss())
+                    else:
+                        get_responses.append(CacheDictionaryGetField.Hit(get_response.cache_body, field))
+                return CacheDictionaryGetFields.Hit(get_responses)
+            elif type == "missing":
+                return CacheDictionaryGetFields.Miss()
+            else:
+                raise UnknownException("Unknown dictionary field")
+        except Exception as e:
+            self._log_request_error("dictionary_get_fields", e)
+            return CacheDictionaryGetFields.Error(convert_error(e))
+
     def dictionary_fetch(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName
     ) -> CacheDictionaryFetchResponse:
