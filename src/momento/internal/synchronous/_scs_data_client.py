@@ -5,6 +5,8 @@ from typing import Dict, Optional
 from momento_wire_types.cacheclient_pb2 import (
     _DeleteRequest,
     _DeleteResponse,
+    _DictionaryFieldValuePair,
+    _DictionarySetRequest,
     _GetRequest,
     _GetResponse,
     _ListConcatenateBackRequest,
@@ -27,10 +29,13 @@ from momento.config import Configuration
 from momento.errors import UnknownException, convert_error
 from momento.internal._utilities import (
     _as_bytes,
+    _items_as_bytes,
     _list_as_bytes,
     _validate_cache_name,
+    _validate_dictionary_name,
     _validate_list_name,
     _validate_ttl,
+    total_milliseconds,
 )
 from momento.internal.common._data_client_ops import (
     get_default_client_deadline,
@@ -50,6 +55,8 @@ from momento.requests import CollectionTtl
 from momento.responses import (
     CacheDelete,
     CacheDeleteResponse,
+    CacheDictionarySetFields,
+    CacheDictionarySetFieldsResponse,
     CacheGet,
     CacheGetResponse,
     CacheListConcatenateBack,
@@ -75,6 +82,8 @@ from momento.responses import (
 )
 from momento.typing import (
     TCacheName,
+    TDictionaryItems,
+    TDictionaryName,
     TListName,
     TListValue,
     TListValuesInput,
@@ -89,6 +98,10 @@ class _ScsDataClient:
     __UNSUPPORTED_LIST_NAME_TYPE_MSG = "Unsupported type for list_name: "
     __UNSUPPORTED_LIST_VALUE_TYPE_MSG = "Unsupported type for value: "
     __UNSUPPORTED_LIST_VALUES_TYPE_MSG = "Unsupported type for values: "
+
+    __UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG = "Unsupported type for dictionary_name: "
+    # __UNSUPPORTED_DICTIONARY_VALUE_TYPE_MSG = "Unsupported type for value: "
+    __UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG = "Unsupported type for values: "
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.cache_endpoint
@@ -181,6 +194,38 @@ class _ScsDataClient:
         )
 
     # DICTIONARY COLLECTION METHODS
+    def dictionary_set(
+        self,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        items: TDictionaryItems,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheDictionarySetFieldsResponse:
+        try:
+            self._log_issuing_request("DictionarySet", {})
+            _validate_cache_name(cache_name)
+            _validate_dictionary_name(dictionary_name)
+
+            request = _DictionarySetRequest()
+            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
+            for field, value in _items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG):
+                field_value_pair = _DictionaryFieldValuePair()
+                field_value_pair.field = field
+                field_value_pair.value = value
+                request.items.append(field_value_pair)
+            request.ttl_milliseconds = total_milliseconds(ttl.this_ttl_or_default(self._default_ttl))
+            request.refresh_ttl = ttl.refresh_ttl
+
+            self._build_stub().DictionarySet(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("DictionarySet", {"dictionary_name": dictionary_name})
+            return CacheDictionarySetFields.Success()
+        except Exception as e:
+            self._log_request_error("dictionary_set", e)
+            return CacheDictionarySetFields.Error(convert_error(e))
 
     # LIST COLLECTION METHODS
     def list_concatenate_back(
