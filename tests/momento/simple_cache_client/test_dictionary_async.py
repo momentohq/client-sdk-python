@@ -111,7 +111,7 @@ TDictionaryRemover = Callable[[SimpleCacheClientAsync, TDictionaryName, TDiction
 
 
 def a_dictionary_remover() -> None:
-    async def it_removes_an_item(
+    async def with_string_field_succeeds(
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
@@ -125,6 +125,25 @@ def a_dictionary_remover() -> None:
         assert isinstance(set_response, CacheDictionarySetField.Success)
 
         remove_response = await dictionary_remover(client_async, dictionary_name, dictionary_field)
+        assert not isinstance(remove_response, ErrorResponseMixin)
+
+        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
+
+    async def with_bytes_field_succeeds(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field_bytes: TDictionaryField,
+        dictionary_value: TDictionaryValue,
+        dictionary_remover: TDictionaryRemover,
+    ) -> None:
+        set_response = await client_async.dictionary_set_field(
+            cache_name, dictionary_name, dictionary_field_bytes, dictionary_value
+        )
+        assert isinstance(set_response, CacheDictionarySetField.Success)
+
+        remove_response = await dictionary_remover(client_async, dictionary_name, dictionary_field_bytes)
         assert not isinstance(remove_response, ErrorResponseMixin)
 
         fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
