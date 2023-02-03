@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import momento.errors as errors
 from momento import SimpleCacheClient
-from momento.auth import EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheGet, CacheSet, CreateCache, DeleteCache, ListCaches
@@ -61,7 +61,7 @@ def test_create_cache_with_bad_cache_name_throws_exception(
 
 
 def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider,
+    bad_token_credential_provider: CredentialProvider,
     configuration: Configuration,
     default_ttl_seconds: timedelta,
     unique_cache_name,
@@ -121,7 +121,7 @@ def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient, 
 
 
 def test_delete_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
+    bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ) -> None:
     with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
         response = client.delete_cache(uuid_str())
@@ -155,7 +155,7 @@ def test_list_caches_succeeds(client: SimpleCacheClient, cache_name: str) -> Non
 
 
 def test_list_caches_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: EnvMomentoTokenProvider, configuration: Configuration, default_ttl_seconds: timedelta
+    bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ) -> None:
     with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
         response = client.list_caches()

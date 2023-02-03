@@ -1,1 +1,1 @@
-from .credential_provider import CredentialProvider, EnvMomentoTokenProvider
+from .credential_provider import CredentialProvider
