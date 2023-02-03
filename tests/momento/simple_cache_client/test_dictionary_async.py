@@ -82,30 +82,26 @@ def a_dictionary_items_validator() -> None:
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-TDictionaryNameValidator = Callable[[TCacheName, TDictionaryName], Awaitable[CacheResponse]]
+TDictionaryNameValidator = Callable[[TDictionaryName], Awaitable[CacheResponse]]
 
 
 def a_dictionary_name_validator() -> None:
-    async def with_null_dictionary_name_it_returns_invalid(
-        dictionary_name_validator: TDictionaryNameValidator, cache_name: TCacheName
-    ) -> None:
-        response = await dictionary_name_validator(cache_name, None)  # type: ignore
+    async def with_null_dictionary_name_it_returns_invalid(dictionary_name_validator: TDictionaryNameValidator) -> None:
+        response = await dictionary_name_validator(dictionary_name=None)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Dictionary name must be a string"
 
     async def with_empty_dictionary_name_it_returns_invalid(
-        dictionary_name_validator: TDictionaryNameValidator, cache_name: TCacheName
+        dictionary_name_validator: TDictionaryNameValidator,
     ) -> None:
-        response = await dictionary_name_validator(cache_name, "")
+        response = await dictionary_name_validator(dictionary_name="")
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Dictionary name must not be empty"
 
-    async def with_bad_dictionary_name_it_returns_invalid(
-        dictionary_name_validator: TDictionaryNameValidator, cache_name: TCacheName
-    ) -> None:
-        response = await dictionary_name_validator(cache_name, 1)  # type: ignore
+    async def with_bad_dictionary_name_it_returns_invalid(dictionary_name_validator: TDictionaryNameValidator) -> None:
+        response = await dictionary_name_validator(dictionary_name=1)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Dictionary name must be a string"
@@ -272,8 +268,10 @@ def describe_list_fetch() -> None:
         return _connection_validator
 
     @fixture
-    def dictionary_name_validator(client_async: SimpleCacheClientAsync) -> TDictionaryNameValidator:
-        return partial(client_async.dictionary_fetch)
+    def dictionary_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName
+    ) -> TDictionaryNameValidator:
+        return partial(client_async.dictionary_fetch, cache_name=cache_name)
 
     async def misses_when_the_dictionary_does_not_exist(
         client_async: SimpleCacheClientAsync, cache_name: TCacheName, dictionary_name: TDictionaryName
@@ -316,9 +314,10 @@ def describe_dictionary_remove_field() -> None:
     @fixture
     def dictionary_name_validator(
         client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
         dictionary_field: TDictionaryField,
     ) -> TDictionaryNameValidator:
-        return partial(client_async.dictionary_remove_field, field=dictionary_field)
+        return partial(client_async.dictionary_remove_field, cache_name=cache_name, field=dictionary_field)
 
     @fixture
     def dictionary_remover(cache_name: TCacheName) -> TDictionaryRemover:
@@ -387,9 +386,10 @@ def describe_dictionary_remove_fields() -> None:
     @fixture
     def dictionary_name_validator(
         client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
         dictionary_fields: TDictionaryFields,
     ) -> TDictionaryNameValidator:
-        return partial(client_async.dictionary_remove_fields, fields=dictionary_fields)
+        return partial(client_async.dictionary_remove_fields, cache_name=cache_name, fields=dictionary_fields)
 
     @fixture
     def dictionary_remover(cache_name: TCacheName) -> TDictionaryRemover:
@@ -457,11 +457,16 @@ def describe_dictionary_set_field() -> None:
     @fixture
     def dictionary_name_validator(
         client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
         dictionary_field: TDictionaryField,
         dictionary_value: TDictionaryValue,
     ) -> TDictionaryNameValidator:
         return partial(
-            client_async.dictionary_set_field, field=dictionary_field, value=dictionary_value, ttl=CollectionTtl()
+            client_async.dictionary_set_field,
+            cache_name=cache_name,
+            field=dictionary_field,
+            value=dictionary_value,
+            ttl=CollectionTtl(),
         )
 
     @fixture
@@ -519,9 +524,12 @@ def describe_dictionary_set_fields() -> None:
     @fixture
     def dictionary_name_validator(
         client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
         dictionary_items: TDictionaryItems,
     ) -> TDictionaryNameValidator:
-        return partial(client_async.dictionary_set_fields, items=dictionary_items, ttl=CollectionTtl())
+        return partial(
+            client_async.dictionary_set_fields, cache_name=cache_name, items=dictionary_items, ttl=CollectionTtl()
+        )
 
     @fixture
     def dictionary_setter(cache_name: TCacheName) -> TDictionarySetter:
