@@ -244,7 +244,6 @@ class _ScsDataClient:
             request.some.fields.extend(
                 _dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
             )
-            print(request)
 
             self._build_stub().DictionaryDelete(
                 request,
@@ -254,7 +253,6 @@ class _ScsDataClient:
             self._log_received_response("DictionaryDelete", {"dictionary_name": dictionary_name})
             return CacheDictionaryRemoveFields.Success()
         except Exception as e:
-            print(e)
             self._log_request_error("dictionary_remove_fields", e)
             return CacheDictionaryRemoveFields.Error(convert_error(e))
 
