@@ -358,7 +358,7 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryIncrementResponse: result of the increment operation.
         """
-        pass
+        return self._data_client.dictionary_increment(cache_name, dictionary_name, field, amount, ttl)
 
     def dictionary_remove_field(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField

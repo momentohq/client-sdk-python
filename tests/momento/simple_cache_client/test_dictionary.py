@@ -18,6 +18,8 @@ from momento.responses import (
     CacheDictionaryGetFieldResponse,
     CacheDictionaryGetFields,
     CacheDictionaryGetFieldsResponse,
+    CacheDictionaryIncrement,
+    CacheDictionaryIncrementResponse,
     CacheDictionaryRemoveField,
     CacheDictionaryRemoveFields,
     CacheDictionarySetField,
@@ -508,6 +510,129 @@ def describe_dictionary_fetch() -> None:
     ) -> None:
         fetch_response = client.dictionary_fetch(cache_name, dictionary_name)
         assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_dictionary_name_validator)
+@behaves_like(a_dictionary_field_validator)
+def describe_dictionary_increment() -> None:
+    @fixture
+    def cache_name_validator(
+        client: SimpleCacheClient,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+        increment_amount: int,
+    ) -> TCacheNameValidator:
+        return partial(
+            client.dictionary_increment,
+            dictionary_name=dictionary_name,
+            field=dictionary_field,
+            amount=increment_amount,
+            ttl=CollectionTtl(),
+        )
+
+    @fixture
+    def connection_validator(
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+        increment_amount: int,
+    ) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> CacheResponse:
+            return client.dictionary_increment(
+                cache_name,
+                dictionary_name=dictionary_name,
+                field=dictionary_field,
+                amount=increment_amount,
+                ttl=CollectionTtl(),
+            )
+
+        return _connection_validator
+
+    @fixture
+    def dictionary_field_validator(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        increment_amount: int,
+    ) -> TDictionaryNameValidator:
+        return partial(
+            client.dictionary_increment,
+            cache_name=cache_name,
+            dictionary_name=dictionary_name,
+            amount=increment_amount,
+            ttl=CollectionTtl(),
+        )
+
+    @fixture
+    def dictionary_name_validator(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_field: TDictionaryField,
+        increment_amount: int,
+    ) -> TDictionaryNameValidator:
+        return partial(
+            client.dictionary_increment,
+            cache_name=cache_name,
+            field=dictionary_field,
+            amount=increment_amount,
+            ttl=CollectionTtl(),
+        )
+
+    def it_starts_at_zero(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+    ) -> None:
+        increment_response = client.dictionary_increment(cache_name, dictionary_name, dictionary_field, 0)
+        assert isinstance(increment_response, CacheDictionaryIncrement.Success)
+        assert increment_response.value == 0
+
+    def it_increments(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+        increment_amount: int,
+    ) -> None:
+        increment_response = client.dictionary_increment(
+            cache_name, dictionary_name, dictionary_field, increment_amount
+        )
+        assert isinstance(increment_response, CacheDictionaryIncrement.Success)
+        assert increment_response.value == increment_amount
+
+    def it_accepts_initial_values(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+        increment_amount: int,
+    ) -> None:
+        set_response = client.dictionary_set_field(cache_name, dictionary_name, dictionary_field, str(increment_amount))
+        assert isinstance(set_response, CacheDictionarySetField.Success)
+
+        increment_response = client.dictionary_increment(
+            cache_name, dictionary_name, dictionary_field, increment_amount
+        )
+        assert isinstance(increment_response, CacheDictionaryIncrement.Success)
+        assert increment_response.value == 2 * increment_amount
+
+    def it_errors_on_bad_initial_values(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+        increment_amount: int,
+    ) -> None:
+        set_response = client.dictionary_set_field(cache_name, dictionary_name, dictionary_field, "hello, world!")
+        assert isinstance(set_response, CacheDictionarySetField.Success)
+
+        increment_response = client.dictionary_increment(
+            cache_name, dictionary_name, dictionary_field, increment_amount
+        )
+        assert isinstance(increment_response, CacheDictionaryIncrement.Error)
+        assert increment_response.error_code == MomentoErrorCode.FAILED_PRECONDITION_ERROR
 
 
 @behaves_like(a_cache_name_validator)
