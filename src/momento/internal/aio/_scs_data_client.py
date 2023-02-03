@@ -240,11 +240,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListConcatenateBackRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
                 request.truncate_front_to_size = truncate_front_to_size
@@ -273,11 +272,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListConcatenateFrontRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
                 request.truncate_back_to_size = truncate_back_to_size
@@ -438,11 +436,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _ListPushFrontRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
                 request.truncate_back_to_size = truncate_back_to_size
