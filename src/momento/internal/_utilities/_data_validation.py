@@ -12,6 +12,7 @@ from momento.typing import (
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
 DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
+DEFAULT_DICTIONARY_CONVERSION_ERROR = "Could not decode Mapping[bytes, bytes] to UTF-8"
 
 
 def _validate_name(name: str, field_name: str) -> None:
@@ -53,7 +54,7 @@ def _list_as_bytes(
 
 
 def _items_as_bytes(
-    items: TDictionaryItems, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR
+    items: TDictionaryItems, error_message: Optional[str] = DEFAULT_DICTIONARY_CONVERSION_ERROR
 ) -> TDictionaryBytesBytes:
     if not isinstance(items, collections.abc.Mapping):
         raise InvalidArgumentException(f"{error_message}{type(items)}")

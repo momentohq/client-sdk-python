@@ -102,8 +102,8 @@ class _ScsDataClient:
     __UNSUPPORTED_LIST_VALUES_TYPE_MSG = "Unsupported type for values: "
 
     __UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG = "Unsupported type for dictionary_name: "
-    # __UNSUPPORTED_DICTIONARY_VALUE_TYPE_MSG = "Unsupported type for value: "
-    __UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG = "Unsupported type for values: "
+    __UNSUPPORTED_DICTIONARY_VALUE_TYPE_MSG = "Unsupported type for value: "
+    __UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG = "Unsupported type for items: "
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.cache_endpoint

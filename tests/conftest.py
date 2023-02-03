@@ -107,6 +107,16 @@ def dictionary_value() -> TDictionaryValue:
 
 
 @pytest.fixture
+def dictionary_field_bytes() -> TDictionaryField:
+    return uuid_bytes()
+
+
+@pytest.fixture
+def dictionary_value_bytes() -> TDictionaryValue:
+    return uuid_bytes()
+
+
+@pytest.fixture
 def dictionary_items() -> TDictionaryItems:
     return dict([(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())])
 

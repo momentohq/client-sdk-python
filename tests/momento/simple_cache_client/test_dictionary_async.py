@@ -133,6 +133,54 @@ def a_dictionary_setter() -> None:
             fetch_response = await client.dictionary_fetch(cache_name, dictionary_name)
             assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
 
+    async def with_bytes_it_succeeds(
+        dictionary_setter: TDictionarySetter,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field_bytes: TDictionaryField,
+        dictionary_value_bytes: TDictionaryValue,
+    ) -> None:
+        await dictionary_setter(
+            client_async, dictionary_name, dictionary_field_bytes, dictionary_value_bytes, CollectionTtl()
+        )
+        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
+        assert fetch_response.value_dictionary_bytes_bytes == {dictionary_field_bytes: dictionary_value_bytes}
+
+    async def with_strings_it_succeeds(
+        dictionary_setter: TDictionarySetter,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+        dictionary_value: TDictionaryValue,
+    ) -> None:
+        await dictionary_setter(client_async, dictionary_name, dictionary_field, dictionary_value, CollectionTtl())
+        fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
+        assert fetch_response.value_dictionary_string_string == {dictionary_field: dictionary_value}
+
+    async def with_other_values_type_it_errors(
+        dictionary_setter: TDictionarySetter,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+    ) -> None:
+        for field, value, bad_type in [
+            (None, "value", "NoneType"),
+            ("field", None, "NoneType"),
+            (234, "value", "int"),
+            ("field", 234, "int"),
+        ]:
+            response = await dictionary_setter(client_async, dictionary_name, field, value, CollectionTtl())  # type: ignore
+            assert isinstance(response, ErrorResponseMixin)
+            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+            assert (
+                response.message
+                == f"Invalid argument passed to Momento client: Could not decode bytes to UTF-8<class '{bad_type}'>"
+            )
+
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
