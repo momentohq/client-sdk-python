@@ -136,8 +136,8 @@ def a_dictionary_setter() -> None:
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_name_validator)
 @behaves_like(a_dictionary_setter)
+@behaves_like(a_dictionary_name_validator)
 def describe_dictionary_set_field() -> None:
     @fixture
     def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
