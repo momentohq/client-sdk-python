@@ -78,6 +78,28 @@ class NameReplacement(cst.CSTTransformer):
         return updated_node
 
 
+class SimpleStringReplacement(cst.CSTTransformer):
+    """Applies regex-based substitutions to simple strings in the AST."""
+
+    def __init__(self, substitutions: List[Tuple[str, str]]) -> None:
+        """Instantiate a `SimpleStringReplacement`
+
+        Args:
+            substitutions (List[Tuple[str, str]]): A list of regex (string) and replacements to apply, in order.
+        """
+        self.substitutions = [(re.compile(pattern_), substitution) for pattern_, substitution in substitutions]
+
+    def leave_SimpleString(self, original_node: cst.SimpleString, updated_node: cst.SimpleString) -> cst.BaseExpression:
+        """_Alter comments and docstrings"""
+        value = original_node.value
+
+        for pattern, replacement in self.substitutions:
+            value = pattern.sub(replacement, value)
+
+        updated_node = updated_node.with_changes(value=value)
+        return updated_node
+
+
 class Pipeline:
     """Runs a list of `cst.CSTTransformer`s in sequence."""
 
@@ -101,7 +123,12 @@ name_replacements = NameReplacement(
         ("^aio$", "synchronous"),
     ]
 )
-canonical_pipeline = Pipeline([AsyncToSyncTransformer(), name_replacements])
+
+simple_string_replacements = SimpleStringReplacement(
+    [(r"(.*?)Async(\s+Simple\s+Cache\s+Client.*?)", "\\1Synchronous\\2"), (r"(.*?)\bawait\s+(.*?)", "\\1\\2")]
+)
+
+canonical_pipeline = Pipeline([AsyncToSyncTransformer(), name_replacements, simple_string_replacements])
 
 
 def read_file(filepath: str) -> str:

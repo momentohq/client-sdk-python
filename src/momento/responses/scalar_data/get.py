@@ -8,35 +8,13 @@ from ..response import CacheResponse
 
 
 class CacheGetResponse(CacheResponse):
-    """Parent response type for a cache get request. The
-    response object is resolved to a type-safe object of one of
-    the following subtypes:
+    """Parent response type for a cache `get` request. Its subtypes are:
 
     - `CacheGet.Hit`
     - `CacheGet.Miss`
     - `CacheGet.Error`
 
-    Pattern matching can be used to operate on the appropriate subtype.
-    For example, in python 3.10+:
-
-        match response:
-            case CacheGet.Hit() as hit:
-                return hit.value_string
-            case CacheGet.Miss():
-                ... # Handle miss
-            case CacheGet.Error():
-                ...
-
-    or equivalently in earlier versions of python:
-
-        if isinstance(response, CacheGet.Hit):
-            ...
-        elif isinstance(response, CacheGet.Miss):
-            ...
-        elif isinstance(response, CacheGet.Error):
-            ...
-        else:
-            # Shouldn't happen
+    See `SimpleCacheClient` for how to work with responses.
     """
 
 
@@ -45,7 +23,7 @@ class CacheGet(ABC):
 
     @dataclass
     class Hit(CacheGetResponse, ValueStringMixin):
-        """Indicates the request was successful."""
+        """Contains the result of a cache hit."""
 
         value_bytes: bytes
         """The value returned from the cache for the specified key. Use the

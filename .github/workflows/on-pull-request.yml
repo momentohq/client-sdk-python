@@ -59,7 +59,16 @@ jobs:
     strategy:
       matrix:
         # TODO: one of the examples dependencies does not support 3.11
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        include:
+          - python-version: "3.7"
+            package: prepy310
+          - python-version: "3.8"
+            package: prepy310
+          - python-version: "3.9"
+            package: prepy310
+          - python-version: "3.10"
+            package: py310
+
     env:
       # TODO: remove token stored as secret in favor of using a
       # momento-local instance that can be spun up for testing
@@ -73,40 +82,72 @@ jobs:
 
       - name: Verify README generation
         uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v1
+        if: ${{ matrix.python-version }} == '3.10'
         with:
           project_status: official
           project_stability: alpha
           project_type: sdk
           sdk_language: Python
-          usage_example_path: ./examples/example.py
+          usage_example_path: ./examples/${{ matrix.package }}/example.py
 
+      - name: Bootstrap poetry
+        run: |
+          curl -sL https://install.python-poetry.org | python - -y --version 1.3.1
+
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Install dependencies
+        working-directory: ./examples
+        run: poetry install
+
+      - name: Run mypy
+        id: mypy
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run mypy ${{ matrix.package }}
+
+      - name: Run flake8
+        id: flake8
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run flake8 ${{ matrix.package }}
+
+      - name: Run black
+        id: black
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run black ${{ matrix.package }} --check --diff
+
+      - name: Run isort
+        id: isort
+        continue-on-error: true
+        working-directory: ./examples
+        run: poetry run isort ${{ matrix.package }} --check --diff
+      
       - name: Run samples for python ${{ matrix.python-version }}
         id: validation
         continue-on-error: true
+        working-directory: ./examples
         run: |
-          pushd examples
-            python -m pip install --user pipenv
-            pipenv install --python ${{ matrix.python-version }}
-            pipenv run python example.py
-            pipenv run python example_async.py
-          popd
-      - name: Run Linters
-        id: linters
-        if: ${{ matrix.python-version == '3.7' }}
-        uses: ./.github/actions/linters
+          poetry run python -m ${{ matrix.package }}.example
+          poetry run python -m ${{ matrix.package }}.example_async
+
       - name: Send CI failure mail
-        if: ${{ steps.validation.outcome == 'failure' || steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' }}
         uses: momentohq/standards-and-practices/github-actions/error-email-action@gh-actions-v1
         with:
           username: ${{secrets.MOMENTO_ROBOT_GMAIL_USERNAME}}
           password: ${{secrets.MOMENTO_ROBOT_GMAIL_PASSWORD}}
+
       - name: Flag Job Failure
-        if: ${{ steps.validation.outcome == 'failure' || steps.linters.outputs.mypy == 'failure' || steps.linters.outputs.black == 'failure' || steps.linters.outputs.flake8 == 'failure' }}
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' }}
         run: |
           echo "Job statuses"
           echo "============"
           echo "sample scripts: ${{ steps.validation.outcome }}"
-          echo "mypy: ${{ steps.linters.outputs.mypy }}"
-          echo "black: ${{ steps.linters.outputs.black }}"
-          echo "flake8: ${{ steps.linters.outputs.flake8 }}"
+          echo "mypy: ${{ steps.outputs.mypy }}"
+          echo "flake8: ${{ steps.outputs.flake8 }}"
+          echo "black: ${{ steps.outputs.black }}"
+          echo "isort: ${{ steps.outputs.isort }}"
           exit 1

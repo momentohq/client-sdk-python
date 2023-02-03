@@ -1,5 +1,6 @@
 import asyncio
 import os
+import random
 from datetime import timedelta
 from typing import Optional, cast
 
@@ -7,9 +8,17 @@ import pytest
 import pytest_asyncio
 
 from momento import SimpleCacheClient, SimpleCacheClientAsync
-from momento.auth import EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration, Laptop
-from tests.utils import unique_test_cache_name
+from momento.typing import (
+    TCacheName,
+    TListName,
+    TListValue,
+    TListValuesInput,
+    TListValuesInputBytes,
+    TListValuesInputStr,
+)
+from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
 #######################
 # Integration test data
@@ -17,7 +26,7 @@ from tests.utils import unique_test_cache_name
 
 TEST_CONFIGURATION = Laptop.latest()
 
-TEST_AUTH_PROVIDER = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
+TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
 
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
 if not TEST_CACHE_NAME:
@@ -33,14 +42,14 @@ BAD_AUTH_TOKEN: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoi
 
 
 @pytest.fixture(scope="session")
-def credential_provider() -> EnvMomentoTokenProvider:
+def credential_provider() -> CredentialProvider:
     return TEST_AUTH_PROVIDER
 
 
 @pytest.fixture(scope="session")
-def bad_token_credential_provider() -> EnvMomentoTokenProvider:
+def bad_token_credential_provider() -> CredentialProvider:
     os.environ["BAD_AUTH_TOKEN"] = BAD_AUTH_TOKEN
-    return EnvMomentoTokenProvider("BAD_AUTH_TOKEN")
+    return CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
 
 
 @pytest.fixture(scope="session")
@@ -49,8 +58,33 @@ def configuration() -> Configuration:
 
 
 @pytest.fixture(scope="session")
-def cache_name() -> str:
+def cache_name() -> TCacheName:
     return cast(str, TEST_CACHE_NAME)
+
+
+@pytest.fixture
+def list_name() -> TListName:
+    return uuid_str()
+
+
+@pytest.fixture
+def list_value() -> TListValue:
+    return random.choice((uuid_bytes(), uuid_str()))
+
+
+@pytest.fixture
+def values_bytes() -> TListValuesInputBytes:
+    return [uuid_bytes(), uuid_bytes(), uuid_bytes()]
+
+
+@pytest.fixture()
+def values() -> TListValuesInput:
+    return random.choice(([uuid_bytes(), uuid_bytes(), uuid_bytes()], [uuid_str(), uuid_str(), uuid_str()]))
+
+
+@pytest.fixture
+def values_str() -> TListValuesInputStr:
+    return [uuid_str(), uuid_str(), uuid_str()]
 
 
 @pytest.fixture(scope="session")
@@ -75,7 +109,7 @@ def event_loop() -> asyncio.AbstractEventLoop:  # type: ignore
 @pytest.fixture(scope="session")
 def client() -> SimpleCacheClient:
     configuration = Laptop.latest()
-    credential_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
+    credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
     with SimpleCacheClient(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         _client.create_cache(TEST_CACHE_NAME)
@@ -88,7 +122,7 @@ def client() -> SimpleCacheClient:
 @pytest_asyncio.fixture(scope="session")
 async def client_async() -> SimpleCacheClientAsync:
     configuration = Laptop.latest()
-    credential_provider = EnvMomentoTokenProvider("TEST_AUTH_TOKEN")
+    credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
     async with SimpleCacheClientAsync(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         # TODO consider deleting cache on when test runner shuts down

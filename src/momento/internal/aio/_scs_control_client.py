@@ -36,7 +36,7 @@ class _ScsControlClient:
     """Momento Internal."""
 
     def __init__(self, credential_provider: CredentialProvider):
-        endpoint = credential_provider.get_control_endpoint()
+        endpoint = credential_provider.control_endpoint
         self._logger = logs.logger
         self._logger.debug("Simple cache control client instantiated with endpoint: %s", endpoint)
         self._grpc_manager = _ControlGrpcManager(credential_provider)

@@ -1,16 +1,16 @@
 from datetime import timedelta
-from typing import Awaitable, Callable, Union
+from typing import Awaitable, Callable
 
 from momento import SimpleCacheClientAsync
-from momento.auth import EnvMomentoTokenProvider
+from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheResponse
 from momento.responses.mixins import ErrorResponseMixin
-from momento.typing import TScalarKey
+from momento.typing import TCacheName, TScalarKey
 from tests.utils import uuid_str
 
-TCacheNameValidator = Callable[[str], Awaitable[CacheResponse]]
+TCacheNameValidator = Callable[[TCacheName], Awaitable[CacheResponse]]
 
 
 def a_cache_name_validator() -> None:
@@ -24,19 +24,19 @@ def a_cache_name_validator() -> None:
         response = await cache_name_validator(None)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "Cache name must be a non-empty string"
+        assert response.inner_exception.message == "Cache name must be a string"
 
     async def with_empty_cache_name_it_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
         response = await cache_name_validator("")
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "Cache header is empty"
+        assert response.inner_exception.message == "Cache name must not be empty"
 
     async def with_bad_cache_name_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
         response = await cache_name_validator(1)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "Cache name must be a non-empty string"
+        assert response.inner_exception.message == "Cache name must be a string"
 
 
 TKeyValidator = Callable[[str, TScalarKey], Awaitable[CacheResponse]]
@@ -60,7 +60,7 @@ TConnectionValidator = Callable[[SimpleCacheClientAsync, str], Awaitable[CacheRe
 
 def a_connection_validator() -> None:
     async def throws_authentication_exception_for_bad_token(
-        bad_token_credential_provider: EnvMomentoTokenProvider,
+        bad_token_credential_provider: CredentialProvider,
         configuration: Configuration,
         cache_name: str,
         default_ttl_seconds: timedelta,
@@ -75,7 +75,7 @@ def a_connection_validator() -> None:
 
     async def throws_timeout_error_for_short_request_timeout(
         configuration: Configuration,
-        credential_provider: EnvMomentoTokenProvider,
+        credential_provider: CredentialProvider,
         cache_name: str,
         default_ttl_seconds: timedelta,
         connection_validator: TConnectionValidator,

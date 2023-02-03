@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Optional
 
+from momento.internal._utilities import _validate_timedelta_ttl
+
 
 @dataclass
 class CollectionTtl:
@@ -18,6 +20,9 @@ class CollectionTtl:
     The default behavior is to refresh the TTL (to prolong the life of the
     collection) each time it is written.  This behavior can be modified
     by calling the method `with_no_refresh_ttl_on_updates`.
+
+    Raises:
+        ValueError: if the ttl is not a positive amount of time.
     """
 
     ttl: Optional[timedelta] = None
@@ -29,6 +34,11 @@ class CollectionTtl:
     on every update.  If `False`, the collection's TTL will only be set when the collection is
     initially created.
     """
+
+    def __post_init__(self) -> None:
+        if self.ttl is None:
+            return
+        _validate_timedelta_ttl(ttl=self.ttl, field_name="ttl")
 
     @staticmethod
     def from_cache_ttl() -> "CollectionTtl":

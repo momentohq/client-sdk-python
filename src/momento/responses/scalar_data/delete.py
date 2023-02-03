@@ -8,30 +8,12 @@ from ..response import CacheResponse
 
 
 class CacheDeleteResponse(CacheResponse):
-    """Parent response type for a cache delete request. The
-    response object is resolved to a type-safe object of one of
-    the following subtypes:
+    """Parent response type for a cache `delete` request. Its subtypes are:
 
     - `CacheDelete.Success`
     - `CacheDelete.Error`
 
-    Pattern matching can be used to operate on the appropriate subtype.
-    For example, in python 3.10+:
-
-        match response:
-            case CacheDelete.Success():
-                ...
-            case CacheDelete.Error():
-                ...
-
-    or equivalently in earlier versions of python:
-
-        if isinstance(response, CacheDelete.Success):
-            ...
-        elif isinstance(response, CacheDelete.Error):
-            ...
-        else:
-            # Shouldn't happen
+    See `SimpleCacheClient` for how to work with responses.
     """
 
 
