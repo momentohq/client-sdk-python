@@ -30,8 +30,8 @@ def _validate_list_name(list_name: str) -> None:
     _validate_name(list_name, "List name")
 
 
-def _validate_set_name(list_name: str) -> None:
-    _validate_name(list_name, "Set name")
+def _validate_set_name(set_name: str) -> None:
+    _validate_name(set_name, "Set name")
 
 
 def _as_bytes(

@@ -17,6 +17,9 @@ from momento.typing import (
     TListValuesInput,
     TListValuesInputBytes,
     TListValuesInputStr,
+    TSetElement,
+    TSetElementsInput,
+    TSetName,
 )
 from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
@@ -85,6 +88,21 @@ def values() -> TListValuesInput:
 @pytest.fixture
 def values_str() -> TListValuesInputStr:
     return [uuid_str(), uuid_str(), uuid_str()]
+
+
+@pytest.fixture
+def set_name() -> TSetName:
+    return uuid_str()
+
+
+@pytest.fixture
+def element() -> TSetElement:
+    return random.choice((uuid_bytes(), uuid_str()))
+
+
+@pytest.fixture
+def elements() -> TSetElementsInput:
+    return random.choice(({uuid_bytes(), uuid_bytes(), uuid_bytes()}, {uuid_str(), uuid_str(), uuid_str()}))
 
 
 @pytest.fixture(scope="session")

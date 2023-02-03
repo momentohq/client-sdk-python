@@ -510,7 +510,7 @@ class _ScsDataClient:
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
 
-            await self._build_stub().SetUnionRequest(
+            await self._build_stub().SetUnion(
                 request,
                 metadata=make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
@@ -559,17 +559,11 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_set_name(set_name)
 
-            set = _SetDifferenceRequest()._Subtrahend._Set()
-            set.elements = _set_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG)
-
-            subtrahend = _SetDifferenceRequest()._Subtrahend()
-            subtrahend.set = set
-
             request = _SetDifferenceRequest()
             request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
-            request.subtrahend = subtrahend
+            request.subtrahend.set.elements.extend(_set_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
 
-            await self._build_stub()._SetDifferenceRequest(
+            await self._build_stub().SetDifference(
                 request,
                 metadata=make_metadata(cache_name),
                 timeout=self._default_deadline_seconds,
