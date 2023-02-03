@@ -37,46 +37,46 @@ from .shared_behaviors_async import (
     a_connection_validator,
 )
 
-TFieldValidator = Callable[[TDictionaryField], Awaitable[CacheResponse]]
+TDictionaryFieldValidator = Callable[[TDictionaryField], Awaitable[CacheResponse]]
 
 
 def a_dictionary_field_validator() -> None:
-    async def with_null_field_throws_exception(dictionary_field_validator: TFieldValidator) -> None:
+    async def with_null_field_throws_exception(dictionary_field_validator: TDictionaryFieldValidator) -> None:
         response = await dictionary_field_validator(field=None)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
-    async def with_wrong_container_throws_exception(dictionary_field_validator: TFieldValidator) -> None:
+    async def with_wrong_container_throws_exception(dictionary_field_validator: TDictionaryFieldValidator) -> None:
         response = await dictionary_field_validator(field=Exception())  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-TFieldsValidator = Callable[[TDictionaryFields], Awaitable[CacheResponse]]
+TDictionaryFieldsValidator = Callable[[TDictionaryFields], Awaitable[CacheResponse]]
 
 
 def a_dictionary_fields_validator() -> None:
-    async def with_null_fields_throws_exception(dictionary_fields_validator: TFieldsValidator) -> None:
+    async def with_null_fields_throws_exception(dictionary_fields_validator: TDictionaryFieldsValidator) -> None:
         response = await dictionary_fields_validator(fields=None)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
-    async def with_wrong_container_throws_exception(dictionary_fields_validator: TFieldsValidator) -> None:
+    async def with_wrong_container_throws_exception(dictionary_fields_validator: TDictionaryFieldsValidator) -> None:
         response = await dictionary_fields_validator(fields=Exception())  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-TItemsValidator = Callable[[TDictionaryItems], Awaitable[CacheResponse]]
+TDictionaryItemsValidator = Callable[[TDictionaryItems], Awaitable[CacheResponse]]
 
 
 def a_dictionary_items_validator() -> None:
-    async def with_null_items_throws_exception(dictionary_items_validator: TItemsValidator) -> None:
+    async def with_null_items_throws_exception(dictionary_items_validator: TDictionaryItemsValidator) -> None:
         response = await dictionary_items_validator(items=None)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
-    async def with_wrong_container_throws_exception(dictionary_items_validator: TItemsValidator) -> None:
+    async def with_wrong_container_throws_exception(dictionary_items_validator: TDictionaryItemsValidator) -> None:
         response = await dictionary_items_validator(items=[1, 2, 3])  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -269,6 +269,21 @@ def a_dictionary_setter() -> None:
             )
 
 
+TDictionaryValueValidator = Callable[[TDictionaryValue], Awaitable[CacheResponse]]
+
+
+def a_dictionary_value_validator() -> None:
+    async def with_null_value_throws_exception(dictionary_value_validator: TDictionaryValueValidator) -> None:
+        response = await dictionary_value_validator(value=None)  # type: ignore
+        assert isinstance(response, ErrorResponseMixin)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+
+    async def with_wrong_container_throws_exception(dictionary_value_validator: TDictionaryValueValidator) -> None:
+        response = await dictionary_value_validator(value=Exception())  # type: ignore
+        assert isinstance(response, ErrorResponseMixin)
+        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+
+
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
 @behaves_like(a_dictionary_name_validator)
@@ -444,6 +459,7 @@ def describe_dictionary_remove_fields() -> None:
 @behaves_like(a_connection_validator)
 @behaves_like(a_dictionary_setter)
 @behaves_like(a_dictionary_name_validator)
+@behaves_like(a_dictionary_value_validator)
 def describe_dictionary_set_field() -> None:
     @fixture
     def cache_name_validator(
@@ -500,6 +516,21 @@ def describe_dictionary_set_field() -> None:
             return await client_async.dictionary_set_field(cache_name, dictionary_name, field, value, ttl=ttl)
 
         return _dictionary_setter
+
+    @fixture
+    def dictionary_value_validator(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+    ) -> TDictionaryValueValidator:
+        return partial(
+            client_async.dictionary_set_field,
+            cache_name=cache_name,
+            dictionary_name=dictionary_name,
+            field=dictionary_field,
+            ttl=CollectionTtl(),
+        )
 
 
 @behaves_like(a_cache_name_validator)
@@ -562,6 +593,20 @@ def describe_dictionary_set_fields() -> None:
             return await client_async.dictionary_set_fields(cache_name, dictionary_name, {field: value}, ttl=ttl)
 
         return _dictionary_setter
+
+    @fixture
+    def dictionary_value_validator(
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        dictionary_name: TDictionaryName,
+        dictionary_field: TDictionaryField,
+    ) -> TDictionaryNameValidator:
+        async def _value_validator(dictionary_value: TDictionaryValue) -> CacheResponse:
+            return await client_async.dictionary_set_fields(
+                cache_name, dictionary_name, items={dictionary_field: dictionary_value}
+            )
+
+        return _value_validator
 
     async def it_sets_multiple_items(
         client_async: SimpleCacheClientAsync,
