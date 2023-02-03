@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from momento.errors import SdkException
-from momento.typing import TSetElement, TSetElementsOutputBytes, TSetElementsOutputStr
+from momento.typing import TSetElementsOutputBytes, TSetElementsOutputStr
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse

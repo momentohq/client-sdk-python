@@ -3,11 +3,12 @@ from functools import partial
 from time import sleep
 from typing import Awaitable, Callable
 
-import pytest
 from pytest import fixture
 from pytest_describe import behaves_like
 
 from momento import SimpleCacheClientAsync
+from momento.auth import EnvMomentoTokenProvider
+from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.requests import CollectionTtl
 from momento.responses import (
@@ -20,7 +21,7 @@ from momento.responses import (
 )
 from momento.responses.mixins import ErrorResponseMixin
 from momento.typing import TCacheName, TSetElement, TSetElementsInput, TSetName
-from tests.utils import uuid_bytes, uuid_str
+from tests.utils import uuid_str
 
 from .shared_behaviors_async import (
     TCacheNameValidator,
@@ -28,6 +29,72 @@ from .shared_behaviors_async import (
     a_cache_name_validator,
     a_connection_validator,
 )
+
+TSetAdder = Callable[
+    [SimpleCacheClientAsync, TCacheName, TSetName, TSetElement, CollectionTtl], Awaitable[CacheResponse]
+]
+
+
+def a_set_adder() -> None:
+    async def it_sets_the_ttl(
+        configuration: Configuration,
+        credential_provider: EnvMomentoTokenProvider,
+        set_adder: TSetAdder,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements: TSetElementsInput,
+    ) -> None:
+        async with SimpleCacheClientAsync(configuration, credential_provider, timedelta(hours=1)) as client:
+            ttl_seconds = 0.5
+            ttl = CollectionTtl(ttl=timedelta(seconds=ttl_seconds), refresh_ttl=False)
+
+            for element in elements:
+                await set_adder(client, cache_name, set_name, element, ttl)
+
+            sleep(ttl_seconds * 2)
+
+            fetch_resp = await client.set_fetch(cache_name, set_name)
+            assert isinstance(fetch_resp, CacheSetFetch.Miss)
+
+    async def it_refreshes_the_ttl(
+        client_async: SimpleCacheClientAsync, set_adder: TSetAdder, cache_name: TCacheName, set_name: TSetName
+    ) -> None:
+        ttl_seconds = 1
+        ttl = CollectionTtl.of(timedelta(seconds=ttl_seconds))
+        elements = {"one", "two", "three", "four"}
+
+        for element in elements:
+            await set_adder(client_async, cache_name, set_name, element, ttl)
+            sleep(ttl_seconds / 2)
+
+        fetch_resp = await client_async.set_fetch(cache_name, set_name)
+        assert isinstance(fetch_resp, CacheSetFetch.Hit)
+        assert fetch_resp.value_set_string == elements
+
+    async def it_uses_the_default_ttl_when_the_collection_ttl_has_no_ttl(
+        configuration: Configuration,
+        credential_provider: EnvMomentoTokenProvider,
+        set_adder: TSetAdder,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> None:
+        ttl_seconds = 1
+        async with SimpleCacheClientAsync(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
+            ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
+
+            element = uuid_str()
+            await set_adder(client, cache_name, set_name, element, ttl)
+
+            sleep(ttl_seconds / 2)
+
+            fetch_resp = await client.set_fetch(cache_name, set_name)
+            assert isinstance(fetch_resp, CacheSetFetch.Hit)
+            assert fetch_resp.value_set_string == {element}
+
+            sleep(ttl_seconds / 2)
+            fetch_resp = await client.set_fetch(cache_name, set_name)
+            assert isinstance(fetch_resp, CacheSetFetch.Miss)
+
 
 TSetNameValidator = Callable[[TCacheName, TSetName], Awaitable[CacheResponse]]
 
@@ -60,6 +127,7 @@ def a_set_name_validator() -> None:
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_set_adder)
 @behaves_like(a_set_name_validator)
 def describe_set_add_element() -> None:
     @fixture
@@ -80,12 +148,26 @@ def describe_set_add_element() -> None:
         return _connection_validator
 
     @fixture
+    def set_adder(client_async: SimpleCacheClientAsync) -> TSetAdder:
+        async def _set_adder(
+            client_async: SimpleCacheClientAsync,
+            cache_name: TCacheName,
+            set_name: TSetName,
+            element: TSetElement,
+            ttl: CollectionTtl,
+        ) -> CacheResponse:
+            return await client_async.set_add_element(cache_name, set_name, element, ttl)
+
+        return _set_adder
+
+    @fixture
     def set_name_validator(client_async: SimpleCacheClientAsync, element: TSetElement) -> TSetNameValidator:
         return partial(client_async.set_add_element, element=element)
 
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_set_adder)
 @behaves_like(a_set_name_validator)
 def describe_set_add_elements() -> None:
     @fixture
@@ -104,6 +186,19 @@ def describe_set_add_elements() -> None:
             return await client_async.set_add_elements(cache_name=cache_name, set_name=set_name, elements=elements)
 
         return _connection_validator
+
+    @fixture
+    def set_adder(client_async: SimpleCacheClientAsync) -> TSetAdder:
+        async def _set_adder(
+            client_async: SimpleCacheClientAsync,
+            cache_name: TCacheName,
+            set_name: TSetName,
+            element: TSetElement,
+            ttl: CollectionTtl,
+        ) -> CacheResponse:
+            return await client_async.set_add_elements(cache_name, set_name, {element}, ttl)
+
+        return _set_adder
 
     @fixture
     def set_name_validator(client_async: SimpleCacheClientAsync, elements: TSetElementsInput) -> TSetNameValidator:
