@@ -107,9 +107,7 @@ TSetWhichTakesAnElement = Callable[[TSetElement], Awaitable[CacheResponse]]
 
 
 def a_set_which_takes_an_element() -> None:
-    async def it_errors_with_the_wrong_type(
-        set_which_takes_an_element: TSetWhichTakesAnElement
-    ) -> None:
+    async def it_errors_with_the_wrong_type(set_which_takes_an_element: TSetWhichTakesAnElement) -> None:
         resp = await set_which_takes_an_element(1)
         if isinstance(resp, ErrorResponseMixin):
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -205,7 +203,7 @@ def describe_set_add_element() -> None:
     def set_which_takes_an_element(
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
-        set_name: TSetName,    
+        set_name: TSetName,
     ) -> TSetWhichTakesAnElement:
         return partial(client_async.set_add_element, cache_name, set_name)
 
@@ -298,10 +296,11 @@ def describe_set_add_elements() -> None:
     def set_which_takes_an_element(
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
-        set_name: TSetName,    
+        set_name: TSetName,
     ) -> TSetWhichTakesAnElement:
         async def _set_which_takes_an_element(element: TSetElement) -> CacheSetAddElements:
             return await client_async.set_add_elements(cache_name, set_name, {element})
+
         return _set_which_takes_an_element
 
     async def it_adds_string_elements(
@@ -418,7 +417,7 @@ def describe_set_remove_element() -> None:
     def set_which_takes_an_element(
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
-        set_name: TSetName,    
+        set_name: TSetName,
     ) -> TSetWhichTakesAnElement:
         return partial(client_async.set_remove_element, cache_name, set_name)
 
@@ -503,10 +502,11 @@ def describe_set_remove_elements() -> None:
     def set_which_takes_an_element(
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
-        set_name: TSetName,    
+        set_name: TSetName,
     ) -> TSetWhichTakesAnElement:
         async def _set_which_takes_an_element(element: TSetElement) -> CacheSetAddElements:
             return await client_async.set_add_elements(cache_name, set_name, {element})
+
         return _set_which_takes_an_element
 
     async def it_removes_string_elements(

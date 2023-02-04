@@ -659,7 +659,7 @@ class SimpleCacheClient:
             cache_name (TCacheName): The cache name with the set.
             set_name (TSetName): The name of the set to add to.
             element (TSetElement): The element to add.
-            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            ttl: (CollectionTtl): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
 
         Returns:
             CacheSetAddElementResponse
@@ -688,7 +688,7 @@ class SimpleCacheClient:
             cache_name (TCacheName): The cache name with the set.
             set_name (TSetName): The name of the set to add to.
             elements (TSetElementsInput): The element to add.
-            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            ttl: (CollectionTtl): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
 
         Returns:
             CacheSetAddElementsResponse
