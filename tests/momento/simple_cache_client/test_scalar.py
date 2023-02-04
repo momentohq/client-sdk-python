@@ -25,19 +25,16 @@ from .shared_behaviors import (
 )
 
 
-class TSetter(Protocol):
-    def __call__(
-        self, cache_name: TCacheName, key: TScalarKey, value: TScalarValue, ttl: Optional[timedelta] = None
-    ) -> CacheResponse:
+class TTtlSetter(Protocol):
+    def __call__(self, cache_name: TCacheName, key: TScalarKey, ttl: Optional[timedelta] = None) -> CacheResponse:
         ...
 
 
-def a_setter() -> None:
-    def expires_items_after_ttl(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+def a_ttl_setter() -> None:
+    def expires_items_after_ttl(ttl_setter: TTtlSetter, client: SimpleCacheClient, cache_name: TCacheName) -> None:
         key = uuid_str()
-        val = uuid_str()
 
-        setter(cache_name, key, val, ttl=timedelta(seconds=2))
+        ttl_setter(cache_name, key, ttl=timedelta(seconds=2))
         get_response = client.get(cache_name, key)
         assert isinstance(get_response, CacheGet.Hit)
 
@@ -45,12 +42,12 @@ def a_setter() -> None:
         get_response = client.get(cache_name, key)
         assert isinstance(get_response, CacheGet.Miss)
 
-    def with_different_ttl(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+    def with_different_ttl(ttl_setter: TTtlSetter, client: SimpleCacheClient, cache_name: TCacheName) -> None:
         key1 = uuid_str()
         key2 = uuid_str()
 
-        setter(cache_name, key1, "1", ttl=timedelta(seconds=2))
-        setter(cache_name, key2, "2")
+        ttl_setter(cache_name, key1, ttl=timedelta(seconds=2))
+        ttl_setter(cache_name, key2)
 
         # Before
         get_response = client.get(cache_name, key1)
@@ -66,18 +63,27 @@ def a_setter() -> None:
         get_response = client.get(cache_name, key2)
         assert isinstance(get_response, CacheGet.Hit)
 
+    def negative_ttl_throws_exception(ttl_setter: TTtlSetter, client: SimpleCacheClient, cache_name: str) -> None:
+        set_response = ttl_setter(cache_name, "foo", ttl=timedelta(seconds=-1))
+        if isinstance(set_response, ErrorResponseMixin):
+            assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+            assert set_response.inner_exception.message == "TTL must be a positive amount of time."
+        else:
+            assert False
+
+
+class TSetter(Protocol):
+    def __call__(
+        self, cache_name: TCacheName, key: TScalarKey, value: TScalarValue, ttl: Optional[timedelta] = None
+    ) -> CacheResponse:
+        ...
+
+
+def a_setter() -> None:
     def with_null_value_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
         set_response = setter(cache_name, "foo", None)  # type:ignore[arg-type]
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        else:
-            assert False
-
-    def with_negative_ttl_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = setter(cache_name, "foo", "bar", ttl=timedelta(seconds=-1))
-        if isinstance(set_response, ErrorResponseMixin):
-            assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-            assert set_response.inner_exception.message == "TTL must be a positive amount of time."
         else:
             assert False
 
@@ -147,6 +153,44 @@ def describe_get() -> None:
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_ttl_setter)
+def describe_increment() -> None:
+    @fixture
+    def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
+        key = uuid_str()
+        return partial(client.increment, key=key)
+
+    @fixture
+    def key_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TKeyValidator:
+        return partial(client.increment, cache_name=cache_name)
+
+    @fixture
+    def connection_validator(cache_name: TCacheName, key: TScalarKey) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+            return client.increment(cache_name, key)
+
+        return _connection_validator
+
+    @fixture
+    def ttl_setter(client: SimpleCacheClient) -> TTtlSetter:
+        return partial(client.increment, amount=5)
+
+    def it_expires_items_after_ttl(client: SimpleCacheClient, cache_name: TCacheName) -> None:
+        key = uuid_str()
+
+        client.increment(cache_name, key, ttl=timedelta(seconds=2))
+        get_response = client.get(cache_name, key)
+        assert isinstance(get_response, CacheGet.Hit)
+
+        time.sleep(4)
+        get_response = client.get(cache_name, key)
+        assert isinstance(get_response, CacheGet.Miss)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_key_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_ttl_setter)
 @behaves_like(a_setter)
 def describe_set() -> None:
     @fixture
@@ -171,10 +215,15 @@ def describe_set() -> None:
     def setter(client: SimpleCacheClient) -> TSetter:
         return partial(client.set)
 
+    @fixture
+    def ttl_setter(client: SimpleCacheClient) -> TTtlSetter:
+        return partial(client.set, value=uuid_str())
+
 
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_ttl_setter)
 @behaves_like(a_setter)
 def describe_set_if_not_exists() -> None:
     @fixture
@@ -198,6 +247,10 @@ def describe_set_if_not_exists() -> None:
     @fixture
     def setter(client: SimpleCacheClient) -> TSetter:
         return partial(client.set_if_not_exists)
+
+    @fixture
+    def ttl_setter(client: SimpleCacheClient) -> TTtlSetter:
+        return partial(client.set_if_not_exists, value=uuid_str())
 
     def it_only_sets_when_the_key_does_not_exist(
         client: SimpleCacheClient,

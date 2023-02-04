@@ -14,6 +14,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _DictionaryIncrementRequest,
     _DictionarySetRequest,
     _GetRequest,
+    _IncrementRequest,
     _ListConcatenateBackRequest,
     _ListConcatenateFrontRequest,
     _ListFetchRequest,
@@ -67,6 +68,8 @@ from momento.responses import (
     CacheDictionarySetFieldsResponse,
     CacheGet,
     CacheGetResponse,
+    CacheIncrement,
+    CacheIncrementResponse,
     CacheListConcatenateBack,
     CacheListConcatenateBackResponse,
     CacheListConcatenateFront,
@@ -143,6 +146,31 @@ class _ScsDataClient:
     @property
     def endpoint(self) -> str:
         return self._endpoint
+
+    def increment(
+        self, cache_name: TCacheName, key: TScalarKey, amount: int = 1, ttl: Optional[timedelta] = None
+    ) -> CacheIncrementResponse:
+        try:
+            self._log_issuing_request("Increment", {"key": str(key), "amount": str(amount)})
+            _validate_cache_name(cache_name)
+            item_ttl = self._default_ttl if ttl is None else ttl
+            _validate_ttl(item_ttl)
+
+            request = _IncrementRequest()
+            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+            request.increment_by = amount
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+
+            response = self._build_stub().Increment(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("Increment", {"key": str(key), "amount": str(amount)})
+            return CacheIncrement.Success(response.value)
+        except Exception as e:
+            self._log_request_error("increment", e)
+            return CacheIncrement.Error(convert_error(e))
 
     def set(
         self,
