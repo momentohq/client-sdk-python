@@ -182,6 +182,7 @@ def describe_set() -> None:
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_setter)
 def describe_set_if_not_exists() -> None:
     @fixture
     def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
@@ -202,6 +203,10 @@ def describe_set_if_not_exists() -> None:
             return await client_async.set_if_not_exists(cache_name, key, value)
 
         return _connection_validator
+
+    @fixture
+    def setter(client_async: SimpleCacheClientAsync) -> TSetter:
+        return partial(client_async.set_if_not_exists)
 
     async def it_only_sets_when_the_key_does_not_exist(
         client_async: SimpleCacheClientAsync,
