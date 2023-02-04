@@ -55,7 +55,7 @@ class CacheSetFetch(ABC):
 
     @dataclass
     class Miss(CacheSetFetchResponse):
-        """Indicates the list does not exist."""
+        """Indicates the set does not exist."""
 
     @dataclass
     class Error(CacheSetFetchResponse, ErrorResponseMixin):
