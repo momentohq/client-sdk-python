@@ -16,6 +16,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _ListPushBackRequest,
     _ListPushFrontRequest,
     _ListRemoveRequest,
+    _SetIfNotExistsRequest,
     _SetRequest,
     _SetResponse,
 )
@@ -71,6 +72,8 @@ from momento.responses import (
     CacheListRemoveValue,
     CacheListRemoveValueResponse,
     CacheSet,
+    CacheSetIfNotExists,
+    CacheSetIfNotExistsResponse,
     CacheSetResponse,
 )
 from momento.typing import (
@@ -139,6 +142,37 @@ class _ScsDataClient:
             error_fn=CacheSet.Error.from_sdkexception,
             metadata=metadata,
         )
+
+    def set_if_not_exists(
+        self, cache_name: TCacheName, key: TScalarKey, value: TScalarValue, ttl: Optional[timedelta]
+    ) -> CacheSetIfNotExistsResponse:
+        try:
+            self._log_issuing_request("SetIfNotExists", {"key": str(key)})
+
+            _validate_cache_name(cache_name)
+            item_ttl = self._default_ttl if ttl is None else ttl
+            _validate_ttl(item_ttl)
+            request = _SetIfNotExistsRequest()
+            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+            request.cache_body = _as_bytes(value, "Unsupported type for value: ")
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+
+            response = self._build_stub().SetIfNotExists(
+                request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
+            )
+
+            self._log_received_response("SetIfNotExists", {"key": str(key)})
+
+            result = response.WhichOneof("result")
+            if result == "stored":
+                return CacheSetIfNotExists.Stored()
+            elif result == "not_stored":
+                return CacheSetIfNotExists.NotStored()
+            else:
+                raise UnknownException("SetIfNotExists responded with an unknown result")
+        except Exception as e:
+            self._log_request_error("set_if_not_exists", e)
+            return CacheSetIfNotExists.Error(convert_error(e))
 
     def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         metadata = make_metadata(cache_name)

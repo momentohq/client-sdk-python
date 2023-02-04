@@ -55,5 +55,7 @@ from .scalar_data import (
     CacheGet,
     CacheGetResponse,
     CacheSet,
+    CacheSetIfNotExists,
+    CacheSetIfNotExistsResponse,
     CacheSetResponse,
 )
