@@ -25,7 +25,7 @@ class CacheSetFetch(ABC):
 
     @dataclass
     class Hit(CacheSetFetchResponse):
-        """Indicates the list exists and its values were fetched."""
+        """Indicates the set exists and its values were fetched."""
 
         elements: Iterable[bytes]
         """The elements as a iterable of bytes.
