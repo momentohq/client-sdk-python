@@ -50,7 +50,7 @@ def _list_as_bytes(
 ) -> TListValuesInputBytes:
     if not isinstance(values, collections.abc.Iterable):
         raise InvalidArgumentException(f"{error_message}{type(values)}")
-    return iter([_as_bytes(value) for value in values])
+    return [_as_bytes(value) for value in values]
 
 
 def _set_as_bytes(
@@ -58,7 +58,7 @@ def _set_as_bytes(
 ) -> TSetElementsInputBytes:
     if not isinstance(elements, collections.abc.Iterable):
         raise InvalidArgumentException(f"{error_message}{type(elements)}")
-    return iter({_as_bytes(element) for element in elements})
+    return {_as_bytes(element) for element in elements}
 
 
 def _validate_timedelta_ttl(ttl: Optional[timedelta], field_name: str) -> None:
