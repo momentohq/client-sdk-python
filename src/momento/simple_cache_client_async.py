@@ -54,6 +54,7 @@ from momento.responses import (
     CacheListPushBackResponse,
     CacheListPushFrontResponse,
     CacheListRemoveValueResponse,
+    CacheSetIfNotExistsResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -249,6 +250,28 @@ class SimpleCacheClientAsync:
             CacheSetResponse:
         """
         return await self._data_client.set(cache_name, key, value, ttl)
+
+    async def set_if_not_exists(
+        self,
+        cache_name: str,
+        key: TScalarKey,
+        value: TScalarValue,
+        ttl: Optional[timedelta] = None,
+    ) -> CacheSetIfNotExistsResponse:
+        """Like `set`, but it will only set if the key does not already exist.
+
+        Args:
+            cache_name (str): Name of the cache to store the item in.
+            key (TScalarKey): The key to set.
+            value (TScalarValue): The value to be stored if the key does not exist.
+            ttl (Optional[timedelta], optional): TTL for the item in cache.
+            This TTL takes precedence over the TTL used when initializing a cache client.
+            Defaults to client TTL. If specified must be strictly positive.
+
+        Returns:
+            CacheSetIfNotExistsResponse:
+        """
+        return await self._data_client.set_if_not_exists(cache_name, key, value, ttl)
 
     async def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         """Get the cache value stored for the given key.
