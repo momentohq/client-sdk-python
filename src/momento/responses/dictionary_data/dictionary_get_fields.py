@@ -3,8 +3,6 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import CacheResponse
 from .dictionary_get_field import (
@@ -91,15 +89,9 @@ class CacheDictionaryGetFields(ABC):
     class Miss(CacheDictionaryGetFieldsResponse):
         """Indicates the dictionary does not exist."""
 
-    @dataclass
     class Error(CacheDictionaryGetFieldsResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

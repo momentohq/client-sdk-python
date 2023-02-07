@@ -1,8 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import CacheResponse
 
@@ -32,15 +30,9 @@ class CacheListPopFront(ABC):
     class Miss(CacheListPopFrontResponse):
         """Indicates the list does not exist."""
 
-    @dataclass
     class Error(CacheListPopFrontResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

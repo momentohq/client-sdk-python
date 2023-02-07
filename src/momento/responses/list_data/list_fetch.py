@@ -3,8 +3,6 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
 
@@ -48,15 +46,9 @@ class CacheListFetch(ABC):
     class Miss(CacheListFetchResponse):
         """Indicates the list does not exist."""
 
-    @dataclass
     class Error(CacheListFetchResponse, ErrorResponseMixin):
         """Indicates an error occured in the request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

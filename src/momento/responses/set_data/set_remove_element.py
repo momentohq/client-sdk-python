@@ -1,8 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
 
@@ -24,15 +22,9 @@ class CacheSetRemoveElement(ABC):
     class Success(CacheSetRemoveElementResponse):
         """Indicates the element was removed."""
 
-    @dataclass
     class Error(CacheSetRemoveElementResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error
