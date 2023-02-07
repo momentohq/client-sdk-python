@@ -614,7 +614,7 @@ def describe_dictionary_increment() -> None:
         assert isinstance(increment_response, CacheDictionaryIncrement.Success)
         assert increment_response.value == increment_amount
 
-    async def it_accepts_initial_values(
+    async def it_increments_an_existing_field(
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
