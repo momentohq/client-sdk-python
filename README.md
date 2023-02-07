@@ -45,11 +45,11 @@ from datetime import timedelta
 from example_utils.example_logging import initialize_logging
 
 from momento import SimpleCacheClient
-from momento.auth.credential_provider import EnvMomentoTokenProvider
-from momento.config.configurations import Laptop
+from momento.auth import CredentialProvider
+from momento.config import Laptop
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
-_AUTH_PROVIDER = EnvMomentoTokenProvider("MOMENTO_AUTH_TOKEN")
+_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
 _CACHE_NAME = "cache"
 _ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
 _KEY = "MyKey"

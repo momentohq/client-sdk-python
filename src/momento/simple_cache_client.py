@@ -61,6 +61,16 @@ from momento.responses import (
     CacheListPushBackResponse,
     CacheListPushFrontResponse,
     CacheListRemoveValueResponse,
+    CacheSetAddElement,
+    CacheSetAddElementResponse,
+    CacheSetAddElements,
+    CacheSetAddElementsResponse,
+    CacheSetFetchResponse,
+    CacheSetIfNotExistsResponse,
+    CacheSetRemoveElement,
+    CacheSetRemoveElementResponse,
+    CacheSetRemoveElements,
+    CacheSetRemoveElementsResponse,
     CacheSetResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
@@ -81,6 +91,9 @@ from momento.typing import (
     TListValuesInput,
     TScalarKey,
     TScalarValue,
+    TSetElement,
+    TSetElementsInput,
+    TSetName,
 )
 
 
@@ -256,6 +269,28 @@ class SimpleCacheClient:
             CacheSetResponse:
         """
         return self._data_client.set(cache_name, key, value, ttl)
+
+    def set_if_not_exists(
+        self,
+        cache_name: str,
+        key: TScalarKey,
+        value: TScalarValue,
+        ttl: Optional[timedelta] = None,
+    ) -> CacheSetIfNotExistsResponse:
+        """Like `set`, but it will only set if the key does not already exist.
+
+        Args:
+            cache_name (str): Name of the cache to store the item in.
+            key (TScalarKey): The key to set.
+            value (TScalarValue): The value to be stored if the key does not exist.
+            ttl (Optional[timedelta], optional): TTL for the item in cache.
+            This TTL takes precedence over the TTL used when initializing a cache client.
+            Defaults to client TTL. If specified must be strictly positive.
+
+        Returns:
+            CacheSetIfNotExistsResponse:
+        """
+        return self._data_client.set_if_not_exists(cache_name, key, value, ttl)
 
     def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         """Get the cache value stored for the given key.
@@ -634,11 +669,118 @@ class SimpleCacheClient:
             cache_name (TCacheName): The cache where the list is.
             list_name (TListName): The name of the list to remove values from.
             value: (TListValue): The value to remove.
+
+        Returns:
+            CacheListRemoveValueResponse
         """
 
         return self._data_client.list_remove_value(cache_name, list_name, value)
 
     # SET COLLECTION METHODS
+    def set_add_element(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        element: TSetElement,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSetAddElementResponse:
+        """
+        Adds an element to a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to add to.
+            element (TSetElement): The element to add.
+            ttl: (CollectionTtl): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSetAddElementResponse
+        """
+
+        resp = self.set_add_elements(cache_name, set_name, [element], ttl)
+
+        if isinstance(resp, CacheSetAddElements.Success):
+            return CacheSetAddElement.Success()
+        elif isinstance(resp, CacheSetAddElements.Error):
+            return CacheSetAddElement.Error(resp.inner_exception)
+        else:
+            raise UnknownException(f"Unknown response type: {type(resp)}")
+
+    def set_add_elements(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        elements: TSetElementsInput,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSetAddElementsResponse:
+        """
+        Add an elements to a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to add to.
+            elements (TSetElementsInput): The element to add.
+            ttl: (CollectionTtl): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSetAddElementsResponse
+        """
+        return self._data_client.set_add_elements(cache_name, set_name, elements, ttl)
+
+    def set_fetch(
+        self,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> CacheSetFetchResponse:
+        """
+        Fetches a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to fetch.
+
+        Returns:
+            CacheSetFetchResponse
+        """
+        return self._data_client.set_fetch(cache_name, set_name)
+
+    def set_remove_element(
+        self, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+    ) -> CacheSetRemoveElementResponse:
+        """
+        Remove an element from a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to remove from.
+            element (TSetElementInput): The element to remove.
+
+        Returns:
+            CacheSetRemoveElementResponse
+        """
+        resp = self.set_remove_elements(cache_name, set_name, [element])
+        if isinstance(resp, CacheSetRemoveElements.Success):
+            return CacheSetRemoveElement.Success()
+        elif isinstance(resp, CacheSetRemoveElements.Error):
+            return CacheSetRemoveElement.Error(resp.inner_exception)
+        else:
+            raise UnknownException(f"Unknown response type: {type(resp)}")
+
+    def set_remove_elements(
+        self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
+    ) -> CacheSetRemoveElementsResponse:
+        """
+        Remove elements from a set.
+
+        Args:
+            cache_name (TCacheName): The cache name with the set.
+            set_name (TSetName): The name of the set to remove from.
+            elements (TSetElementsInput): The element to remove.
+
+        Returns:
+            CacheSetRemoveElementsResponse
+        """
+        return self._data_client.set_remove_elements(cache_name, set_name, elements)
 
     @property
     def _data_client(self) -> _ScsDataClient:
