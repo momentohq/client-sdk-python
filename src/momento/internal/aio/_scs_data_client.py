@@ -1,6 +1,6 @@
 from datetime import timedelta
 from functools import partial
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional
 
 from momento_wire_types.cacheclient_pb2 import (
     Miss,
@@ -225,9 +225,8 @@ class _ScsDataClient:
 
             request = _DictionaryGetRequest()
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            bytes_fields = cast(
-                List[bytes], _dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
-            )
+            bytes_fields = _dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
+
             request.fields.extend(bytes_fields)
 
             response = await self._build_stub().DictionaryGet(

@@ -1,6 +1,6 @@
 import collections.abc
 from datetime import timedelta
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 from momento.errors import InvalidArgumentException
 from momento.typing import (
@@ -65,7 +65,7 @@ def _dictionary_items_as_bytes(
 
 def _dictionary_fields_as_bytes(
     fields: TDictionaryFields, error_message: Optional[str] = DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR
-) -> TDictionaryFields:
+) -> Iterable[bytes]:
     return _list_as_bytes(fields, error_message)
 
 
