@@ -12,6 +12,11 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration, Laptop
 from momento.typing import (
     TCacheName,
+    TDictionaryField,
+    TDictionaryFields,
+    TDictionaryItems,
+    TDictionaryName,
+    TDictionaryValue,
     TListName,
     TListValue,
     TListValuesInput,
@@ -90,6 +95,46 @@ def values() -> TListValuesInput:
 @pytest.fixture
 def values_str() -> TListValuesInputStr:
     return [uuid_str(), uuid_str(), uuid_str()]
+
+
+@pytest.fixture
+def dictionary_name() -> TDictionaryName:
+    return uuid_str()
+
+
+@pytest.fixture
+def dictionary_field_str() -> str:
+    return uuid_str()
+
+
+@pytest.fixture
+def dictionary_value_str() -> str:
+    return uuid_str()
+
+
+@pytest.fixture
+def dictionary_field_bytes() -> bytes:
+    return uuid_bytes()
+
+
+@pytest.fixture
+def dictionary_value_bytes() -> bytes:
+    return uuid_bytes()
+
+
+@pytest.fixture
+def dictionary_fields() -> TDictionaryFields:
+    return [uuid_str(), uuid_str(), uuid_bytes(), uuid_bytes()]
+
+
+@pytest.fixture
+def dictionary_items() -> TDictionaryItems:
+    return dict([(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())])
+
+
+@pytest.fixture
+def increment_amount() -> int:
+    return random.randint(-42, 42)
 
 
 @pytest.fixture

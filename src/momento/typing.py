@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List, Mapping, Set, Union
+from typing import Iterable, List, Mapping, Set, Union
 
 TCacheName = str
 
@@ -17,11 +17,15 @@ TDictionaryName = TCollectionName
 TDictionaryField = Union[str, bytes]
 TDictionaryValue = TMomentoValue
 TDictionaryFields = Iterable[TDictionaryField]
-TDictionaryItems = Mapping[TDictionaryField, TDictionaryValue]
-TDictionaryBytesBytes = Dict[bytes, bytes]
-TDictionaryBytesStr = Dict[bytes, str]
-TDictionaryStrBytes = Dict[str, bytes]
-TDictionaryStrStr = Dict[str, str]
+TDictionaryItems = Union[
+    Mapping[TDictionaryField, TDictionaryValue],
+    # Mapping[Union[bytes, str], Union[bytes, str]] doesn't accept Mapping[str, str],
+    # So we need to add those types here too[]
+    Mapping[bytes, bytes],
+    Mapping[bytes, str],
+    Mapping[str, bytes],
+    Mapping[str, str],
+]
 
 # List Types
 TListName = TCollectionName
