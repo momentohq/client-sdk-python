@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from datetime import timedelta
 from functools import partial
-from typing import Dict, List, Optional
+from typing import Optional
 
 from momento_wire_types.cacheclient_pb2 import (
     Miss,
@@ -287,7 +289,7 @@ class _ScsDataClient:
 
             type = response.WhichOneof("dictionary")
             if type == "found":
-                get_responses: List[CacheDictionaryGetFieldResponse] = []
+                get_responses: list[CacheDictionaryGetFieldResponse] = []
                 for field, get_response in zip(bytes_fields, response.found.items):
                     if get_response.result == Miss:
                         get_responses.append(CacheDictionaryGetField.Miss())
@@ -762,10 +764,10 @@ class _ScsDataClient:
             self._log_request_error("set_remove_elements", e)
             return CacheSetRemoveElements.Error(convert_error(e))
 
-    def _log_received_response(self, request_type: str, request_args: Dict[str, str]) -> None:
+    def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")
 
-    def _log_issuing_request(self, request_type: str, request_args: Dict[str, str]) -> None:
+    def _log_issuing_request(self, request_type: str, request_args: dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Issuing a {request_type} request with {request_args}")
 
     def _log_request_error(self, request_type: str, e: Exception) -> None:

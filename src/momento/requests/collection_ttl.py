@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Optional
@@ -41,7 +43,7 @@ class CollectionTtl:
         _validate_timedelta_ttl(ttl=self.ttl, field_name="ttl")
 
     @staticmethod
-    def from_cache_ttl() -> "CollectionTtl":
+    def from_cache_ttl() -> CollectionTtl:
         """The default way to handle TTLs for collections. The default TTL
         `timedelta` that was specified when instantiating the `SimpleCacheClient`
         will be used, and the TTL for the collection will be refreshed any
@@ -53,7 +55,7 @@ class CollectionTtl:
         return CollectionTtl(ttl=None, refresh_ttl=True)
 
     @staticmethod
-    def of(ttl: timedelta) -> "CollectionTtl":
+    def of(ttl: timedelta) -> CollectionTtl:
         """Constructs a CollectionTtl with the specified `timedelta`. TTL
         for the collection will be refreshed any time the collection is
         modified.
@@ -67,7 +69,7 @@ class CollectionTtl:
         return CollectionTtl(ttl=ttl)
 
     @staticmethod
-    def refresh_ttl_if_provided(ttl: Optional[timedelta] = None) -> "CollectionTtl":
+    def refresh_ttl_if_provided(ttl: Optional[timedelta] = None) -> CollectionTtl:
         """Constructs a `CollectionTtl` with the specified `timedelta`.
         Will only refresh if the TTL is provided (ie not `null`).
 
@@ -79,7 +81,7 @@ class CollectionTtl:
         """
         return CollectionTtl(ttl=ttl, refresh_ttl=ttl is not None)
 
-    def with_refresh_ttl_on_updates(self) -> "CollectionTtl":
+    def with_refresh_ttl_on_updates(self) -> CollectionTtl:
         """Specifies that the TTL for the collection should be refreshed when
         the collection is modified.  (This is the default behavior.)
 
@@ -88,7 +90,7 @@ class CollectionTtl:
         """
         return CollectionTtl(ttl=self.ttl, refresh_ttl=True)
 
-    def with_no_refresh_ttl_on_updates(self) -> "CollectionTtl":
+    def with_no_refresh_ttl_on_updates(self) -> CollectionTtl:
         """Specifies that the TTL for the collection should not be refreshed
         when the collection is modified.  Use this if you want to ensure
         that your collection expires at the originally specified time, even

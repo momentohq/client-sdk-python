@@ -1,5 +1,7 @@
-from typing import List, Tuple
+from __future__ import annotations
+
+from typing import Tuple
 
 
-def make_metadata(cache_name: str) -> List[Tuple[str, str]]:
+def make_metadata(cache_name: str) -> list[Tuple[str, str]]:
     return [("cache", cache_name)]

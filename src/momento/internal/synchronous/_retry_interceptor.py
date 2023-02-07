@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Callable, List, TypeVar, Union
+from typing import Callable, TypeVar
 
 import grpc
 
@@ -20,7 +22,7 @@ ResponseType = TypeVar("ResponseType")
 RETRIES_ENABLED = True
 MAX_ATTEMPTS = 3
 
-RETRYABLE_STATUS_CODES: List[grpc.StatusCode] = [
+RETRYABLE_STATUS_CODES: list[grpc.StatusCode] = [
     # # including all the status codes for reference, but
     # # commenting out the ones we don't want to retry on for now.
     # grpc.StatusCode.OK,
@@ -50,7 +52,7 @@ LOGGER = logging.getLogger("retry-interceptor")
 # https://github.com/momentohq/client-sdk-javascript/issues/80
 # TODO: we need to add backoff/jitter for the retries:
 # https://github.com/momentohq/client-sdk-javascript/issues/81
-def get_retry_interceptor_if_enabled() -> List[grpc.UnaryUnaryClientInterceptor]:
+def get_retry_interceptor_if_enabled() -> list[grpc.UnaryUnaryClientInterceptor]:
     if not RETRIES_ENABLED:
         return []
 
@@ -63,7 +65,7 @@ class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
         continuation: Callable[[grpc.ClientCallDetails, RequestType], InterceptorCall],
         client_call_details: grpc.ClientCallDetails,
         request: RequestType,
-    ) -> Union[InterceptorCall, ResponseType]:
+    ) -> InterceptorCall | ResponseType:
         for try_i in range(MAX_ATTEMPTS):
             call = continuation(client_call_details, request)
             response_code = call.code()  # type: ignore[attr-defined]  # noqa: F401

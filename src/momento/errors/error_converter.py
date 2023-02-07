@@ -1,4 +1,6 @@
-from typing import Dict, List, Optional, Tuple, Type, Union
+from __future__ import annotations
+
+from typing import Optional, Tuple, Type
 
 import grpc
 from grpc.aio import Metadata
@@ -23,7 +25,7 @@ from momento.errors import (
     UnknownServiceException,
 )
 
-grpc_status_to_exception: Dict[grpc.StatusCode, Type[SdkException]] = {
+grpc_status_to_exception: dict[grpc.StatusCode, Type[SdkException]] = {
     grpc.StatusCode.INVALID_ARGUMENT: InvalidArgumentException,
     grpc.StatusCode.INTERNAL: InternalServerException,
     grpc.StatusCode.OUT_OF_RANGE: BadRequestException,
@@ -47,13 +49,14 @@ INTERNAL_SERVER_ERROR_MESSAGE = "Unexpected exception occurred while trying to f
 SDK_ERROR_MESSAGE = "SDK Failed to process the request."
 
 
-TMetadata = Union[Metadata, List[Tuple[str, str]]]
-"""Metadata in the asynchronous gRPC client is of type Metadata, while
-metadata in the synchronous client is a list of tuples. The types are isomorphic."""
-
-
-def convert_error(exception: Exception, transport_metadata: Optional[TMetadata] = None) -> SdkException:
+def convert_error(
+    exception: Exception, transport_metadata: Optional[Metadata | list[Tuple[str, str]]] = None
+) -> SdkException:
     """Convert a low-level exception raised by gRPC to a Momento `SdkException`
+
+    Note about the metadata type: Metadata in the asynchronous gRPC client is of
+    type Metadata, while metadata in the synchronous client is a list of tuples.
+    The types are isomorphic.
 
     Args:
         exception (Exception): Low-level (transport, server-side, validation) exception
@@ -88,7 +91,7 @@ def convert_error(exception: Exception, transport_metadata: Optional[TMetadata] 
     return UnknownException(SDK_ERROR_MESSAGE, None)
 
 
-def _synchronous_metadata_to_metadata(metadata: List[Tuple[str, str]]) -> Metadata:
+def _synchronous_metadata_to_metadata(metadata: list[Tuple[str, str]]) -> Metadata:
     """Represent synchronous client metadata as a `Metadata` object.
 
     Args:

@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import grpc
 import momento_wire_types.cacheclient_pb2_grpc as cache_client
@@ -63,7 +63,7 @@ class _DataGrpcManager:
         return cache_client.ScsStub(self._secure_channel)
 
 
-def _interceptors(auth_token: str) -> List[grpc.aio.ClientInterceptor]:
+def _interceptors(auth_token: str) -> list[grpc.aio.ClientInterceptor]:
     headers = [
         Header("authorization", auth_token),
         Header("agent", f"python:{_ControlGrpcManager.version}"),

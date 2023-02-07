@@ -12,9 +12,11 @@ code from the async code, we do the following transformations:
 - lift expressions from an await expression
 - perform adhoc name replacements
 """
+from __future__ import annotations
+
 import argparse
 import re
-from typing import List, Tuple, Union
+from typing import Tuple
 
 import libcst as cst
 
@@ -50,7 +52,7 @@ class AsyncToSyncTransformer(cst.CSTTransformer):
 
     def leave_ImportFrom(
         self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
-    ) -> Union[cst.BaseSmallStatement, cst.FlattenSentinel[cst.BaseSmallStatement], cst.RemovalSentinel]:
+    ) -> cst.BaseSmallStatement | cst.FlattenSentinel[cst.BaseSmallStatement] | cst.RemovalSentinel:
         if isinstance(original_node.names, cst.ImportStar):
             return original_node
         names = [import_alias for import_alias in original_node.names if import_alias.name.value != "Awaitable"]
@@ -60,7 +62,7 @@ class AsyncToSyncTransformer(cst.CSTTransformer):
 class NameReplacement(cst.CSTTransformer):
     """Applies regex-based substitutions to names in the AST."""
 
-    def __init__(self, substitutions: List[Tuple[str, str]]) -> None:
+    def __init__(self, substitutions: list[Tuple[str, str]]) -> None:
         """Instantiate a `NameReplacement`
 
         Args:
@@ -81,7 +83,7 @@ class NameReplacement(cst.CSTTransformer):
 class SimpleStringReplacement(cst.CSTTransformer):
     """Applies regex-based substitutions to simple strings in the AST."""
 
-    def __init__(self, substitutions: List[Tuple[str, str]]) -> None:
+    def __init__(self, substitutions: list[Tuple[str, str]]) -> None:
         """Instantiate a `SimpleStringReplacement`
 
         Args:
@@ -103,7 +105,7 @@ class SimpleStringReplacement(cst.CSTTransformer):
 class Pipeline:
     """Runs a list of `cst.CSTTransformer`s in sequence."""
 
-    def __init__(self, transformers: List[cst.CSTTransformer]) -> None:
+    def __init__(self, transformers: list[cst.CSTTransformer]) -> None:
         self.transformers = transformers
 
     def transform(self, input_module: cst.Module) -> cst.Module:
