@@ -553,7 +553,7 @@ def describe_dictionary_increment() -> None:
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         increment_amount: int,
-    ) -> TDictionaryNameValidator:
+    ) -> TDictionaryFieldValidator:
         return partial(
             client.dictionary_increment,
             cache_name=cache_name,
