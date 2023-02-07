@@ -544,7 +544,7 @@ class _ScsDataClient:
             if type == "missing":
                 return CacheSetFetch.Miss()
             elif type == "found":
-                return CacheSetFetch.Hit(response.found.elements)
+                return CacheSetFetch.Hit(set(response.found.elements))
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:

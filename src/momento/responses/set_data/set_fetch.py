@@ -1,6 +1,5 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import Iterable
 
 from momento.errors import SdkException
 from momento.typing import TSetElementsOutputBytes, TSetElementsOutputStr
@@ -27,21 +26,11 @@ class CacheSetFetch(ABC):
     class Hit(CacheSetFetchResponse):
         """Indicates the set exists and its values were fetched."""
 
-        elements: Iterable[bytes]
-        """The elements as a iterable of bytes.
+        value_set_bytes: TSetElementsOutputBytes
+        """The elements as a Python set.
 
-        Use value_set_bytes and value_set_string to get the elements as a set.
+        Use value_set_string to get the elements as a set.
         """
-
-        @property
-        def value_set_bytes(self) -> TSetElementsOutputBytes:
-            """The elements of the set, as utf-8 encoded strings.
-
-            Returns:
-                TSetElementsOutputStr
-            """
-
-            return set(self.elements)
 
         @property
         def value_set_string(self) -> TSetElementsOutputStr:
@@ -51,7 +40,7 @@ class CacheSetFetch(ABC):
                 TSetElementsOutputStr
             """
 
-            return {v.decode("utf-8") for v in self.elements}
+            return {v.decode("utf-8") for v in self.value_set_bytes}
 
     @dataclass
     class Miss(CacheSetFetchResponse):
