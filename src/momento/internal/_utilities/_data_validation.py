@@ -8,7 +8,6 @@ from momento.typing import (
     TDictionaryFields,
     TDictionaryItems,
     TListValuesInput,
-    TListValuesInputBytes,
 )
 
 DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
@@ -49,7 +48,7 @@ def _as_bytes(
 
 def _list_as_bytes(
     values: TListValuesInput, error_message: Optional[str] = DEFAULT_LIST_CONVERSION_ERROR
-) -> TListValuesInputBytes:
+) -> Iterable[bytes]:
     if not isinstance(values, collections.abc.Iterable):
         raise InvalidArgumentException(f"{error_message}{type(values)}")
     return [_as_bytes(value) for value in values]
