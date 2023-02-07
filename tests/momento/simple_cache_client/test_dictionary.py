@@ -759,15 +759,20 @@ def describe_dictionary_remove_fields() -> None:
         dictionary_name: TDictionaryName,
         dictionary_items: TDictionaryItems,
     ) -> None:
-        set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items, CollectionTtl())
+        set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
         assert isinstance(set_response, CacheDictionarySetFields.Success)
+
+        extra_field, extra_value = uuid_str(), uuid_str()
+        unary_set_response = client.dictionary_set_field(cache_name, dictionary_name, extra_field, extra_value)
+        assert isinstance(unary_set_response, CacheDictionarySetField.Success)
 
         fields = [field for field, _ in dictionary_items.items()]
         remove_response = client.dictionary_remove_fields(cache_name, dictionary_name, fields)
         assert isinstance(remove_response, CacheDictionaryRemoveFields.Success)
 
         fetch_response = client.dictionary_fetch(cache_name, dictionary_name)
-        assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
+        assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
+        assert fetch_response.value_dictionary_string_string == {extra_field: extra_value}
 
 
 @behaves_like(a_cache_name_validator)
