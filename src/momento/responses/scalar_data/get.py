@@ -1,8 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import CacheResponse
 
@@ -33,15 +31,9 @@ class CacheGet(ABC):
     class Miss(CacheGetResponse):
         """Contains the results of a cache miss"""
 
-    @dataclass
-    class Error(CacheGetResponse, ErrorResponseMixin):
+    class Error(ErrorResponseMixin, CacheGetResponse):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error
