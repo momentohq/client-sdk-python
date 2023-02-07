@@ -354,7 +354,7 @@ def describe_dictionary_get_field() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
-    ) -> TDictionaryNameValidator:
+    ) -> TDictionaryFieldValidator:
         return partial(client.dictionary_get_field, cache_name=cache_name, dictionary_name=dictionary_name)
 
     @fixture
