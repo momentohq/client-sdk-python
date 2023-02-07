@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import timedelta
 from functools import partial
 from time import sleep
@@ -31,7 +33,6 @@ from momento.typing import (
     TDictionaryFields,
     TDictionaryItems,
     TDictionaryName,
-    TDictionaryStrStr,
     TDictionaryValue,
 )
 from tests.utils import uuid_str
@@ -447,7 +448,7 @@ def describe_dictionary_get_fields() -> None:
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> None:
-        dictionary_items: TDictionaryStrStr = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        dictionary_items: dict[str, str] = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
         set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 
@@ -468,7 +469,7 @@ def describe_dictionary_get_fields() -> None:
     def it_excludes_misses_from_dictionary(
         client: SimpleCacheClient, cache_name: TCacheName, dictionary_name: TDictionaryName
     ) -> None:
-        dictionary_items: TDictionaryStrStr = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        dictionary_items: dict[str, str] = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
         set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 

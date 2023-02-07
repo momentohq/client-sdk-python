@@ -1,14 +1,9 @@
+from __future__ import annotations
+
 from abc import ABC
 from dataclasses import dataclass
-from typing import List
 
 from momento.errors import SdkException
-from momento.typing import (
-    TDictionaryBytesBytes,
-    TDictionaryBytesStr,
-    TDictionaryStrBytes,
-    TDictionaryStrStr,
-)
 
 from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import CacheResponse
@@ -36,16 +31,16 @@ class CacheDictionaryGetFields(ABC):
     class Hit(CacheDictionaryGetFieldsResponse, ValueStringMixin):
         """Contains the result of a cache hit."""
 
-        responses: List[CacheDictionaryGetFieldResponse]
+        responses: list[CacheDictionaryGetFieldResponse]
         """The value returned from the cache for the specified field. Use the
         `value_string` property to access the value as a string."""
 
         @property
-        def value_dictionary_bytes_bytes(self) -> TDictionaryBytesBytes:
+        def value_dictionary_bytes_bytes(self) -> dict[bytes, bytes]:
             """The items for the dictionary fields, as a mapping from bytes to bytes.
 
             Returns:
-                TDictionaryBytesBytes
+                dict[bytes, bytes]
             """
             return {
                 response.field_bytes: response.value_bytes
@@ -54,11 +49,11 @@ class CacheDictionaryGetFields(ABC):
             }
 
         @property
-        def value_dictionary_bytes_string(self) -> TDictionaryBytesStr:
+        def value_dictionary_bytes_string(self) -> dict[bytes, str]:
             """The items for the dictionary fields, as a mapping from bytes to utf-8 encoded strings.
 
             Returns:
-                TDictionaryBytesStr
+                dict[bytes, str]
             """
             return {
                 response.field_bytes: response.value_string
@@ -67,11 +62,11 @@ class CacheDictionaryGetFields(ABC):
             }
 
         @property
-        def value_dictionary_string_bytes(self) -> TDictionaryStrBytes:
+        def value_dictionary_string_bytes(self) -> dict[str, bytes]:
             """The items for the dictionary fields, as a mapping from utf-8 encoded strings to bytes.
 
             Returns:
-                TDictionaryStrBytes
+                dict[str, bytes]
             """
             return {
                 response.field_string: response.value_bytes
@@ -80,7 +75,7 @@ class CacheDictionaryGetFields(ABC):
             }
 
         @property
-        def value_dictionary_string_string(self) -> TDictionaryStrStr:
+        def value_dictionary_string_string(self) -> dict[str, str]:
             """The items for the dictionary fields, as a mapping from utf-8 encoded strings to utf-8 encoded strings.
 
             Returns:
