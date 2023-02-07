@@ -689,11 +689,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_set_name(set_name)
 
-            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _SetUnionRequest()
             request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
             request.elements.extend(_gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
 
             await self._build_stub().SetUnion(
