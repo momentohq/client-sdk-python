@@ -709,6 +709,10 @@ def describe_dictionary_remove_field() -> None:
         dictionary_field_bytes: TDictionaryField,
         dictionary_value: TDictionaryValue,
     ) -> None:
+        extra_field, extra_value = uuid_str(), uuid_str()
+        set_response = await client_async.dictionary_set_field(cache_name, dictionary_name, extra_field, extra_value)
+        assert isinstance(set_response, CacheDictionarySetField.Success)
+
         for field in [dictionary_field, dictionary_field_bytes]:
             set_response = await client_async.dictionary_set_field(cache_name, dictionary_name, field, dictionary_value)
             assert isinstance(set_response, CacheDictionarySetField.Success)
@@ -717,7 +721,8 @@ def describe_dictionary_remove_field() -> None:
             assert isinstance(remove_response, CacheDictionaryRemoveField.Success)
 
             fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
-            assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
+            assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
+            assert fetch_response.value_dictionary_string_string == {extra_field: extra_value}
 
 
 # TODO these don't work for this case?
