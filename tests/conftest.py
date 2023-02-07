@@ -129,7 +129,7 @@ def dictionary_items() -> TDictionaryItems:
 
 @pytest.fixture
 def increment_amount() -> int:
-    return random.randint(0, 42)
+    return random.randint(-42, 42)
 
 
 @pytest.fixture(scope="session")
