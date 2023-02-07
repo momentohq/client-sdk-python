@@ -921,7 +921,7 @@ def describe_dictionary_set_fields() -> None:
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field: TDictionaryField,
-    ) -> TDictionaryNameValidator:
+    ) -> TDictionaryValueValidator:
         def _value_validator(dictionary_value: TDictionaryValue) -> CacheResponse:
             return client.dictionary_set_fields(cache_name, dictionary_name, items={dictionary_field: dictionary_value})
 
