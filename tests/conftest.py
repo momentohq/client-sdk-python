@@ -98,12 +98,12 @@ def dictionary_name() -> TDictionaryName:
 
 
 @pytest.fixture
-def dictionary_field() -> str:
+def dictionary_field_str() -> str:
     return uuid_str()
 
 
 @pytest.fixture
-def dictionary_value() -> str:
+def dictionary_value_str() -> str:
     return uuid_str()
 
 
