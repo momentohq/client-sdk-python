@@ -12,7 +12,7 @@ from momento import SimpleCacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
-from momento.internal._utilities import _dictionary_items_as_bytes
+from momento.internal._utilities import _gen_dictionary_items_as_bytes
 from momento.requests import CollectionTtl
 from momento.responses import (
     CacheDictionaryFetch,
@@ -973,4 +973,4 @@ def describe_dictionary_set_fields() -> None:
 
         fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
         assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
-        assert fetch_response.value_dictionary_bytes_bytes == _dictionary_items_as_bytes(dictionary_items)
+        assert fetch_response.value_dictionary_bytes_bytes == dict(_gen_dictionary_items_as_bytes(dictionary_items))

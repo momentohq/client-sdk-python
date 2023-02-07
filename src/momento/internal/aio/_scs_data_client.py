@@ -38,10 +38,10 @@ from momento.config import Configuration
 from momento.errors import UnknownException, convert_error
 from momento.internal._utilities import (
     _as_bytes,
-    _dictionary_fields_as_bytes,
-    _dictionary_items_as_bytes,
-    _list_as_bytes,
-    _set_as_bytes,
+    _gen_dictionary_fields_as_bytes,
+    _gen_dictionary_items_as_bytes,
+    _gen_list_as_bytes,
+    _gen_set_input_as_bytes,
     _validate_cache_name,
     _validate_dictionary_name,
     _validate_list_name,
@@ -274,7 +274,7 @@ class _ScsDataClient:
 
             request = _DictionaryGetRequest()
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            bytes_fields = _dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
+            bytes_fields = list(_gen_dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG))
 
             request.fields.extend(bytes_fields)
 
@@ -374,7 +374,7 @@ class _ScsDataClient:
             request = _DictionaryDeleteRequest()
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
             request.some.fields.extend(
-                _dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
+                _gen_dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
             )
 
             await self._build_stub().DictionaryDelete(
@@ -402,7 +402,7 @@ class _ScsDataClient:
 
             request = _DictionarySetRequest()
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            for field, value in _dictionary_items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG).items():
+            for field, value in _gen_dictionary_items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG):
                 field_value_pair = _DictionaryFieldValuePair()
                 field_value_pair.field = field
                 field_value_pair.value = value
@@ -437,7 +437,7 @@ class _ScsDataClient:
 
             request = _ListConcatenateBackRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
+            request.values.extend(_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
             request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
@@ -469,7 +469,7 @@ class _ScsDataClient:
 
             request = _ListConcatenateFrontRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.values.extend(_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
+            request.values.extend(_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
             request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
@@ -692,7 +692,7 @@ class _ScsDataClient:
             item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _SetUnionRequest()
             request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
-            request.elements.extend(_set_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
+            request.elements.extend(_gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
             request.refresh_ttl = ttl.refresh_ttl
 
@@ -747,7 +747,9 @@ class _ScsDataClient:
 
             request = _SetDifferenceRequest()
             request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
-            request.subtrahend.set.elements.extend(_set_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
+            request.subtrahend.set.elements.extend(
+                _gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG)
+            )
 
             await self._build_stub().SetDifference(
                 request,
