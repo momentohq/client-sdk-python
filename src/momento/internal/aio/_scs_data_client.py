@@ -370,7 +370,7 @@ class _ScsDataClient:
             self._log_received_response("DictionarySet", {"dictionary_name": dictionary_name})
             return CacheDictionarySetFields.Success()
         except Exception as e:
-            self._log_request_error("dictionary_set", e)
+            self._log_request_error("dictionary_set_fields", e)
             return CacheDictionarySetFields.Error(convert_error(e))
 
     # LIST COLLECTION METHODS
