@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
 from . import momento_endpoint_resolver
 
@@ -65,3 +65,11 @@ class CredentialProvider:
         control_endpoint = control_endpoint or endpoints.control_endpoint
         cache_endpoint = cache_endpoint or endpoints.cache_endpoint
         return CredentialProvider(auth_token, control_endpoint, cache_endpoint)
+
+    def __repr__(self) -> str:
+        attributes: Dict[str, str] = vars(self)
+        attributes["auth_token"] = self._obscure(attributes["auth_token"])
+        return f"{self.__class__.__name__}{attributes}"
+
+    def _obscure(self, value: str) -> str:
+        return f"{value[:10]}...{value[-10:]}"
