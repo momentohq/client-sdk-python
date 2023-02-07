@@ -910,7 +910,7 @@ def describe_dictionary_set_fields() -> None:
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
-    ) -> TDictionaryNameValidator:
+    ) -> TDictionaryItemsValidator:
         return partial(
             client_async.dictionary_set_fields,
             cache_name=cache_name,
