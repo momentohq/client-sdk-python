@@ -309,7 +309,7 @@ class _ScsDataClient:
             self._log_received_response("DictionaryIncrement", {"dictionary_name": dictionary_name})
             return CacheDictionaryIncrement.Success(response.value)
         except Exception as e:
-            self._log_request_error("dictionary_set", e)
+            self._log_request_error("dictionary_increment", e)
             return CacheDictionaryIncrement.Error(convert_error(e))
 
     def dictionary_remove_fields(
@@ -370,7 +370,7 @@ class _ScsDataClient:
             self._log_received_response("DictionarySet", {"dictionary_name": dictionary_name})
             return CacheDictionarySetFields.Success()
         except Exception as e:
-            self._log_request_error("dictionary_set", e)
+            self._log_request_error("dictionary_set_fields", e)
             return CacheDictionarySetFields.Error(convert_error(e))
 
     # LIST COLLECTION METHODS
