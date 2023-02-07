@@ -756,7 +756,7 @@ def describe_dictionary_remove_fields() -> None:
         client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
-    ) -> TDictionaryNameValidator:
+    ) -> TDictionaryFieldsValidator:
         return partial(client_async.dictionary_remove_fields, cache_name=cache_name, dictionary_name=dictionary_name)
 
     @fixture
