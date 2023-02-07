@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Iterable, List, Mapping, Set, Union
 
 TCacheName = str
@@ -19,8 +21,7 @@ TDictionaryValue = TMomentoValue
 TDictionaryFields = Iterable[TDictionaryField]
 TDictionaryItems = Union[
     Mapping[TDictionaryField, TDictionaryValue],
-    # Mapping[Union[bytes, str], Union[bytes, str]] doesn't accept Mapping[str, str],
-    # So we need to add those types here too[]
+    # Mapping isn't covariant so we have to list out the types here
     Mapping[bytes, bytes],
     Mapping[bytes, str],
     Mapping[str, bytes],

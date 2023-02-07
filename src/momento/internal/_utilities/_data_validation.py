@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import collections.abc
 from datetime import timedelta
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable, Optional, Tuple
 
 from momento.errors import InvalidArgumentException
 from momento.typing import (
@@ -42,7 +44,7 @@ def _validate_set_name(set_name: str) -> None:
 
 
 def _as_bytes(
-    data: Union[str, bytes],
+    data: str | bytes,
     error_message: Optional[str] = DEFAULT_STRING_CONVERSION_ERROR,
 ) -> bytes:
     if isinstance(data, str):
@@ -52,7 +54,7 @@ def _as_bytes(
     raise InvalidArgumentException(f"{error_message}{type(data)}")
 
 
-def _gen_iterable_as_bytes(values: TListValuesInput, error_message: str) -> Iterable[bytes]:
+def _gen_iterable_as_bytes(values: Iterable[str | bytes], error_message: str) -> Iterable[bytes]:
     if not isinstance(values, collections.abc.Iterable):
         raise InvalidArgumentException(f"{error_message}{type(values)}")
     for value in values:

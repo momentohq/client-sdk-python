@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 
 class CreateSigningKeyResponse:
@@ -34,7 +36,7 @@ class CreateSigningKeyResponse:
     @staticmethod
     def from_grpc_response(  # type: ignore[misc]
         grpc_create_signing_key_response: Any, endpoint: str
-    ) -> "CreateSigningKeyResponse":
+    ) -> CreateSigningKeyResponse:
         key_id: str = json.loads(grpc_create_signing_key_response.key)["kid"]
         key: str = grpc_create_signing_key_response.key
         expires_at: datetime = datetime.fromtimestamp(grpc_create_signing_key_response.expires_at)
@@ -85,7 +87,7 @@ class SigningKey:
         return self._endpoint
 
     @staticmethod
-    def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> "SigningKey":  # type: ignore[misc]
+    def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> SigningKey:  # type: ignore[misc]
         key_id: str = grpc_listed_signing_key.key_id
         expires_at: datetime = datetime.fromtimestamp(grpc_listed_signing_key.expires_at)
         return SigningKey(key_id, expires_at, endpoint)
@@ -98,7 +100,7 @@ class SigningKey:
 
 
 class ListSigningKeysResponse:
-    def __init__(self, next_token: Optional[str], signing_keys: List[SigningKey]):
+    def __init__(self, next_token: Optional[str], signing_keys: list[SigningKey]):
         """Initializes ListSigningKeysResponse to handle list signing keys response.
 
         Args:
@@ -111,7 +113,7 @@ class ListSigningKeysResponse:
         """Returns next token."""
         return self._next_token
 
-    def signing_keys(self) -> List[SigningKey]:
+    def signing_keys(self) -> list[SigningKey]:
         """Returns all signing keys."""
         return self._signing_keys
 
@@ -122,7 +124,7 @@ class ListSigningKeysResponse:
         next_token: Optional[str] = (
             grpc_list_signing_keys_response.next_token if grpc_list_signing_keys_response.next_token != "" else None
         )
-        signing_keys: List[SigningKey] = [
+        signing_keys: list[SigningKey] = [
             SigningKey.from_grpc_response(signing_key, endpoint)
             for signing_key in grpc_list_signing_keys_response.signing_key
         ]

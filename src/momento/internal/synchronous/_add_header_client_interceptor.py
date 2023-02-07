@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import collections
-from typing import Callable, List, TypeVar
+from typing import Callable, TypeVar
 
 import grpc
 
@@ -35,8 +37,8 @@ class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
     def is_not_only_once_header(header: Header) -> bool:
         return header.name not in header.once_only_headers
 
-    def __init__(self, headers: List[Header]):
-        self._headers_to_add_once: List[Header] = list(filter(AddHeaderClientInterceptor.is_only_once_header, headers))
+    def __init__(self, headers: list[Header]):
+        self._headers_to_add_once: list[Header] = list(filter(AddHeaderClientInterceptor.is_only_once_header, headers))
         self.headers_to_add_every_time = list(filter(AddHeaderClientInterceptor.is_not_only_once_header, headers))
 
     def intercept_unary_unary(

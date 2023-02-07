@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC
 from dataclasses import dataclass
 from typing import List, Optional
@@ -60,7 +62,7 @@ class ListCaches(ABC):
         """A token to specify where to start paging. This is the `NextToken` from a previous response."""
 
         @staticmethod
-        def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> "ListCaches.Success":  # type: ignore[misc] # noqa: E501
+        def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> ListCaches.Success:  # type: ignore[misc] # noqa: E501
             """Initializes ListCacheResponse to handle list cache response.
 
             Args:
