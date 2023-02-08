@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from abc import ABC
 from dataclasses import dataclass
 
 from momento.errors import SdkException
-from momento.typing import TSetElementsOutputBytes, TSetElementsOutputStr
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
@@ -26,14 +27,14 @@ class CacheSetFetch(ABC):
     class Hit(CacheSetFetchResponse):
         """Indicates the set exists and its values were fetched."""
 
-        value_set_bytes: TSetElementsOutputBytes
+        value_set_bytes: set[bytes]
         """The elements as a Python set.
 
         Use value_set_string to get the elements as a set.
         """
 
         @property
-        def value_set_string(self) -> TSetElementsOutputStr:
+        def value_set_string(self) -> set[str]:
             """The elements of the set, as utf-8 encoded strings.
 
             Returns:

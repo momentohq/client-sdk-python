@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from types import TracebackType
-from typing import Optional, Type
+from typing import Iterable, Optional, Type
 
 from momento import logs
 from momento.auth import CredentialProvider
@@ -79,22 +79,7 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.typing import (
-    TCacheName,
-    TDictionaryField,
-    TDictionaryFields,
-    TDictionaryItems,
-    TDictionaryName,
-    TDictionaryValue,
-    TListName,
-    TListValue,
-    TListValuesInput,
-    TScalarKey,
-    TScalarValue,
-    TSetElement,
-    TSetElementsInput,
-    TSetName,
-)
+from momento.typing import TDictionaryItems
 
 
 class SimpleCacheClient:
@@ -199,7 +184,8 @@ class SimpleCacheClient:
         """Lists all caches.
 
         Args:
-            next_token: A token to specify where to start paginating. This is the NextToken from a previous response.
+            next_token (Optional[str], optional): A token to specify where to start paginating.
+            This is the NextToken from a previous response. Defaults to None.
 
         Returns:
             ListCachesResponse:
@@ -210,7 +196,7 @@ class SimpleCacheClient:
         """Creates a Momento signing key
 
         Args:
-            ttl: The key's time-to-live represented as a timedelta
+            ttl (timedelta): The key's time-to-live represented as a timedelta
 
         Returns:
             CreateSigningKeyResponse
@@ -224,7 +210,7 @@ class SimpleCacheClient:
         """Revokes a Momento signing key, all tokens signed by which will be invalid
 
         Args:
-            key_id: The id of the Momento signing key to revoke
+            key_id (str): The id of the Momento signing key to revoke
 
         Returns:
             RevokeSigningKeyResponse
@@ -238,7 +224,8 @@ class SimpleCacheClient:
         """Lists all Momento signing keys for the provided auth token.
 
         Args:
-            next_token: Token to continue paginating through the list. It's used to handle large paginated lists.
+            next_token (Optional[str], optional) Token to continue paginating through the list.
+            It's used to handle large paginated lists. Defaults to None.
 
         Returns:
             ListSigningKeysResponse
@@ -251,16 +238,16 @@ class SimpleCacheClient:
     def set(
         self,
         cache_name: str,
-        key: TScalarKey,
-        value: TScalarValue,
+        key: str | bytes,
+        value: str | bytes,
         ttl: Optional[timedelta] = None,
     ) -> CacheSetResponse:
         """Set the value in cache with a given time to live (TTL) seconds.
 
         Args:
             cache_name (str): Name of the cache to store the item in.
-            key (TScalarKey): The key to set.
-            value (TScalarValue): The value to be stored.
+            key (str | bytes): The key to set.
+            value (str | bytes): The value to be stored.
             ttl (Optional[timedelta], optional): TTL for the item in cache.
             This TTL takes precedence over the TTL used when initializing a cache client.
             Defaults to client TTL. If specified must be strictly positive.
@@ -273,16 +260,16 @@ class SimpleCacheClient:
     def set_if_not_exists(
         self,
         cache_name: str,
-        key: TScalarKey,
-        value: TScalarValue,
+        key: str | bytes,
+        value: str | bytes,
         ttl: Optional[timedelta] = None,
     ) -> CacheSetIfNotExistsResponse:
         """Like `set`, but it will only set if the key does not already exist.
 
         Args:
             cache_name (str): Name of the cache to store the item in.
-            key (TScalarKey): The key to set.
-            value (TScalarValue): The value to be stored if the key does not exist.
+            key (str | bytes): The key to set.
+            value (str | bytes): The value to be stored if the key does not exist.
             ttl (Optional[timedelta], optional): TTL for the item in cache.
             This TTL takes precedence over the TTL used when initializing a cache client.
             Defaults to client TTL. If specified must be strictly positive.
@@ -292,24 +279,24 @@ class SimpleCacheClient:
         """
         return self._data_client.set_if_not_exists(cache_name, key, value, ttl)
 
-    def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
+    def get(self, cache_name: str, key: str | bytes) -> CacheGetResponse:
         """Get the cache value stored for the given key.
 
         Args:
             cache_name (str): Name of the cache to perform the lookup in.
-            key (TScalarKey): The key to lookup.
+            key (str | bytes): The key to lookup.
 
         Returns:
             CacheGetResponse:
         """
         return self._data_client.get(cache_name, key)
 
-    def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
+    def delete(self, cache_name: str, key: str | bytes) -> CacheDeleteResponse:
         """Remove the key from the cache.
 
         Args:
             cache_name (str): Name of the cache to delete the key from.
-            key (TScalarKey): The key to delete.
+            key (str | bytes): The key to delete.
 
         Returns:
             CacheDeleteResponse:
@@ -317,14 +304,12 @@ class SimpleCacheClient:
         return self._data_client.delete(cache_name, key)
 
     # DICTIONARY COLLECTION METHODS
-    def dictionary_fetch(
-        self, cache_name: TCacheName, dictionary_name: TDictionaryName
-    ) -> CacheDictionaryFetchResponse:
+    def dictionary_fetch(self, cache_name: str, dictionary_name: str) -> CacheDictionaryFetchResponse:
         """Fetch the entire dictionary from the cache.
 
         Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): The name of the dictionary to fetch.
+            cache_name (str): Name of the cache to perform the lookup in.
+            dictionary_name (str): The name of the dictionary to fetch.
 
         Returns:
             CacheDictionaryFetchResponse: result of the fetch operation and the associated dictionary.
@@ -332,14 +317,14 @@ class SimpleCacheClient:
         return self._data_client.dictionary_fetch(cache_name, dictionary_name)
 
     def dictionary_get_field(
-        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
+        self, cache_name: str, dictionary_name: str, field: str | bytes
     ) -> CacheDictionaryGetFieldResponse:
         """Get the cache value stored for the given dictionary and field.
 
         Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): The dictionary to lookup.
-            field (TDictionaryField): The field in the dictionary to lookup.
+            cache_name (str): Name of the cache to perform the lookup in.
+            dictionary_name (str): The dictionary to lookup.
+            field (str | bytes): The field in the dictionary to lookup.
 
         Returns:
             CacheDictionaryGetFieldResponse: the status and value for the field.
@@ -357,14 +342,14 @@ class SimpleCacheClient:
             return CacheDictionaryGetField.Error(UnknownException(f"Unknown get field response: {get_fields_response}"))
 
     def dictionary_get_fields(
-        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
+        self, cache_name: str, dictionary_name: str, fields: Iterable[str | bytes]
     ) -> CacheDictionaryGetFieldsResponse:
         """Get several values from a dictionary.
 
         Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): The dictionary to lookup.
-            fields (TDictionaryFields): The fields in the dictionary to lookup.
+            cache_name (str): Name of the cache to perform the lookup in.
+            dictionary_name (str): The dictionary to lookup.
+            fields (Iterable[str | bytes]): The fields in the dictionary to lookup.
 
         Returns:
             CacheDictionaryGetFieldsResponse: the status and associated value for each field.
@@ -373,18 +358,18 @@ class SimpleCacheClient:
 
     def dictionary_increment(
         self,
-        cache_name: TCacheName,
-        dictionary_name: TDictionaryName,
-        field: TDictionaryField,
+        cache_name: str,
+        dictionary_name: str,
+        field: str | bytes,
         amount: int = 1,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheDictionaryIncrementResponse:
         """Add an integer quantity to a dictionary value.
 
         Args:
-            cache_name (TCacheName): Name of the cache to store the dictionary in.
-            dictionary_name (TDictionaryName): Name of the dictionary to increment in.
-            field (TDictionaryField): The field to increment.
+            cache_name (str): Name of the cache to store the dictionary in.
+            dictionary_name (str): Name of the dictionary to increment in.
+            field (str | bytes): The field to increment.
             amount (int, optional): The quantity to add to the value. May be positive, negative, or zero. Defaults to 1.
             ttl (CollectionTtl, optional): TTL for the dictionary in cache. This TTL takes precedence over the TTL
                 used when initializing a cache client. Defaults to client TTL.
@@ -396,16 +381,16 @@ class SimpleCacheClient:
         return self._data_client.dictionary_increment(cache_name, dictionary_name, field, amount, ttl)
 
     def dictionary_remove_field(
-        self, cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
+        self, cache_name: str, dictionary_name: str, field: str | bytes
     ) -> CacheDictionaryRemoveFieldResponse:
         """Remove a field from a dictionary.
 
         Performs a no-op if the dictionary or field do not exist.
 
         Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): Name of the dictionary to remove the field from.
-            field (TDictionaryField): Name of the field to remove from the dictionary.
+            cache_name (str): Name of the cache to perform the lookup in.
+            dictionary_name (str): Name of the dictionary to remove the field from.
+            field (str | bytes): Name of the field to remove from the dictionary.
 
         Returns:
             CacheDictionaryRemoveFieldResponse: result of the remove operation.
@@ -421,16 +406,16 @@ class SimpleCacheClient:
             )
 
     def dictionary_remove_fields(
-        self, cache_name: TCacheName, dictionary_name: TDictionaryName, fields: TDictionaryFields
+        self, cache_name: str, dictionary_name: str, fields: Iterable[str | bytes]
     ) -> CacheDictionaryRemoveFieldsResponse:
         """Remove fields from a dictionary.
 
         Performs a no-op if the dictionary or a particular field does not exist.
 
         Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): Name of the dictionary to remove the fields from.
-            fields (TDictionaryFields): The fields to remove from the dictionary.
+            cache_name (str): Name of the cache to perform the lookup in.
+            dictionary_name (str): Name of the dictionary to remove the fields from.
+            fields (Iterable[str | bytes]): The fields to remove from the dictionary.
 
         Returns:
             CacheDictionaryRemoveFieldsResponse: result of the remove fields operation.
@@ -439,19 +424,19 @@ class SimpleCacheClient:
 
     def dictionary_set_field(
         self,
-        cache_name: TCacheName,
-        dictionary_name: TDictionaryName,
-        field: TDictionaryField,
-        value: TDictionaryValue,
+        cache_name: str,
+        dictionary_name: str,
+        field: str | bytes,
+        value: str | bytes,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheDictionarySetFieldResponse:
         """Set the dictionary field to a value with a given time to live (TTL) seconds.
 
         Args:
-            cache_name (TCacheName): Name of the cache to store the dictionary in.
-            dictionary_name (TDictionaryName): Name of the dictionary to set.
-            field (TDictionaryField): The field in the dictionary to set.
-            value (TDictionaryValue): The value to be stored.
+            cache_name (str): Name of the cache to store the dictionary in.
+            dictionary_name (str): Name of the dictionary to set.
+            field (str | bytes): The field in the dictionary to set.
+            value (str | bytes): The value to be stored.
             ttl (CollectionTtl, optional): TTL for the dictionary in cache.
                 This TTL takes precedence over the TTL used when initializing a cache client.
                 Defaults to CollectionTtl.from_cache_ttl().
@@ -471,16 +456,16 @@ class SimpleCacheClient:
 
     def dictionary_set_fields(
         self,
-        cache_name: TCacheName,
-        dictionary_name: TDictionaryName,
+        cache_name: str,
+        dictionary_name: str,
         items: TDictionaryItems,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheDictionarySetFieldsResponse:
         """Set several dictionary field-value pairs in the cache.
 
         Args:
-            cache_name (TCacheName): Name of the cache to perform the lookup in.
-            dictionary_name (TDictionaryName): Name of the dictionary to set.
+            cache_name (str): Name of the cache to perform the lookup in.
+            dictionary_name (str): Name of the dictionary to set.
             items (TDictionaryItems): Field value pairs to store.
             ttl (CollectionTtl, optional): TTL for the dictionary in cache.
                 This TTL takes precedence over the TTL used when initializing a cache client.
@@ -494,9 +479,9 @@ class SimpleCacheClient:
     # LIST COLLECTION METHODS
     def list_concatenate_back(
         self,
-        cache_name: TCacheName,
-        list_name: TListName,
-        values: TListValuesInput,
+        cache_name: str,
+        list_name: str,
+        values: Iterable[str | bytes],
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
@@ -504,12 +489,12 @@ class SimpleCacheClient:
         Add values to the end of the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to concatenate.
-            values: (TListValuesInput): The values to concatenate.
-            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to concatenate.
+            values: (Iterable[str | bytes]): The values to concatenate.
+            ttl: (CollectionTtl, optional): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_front_to_size (Optional[int]): If the list exceeds this size, remove values from
-                                                    the start of the list.
+            the start of the list.
 
         Returns:
             CacheListConcatenateBackResponse:
@@ -519,9 +504,9 @@ class SimpleCacheClient:
 
     def list_concatenate_front(
         self,
-        cache_name: TCacheName,
-        list_name: TListName,
-        values: TListValuesInput,
+        cache_name: str,
+        list_name: str,
+        values: Iterable[str | bytes],
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListConcatenateFrontResponse:
@@ -529,12 +514,12 @@ class SimpleCacheClient:
         Add values to the start of the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to concatenate.
-            values: (TListValuesInput): The values to concatenate.
-            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
-            truncate_back_to_size (Optional[int]): If the list exceeds this size, remove values from
-                                                   the end of the list.
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to concatenate.
+            values: (Iterable[str | bytes]): The values to concatenate.
+            ttl: (CollectionTtl, optional): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            truncate_back_to_size (Optional[int], optional): If the list exceeds this size, remove values from
+                the end of the list.
 
         Returns:
             CacheListConcatenateFrontResponse:
@@ -542,13 +527,13 @@ class SimpleCacheClient:
 
         return self._data_client.list_concatenate_front(cache_name, list_name, values, ttl, truncate_back_to_size)
 
-    def list_fetch(self, cache_name: TCacheName, list_name: TListName) -> CacheListFetchResponse:
+    def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
         """
         Gets all values from the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to fetch.
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to fetch.
 
         Returns:
             CacheListFetchResponse:
@@ -556,13 +541,13 @@ class SimpleCacheClient:
 
         return self._data_client.list_fetch(cache_name, list_name)
 
-    def list_length(self, cache_name: TCacheName, list_name: TListName) -> CacheListLengthResponse:
+    def list_length(self, cache_name: str, list_name: str) -> CacheListLengthResponse:
         """
         Gets the number of values in the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to fetch.
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to fetch.
 
         Returns:
             CacheListLengthResponse:
@@ -570,13 +555,13 @@ class SimpleCacheClient:
 
         return self._data_client.list_length(cache_name, list_name)
 
-    def list_pop_back(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopBackResponse:
+    def list_pop_back(self, cache_name: str, list_name: str) -> CacheListPopBackResponse:
         """
         Gets removes and returns the last value from the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to fetch.
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to fetch.
 
         Returns:
             CacheListPopBackResponse:
@@ -584,13 +569,13 @@ class SimpleCacheClient:
 
         return self._data_client.list_pop_back(cache_name, list_name)
 
-    def list_pop_front(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopFrontResponse:
+    def list_pop_front(self, cache_name: str, list_name: str) -> CacheListPopFrontResponse:
         """
         Gets removes and returns the first value from the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to fetch.
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to fetch.
 
         Returns:
             CacheListPopFrontResponse:
@@ -600,9 +585,9 @@ class SimpleCacheClient:
 
     def list_push_back(
         self,
-        cache_name: TCacheName,
-        list_name: TListName,
-        value: TListValue,
+        cache_name: str,
+        list_name: str,
+        value: str | bytes,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListPushBackResponse:
@@ -610,12 +595,12 @@ class SimpleCacheClient:
         Add values to the end of the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to push to.
-            values: (TListValuesInput): The values to push.
-            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to push to.
+            value: (str | bytes): The value to push.
+            ttl: (CollectionTtl, optional): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_front_to_size (Optional[int]): If the list exceeds this size, remove values from
-                                                    the start of the list.
+            the start of the list.
 
         Returns:
             CacheListPushBackResponse:
@@ -625,9 +610,9 @@ class SimpleCacheClient:
 
     def list_push_front(
         self,
-        cache_name: TCacheName,
-        list_name: TListName,
-        value: TListValue,
+        cache_name: str,
+        list_name: str,
+        value: str | bytes,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListPushFrontResponse:
@@ -635,12 +620,12 @@ class SimpleCacheClient:
         Add values to the start of the list.
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to push to.
-            values: (TListValuesInput): The values to push.
-            ttl: (CollectionTtl): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to push to.
+            value: (str | bytes): The value to push.
+            ttl: (CollectionTtl, optional): How to treat the list's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
             truncate_back_to_size (Optional[int]): If the list exceeds this size, remove values from
-                                                   the end of the list.
+                the end of the list.
 
         Returns:
             CacheListPushFrontResponse:
@@ -650,9 +635,9 @@ class SimpleCacheClient:
 
     def list_remove_value(
         self,
-        cache_name: TCacheName,
-        list_name: TListName,
-        value: TListValue,
+        cache_name: str,
+        list_name: str,
+        value: str | bytes,
     ) -> CacheListRemoveValueResponse:
         """
         Removes all matching values from the list.
@@ -666,9 +651,9 @@ class SimpleCacheClient:
             print(fetch_resp.values_string)
 
         Args:
-            cache_name (TCacheName): The cache where the list is.
-            list_name (TListName): The name of the list to remove values from.
-            value: (TListValue): The value to remove.
+            cache_name (str): The cache where the list is.
+            list_name (str): The name of the list to remove values from.
+            value: (str | bytes): The value to remove.
 
         Returns:
             CacheListRemoveValueResponse
@@ -679,19 +664,19 @@ class SimpleCacheClient:
     # SET COLLECTION METHODS
     def set_add_element(
         self,
-        cache_name: TCacheName,
-        set_name: TSetName,
-        element: TSetElement,
+        cache_name: str,
+        set_name: str,
+        element: str | bytes,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementResponse:
         """
         Adds an element to a set.
 
         Args:
-            cache_name (TCacheName): The cache name with the set.
-            set_name (TSetName): The name of the set to add to.
-            element (TSetElement): The element to add.
-            ttl: (CollectionTtl): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            cache_name (str): The cache name with the set.
+            set_name (str): The name of the set to add to.
+            element (str | bytes): The element to add.
+            ttl: (CollectionTtl, optional): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
 
         Returns:
             CacheSetAddElementResponse
@@ -708,19 +693,19 @@ class SimpleCacheClient:
 
     def set_add_elements(
         self,
-        cache_name: TCacheName,
-        set_name: TSetName,
-        elements: TSetElementsInput,
+        cache_name: str,
+        set_name: str,
+        elements: Iterable[str | bytes],
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementsResponse:
         """
         Add an elements to a set.
 
         Args:
-            cache_name (TCacheName): The cache name with the set.
-            set_name (TSetName): The name of the set to add to.
-            elements (TSetElementsInput): The element to add.
-            ttl: (CollectionTtl): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
+            cache_name (str): The cache name with the set.
+            set_name (str): The name of the set to add to.
+            elements (Iterable[str | bytes]): The element to add.
+            ttl: (CollectionTtl, optional): How to treat the set's TTL. Defaults to `CollectionTtl.from_cache_ttl()`
 
         Returns:
             CacheSetAddElementsResponse
@@ -729,31 +714,29 @@ class SimpleCacheClient:
 
     def set_fetch(
         self,
-        cache_name: TCacheName,
-        set_name: TSetName,
+        cache_name: str,
+        set_name: str,
     ) -> CacheSetFetchResponse:
         """
         Fetches a set.
 
         Args:
-            cache_name (TCacheName): The cache name with the set.
-            set_name (TSetName): The name of the set to fetch.
+            cache_name (str): The cache name with the set.
+            set_name (str): The name of the set to fetch.
 
         Returns:
             CacheSetFetchResponse
         """
         return self._data_client.set_fetch(cache_name, set_name)
 
-    def set_remove_element(
-        self, cache_name: TCacheName, set_name: TSetName, element: TSetElement
-    ) -> CacheSetRemoveElementResponse:
+    def set_remove_element(self, cache_name: str, set_name: str, element: str | bytes) -> CacheSetRemoveElementResponse:
         """
         Remove an element from a set.
 
         Args:
-            cache_name (TCacheName): The cache name with the set.
-            set_name (TSetName): The name of the set to remove from.
-            element (TSetElementInput): The element to remove.
+            cache_name (str): The cache name with the set.
+            set_name (str): The name of the set to remove from.
+            element (str | bytes): The element to remove.
 
         Returns:
             CacheSetRemoveElementResponse
@@ -767,15 +750,15 @@ class SimpleCacheClient:
             raise UnknownException(f"Unknown response type: {type(resp)}")
 
     def set_remove_elements(
-        self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
+        self, cache_name: str, set_name: str, elements: Iterable[str | bytes]
     ) -> CacheSetRemoveElementsResponse:
         """
         Remove elements from a set.
 
         Args:
-            cache_name (TCacheName): The cache name with the set.
-            set_name (TSetName): The name of the set to remove from.
-            elements (TSetElementsInput): The element to remove.
+            cache_name (str): The cache name with the set.
+            set_name (str): The name of the set to remove from.
+            elements (Iterable[str | bytes]): The element to remove.
 
         Returns:
             CacheSetRemoveElementsResponse
