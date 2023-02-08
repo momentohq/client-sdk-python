@@ -348,7 +348,7 @@ class _ScsDataClient:
             request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
             request.field = _as_bytes(field, self.__UNSUPPORTED_DICTIONARY_FIELD_TYPE_MSG)
             request.amount = amount
-            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
 
             response = await self._build_stub().DictionaryIncrement(
@@ -409,7 +409,7 @@ class _ScsDataClient:
                 field_value_pair.field = field
                 field_value_pair.value = value
                 request.items.append(field_value_pair)
-            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
 
             await self._build_stub().DictionarySet(
@@ -440,7 +440,7 @@ class _ScsDataClient:
             request = _ListConcatenateBackRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.values.extend(_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
-            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
                 request.truncate_front_to_size = truncate_front_to_size
@@ -472,7 +472,7 @@ class _ScsDataClient:
             request = _ListConcatenateFrontRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.values.extend(_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
-            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
                 request.truncate_back_to_size = truncate_back_to_size
@@ -604,7 +604,7 @@ class _ScsDataClient:
             request = _ListPushBackRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
-            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_front_to_size is not None:
                 request.truncate_front_to_size = truncate_front_to_size
@@ -636,7 +636,7 @@ class _ScsDataClient:
             request = _ListPushFrontRequest()
             request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
             request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
-            request.ttl_milliseconds = self.collection_ttl_or_default_milliseconds(ttl)
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
             if truncate_back_to_size is not None:
                 request.truncate_back_to_size = truncate_back_to_size
@@ -691,11 +691,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_set_name(set_name)
 
-            item_ttl = self._default_ttl if ttl.ttl is None else ttl.ttl
             request = _SetUnionRequest()
             request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
             request.elements.extend(_gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
             request.refresh_ttl = ttl.refresh_ttl
 
             await self._build_stub().SetUnion(
@@ -773,10 +772,10 @@ class _ScsDataClient:
     def _log_request_error(self, request_type: str, e: Exception) -> None:
         self._logger.warning(f"{request_type} failed with exception: {e}")
 
-    def collection_ttl_or_default_milliseconds(self, collection_ttl: CollectionTtl) -> int:
-        return self.ttl_or_default_milliseconds(collection_ttl.ttl)
+    def _collection_ttl_or_default_milliseconds(self, collection_ttl: CollectionTtl) -> int:
+        return self._ttl_or_default_milliseconds(collection_ttl.ttl)
 
-    def ttl_or_default_milliseconds(self, ttl: Optional[timedelta]) -> int:
+    def _ttl_or_default_milliseconds(self, ttl: Optional[timedelta]) -> int:
         which_ttl = self._default_ttl
         if ttl is not None:
             which_ttl = ttl
