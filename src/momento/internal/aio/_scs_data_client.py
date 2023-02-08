@@ -126,8 +126,6 @@ class _ScsDataClient:
     __UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG = "Unsupported type for fields: "
     __UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG = "Unsupported type for items: "
 
-    _DEFAULT_DEADLINE = timedelta(seconds=5)
-
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider, default_ttl: timedelta):
         endpoint = credential_provider.cache_endpoint
         self._logger = logs.logger
@@ -135,7 +133,7 @@ class _ScsDataClient:
         self._endpoint = endpoint
 
         default_deadline: timedelta = (
-            configuration.get_transport_strategy().get_grpc_configuration().get_deadline() or self._DEFAULT_DEADLINE
+            configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
         )
         self._default_deadline_seconds = int(default_deadline.total_seconds())
 
