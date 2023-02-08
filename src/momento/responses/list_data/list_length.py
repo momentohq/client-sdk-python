@@ -19,14 +19,13 @@ class CacheListLengthResponse(CacheResponse):
 class CacheListLength(ABC):
     """Groups all `CacheListLengthResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Hit(CacheListLengthResponse):
         """Indicates the list exists and its length was fetched."""
 
         length: int
         """The number of values in the list."""
 
-    @dataclass
     class Miss(CacheListLengthResponse):
         """Indicates the list does not exist."""
 

@@ -18,7 +18,7 @@ class CacheListPushFrontResponse(CacheResponse):
 class CacheListPushFront(ABC):
     """Groups all `CacheListPushFrontResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Success(CacheListPushFrontResponse):
         """Indicates the push was successful."""
 

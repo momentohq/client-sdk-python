@@ -1,5 +1,4 @@
 from abc import ABC
-from dataclasses import dataclass
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
@@ -18,7 +17,6 @@ class CacheSetAddElementResponse(CacheResponse):
 class CacheSetAddElement(ABC):
     """Groups all `CacheSetAddElementResponse` derived types under a common namespace."""
 
-    @dataclass
     class Success(CacheSetAddElementResponse):
         """Indicates the element was added."""
 

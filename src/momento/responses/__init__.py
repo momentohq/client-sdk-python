@@ -48,7 +48,7 @@ from .list_data import (
     CacheListRemoveValue,
     CacheListRemoveValueResponse,
 )
-from .response import CacheResponse
+from .response import CacheResponse, ControlResponse
 from .scalar_data import (
     CacheDelete,
     CacheDeleteResponse,

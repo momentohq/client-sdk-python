@@ -1,5 +1,4 @@
 from abc import ABC
-from dataclasses import dataclass
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
@@ -18,7 +17,6 @@ class CacheListRemoveValueResponse(CacheResponse):
 class CacheListRemoveValue(ABC):
     """Groups all `CacheListRemoveValueResponse` derived types under a common namespace."""
 
-    @dataclass
     class Success(CacheListRemoveValueResponse):
         """Indicates removing the values was successful."""
 

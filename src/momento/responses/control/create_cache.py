@@ -1,12 +1,11 @@
 from abc import ABC
-from dataclasses import dataclass
 
-from momento.errors import SdkException
+from momento.responses.response import ControlResponse
 
 from ..mixins import ErrorResponseMixin
 
 
-class CreateCacheResponse(ABC):
+class CreateCacheResponse(ControlResponse):
     """Parent response type for a create cache request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
@@ -44,23 +43,15 @@ class CreateCacheResponse(ABC):
 class CreateCache(ABC):
     """Groups all `CreateCacheResponse` derived types under a common namespace."""
 
-    @dataclass
     class Success(CreateCacheResponse):
         """Indicates the request was successful."""
 
-    @dataclass
     class CacheAlreadyExists(CreateCacheResponse):
         """Indicates that a cache with the requested name has already been created in the requesting account."""
 
-    @dataclass
     class Error(CreateCacheResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

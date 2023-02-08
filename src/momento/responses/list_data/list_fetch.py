@@ -21,7 +21,7 @@ class CacheListFetchResponse(CacheResponse):
 class CacheListFetch(ABC):
     """Groups all `CacheListFetchResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Hit(CacheListFetchResponse):
         """Indicates the list exists and its values were fetched."""
 
@@ -42,7 +42,6 @@ class CacheListFetch(ABC):
 
             return [v.decode("utf-8") for v in self.values_bytes]
 
-    @dataclass
     class Miss(CacheListFetchResponse):
         """Indicates the list does not exist."""
 

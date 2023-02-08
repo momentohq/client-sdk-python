@@ -18,7 +18,7 @@ class CacheDictionaryIncrementResponse(CacheResponse):
 class CacheDictionaryIncrement(ABC):
     """Groups all `CacheDictionaryIncrementResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Success(CacheDictionaryIncrementResponse):
         """Indicates the request was successful."""
 

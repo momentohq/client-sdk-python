@@ -27,16 +27,6 @@ class ValueStringMixin:
         """
         return self.value_bytes.decode("utf-8")
 
-    def __str__(self) -> str:
-        value = self._truncate_string(self.value_string)
-        return f"{self.__class__.__name__}: value={value}"
-
-    def _truncate_string(self, string: str, max_length: int = 32) -> str:
-        if len(string) < max_length:
-            return string
-
-        return f"{string[:max_length]}..."
-
 
 class ErrorResponseMixin:
     _error: SdkException
@@ -58,3 +48,6 @@ class ErrorResponseMixin:
     def message(self) -> str:
         """An explanation of conditions that caused and potential ways to resolve the error."""
         return f"{self._error.message_wrapper}: {self._error.message}"
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__qualname__} {self.error_code}: {self.message}"

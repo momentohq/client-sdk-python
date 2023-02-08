@@ -1,5 +1,4 @@
 from abc import ABC
-from dataclasses import dataclass
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
@@ -18,7 +17,6 @@ class CacheDictionarySetFieldsResponse(CacheResponse):
 class CacheDictionarySetFields(ABC):
     """Groups all `CacheDictionarySetFieldsResponse` derived types under a common namespace."""
 
-    @dataclass
     class Success(CacheDictionarySetFieldsResponse):
         """Indicates the request was successful."""
 

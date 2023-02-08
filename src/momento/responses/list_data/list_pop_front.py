@@ -19,14 +19,13 @@ class CacheListPopFrontResponse(CacheResponse):
 class CacheListPopFront(ABC):
     """Groups all `CacheListPopFront` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Hit(CacheListPopFrontResponse, ValueStringMixin):
         """Indicates the request was successful."""
 
         value_bytes: bytes
         """The value popped from the list. Use the `value_string` property to access the value as a string."""
 
-    @dataclass
     class Miss(CacheListPopFrontResponse):
         """Indicates the list does not exist."""
 

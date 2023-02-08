@@ -25,7 +25,7 @@ class CacheDictionaryGetFieldsResponse(CacheResponse):
 class CacheDictionaryGetFields(ABC):
     """Groups all `CacheDictionaryGetFieldsResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Hit(CacheDictionaryGetFieldsResponse, ValueStringMixin):
         """Contains the result of a cache hit."""
 
@@ -85,7 +85,6 @@ class CacheDictionaryGetFields(ABC):
                 if isinstance(response, CacheDictionaryGetField.Hit)
             }
 
-    @dataclass
     class Miss(CacheDictionaryGetFieldsResponse):
         """Indicates the dictionary does not exist."""
 

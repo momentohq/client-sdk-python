@@ -21,7 +21,7 @@ class CacheDictionaryFetchResponse(CacheResponse):
 class CacheDictionaryFetch(ABC):
     """Groups all `CacheDictionaryFetchResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Hit(CacheDictionaryFetchResponse):
         """Indicates the dictionary exists and its items were fetched."""
 
@@ -52,7 +52,6 @@ class CacheDictionaryFetch(ABC):
 
             return {k.decode("utf-8"): v.decode("utf-8") for k, v in self.value_dictionary_bytes_bytes.items()}
 
-    @dataclass
     class Miss(CacheDictionaryFetchResponse):
         """Indicates the dictionary does not exist."""
 

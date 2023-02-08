@@ -1,5 +1,4 @@
 from abc import ABC
-from dataclasses import dataclass
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
@@ -19,11 +18,9 @@ class CacheSetIfNotExistsResponse(CacheResponse):
 class CacheSetIfNotExists(ABC):
     """Groups all `CacheSetIfNotExistsResponse` derived types under a common namespace."""
 
-    @dataclass
     class Stored(CacheSetIfNotExistsResponse):
         """Indicates the key did not exist and the value was set."""
 
-    @dataclass
     class NotStored(CacheSetIfNotExistsResponse):
         """Indicates the key existed and no value was set."""
 

@@ -41,7 +41,6 @@ class CacheSetFetch(ABC):
 
             return {v.decode("utf-8") for v in self.value_set_bytes}
 
-    @dataclass
     class Miss(CacheSetFetchResponse):
         """Indicates the set does not exist."""
 
