@@ -7,6 +7,7 @@ from typing import Callable
 import pytest
 from pytest import fixture
 from pytest_describe import behaves_like
+from typing_extensions import Protocol
 
 from momento import SimpleCacheClient
 from momento.auth import CredentialProvider
@@ -42,7 +43,18 @@ from .shared_behaviors import (
     a_connection_validator,
 )
 
-TListAdder = Callable[[SimpleCacheClient, TListName, TListValue, CollectionTtl], CacheResponse]
+
+class TListAdder(Protocol):
+    def __call__(
+        self,
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+        list_name: TListName,
+        value: TListValue,
+        *,
+        ttl: CollectionTtl,
+    ) -> CacheResponse:
+        ...
 
 
 def a_list_adder() -> None:
@@ -59,7 +71,7 @@ def a_list_adder() -> None:
             ttl = CollectionTtl(ttl=timedelta(seconds=ttl_seconds), refresh_ttl=False)
 
             for value in values:
-                list_adder(client, list_name, value, ttl)
+                list_adder(client, cache_name, list_name, value, ttl=ttl)
 
             sleep(ttl_seconds * 2)
 
@@ -74,7 +86,7 @@ def a_list_adder() -> None:
         values = ["one", "two", "three", "four"]
 
         for value in values:
-            list_adder(client, list_name, value, ttl)
+            list_adder(client, cache_name, list_name, value, ttl=ttl)
             sleep(ttl_seconds / 2)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
@@ -93,7 +105,7 @@ def a_list_adder() -> None:
             ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
 
             value = uuid_str()
-            list_adder(client, list_name, value, ttl)
+            list_adder(client, cache_name, list_name, value, ttl=ttl)
 
             sleep(ttl_seconds / 2)
 
@@ -282,16 +294,16 @@ def describe_list_concatenate_back() -> None:
         return _connection_validator
 
     @fixture
-    def list_adder(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, list_value: TListValue
-    ) -> TListAdder:
+    def list_adder() -> TListAdder:
         def _list_adder(
             client: SimpleCacheClient,
+            cache_name: TCacheName,
             list_name: TListName,
-            list_value: TListValue,
+            value: TListValue,
+            *,
             ttl: CollectionTtl,
         ) -> CacheResponse:
-            return client.list_concatenate_back(cache_name, list_name, [list_value], ttl=ttl)
+            return client.list_concatenate_back(cache_name, list_name, [value], ttl=ttl)
 
         return _list_adder
 
@@ -356,16 +368,16 @@ def describe_list_concatenate_front() -> None:
         return _connection_validator
 
     @fixture
-    def list_adder(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, list_value: TListValue
-    ) -> TListAdder:
+    def list_adder() -> TListAdder:
         def _list_adder(
             client: SimpleCacheClient,
+            cache_name: TCacheName,
             list_name: TListName,
-            list_value: TListValue,
+            value: TListValue,
+            *,
             ttl: CollectionTtl,
         ) -> CacheResponse:
-            return client.list_concatenate_front(cache_name, list_name, [list_value], ttl=ttl)
+            return client.list_concatenate_front(cache_name, list_name, [value], ttl=ttl)
 
         return _list_adder
 
@@ -577,16 +589,15 @@ def describe_list_push_back() -> None:
         return _connection_validator
 
     @fixture
-    def list_adder(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, list_value: TListValue
-    ) -> TListAdder:
+    def list_adder() -> TListAdder:
         def _list_adder(
             client: SimpleCacheClient,
+            cache_name: TCacheName,
             list_name: TListName,
-            list_value: TListValue,
+            value: TListValue,
             ttl: CollectionTtl,
         ) -> CacheResponse:
-            return client.list_push_back(cache_name, list_name, list_value, ttl=ttl)
+            return client.list_push_back(cache_name, list_name, value, ttl=ttl)
 
         return _list_adder
 
@@ -641,16 +652,16 @@ def describe_list_push_front() -> None:
         return _connection_validator
 
     @fixture
-    def list_adder(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, list_value: TListValue
-    ) -> TListAdder:
+    def list_adder() -> TListAdder:
         def _list_adder(
             client: SimpleCacheClient,
+            cache_name: TCacheName,
             list_name: TListName,
-            list_value: TListValue,
+            value: TListValue,
+            *,
             ttl: CollectionTtl,
         ) -> CacheResponse:
-            return client.list_push_front(cache_name, list_name, list_value, ttl=ttl)
+            return client.list_push_front(cache_name, list_name, value, ttl=ttl)
 
         return _list_adder
 

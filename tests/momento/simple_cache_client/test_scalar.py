@@ -37,7 +37,7 @@ def a_setter() -> None:
         key = uuid_str()
         val = uuid_str()
 
-        setter(cache_name, key, val, timedelta(seconds=2))
+        setter(cache_name, key, val, ttl=timedelta(seconds=2))
         get_response = client.get(cache_name, key)
         assert isinstance(get_response, CacheGet.Hit)
 
@@ -49,7 +49,7 @@ def a_setter() -> None:
         key1 = uuid_str()
         key2 = uuid_str()
 
-        setter(cache_name, key1, "1", timedelta(seconds=2))
+        setter(cache_name, key1, "1", ttl=timedelta(seconds=2))
         setter(cache_name, key2, "2")
 
         # Before
@@ -74,7 +74,7 @@ def a_setter() -> None:
             assert False
 
     def negative_ttl_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = setter(cache_name, "foo", "bar", timedelta(seconds=-1))
+        set_response = setter(cache_name, "foo", "bar", ttl=timedelta(seconds=-1))
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert set_response.inner_exception.message == "TTL must be a positive amount of time."

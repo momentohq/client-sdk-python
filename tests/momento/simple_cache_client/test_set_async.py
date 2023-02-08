@@ -5,6 +5,7 @@ from typing import Awaitable, Callable
 
 from pytest import fixture
 from pytest_describe import behaves_like
+from typing_extensions import Protocol
 
 from momento import SimpleCacheClientAsync
 from momento.auth import CredentialProvider
@@ -37,9 +38,18 @@ from .shared_behaviors_async import (
     a_connection_validator,
 )
 
-TSetAdder = Callable[
-    [SimpleCacheClientAsync, TCacheName, TSetName, TSetElement, CollectionTtl], Awaitable[CacheResponse]
-]
+
+class TSetAdder(Protocol):
+    def __call__(
+        self,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+        element: TSetElement,
+        *,
+        ttl: CollectionTtl,
+    ) -> Awaitable[CacheResponse]:
+        ...
 
 
 def a_set_adder() -> None:
@@ -56,7 +66,7 @@ def a_set_adder() -> None:
             ttl = CollectionTtl(ttl=timedelta(seconds=ttl_seconds), refresh_ttl=False)
 
             for element in elements:
-                await set_adder(client, cache_name, set_name, element, ttl)
+                await set_adder(client, cache_name, set_name, element, ttl=ttl)
 
             sleep(ttl_seconds * 2)
 
@@ -71,7 +81,7 @@ def a_set_adder() -> None:
         elements = {"one", "two", "three", "four"}
 
         for element in elements:
-            await set_adder(client_async, cache_name, set_name, element, ttl)
+            await set_adder(client_async, cache_name, set_name, element, ttl=ttl)
             sleep(ttl_seconds / 2)
 
         fetch_resp = await client_async.set_fetch(cache_name, set_name)
@@ -90,7 +100,7 @@ def a_set_adder() -> None:
             ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
 
             element = uuid_str()
-            await set_adder(client, cache_name, set_name, element, ttl)
+            await set_adder(client, cache_name, set_name, element, ttl=ttl)
 
             sleep(ttl_seconds / 2)
 
@@ -103,12 +113,21 @@ def a_set_adder() -> None:
             assert isinstance(fetch_resp, CacheSetFetch.Miss)
 
 
-TSetWhichTakesAnElement = Callable[[TSetElement], Awaitable[CacheResponse]]
+class TSetWhichTakesAnElement(Protocol):
+    def __call__(
+        self, client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+    ) -> Awaitable[CacheResponse]:
+        ...
 
 
 def a_set_which_takes_an_element() -> None:
-    async def it_errors_with_the_wrong_type(set_which_takes_an_element: TSetWhichTakesAnElement) -> None:
-        resp = await set_which_takes_an_element(1)
+    async def it_errors_with_the_wrong_type(
+        set_which_takes_an_element: TSetWhichTakesAnElement,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
+    ) -> None:
+        resp = await set_which_takes_an_element(client_async, cache_name, set_name, 1)  # type:ignore[arg-type]
         if isinstance(resp, ErrorResponseMixin):
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             # This error is wrong. See https://github.com/momentohq/client-sdk-python/issues/242
@@ -119,8 +138,11 @@ def a_set_which_takes_an_element() -> None:
 
     async def it_errors_with_none(
         set_which_takes_an_element: TSetWhichTakesAnElement,
+        client_async: SimpleCacheClientAsync,
+        cache_name: TCacheName,
+        set_name: TSetName,
     ) -> None:
-        resp = await set_which_takes_an_element(None)
+        resp = await set_which_takes_an_element(client_async, cache_name, set_name, None)  # type:ignore[arg-type]
         if isinstance(resp, ErrorResponseMixin):
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             # This error is wrong. See https://github.com/momentohq/client-sdk-python/issues/242
@@ -189,9 +211,10 @@ def describe_set_add_element() -> None:
             cache_name: TCacheName,
             set_name: TSetName,
             element: TSetElement,
+            *,
             ttl: CollectionTtl,
         ) -> CacheResponse:
-            return await client_async.set_add_element(cache_name, set_name, element, ttl)
+            return await client_async.set_add_element(cache_name, set_name, element, ttl=ttl)
 
         return _set_adder
 
@@ -200,12 +223,13 @@ def describe_set_add_element() -> None:
         return partial(client_async.set_add_element, element=element)
 
     @fixture
-    def set_which_takes_an_element(
-        client_async: SimpleCacheClientAsync,
-        cache_name: TCacheName,
-        set_name: TSetName,
-    ) -> TSetWhichTakesAnElement:
-        return partial(client_async.set_add_element, cache_name, set_name)
+    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+        async def _set_which_takes_an_element(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+        ) -> CacheResponse:
+            return await client_async.set_add_element(cache_name, set_name, element)
+
+        return _set_which_takes_an_element
 
     async def it_adds_a_string_element(
         client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName
@@ -282,9 +306,10 @@ def describe_set_add_elements() -> None:
             cache_name: TCacheName,
             set_name: TSetName,
             element: TSetElement,
+            *,
             ttl: CollectionTtl,
         ) -> CacheResponse:
-            return await client_async.set_add_elements(cache_name, set_name, {element}, ttl)
+            return await client_async.set_add_elements(cache_name, set_name, {element}, ttl=ttl)
 
         return _set_adder
 
@@ -293,12 +318,10 @@ def describe_set_add_elements() -> None:
         return partial(client_async.set_add_elements, elements=elements)
 
     @fixture
-    def set_which_takes_an_element(
-        client_async: SimpleCacheClientAsync,
-        cache_name: TCacheName,
-        set_name: TSetName,
-    ) -> TSetWhichTakesAnElement:
-        async def _set_which_takes_an_element(element: TSetElement) -> CacheSetAddElements:
+    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+        async def _set_which_takes_an_element(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+        ) -> CacheResponse:
             return await client_async.set_add_elements(cache_name, set_name, {element})
 
         return _set_which_takes_an_element
@@ -414,12 +437,13 @@ def describe_set_remove_element() -> None:
         return partial(client_async.set_remove_element, element=element)
 
     @fixture
-    def set_which_takes_an_element(
-        client_async: SimpleCacheClientAsync,
-        cache_name: TCacheName,
-        set_name: TSetName,
-    ) -> TSetWhichTakesAnElement:
-        return partial(client_async.set_remove_element, cache_name, set_name)
+    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+        async def _set_which_takes_an_element(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+        ) -> CacheResponse:
+            return await client_async.set_remove_element(cache_name, set_name, element)
+
+        return _set_which_takes_an_element
 
     async def it_removes_a_string_element(
         client_async: SimpleCacheClientAsync,
@@ -499,12 +523,10 @@ def describe_set_remove_elements() -> None:
         return partial(client_async.set_remove_elements, elements=elements)
 
     @fixture
-    def set_which_takes_an_element(
-        client_async: SimpleCacheClientAsync,
-        cache_name: TCacheName,
-        set_name: TSetName,
-    ) -> TSetWhichTakesAnElement:
-        async def _set_which_takes_an_element(element: TSetElement) -> CacheSetAddElements:
+    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+        async def _set_which_takes_an_element(
+            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+        ) -> CacheResponse:
             return await client_async.set_add_elements(cache_name, set_name, {element})
 
         return _set_which_takes_an_element
