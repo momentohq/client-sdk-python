@@ -31,7 +31,7 @@ class CacheDictionaryFetch(ABC):
         """The items for the fetched dictionary, as a mapping from bytes to bytes.
 
         Returns:
-            TDictionaryBytesBytes
+            dict[bytes, bytes]
         """
 
         @property
