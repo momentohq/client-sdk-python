@@ -79,7 +79,7 @@ class CacheDictionaryGetFields(ABC):
             """The items for the dictionary fields, as a mapping from utf-8 encoded strings to utf-8 encoded strings.
 
             Returns:
-                TDictionaryStrStr
+                dict[str, str]
             """
             return {
                 response.field_string: response.value_string

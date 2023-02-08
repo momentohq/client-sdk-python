@@ -31,7 +31,7 @@ class CacheListFetch(ABC):
         """The values for the fetched list, as bytes.
 
         Returns:
-            TListValuesOutputBytes
+            list[bytes]
         """
 
         @property
@@ -39,7 +39,7 @@ class CacheListFetch(ABC):
             """The values for the fetched list, as utf-8 encoded strings.
 
             Returns:
-                TListValuesOutputStr
+                list[str]
             """
 
             return [v.decode("utf-8") for v in self.values_bytes]
