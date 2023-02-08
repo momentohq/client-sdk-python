@@ -30,7 +30,7 @@ class CacheGet(ABC):
     class Miss(CacheGetResponse):
         """Contains the results of a cache miss"""
 
-    class Error(ErrorResponseMixin, CacheGetResponse):
+    class Error(CacheGetResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
