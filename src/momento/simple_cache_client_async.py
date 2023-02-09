@@ -692,7 +692,7 @@ class SimpleCacheClientAsync:
             CacheSetAddElementResponse
         """
 
-        resp = await self.set_add_elements(cache_name, set_name, {element}, ttl=ttl)
+        resp = await self.set_add_elements(cache_name, set_name, (element,), ttl=ttl)
 
         if isinstance(resp, CacheSetAddElements.Success):
             return CacheSetAddElement.Success()
@@ -754,7 +754,7 @@ class SimpleCacheClientAsync:
         Returns:
             CacheSetRemoveElementResponse
         """
-        resp = await self.set_remove_elements(cache_name, set_name, {element})
+        resp = await self.set_remove_elements(cache_name, set_name, (element,))
         if isinstance(resp, CacheSetRemoveElements.Success):
             return CacheSetRemoveElement.Success()
         elif isinstance(resp, CacheSetRemoveElements.Error):
