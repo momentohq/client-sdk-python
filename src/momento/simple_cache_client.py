@@ -180,7 +180,7 @@ class SimpleCacheClient:
         """
         return self._control_client.delete_cache(cache_name)
 
-    def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
+    def list_caches(self, *, next_token: Optional[str] = None) -> ListCachesResponse:
         """Lists all caches.
 
         Args:
@@ -220,7 +220,7 @@ class SimpleCacheClient:
         """
         return self._control_client.revoke_signing_key(key_id)
 
-    def list_signing_keys(self, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+    def list_signing_keys(self, *, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
 
         Args:
@@ -362,6 +362,7 @@ class SimpleCacheClient:
         dictionary_name: str,
         field: str | bytes,
         amount: int = 1,
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheDictionaryIncrementResponse:
         """Add an integer quantity to a dictionary value.
@@ -428,6 +429,7 @@ class SimpleCacheClient:
         dictionary_name: str,
         field: str | bytes,
         value: str | bytes,
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheDictionarySetFieldResponse:
         """Set the dictionary field to a value with a given time to live (TTL) seconds.
@@ -459,6 +461,7 @@ class SimpleCacheClient:
         cache_name: str,
         dictionary_name: str,
         items: TDictionaryItems,
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheDictionarySetFieldsResponse:
         """Set several dictionary field-value pairs in the cache.
@@ -482,6 +485,7 @@ class SimpleCacheClient:
         cache_name: str,
         list_name: str,
         values: Iterable[str | bytes],
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
@@ -507,6 +511,7 @@ class SimpleCacheClient:
         cache_name: str,
         list_name: str,
         values: Iterable[str | bytes],
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListConcatenateFrontResponse:
@@ -588,6 +593,7 @@ class SimpleCacheClient:
         cache_name: str,
         list_name: str,
         value: str | bytes,
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListPushBackResponse:
@@ -613,6 +619,7 @@ class SimpleCacheClient:
         cache_name: str,
         list_name: str,
         value: str | bytes,
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListPushFrontResponse:
@@ -667,6 +674,7 @@ class SimpleCacheClient:
         cache_name: str,
         set_name: str,
         element: str | bytes,
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementResponse:
         """
@@ -682,7 +690,7 @@ class SimpleCacheClient:
             CacheSetAddElementResponse
         """
 
-        resp = self.set_add_elements(cache_name, set_name, [element], ttl)
+        resp = self.set_add_elements(cache_name, set_name, (element,), ttl=ttl)
 
         if isinstance(resp, CacheSetAddElements.Success):
             return CacheSetAddElement.Success()
@@ -696,6 +704,7 @@ class SimpleCacheClient:
         cache_name: str,
         set_name: str,
         elements: Iterable[str | bytes],
+        *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementsResponse:
         """
@@ -741,7 +750,7 @@ class SimpleCacheClient:
         Returns:
             CacheSetRemoveElementResponse
         """
-        resp = self.set_remove_elements(cache_name, set_name, [element])
+        resp = self.set_remove_elements(cache_name, set_name, (element,))
         if isinstance(resp, CacheSetRemoveElements.Success):
             return CacheSetRemoveElement.Success()
         elif isinstance(resp, CacheSetRemoveElements.Error):

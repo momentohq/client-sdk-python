@@ -7,6 +7,7 @@ from typing import Awaitable, Callable
 
 from pytest import fixture
 from pytest_describe import behaves_like
+from typing_extensions import Protocol
 
 from momento import SimpleCacheClientAsync
 from momento.auth import CredentialProvider
@@ -203,10 +204,17 @@ def a_dictionary_remover() -> None:
         assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
 
 
-TDictionarySetter = Callable[
-    [SimpleCacheClientAsync, TDictionaryName, TDictionaryField, TDictionaryValue, CollectionTtl],
-    Awaitable[CacheResponse],
-]
+class TDictionarySetter(Protocol):
+    def __call__(
+        self,
+        client_async: SimpleCacheClientAsync,
+        dictionary_name: TDictionaryName,
+        field: TDictionaryField,
+        value: TDictionaryValue,
+        *,
+        ttl: CollectionTtl,
+    ) -> Awaitable[CacheResponse]:
+        ...
 
 
 def a_dictionary_setter() -> None:
@@ -223,7 +231,7 @@ def a_dictionary_setter() -> None:
             ttl = CollectionTtl(ttl=timedelta(seconds=ttl_seconds), refresh_ttl=False)
 
             for field, value in dictionary_items.items():
-                await dictionary_setter(client, dictionary_name, field, value, ttl)
+                await dictionary_setter(client, dictionary_name, field, value, ttl=ttl)
 
             sleep(ttl_seconds * 2)
 
@@ -241,7 +249,7 @@ def a_dictionary_setter() -> None:
         items = dict([("one", "1"), ("two", "2"), ("three", "3"), ("four", "4")])
 
         for field, value in items.items():
-            await dictionary_setter(client_async, dictionary_name, field, value, ttl)
+            await dictionary_setter(client_async, dictionary_name, field, value, ttl=ttl)
             sleep(ttl_seconds / 2)
 
         fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
@@ -261,7 +269,7 @@ def a_dictionary_setter() -> None:
         async with SimpleCacheClientAsync(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
             ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
 
-            await dictionary_setter(client, dictionary_name, dictionary_field_str, dictionary_value_str, ttl)
+            await dictionary_setter(client, dictionary_name, dictionary_field_str, dictionary_value_str, ttl=ttl)
 
             sleep(ttl_seconds / 2)
 
@@ -282,7 +290,7 @@ def a_dictionary_setter() -> None:
         dictionary_value_bytes: TDictionaryValue,
     ) -> None:
         await dictionary_setter(
-            client_async, dictionary_name, dictionary_field_bytes, dictionary_value_bytes, CollectionTtl()
+            client_async, dictionary_name, dictionary_field_bytes, dictionary_value_bytes, ttl=CollectionTtl()
         )
         fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
         assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
@@ -297,7 +305,7 @@ def a_dictionary_setter() -> None:
         dictionary_value_str: str,
     ) -> None:
         await dictionary_setter(
-            client_async, dictionary_name, dictionary_field_str, dictionary_value_str, CollectionTtl()
+            client_async, dictionary_name, dictionary_field_str, dictionary_value_str, ttl=CollectionTtl()
         )
         fetch_response = await client_async.dictionary_fetch(cache_name, dictionary_name)
         assert isinstance(fetch_response, CacheDictionaryFetch.Hit)
@@ -315,7 +323,7 @@ def a_dictionary_setter() -> None:
             (234, "value", "int"),
             ("field", 234, "int"),
         ]:
-            response = await dictionary_setter(client_async, dictionary_name, field, value, CollectionTtl())  # type: ignore
+            response = await dictionary_setter(client_async, dictionary_name, field, value, ttl=CollectionTtl())  # type: ignore
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert (
@@ -863,6 +871,7 @@ def describe_dictionary_set_field() -> None:
             dictionary_name: TDictionaryName,
             field: TDictionaryField,
             value: TDictionaryValue,
+            *,
             ttl: CollectionTtl,
         ) -> CacheResponse:
             return await client_async.dictionary_set_field(cache_name, dictionary_name, field, value, ttl=ttl)
@@ -967,7 +976,7 @@ def describe_dictionary_set_fields() -> None:
         dictionary_items: TDictionaryItems,
     ) -> None:
         set_response = await client_async.dictionary_set_fields(
-            cache_name, dictionary_name, dictionary_items, CollectionTtl()
+            cache_name, dictionary_name, dictionary_items, ttl=CollectionTtl()
         )
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 
