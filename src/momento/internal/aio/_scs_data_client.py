@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from functools import partial
 from typing import Optional
 
 from momento_wire_types.cacheclient_pb2 import (
+    Hit,
     Miss,
     _DeleteRequest,
-    _DeleteResponse,
     _DictionaryDeleteRequest,
     _DictionaryFetchRequest,
     _DictionaryFieldValuePair,
@@ -15,7 +14,6 @@ from momento_wire_types.cacheclient_pb2 import (
     _DictionaryIncrementRequest,
     _DictionarySetRequest,
     _GetRequest,
-    _GetResponse,
     _ListConcatenateBackRequest,
     _ListConcatenateFrontRequest,
     _ListFetchRequest,
@@ -29,7 +27,6 @@ from momento_wire_types.cacheclient_pb2 import (
     _SetFetchRequest,
     _SetIfNotExistsRequest,
     _SetRequest,
-    _SetResponse,
     _SetUnionRequest,
 )
 from momento_wire_types.cacheclient_pb2_grpc import ScsStub
@@ -52,18 +49,6 @@ from momento.internal._utilities import (
 )
 from momento.internal.aio._scs_grpc_manager import _DataGrpcManager
 from momento.internal.aio._utilities import make_metadata
-from momento.internal.common._data_client_ops import (
-    get_default_client_deadline,
-    wrap_async_with_error_handling,
-)
-from momento.internal.common._data_client_scalar_ops import (
-    construct_delete_response,
-    construct_get_response,
-    construct_set_response,
-    prepare_delete_request,
-    prepare_get_request,
-    prepare_set_request,
-)
 from momento.requests import CollectionTtl
 from momento.responses import (
     CacheDelete,
@@ -147,7 +132,7 @@ class _ScsDataClient:
         self._logger.debug("Simple cache data client instantiated with endpoint: %s", endpoint)
         self._endpoint = endpoint
 
-        default_deadline: timedelta = get_default_client_deadline(configuration)
+        default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
         self._default_deadline_seconds = int(default_deadline.total_seconds())
 
         self._grpc_manager = _DataGrpcManager(credential_provider)
@@ -166,30 +151,25 @@ class _ScsDataClient:
         value: TScalarValue,
         ttl: Optional[timedelta],
     ) -> CacheSetResponse:
-        metadata = make_metadata(cache_name)
+        try:
+            self._log_issuing_request("Set", {"key": str(key)})
+            _validate_cache_name(cache_name)
+            item_ttl = self._default_ttl if ttl is None else ttl
+            _validate_ttl(item_ttl)
+            request = _SetRequest()
+            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+            request.cache_body = _as_bytes(value, "Unsupported type for value: ")
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
 
-        async def execute_set_request_fn(req: _SetRequest) -> _SetResponse:
-            return await self._build_stub().Set(
-                req,
-                metadata=metadata,
-                timeout=self._default_deadline_seconds,
+            await self._build_stub().Set(
+                request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
             )
 
-        return await wrap_async_with_error_handling(
-            cache_name=cache_name,
-            request_type="Set",
-            prepare_request_fn=partial(
-                prepare_set_request,
-                key=key,
-                value=value,
-                ttl=ttl,
-                default_ttl=self._default_ttl,
-            ),
-            execute_request_fn=execute_set_request_fn,
-            response_fn=construct_set_response,
-            error_fn=CacheSet.Error.from_sdkexception,
-            metadata=metadata,
-        )
+            self._log_received_response("Set", {"key": str(key)})
+            return CacheSet.Success()
+        except Exception as e:
+            self._log_request_error("set", e)
+            return CacheSet.Error(convert_error(e))
 
     async def set_if_not_exists(
         self, cache_name: TCacheName, key: TScalarKey, value: TScalarValue, ttl: Optional[timedelta]
@@ -223,44 +203,45 @@ class _ScsDataClient:
             return CacheSetIfNotExists.Error(convert_error(e))
 
     async def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
-        metadata = make_metadata(cache_name)
+        try:
+            self._log_issuing_request("Get", {"key": str(key)})
 
-        async def execute_get_request_fn(req: _GetRequest) -> _GetResponse:
-            return await self._build_stub().Get(
-                req,
-                metadata=metadata,
-                timeout=self._default_deadline_seconds,
+            _validate_cache_name(cache_name)
+            request = _GetRequest()
+            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+
+            response = await self._build_stub().Get(
+                request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
             )
 
-        return await wrap_async_with_error_handling(
-            cache_name=cache_name,
-            request_type="Get",
-            prepare_request_fn=partial(prepare_get_request, key=key),
-            execute_request_fn=execute_get_request_fn,
-            response_fn=construct_get_response,
-            error_fn=CacheGet.Error.from_sdkexception,
-            metadata=metadata,
-        )
+            self._log_received_response("Get", {"key": str(key)})
+
+            if response.result == Hit:
+                return CacheGet.Hit(response.cache_body)
+            elif response.result == Miss:
+                return CacheGet.Miss()
+            else:
+                raise UnknownException("Get responded with an unknown result")
+        except Exception as e:
+            self._log_request_error("set_if_not_exists", e)
+            return CacheGet.Error(convert_error(e))
 
     async def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
-        metadata = make_metadata(cache_name)
+        try:
+            self._log_issuing_request("Delete", {"key": str(key)})
+            _validate_cache_name(cache_name)
+            request = _DeleteRequest()
+            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
 
-        async def execute_delete_request_fn(req: _DeleteRequest) -> _DeleteResponse:
-            return await self._build_stub().Delete(
-                req,
-                metadata=metadata,
-                timeout=self._default_deadline_seconds,
+            await self._build_stub().Delete(
+                request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
             )
 
-        return await wrap_async_with_error_handling(
-            cache_name=cache_name,
-            request_type="Delete",
-            prepare_request_fn=partial(prepare_delete_request, key=key),
-            execute_request_fn=execute_delete_request_fn,
-            response_fn=construct_delete_response,
-            error_fn=CacheDelete.Error.from_sdkexception,
-            metadata=metadata,
-        )
+            self._log_received_response("Delete", {"key": str(key)})
+            return CacheDelete.Success()
+        except Exception as e:
+            self._log_request_error("set", e)
+            return CacheDelete.Error(convert_error(e))
 
     # DICTIONARY COLLECTION METHODS
     async def dictionary_get_fields(
