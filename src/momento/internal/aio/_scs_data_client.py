@@ -132,9 +132,7 @@ class _ScsDataClient:
         self._logger.debug("Simple cache data client instantiated with endpoint: %s", endpoint)
         self._endpoint = endpoint
 
-        default_deadline: timedelta = (
-            configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
-        )
+        default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
         self._default_deadline_seconds = int(default_deadline.total_seconds())
 
         self._grpc_manager = _DataGrpcManager(credential_provider)
