@@ -67,13 +67,13 @@ def a_setter() -> None:
         assert isinstance(get_response, CacheGet.Hit)
 
     def with_null_value_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = setter(cache_name, "foo", None)
+        set_response = setter(cache_name, "foo", None)  # type:ignore[arg-type]
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         else:
             assert False
 
-    def negative_ttl_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+    def with_negative_ttl_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
         set_response = setter(cache_name, "foo", "bar", ttl=timedelta(seconds=-1))
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -82,7 +82,7 @@ def a_setter() -> None:
             assert False
 
     def with_bad_value_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = setter(cache_name, "foo", 1)
+        set_response = setter(cache_name, "foo", 1)  # type:ignore[arg-type]
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert set_response.inner_exception.message == "Unsupported type for value: <class 'int'>"
@@ -99,9 +99,11 @@ def describe_set_and_get() -> None:
         assert isinstance(set_resp, CacheSet.Success)
 
         get_resp = client.get(cache_name, key)
-        isinstance(get_resp, CacheGet.Hit)
-        assert get_resp.value_string == value
-        assert get_resp.value_bytes == str_to_bytes(value)
+        if isinstance(get_resp, CacheGet.Hit):
+            assert get_resp.value_string == value
+            assert get_resp.value_bytes == str_to_bytes(value)
+        else:
+            assert False
 
     def with_byte_key_values(client: SimpleCacheClient, cache_name: str) -> None:
         key = uuid_bytes()
@@ -125,13 +127,12 @@ def describe_get() -> None:
         return partial(client.get, key=key)
 
     @fixture
-    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
-        return partial(client.get)
+    def key_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TKeyValidator:
+        return partial(client.get, cache_name=cache_name)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
-            key = uuid_str()
+    def connection_validator(cache_name: TCacheName, key: TScalarKey) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.get(cache_name, key)
 
         return _connection_validator
@@ -155,15 +156,13 @@ def describe_set() -> None:
         return partial(client.set, key=key, value=value)
 
     @fixture
-    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
+    def key_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TKeyValidator:
         value = uuid_str()
-        return partial(client.set, value=value)
+        return partial(client.set, cache_name=cache_name, value=value)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
-            key = uuid_str()
-            value = uuid_str()
+    def connection_validator(cache_name: TCacheName, key: TScalarKey, value: TScalarValue) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.set(cache_name, key, value)
 
         return _connection_validator
@@ -185,15 +184,13 @@ def describe_set_if_not_exists() -> None:
         return partial(client.set_if_not_exists, key=key, value=value)
 
     @fixture
-    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
+    def key_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TKeyValidator:
         value = uuid_str()
-        return partial(client.set_if_not_exists, value=value)
+        return partial(client.set_if_not_exists, cache_name=cache_name, value=value)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
-            key = uuid_str()
-            value = uuid_str()
+    def connection_validator(cache_name: TCacheName, key: TScalarKey, value: TScalarValue) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.set_if_not_exists(cache_name, key, value)
 
         return _connection_validator
@@ -237,13 +234,12 @@ def describe_delete() -> None:
         return partial(client.delete, key=key)
 
     @fixture
-    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
-        return partial(client.delete)
+    def key_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TKeyValidator:
+        return partial(client.delete, cache_name=cache_name)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
-            key = uuid_str()
+    def connection_validator(cache_name: TCacheName, key: TScalarKey) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.delete(cache_name, key)
 
         return _connection_validator

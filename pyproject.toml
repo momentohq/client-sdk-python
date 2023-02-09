@@ -88,7 +88,8 @@ disallow_subclassing_any    = false
 [[tool.mypy.overrides]]
 module = [
   "momento_wire_types.*",
-  "grpc.*"
+  "grpc.*",
+  "pytest_describe"
 ]
 ignore_missing_imports      = true
 
