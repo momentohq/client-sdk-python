@@ -46,6 +46,13 @@ from typing import Awaitable, BC, CD
 from typing import BC, CD
 """,
         ),
+        (
+            """
+from typing import Awaitable
+""",
+            """
+""",
+        ),
         ("2+2", "2+2"),
         (
             """
