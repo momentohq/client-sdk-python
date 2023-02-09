@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from abc import ABC
 from dataclasses import dataclass
 
 from momento.errors import SdkException
-from momento.typing import TDictionaryBytesBytes, TDictionaryStrBytes, TDictionaryStrStr
 
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
@@ -26,29 +27,29 @@ class CacheDictionaryFetch(ABC):
     class Hit(CacheDictionaryFetchResponse):
         """Indicates the dictionary exists and its items were fetched."""
 
-        value_dictionary_bytes_bytes: TDictionaryBytesBytes
+        value_dictionary_bytes_bytes: dict[bytes, bytes]
         """The items for the fetched dictionary, as a mapping from bytes to bytes.
 
         Returns:
-            TDictionaryBytesBytes
+            dict[bytes, bytes]
         """
 
         @property
-        def value_dictionary_string_bytes(self) -> TDictionaryStrBytes:
+        def value_dictionary_string_bytes(self) -> dict[str, bytes]:
             """The items for the fetched dictionary, as a mapping from utf-8 encoded strings to bytes.
 
             Returns:
-                TDictionaryStrBytes
+                dict[str, bytes]
             """
 
             return {k.decode("utf-8"): v for k, v in self.value_dictionary_bytes_bytes.items()}
 
         @property
-        def value_dictionary_string_string(self) -> TDictionaryStrStr:
+        def value_dictionary_string_string(self) -> dict[str, str]:
             """The items for the fetched dictionary, as a mapping from utf-8 encoded strings to utf-8 encoded strings.
 
             Returns:
-                TDictionaryStrStr
+                dict[str, str]
             """
 
             return {k.decode("utf-8"): v.decode("utf-8") for k, v in self.value_dictionary_bytes_bytes.items()}

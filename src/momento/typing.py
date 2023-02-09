@@ -1,28 +1,36 @@
-from typing import Dict, Iterable, List, Mapping, Union
+from __future__ import annotations
+
+from typing import Iterable, List, Mapping, Set, Union
 
 TCacheName = str
 
+TMomentoValue = Union[str, bytes]
+
 # Scalar Types
 TScalarKey = Union[str, bytes]
-TScalarValue = Union[str, bytes]
+TScalarValue = TMomentoValue
 
 # Collections
 TCollectionName = str
+TCollectionValue = Union[str, bytes]
 
 # Dictionary Types
 TDictionaryName = TCollectionName
 TDictionaryField = Union[str, bytes]
-TDictionaryValue = Union[str, bytes]
+TDictionaryValue = TMomentoValue
 TDictionaryFields = Iterable[TDictionaryField]
-TDictionaryItems = Mapping[TDictionaryField, TDictionaryValue]
-TDictionaryBytesBytes = Dict[bytes, bytes]
-TDictionaryBytesStr = Dict[bytes, str]
-TDictionaryStrBytes = Dict[str, bytes]
-TDictionaryStrStr = Dict[str, str]
+TDictionaryItems = Union[
+    Mapping[TDictionaryField, TDictionaryValue],
+    # Mapping isn't covariant so we have to list out the types here
+    Mapping[bytes, bytes],
+    Mapping[bytes, str],
+    Mapping[str, bytes],
+    Mapping[str, str],
+]
 
 # List Types
 TListName = TCollectionName
-TListValue = Union[str, bytes]
+TListValue = TMomentoValue
 TListValuesInputBytes = Iterable[bytes]
 TListValuesInputStr = Iterable[str]
 TListValuesInput = Iterable[TListValue]
@@ -31,3 +39,11 @@ TListValuesOutputStr = List[str]
 TLIstValuesOutput = Union[TListValuesOutputBytes, TListValuesOutputStr]
 
 # Set Types
+TSetName = TCollectionName
+TSetElement = TMomentoValue
+TSetElementsInputBytes = Iterable[bytes]
+TSetElementsInputStr = Iterable[str]
+TSetElementsInput = Iterable[TSetElement]
+TSetElementsOutputStr = Set[str]
+TSetElementsOutputBytes = Set[bytes]
+TSetElementsOutput = Union[TSetElementsOutputBytes, TSetElementsOutputStr]

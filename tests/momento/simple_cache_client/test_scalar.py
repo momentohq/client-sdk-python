@@ -1,14 +1,18 @@
 import time
 from datetime import timedelta
 from functools import partial
+from typing import Optional
 
 from pytest import fixture
 from pytest_describe import behaves_like
+from typing_extensions import Protocol
 
 from momento import SimpleCacheClient
 from momento.errors import MomentoErrorCode
-from momento.responses import CacheDelete, CacheGet, CacheSet
+from momento.responses import CacheDelete, CacheGet, CacheSet, CacheSetIfNotExists
 from momento.responses.mixins import ErrorResponseMixin
+from momento.responses.response import CacheResponse
+from momento.typing import TCacheName, TScalarKey, TScalarValue
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
 from .shared_behaviors import (
@@ -19,6 +23,71 @@ from .shared_behaviors import (
     a_connection_validator,
     a_key_validator,
 )
+
+
+class TSetter(Protocol):
+    def __call__(
+        self, cache_name: TCacheName, key: TScalarKey, value: TScalarValue, ttl: Optional[timedelta] = None
+    ) -> CacheResponse:
+        ...
+
+
+def a_setter() -> None:
+    def expires_items_after_ttl(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+        key = uuid_str()
+        val = uuid_str()
+
+        setter(cache_name, key, val, ttl=timedelta(seconds=2))
+        get_response = client.get(cache_name, key)
+        assert isinstance(get_response, CacheGet.Hit)
+
+        time.sleep(4)
+        get_response = client.get(cache_name, key)
+        assert isinstance(get_response, CacheGet.Miss)
+
+    def with_different_ttl(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+        key1 = uuid_str()
+        key2 = uuid_str()
+
+        setter(cache_name, key1, "1", ttl=timedelta(seconds=2))
+        setter(cache_name, key2, "2")
+
+        # Before
+        get_response = client.get(cache_name, key1)
+        assert isinstance(get_response, CacheGet.Hit)
+        get_response = client.get(cache_name, key2)
+        assert isinstance(get_response, CacheGet.Hit)
+
+        time.sleep(4)
+
+        # After
+        get_response = client.get(cache_name, key1)
+        assert isinstance(get_response, CacheGet.Miss)
+        get_response = client.get(cache_name, key2)
+        assert isinstance(get_response, CacheGet.Hit)
+
+    def with_null_value_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+        set_response = setter(cache_name, "foo", None)
+        if isinstance(set_response, ErrorResponseMixin):
+            assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        else:
+            assert False
+
+    def negative_ttl_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+        set_response = setter(cache_name, "foo", "bar", ttl=timedelta(seconds=-1))
+        if isinstance(set_response, ErrorResponseMixin):
+            assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+            assert set_response.inner_exception.message == "TTL must be a positive amount of time."
+        else:
+            assert False
+
+    def with_bad_value_throws_exception(setter: TSetter, client: SimpleCacheClient, cache_name: str) -> None:
+        set_response = setter(cache_name, "foo", 1)
+        if isinstance(set_response, ErrorResponseMixin):
+            assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+            assert set_response.inner_exception.message == "Unsupported type for value: <class 'int'>"
+        else:
+            assert False
 
 
 def describe_set_and_get() -> None:
@@ -77,6 +146,7 @@ def describe_get() -> None:
 @behaves_like(a_cache_name_validator)
 @behaves_like(a_key_validator)
 @behaves_like(a_connection_validator)
+@behaves_like(a_setter)
 def describe_set() -> None:
     @fixture
     def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
@@ -98,55 +168,63 @@ def describe_set() -> None:
 
         return _connection_validator
 
-    def expires_items_after_ttl(client: SimpleCacheClient, cache_name: str) -> None:
+    @fixture
+    def setter(client: SimpleCacheClient) -> TSetter:
+        return partial(client.set)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_key_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_setter)
+def describe_set_if_not_exists() -> None:
+    @fixture
+    def cache_name_validator(client: SimpleCacheClient) -> TCacheNameValidator:
         key = uuid_str()
-        val = uuid_str()
+        value = uuid_str()
+        return partial(client.set_if_not_exists, key=key, value=value)
 
-        client.set(cache_name, key, val, timedelta(seconds=2))
-        get_response = client.get(cache_name, key)
-        assert isinstance(get_response, CacheGet.Hit)
+    @fixture
+    def key_validator(client: SimpleCacheClient) -> TKeyValidator:
+        value = uuid_str()
+        return partial(client.set_if_not_exists, value=value)
 
-        time.sleep(4)
-        get_response = client.get(cache_name, key)
-        assert isinstance(get_response, CacheGet.Miss)
+    @fixture
+    def connection_validator() -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient, cache_name: str) -> ErrorResponseMixin:
+            key = uuid_str()
+            value = uuid_str()
+            return client.set_if_not_exists(cache_name, key, value)
 
-    def with_different_ttl(client: SimpleCacheClient, cache_name: str) -> None:
-        key1 = uuid_str()
-        key2 = uuid_str()
+        return _connection_validator
 
-        client.set(cache_name, key1, "1", timedelta(seconds=2))
-        client.set(cache_name, key2, "2")
+    @fixture
+    def setter(client: SimpleCacheClient) -> TSetter:
+        return partial(client.set_if_not_exists)
 
-        # Before
-        get_response = client.get(cache_name, key1)
-        assert isinstance(get_response, CacheGet.Hit)
-        get_response = client.get(cache_name, key2)
-        assert isinstance(get_response, CacheGet.Hit)
+    def it_only_sets_when_the_key_does_not_exist(
+        client: SimpleCacheClient,
+        cache_name: TCacheName,
+    ) -> None:
+        key = uuid_str()
+        value = uuid_str()
 
-        time.sleep(4)
+        get_resp = client.get(cache_name, key)
+        assert isinstance(get_resp, CacheGet.Miss)
 
-        # After
-        get_response = client.get(cache_name, key1)
-        assert isinstance(get_response, CacheGet.Miss)
-        get_response = client.get(cache_name, key2)
-        assert isinstance(get_response, CacheGet.Hit)
+        set_resp = client.set_if_not_exists(cache_name, key, value)
+        assert isinstance(set_resp, CacheSetIfNotExists.Stored)
 
-    def with_null_value_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = client.set(cache_name, "foo", None)
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+        get_resp = client.get(cache_name, key)
+        assert isinstance(get_resp, CacheGet.Hit)
+        assert get_resp.value_string == str(value)
 
-    def negative_ttl_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = client.set(cache_name, "foo", "bar", timedelta(seconds=-1))
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "TTL must be a positive amount of time."
+        set_resp = client.set_if_not_exists(cache_name, key, uuid_str())
+        assert isinstance(set_resp, CacheSetIfNotExists.NotStored)
 
-    def with_bad_value_throws_exception(client: SimpleCacheClient, cache_name: str) -> None:
-        set_response = client.set(cache_name, "foo", 1)
-        assert isinstance(set_response, CacheSet.Error)
-        assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert set_response.inner_exception.message == "Unsupported type for value: <class 'int'>"
+        get_resp = client.get(cache_name, key)
+        assert isinstance(get_resp, CacheGet.Hit)
+        assert get_resp.value_string == str(value)
 
 
 @behaves_like(a_cache_name_validator)
