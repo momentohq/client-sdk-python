@@ -53,9 +53,12 @@ class AsyncToSyncTransformer(cst.CSTTransformer):
     def leave_ImportFrom(
         self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
     ) -> cst.BaseSmallStatement | cst.FlattenSentinel[cst.BaseSmallStatement] | cst.RemovalSentinel:
+        """Strips Awaitable name from import from statements. Remove the whole line if that is the only import."""
         if isinstance(original_node.names, cst.ImportStar):
             return original_node
         names = [import_alias for import_alias in original_node.names if import_alias.name.value != "Awaitable"]
+        if len(names) == 0:
+            return cst.RemovalSentinel.REMOVE
         return updated_node.with_changes(names=names)
 
 
