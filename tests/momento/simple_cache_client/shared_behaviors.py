@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import timedelta
 
 from typing_extensions import Protocol
@@ -7,8 +9,8 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheResponse
-from momento.responses.mixins import ErrorResponseMixin
 from momento.typing import TCacheName, TScalarKey
+from tests.asserts import assert_response_is_error
 from tests.utils import uuid_str
 
 
@@ -21,34 +23,31 @@ def a_cache_name_validator() -> None:
     def with_non_existent_cache_name_it_throws_not_found(cache_name_validator: TCacheNameValidator) -> None:
         cache_name = uuid_str()
         response = cache_name_validator(cache_name=cache_name)
-        if isinstance(response, ErrorResponseMixin):
-            assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
-        else:
-            assert False
+        assert_response_is_error(response, error_code=MomentoErrorCode.NOT_FOUND_ERROR)
 
     def with_null_cache_name_it_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
         response = cache_name_validator(cache_name=None)  # type: ignore
-        if isinstance(response, ErrorResponseMixin):
-            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-            assert response.inner_exception.message == "Cache name must be a string"
-        else:
-            assert False
+        assert_response_is_error(
+            response,
+            error_code=MomentoErrorCode.INVALID_ARGUMENT_ERROR,
+            inner_exception_message="Cache name must be a string",
+        )
 
     def with_empty_cache_name_it_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
         response = cache_name_validator(cache_name="")
-        if isinstance(response, ErrorResponseMixin):
-            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-            assert response.inner_exception.message == "Cache name must not be empty"
-        else:
-            assert False
+        assert_response_is_error(
+            response,
+            error_code=MomentoErrorCode.INVALID_ARGUMENT_ERROR,
+            inner_exception_message="Cache name must not be empty",
+        )
 
     def with_bad_cache_name_throws_exception(cache_name_validator: TCacheNameValidator) -> None:
         response = cache_name_validator(cache_name=1)  # type: ignore
-        if isinstance(response, ErrorResponseMixin):
-            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-            assert response.inner_exception.message == "Cache name must be a string"
-        else:
-            assert False
+        assert_response_is_error(
+            response,
+            error_code=MomentoErrorCode.INVALID_ARGUMENT_ERROR,
+            inner_exception_message="Cache name must be a string",
+        )
 
 
 class TKeyValidator(Protocol):
@@ -59,18 +58,15 @@ class TKeyValidator(Protocol):
 def a_key_validator() -> None:
     def with_null_key_throws_exception(cache_name: str, key_validator: TKeyValidator) -> None:
         response = key_validator(key=None)  # type: ignore
-        if isinstance(response, ErrorResponseMixin):
-            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        else:
-            assert False
+        assert_response_is_error(response, error_code=MomentoErrorCode.INVALID_ARGUMENT_ERROR)
 
     def with_bad_key_throws_exception(cache_name: str, key_validator: TKeyValidator) -> None:
         response = key_validator(key=1)  # type: ignore
-        if isinstance(response, ErrorResponseMixin):
-            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-            assert response.inner_exception.message == "Unsupported type for key: <class 'int'>"
-        else:
-            assert False
+        assert_response_is_error(
+            response,
+            error_code=MomentoErrorCode.INVALID_ARGUMENT_ERROR,
+            inner_exception_message="Unsupported type for key: <class 'int'>",
+        )
 
 
 class TConnectionValidator(Protocol):
@@ -87,10 +83,7 @@ def a_connection_validator() -> None:
     ) -> None:
         with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
             response = connection_validator(client)
-            if isinstance(response, ErrorResponseMixin):
-                assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
-            else:
-                assert False
+            assert_response_is_error(response, error_code=MomentoErrorCode.AUTHENTICATION_ERROR)
 
     def throws_timeout_error_for_short_request_timeout(
         configuration: Configuration,
@@ -101,7 +94,4 @@ def a_connection_validator() -> None:
         configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
         with SimpleCacheClient(configuration, credential_provider, default_ttl_seconds) as client:
             response = connection_validator(client)
-            if isinstance(response, ErrorResponseMixin):
-                assert response.error_code == MomentoErrorCode.TIMEOUT_ERROR
-            else:
-                assert False
+            assert_response_is_error(response, error_code=MomentoErrorCode.TIMEOUT_ERROR)
