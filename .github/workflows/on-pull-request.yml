@@ -85,7 +85,7 @@ jobs:
         if: ${{ matrix.python-version }} == '3.10'
         with:
           project_status: official
-          project_stability: alpha
+          project_stability: beta
           project_type: sdk
           sdk_language: Python
           usage_example_path: ./examples/${{ matrix.package }}/example.py
