@@ -9,16 +9,55 @@ class Response(ABC):
 
     # We need to work with Any.
     @no_type_check
-    def _render_as_str(self, truncate: bool = False) -> str:
+    def _render_as_str(self, truncate: bool = False, max_collection_length: int = 5) -> str:
         class_name = self.__class__.__qualname__
         attributes = vars(self)
 
         if not attributes:
             return f"{class_name}()"
 
-        message = ", ".join(
-            f"{k}={self._truncate_value(v)!r}" if truncate else f"{k}={v!r}" for k, v in attributes.items()
-        )
+        message_parts = []
+        if truncate:
+            for attribute, value in attributes.items():
+                appended = False
+
+                # To truncate a collection, we must render it as a string all at once to account for the ellipsis
+                if type(value) == list:
+                    if len(value) > max_collection_length:
+                        value = value[:5]
+                        message_parts.append(
+                            f"{attribute}=[{', '.join(str(Response._truncate_value(v_i)) for v_i in value)}, ...]"
+                        )
+                        appended = True
+                    else:
+                        value = [Response._truncate_value(v_i) for v_i in value]
+                elif type(value) == set:
+                    if len(value) > max_collection_length:
+                        value = list(value)[:5]
+                        message_parts.append(
+                            f"{attribute}={{{', '.join(str(Response._truncate_value(v_i)) for v_i in value)}, ...}}"
+                        )
+                        appended = True
+                    else:
+                        value = {Response._truncate_value(v_i) for v_i in value}
+                elif type(value) == dict:
+                    if len(value) > max_collection_length:
+                        value = dict(list(value.items())[:5])
+                        message_parts.append(
+                            f"{attribute}={{{', '.join(str(Response._truncate_value(k_i)) + ': ' + str(Response._truncate_value(v_i)) for k_i, v_i in value.items())}, ...}}"  # noqa: E501
+                        )
+                        appended = True
+                    else:
+                        value = {
+                            Response._truncate_value(k_i): Response._truncate_value(v_i) for k_i, v_i in value.items()
+                        }
+                # appended == False <==> either the value was not a collection or it did not exceed the max length
+                if not appended:
+                    message_parts.append(f"{attribute}={value!r}")
+        else:
+            message_parts = [f"{k}={v!r}" for k, v in attributes.items()]
+
+        message = ", ".join(message_parts)
 
         return f"{class_name}({message})"
 
@@ -30,8 +69,9 @@ class Response(ABC):
     def __str__(self) -> str:
         return self._render_as_str(truncate=True)
 
+    @staticmethod
     @no_type_check
-    def _truncate_value(self, value: Any, max_length: int = 32) -> Any:
+    def _truncate_value(value: Any, max_length: int = 32) -> Any:
         if type(value) == bytes:
             if len(value) < max_length:
                 return value

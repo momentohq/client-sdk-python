@@ -485,7 +485,7 @@ class _ScsDataClient:
             if type == "missing":
                 return CacheListFetch.Miss()
             elif type == "found":
-                return CacheListFetch.Hit(response.found.values)
+                return CacheListFetch.Hit(list(response.found.values))
             else:
                 raise UnknownException("Unknown list field")
         except Exception as e:
