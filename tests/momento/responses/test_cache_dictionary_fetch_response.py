@@ -15,7 +15,7 @@ from momento.responses import CacheDictionaryFetch
         ),
         (
             {f"{i}".encode(): f"{i}".encode() for i in range(10)},
-            "CacheDictionaryFetch.Hit(value_dictionary_bytes_bytes={b'7', b'2', b'6', b'9', b'3', ...})",
+            "CacheDictionaryFetch.Hit(value_dictionary_bytes_bytes={b'7': b'7', b'2': b'2', b'6': b'6', b'9': b'9', b'3': b'3', ...})",  # noqa: E501
         ),
     ],
 )
