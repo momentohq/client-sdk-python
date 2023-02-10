@@ -18,7 +18,7 @@ class CacheListConcatenateFrontResponse(CacheResponse):
 class CacheListConcatenateFront(ABC):
     """Groups all `CacheListConcatenateFrontResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Success(CacheListConcatenateFrontResponse):
         """Indicates the concatenation was successful."""
 

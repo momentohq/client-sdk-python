@@ -21,7 +21,7 @@ class CacheDictionaryFetchResponse(CacheResponse):
 class CacheDictionaryFetch(ABC):
     """Groups all `CacheDictionaryFetchResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Hit(CacheDictionaryFetchResponse):
         """Indicates the dictionary exists and its items were fetched."""
 

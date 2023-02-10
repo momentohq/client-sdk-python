@@ -21,7 +21,7 @@ class CacheListFetchResponse(CacheResponse):
 class CacheListFetch(ABC):
     """Groups all `CacheListFetchResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Hit(CacheListFetchResponse):
         """Indicates the list exists and its values were fetched."""
 

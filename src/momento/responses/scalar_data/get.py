@@ -19,7 +19,7 @@ class CacheGetResponse(CacheResponse):
 class CacheGet(ABC):
     """Groups all `CacheGetResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Hit(CacheGetResponse, ValueStringMixin):
         """Contains the result of a cache hit."""
 

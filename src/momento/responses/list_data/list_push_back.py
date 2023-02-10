@@ -18,7 +18,7 @@ class CacheListPushBackResponse(CacheResponse):
 class CacheListPushBack(ABC):
     """Groups all `CacheListPushBackResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Success(CacheListPushBackResponse):
         """Indicates the push was successful."""
 

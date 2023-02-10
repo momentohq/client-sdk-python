@@ -19,7 +19,7 @@ class CacheListPopFrontResponse(CacheResponse):
 class CacheListPopFront(ABC):
     """Groups all `CacheListPopFront` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Hit(CacheListPopFrontResponse, ValueStringMixin):
         """Indicates the request was successful."""
 
