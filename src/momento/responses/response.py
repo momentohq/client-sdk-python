@@ -35,6 +35,16 @@ class Response(ABC):
         else:
             return value
 
+    @no_type_check
+    def __eq__(self, other: object) -> bool:
+        if other is None:
+            return False
+
+        if type(self) != type(other):
+            return False
+
+        return vars(self) == vars(other)
+
 
 class CacheResponse(Response):
     ...
