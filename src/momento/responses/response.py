@@ -45,6 +45,12 @@ class Response(ABC):
 
         return vars(self) == vars(other)
 
+    @no_type_check
+    def __hash__(self) -> int:
+        state = [type(self)]
+        state.extend(sorted(vars(self).items(), key=lambda x: x[0]))
+        return hash(tuple(state))
+
 
 class CacheResponse(Response):
     ...
