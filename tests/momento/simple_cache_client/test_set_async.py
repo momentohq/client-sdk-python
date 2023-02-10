@@ -1,7 +1,7 @@
 from datetime import timedelta
 from functools import partial
 from time import sleep
-from typing import Awaitable, Callable
+from typing import Awaitable
 
 from pytest import fixture
 from pytest_describe import behaves_like
@@ -114,20 +114,17 @@ def a_set_adder() -> None:
 
 
 class TSetWhichTakesAnElement(Protocol):
-    def __call__(
-        self, client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
-    ) -> Awaitable[CacheResponse]:
+    def __call__(self, cache_name: TCacheName, set_name: TSetName, element: TSetElement) -> Awaitable[CacheResponse]:
         ...
 
 
 def a_set_which_takes_an_element() -> None:
     async def it_errors_with_the_wrong_type(
         set_which_takes_an_element: TSetWhichTakesAnElement,
-        client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
         set_name: TSetName,
     ) -> None:
-        resp = await set_which_takes_an_element(client_async, cache_name, set_name, 1)  # type:ignore[arg-type]
+        resp = await set_which_takes_an_element(cache_name, set_name, 1)  # type:ignore[arg-type]
         if isinstance(resp, ErrorResponseMixin):
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             # This error is wrong. See https://github.com/momentohq/client-sdk-python/issues/242
@@ -138,11 +135,10 @@ def a_set_which_takes_an_element() -> None:
 
     async def it_errors_with_none(
         set_which_takes_an_element: TSetWhichTakesAnElement,
-        client_async: SimpleCacheClientAsync,
         cache_name: TCacheName,
         set_name: TSetName,
     ) -> None:
-        resp = await set_which_takes_an_element(client_async, cache_name, set_name, None)  # type:ignore[arg-type]
+        resp = await set_which_takes_an_element(cache_name, set_name, None)  # type:ignore[arg-type]
         if isinstance(resp, ErrorResponseMixin):
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             # This error is wrong. See https://github.com/momentohq/client-sdk-python/issues/242
@@ -152,30 +148,28 @@ def a_set_which_takes_an_element() -> None:
             assert False
 
 
-TSetNameValidator = Callable[[TCacheName, TSetName], Awaitable[CacheResponse]]
+class TSetNameValidator(Protocol):
+    def __call__(self, set_name: TSetName) -> Awaitable[CacheResponse]:
+        ...
 
 
 def a_set_name_validator() -> None:
-    async def with_null_set_name_it_returns_invalid(
-        set_name_validator: TSetNameValidator, cache_name: TCacheName
-    ) -> None:
-        response = await set_name_validator(cache_name, None)  # type: ignore
-        assert isinstance(response, ErrorResponseMixin)
-        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "Set name must be a string"
+    async def with_null_set_name_it_returns_invalid(set_name_validator: TSetNameValidator) -> None:
+        response = await set_name_validator(set_name=None)  # type: ignore
+        if isinstance(response, ErrorResponseMixin):
+            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+            assert response.inner_exception.message == "Set name must be a string"
+        else:
+            assert False
 
-    async def with_empty_set_name_it_returns_invalid(
-        set_name_validator: TSetNameValidator, cache_name: TCacheName
-    ) -> None:
-        response = await set_name_validator(cache_name, "")
+    async def with_empty_set_name_it_returns_invalid(set_name_validator: TSetNameValidator) -> None:
+        response = await set_name_validator(set_name="")
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Set name must not be empty"
 
-    async def with_bad_set_name_it_returns_invalid(
-        set_name_validator: TCacheNameValidator, cache_name: TCacheName
-    ) -> None:
-        response = await set_name_validator(cache_name, 1)  # type: ignore
+    async def with_bad_set_name_it_returns_invalid(set_name_validator: TCacheNameValidator) -> None:
+        response = await set_name_validator(set_name=1)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Set name must be a string"
@@ -194,10 +188,8 @@ def describe_set_add_element() -> None:
         return partial(client_async.set_add_element, set_name=set_name, element=element)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        async def _connection_validator(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName
-        ) -> ErrorResponseMixin:
+    def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
+        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
             set_name = uuid_str()
             element = uuid_str()
             return await client_async.set_add_element(cache_name=cache_name, set_name=set_name, element=element)
@@ -219,13 +211,15 @@ def describe_set_add_element() -> None:
         return _set_adder
 
     @fixture
-    def set_name_validator(client_async: SimpleCacheClientAsync, element: TSetElement) -> TSetNameValidator:
-        return partial(client_async.set_add_element, element=element)
+    def set_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, element: TSetElement
+    ) -> TSetNameValidator:
+        return partial(client_async.set_add_element, cache_name=cache_name, element=element)
 
     @fixture
-    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client_async: SimpleCacheClientAsync) -> TSetWhichTakesAnElement:
         async def _set_which_takes_an_element(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+            cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
             return await client_async.set_add_element(cache_name, set_name, element)
 
@@ -289,10 +283,8 @@ def describe_set_add_elements() -> None:
         return partial(client_async.set_add_elements, set_name=set_name, elements=elements)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        async def _connection_validator(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName
-        ) -> ErrorResponseMixin:
+    def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
+        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
             set_name = uuid_str()
             elements = {uuid_str()}
             return await client_async.set_add_elements(cache_name=cache_name, set_name=set_name, elements=elements)
@@ -314,13 +306,15 @@ def describe_set_add_elements() -> None:
         return _set_adder
 
     @fixture
-    def set_name_validator(client_async: SimpleCacheClientAsync, elements: TSetElementsInput) -> TSetNameValidator:
-        return partial(client_async.set_add_elements, elements=elements)
+    def set_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, elements: TSetElementsInput
+    ) -> TSetNameValidator:
+        return partial(client_async.set_add_elements, cache_name=cache_name, elements=elements)
 
     @fixture
-    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client_async: SimpleCacheClientAsync) -> TSetWhichTakesAnElement:
         async def _set_which_takes_an_element(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+            cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
             return await client_async.set_add_elements(cache_name, set_name, {element})
 
@@ -379,18 +373,16 @@ def describe_set_fetch() -> None:
         return partial(client_async.set_fetch, set_name=set_name)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        async def _connection_validator(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName
-        ) -> ErrorResponseMixin:
+    def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
+        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
             set_name = uuid_str()
             return await client_async.set_fetch(cache_name=cache_name, set_name=set_name)
 
         return _connection_validator
 
     @fixture
-    def set_name_validator(client_async: SimpleCacheClientAsync) -> TSetNameValidator:
-        return partial(client_async.set_fetch)
+    def set_name_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> TSetNameValidator:
+        return partial(client_async.set_fetch, cache_name=cache_name)
 
     async def when_the_set_exists_it_fetches(
         client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName
@@ -422,10 +414,8 @@ def describe_set_remove_element() -> None:
         return partial(client_async.set_remove_element, set_name=set_name, element=element)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        async def _connection_validator(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName
-        ) -> ErrorResponseMixin:
+    def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
+        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
             set_name = uuid_str()
             element = uuid_str()
             return await client_async.set_remove_element(cache_name=cache_name, set_name=set_name, element=element)
@@ -433,13 +423,15 @@ def describe_set_remove_element() -> None:
         return _connection_validator
 
     @fixture
-    def set_name_validator(client_async: SimpleCacheClientAsync, element: TSetElement) -> TSetNameValidator:
-        return partial(client_async.set_remove_element, element=element)
+    def set_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, element: TSetElement
+    ) -> TSetNameValidator:
+        return partial(client_async.set_remove_element, cache_name=cache_name, element=element)
 
     @fixture
-    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client_async: SimpleCacheClientAsync) -> TSetWhichTakesAnElement:
         async def _set_which_takes_an_element(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+            cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
             return await client_async.set_remove_element(cache_name, set_name, element)
 
@@ -508,10 +500,8 @@ def describe_set_remove_elements() -> None:
         return partial(client_async.set_remove_elements, set_name=set_name, elements=elements)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        async def _connection_validator(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName
-        ) -> ErrorResponseMixin:
+    def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
+        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
             set_name = uuid_str()
             elements = {uuid_str()}
             return await client_async.set_remove_elements(cache_name=cache_name, set_name=set_name, elements=elements)
@@ -519,13 +509,15 @@ def describe_set_remove_elements() -> None:
         return _connection_validator
 
     @fixture
-    def set_name_validator(client_async: SimpleCacheClientAsync, elements: TSetElementsInput) -> TSetNameValidator:
-        return partial(client_async.set_remove_elements, elements=elements)
+    def set_name_validator(
+        client_async: SimpleCacheClientAsync, cache_name: TCacheName, elements: TSetElementsInput
+    ) -> TSetNameValidator:
+        return partial(client_async.set_remove_elements, cache_name=cache_name, elements=elements)
 
     @fixture
-    def set_which_takes_an_element() -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client_async: SimpleCacheClientAsync) -> TSetWhichTakesAnElement:
         async def _set_which_takes_an_element(
-            client_async: SimpleCacheClientAsync, cache_name: TCacheName, set_name: TSetName, element: TSetElement
+            cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
             return await client_async.set_add_elements(cache_name, set_name, {element})
 

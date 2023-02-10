@@ -22,6 +22,8 @@ from momento.typing import (
     TListValuesInput,
     TListValuesInputBytes,
     TListValuesInputStr,
+    TScalarKey,
+    TScalarValue,
     TSetElement,
     TSetElementsInput,
     TSetElementsInputBytes,
@@ -83,6 +85,16 @@ def list_value() -> TListValue:
 
 
 @pytest.fixture
+def key() -> TScalarKey:
+    return random.choice((uuid_bytes(), uuid_str()))
+
+
+@pytest.fixture
+def value() -> TScalarValue:
+    return random.choice((uuid_bytes(), uuid_str()))
+
+
+@pytest.fixture
 def values_bytes() -> TListValuesInputBytes:
     return [uuid_bytes(), uuid_bytes(), uuid_bytes()]
 
@@ -100,6 +112,11 @@ def values_str() -> TListValuesInputStr:
 @pytest.fixture
 def dictionary_name() -> TDictionaryName:
     return uuid_str()
+
+
+@pytest.fixture
+def dictionary_field() -> TDictionaryField:
+    return random.choice((uuid_bytes(), uuid_str()))
 
 
 @pytest.fixture
