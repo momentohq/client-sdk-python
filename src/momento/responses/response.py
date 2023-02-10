@@ -16,9 +16,9 @@ class Response(ABC):
         if not attributes:
             return f"{class_name}()"
 
-        message = {k: self._truncate_value(v) for k, v in attributes.items()}
+        message = ", ".join(f"{k}={self._truncate_value(v)!r}" for k, v in attributes.items())
 
-        return f"{class_name}({message!r})"
+        return f"{class_name}({message})"
 
     @no_type_check
     def _truncate_value(self, value: Any, max_length: int = 32) -> Any:

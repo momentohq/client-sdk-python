@@ -69,7 +69,8 @@ class CredentialProvider:
     def __repr__(self) -> str:
         attributes: Dict[str, str] = vars(self)
         attributes["auth_token"] = self._obscure(attributes["auth_token"])
-        return f"{self.__class__.__name__}{attributes}"
+        message = ", ".join(f"{k}={v!r}" for k, v in attributes.items())
+        return f"{self.__class__.__name__}({message})"
 
     def _obscure(self, value: str) -> str:
         return f"{value[:10]}...{value[-10:]}"
