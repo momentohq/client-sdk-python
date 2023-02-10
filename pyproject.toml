@@ -89,6 +89,7 @@ disallow_subclassing_any    = false
 module = [
   "momento_wire_types.*",
   "grpc.*",
+  "google.*",
   "pytest_describe"
 ]
 ignore_missing_imports      = true

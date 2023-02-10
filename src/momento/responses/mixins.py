@@ -6,15 +6,7 @@ if typing.TYPE_CHECKING:
 else:
     Protocol = object
 
-from typing import Type, TypeVar
-
 from momento.errors import MomentoErrorCode, SdkException
-
-
-class HasValueBytesProtocol(Protocol):
-    @property
-    def value_bytes(self) -> bytes:
-        ...
 
 
 class ValueStringMixin:
@@ -24,8 +16,10 @@ class ValueStringMixin:
         str: the utf-8 encoding of the data
     """
 
+    value_bytes: bytes
+
     @property
-    def value_string(self: HasValueBytesProtocol) -> str:
+    def value_string(self) -> str:
         """Convert the bytes `value` to a UTF-8 string
 
         Returns:
@@ -34,34 +28,26 @@ class ValueStringMixin:
         return self.value_bytes.decode("utf-8")
 
 
-class HasErrorProtocol(Protocol):
-    @property
-    def _error(self) -> SdkException:
-        ...
-
-
-TError = TypeVar("TError", bound="ErrorResponseMixin")
-
-
 class ErrorResponseMixin:
+    _error: SdkException
+
     def __init__(self, _error: SdkException):
-        ...
+        self._error = _error
 
     @property
-    def inner_exception(self: HasErrorProtocol) -> SdkException:
+    def inner_exception(self) -> SdkException:
         """The SdkException object used to construct the response."""
         return self._error
 
     @property
-    def error_code(self: HasErrorProtocol) -> MomentoErrorCode:
+    def error_code(self) -> MomentoErrorCode:
         """The `MomentoErrorCode` value for the particular error object."""
         return self._error.error_code
 
     @property
-    def message(self: HasErrorProtocol) -> str:
+    def message(self) -> str:
         """An explanation of conditions that caused and potential ways to resolve the error."""
         return f"{self._error.message_wrapper}: {self._error.message}"
 
-    @classmethod
-    def from_sdkexception(cls: Type[TError], _error: SdkException) -> TError:
-        return cls(_error)
+    def __str__(self) -> str:
+        return f"{self.__class__.__qualname__} {self.error_code}: {self.message}"

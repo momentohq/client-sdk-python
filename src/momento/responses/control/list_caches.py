@@ -6,12 +6,12 @@ from typing import List, Optional
 
 from momento_wire_types.controlclient_pb2 import _ListCachesResponse
 
-from momento.errors import SdkException
+from momento.responses.response import ControlResponse
 
 from ..mixins import ErrorResponseMixin
 
 
-class ListCachesResponse(ABC):
+class ListCachesResponse(ControlResponse):
     """Parent response type for a list caches request. The
     response object is resolved to a type-safe object of one of
     the following subtypes:
@@ -52,7 +52,7 @@ class CacheInfo:
 class ListCaches(ABC):
     """Groups all `ListCachesResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Success(ListCachesResponse):
         """Indicates the request was successful."""
 
@@ -76,15 +76,9 @@ class ListCaches(ABC):
             caches = [CacheInfo(cache.cache_name) for cache in grpc_list_cache_response.cache]  # type: ignore[misc]
             return ListCaches.Success(caches=caches, next_token=next_token)
 
-    @dataclass
     class Error(ListCachesResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

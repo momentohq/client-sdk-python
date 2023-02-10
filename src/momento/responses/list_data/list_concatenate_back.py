@@ -1,8 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
 
@@ -20,22 +18,16 @@ class CacheListConcatenateBackResponse(CacheResponse):
 class CacheListConcatenateBack(ABC):
     """Groups all `CacheListConcatenateBackResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Success(CacheListConcatenateBackResponse):
         """Indicates the concatenation was successful."""
 
         list_length: int
         """The number of values in the list after this concatenation"""
 
-    @dataclass
     class Error(CacheListConcatenateBackResponse, ErrorResponseMixin):
         """Indicates an error occured in the request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

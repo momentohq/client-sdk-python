@@ -3,8 +3,6 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin
 from ..response import CacheResponse
 
@@ -43,19 +41,12 @@ class CacheSetFetch(ABC):
 
             return {v.decode("utf-8") for v in self.value_set_bytes}
 
-    @dataclass
     class Miss(CacheSetFetchResponse):
         """Indicates the set does not exist."""
 
-    @dataclass
     class Error(CacheSetFetchResponse, ErrorResponseMixin):
         """Indicates an error occured in the request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

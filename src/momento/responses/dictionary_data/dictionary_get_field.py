@@ -1,8 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
 
-from momento.errors import SdkException
-
 from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import CacheResponse
 
@@ -21,7 +19,7 @@ class CacheDictionaryGetFieldResponse(CacheResponse):
 class CacheDictionaryGetField(ABC):
     """Groups all `CacheDictionaryGetFieldResponse` derived types under a common namespace."""
 
-    @dataclass
+    @dataclass(repr=False)
     class Hit(CacheDictionaryGetFieldResponse, ValueStringMixin):
         """Contains the result of a cache hit."""
 
@@ -41,19 +39,12 @@ class CacheDictionaryGetField(ABC):
             """
             return self.field_bytes.decode("utf-8")
 
-    @dataclass
     class Miss(CacheDictionaryGetFieldResponse):
         """Indicates the dictionary or dictionary field does not exist."""
 
-    @dataclass
     class Error(CacheDictionaryGetFieldResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:
 
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
-
-        _error: SdkException
-
-        def __init__(self, _error: SdkException):
-            self._error = _error

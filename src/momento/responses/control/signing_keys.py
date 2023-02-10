@@ -1,37 +1,30 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Optional
 
+import google
 
-class CreateSigningKeyResponse:
-    def __init__(self, key_id: str, endpoint: str, key: str, expires_at: datetime):
-        """Initializes CreateSigningKeyResponse to handle create signing key response.
+from momento.responses.response import ControlResponse
 
-        Args:
-            grpc_create_signing_key_response: Protobuf based response returned by Scs.
-        """
-        self._key_id = key_id
-        self._endpoint = endpoint
-        self._key = key
-        self._expires_at = expires_at
 
-    def key_id(self) -> str:
-        """Returns the id of the signing key"""
-        return self._key_id
+@dataclass(repr=False)
+class CreateSigningKeyResponse(ControlResponse):
+    """The response from creating a signing key.
 
-    def endpoint(self) -> str:
-        """Returns the endpoint of the signing key"""
-        return self._endpoint
+    Args:
+        key_id: str - the ID of the signing key
+        endpoint: str - endpoint of the signing key
+        key: str - the signing key as a JSON string
+        expires_at: datetime - when the key expires
+    """
 
-    def key(self) -> str:
-        """Returns the JSON string of the key itself"""
-        return self._key
-
-    def expires_at(self) -> datetime:
-        """Returns the datetime representation of when the key expires"""
-        return self._expires_at
+    key_id: str
+    endpoint: str
+    key: str
+    expires_at: datetime
 
     @staticmethod
     def from_grpc_response(  # type: ignore[misc]
@@ -42,49 +35,24 @@ class CreateSigningKeyResponse:
         expires_at: datetime = datetime.fromtimestamp(grpc_create_signing_key_response.expires_at)
         return CreateSigningKeyResponse(key_id, endpoint, key, expires_at)
 
-    def __str__(self) -> str:
-        return self.__repr__()
 
-    def __repr__(self) -> str:
-        return (
-            f"CreateSigningKeyResponse(key_id={self._key_id!r}, endpoint={self._endpoint!r}, "
-            f"key={self._key!r}, expires_at={self._expires_at!r})"
-        )
+class RevokeSigningKeyResponse(ControlResponse):
+    ...
 
 
-class RevokeSigningKeyResponse:
-    def __init__(self) -> None:
-        pass
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return "RevokeSigningKeyResponse()"
-
-
+@dataclass
 class SigningKey:
-    def __init__(self, key_id: str, expires_at: datetime, endpoint: str):
-        """Initializes SigningKey to handle signing keys returned from list signing keys operation.
+    """Signing keys returned from requesting list signing keys.
 
-        Args:
-            grpc_listed_signing_key: Protobuf based response returned by Scs.
-        """
-        self._key_id = key_id
-        self._expires_at = expires_at
-        self._endpoint = endpoint
+    Args:
+        key_id: str - the ID of the signing key
+        expires_at: datetime - when the key expires
+        endpoint: str - endpoint of the signing key
+    """
 
-    def key_id(self) -> str:
-        """Returns the id of the Momento signing key"""
-        return self._key_id
-
-    def expires_at(self) -> datetime:
-        """Returns the time the key expires"""
-        return self._expires_at
-
-    def endpoint(self) -> str:
-        """Returns the endpoint of the Momento signing key"""
-        return self._endpoint
+    key_id: str
+    expires_at: datetime
+    endpoint: str
 
     @staticmethod
     def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> SigningKey:  # type: ignore[misc]
@@ -92,35 +60,31 @@ class SigningKey:
         expires_at: datetime = datetime.fromtimestamp(grpc_listed_signing_key.expires_at)
         return SigningKey(key_id, expires_at, endpoint)
 
-    def __str__(self) -> str:
-        return self.__repr__()
 
-    def __repr__(self) -> str:
-        return f"SigningKey(key_id={self._key_id!r}, expires_at={self._expires_at!r}, endpoint={self._endpoint!r})"
+@dataclass(repr=False)
+class ListSigningKeysResponse(ControlResponse):
+    """A list signing keys response.
 
+    Responses are paginated.
 
-class ListSigningKeysResponse:
-    def __init__(self, next_token: Optional[str], signing_keys: list[SigningKey]):
-        """Initializes ListSigningKeysResponse to handle list signing keys response.
+    Args:
+        next_token: Optional[str] - the token to get the next page
+        signing_keys: list[SigningKey] - all signing keys in this page
+    """
 
-        Args:
-            grpc_list_signing_keys_response: Protobuf based response returned by Scs.
-        """
-        self._next_token = next_token
-        self._signing_keys = signing_keys
-
-    def next_token(self) -> Optional[str]:
-        """Returns next token."""
-        return self._next_token
-
-    def signing_keys(self) -> list[SigningKey]:
-        """Returns all signing keys."""
-        return self._signing_keys
+    next_token: Optional[str]
+    signing_keys: list[SigningKey]
 
     @staticmethod
-    def from_grpc_response(  # type: ignore[misc]
-        grpc_list_signing_keys_response: Any, endpoint: str
-    ) -> "ListSigningKeysResponse":
+    def from_grpc_response(  # type:ignore[misc]
+        grpc_list_signing_keys_response: google.protobuf.message.Message, endpoint: str
+    ) -> ListSigningKeysResponse:
+        """Creates a ListSigningKeysResponse from a grpc response.
+
+        Args:
+            grpc_list_signing_keys_response: google.protobuf.message.Message
+        """
+        print(f"Name: {grpc_list_signing_keys_response.__class__.__bases__}")
         next_token: Optional[str] = (
             grpc_list_signing_keys_response.next_token if grpc_list_signing_keys_response.next_token != "" else None
         )
@@ -129,9 +93,3 @@ class ListSigningKeysResponse:
             for signing_key in grpc_list_signing_keys_response.signing_key
         ]
         return ListSigningKeysResponse(next_token, signing_keys)
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return f"ListSigningKeysResponse(next_token={self._next_token!r}, signing_keys={self._signing_keys!r})"
