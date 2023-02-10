@@ -42,6 +42,9 @@ class Response(ABC):
                         value = {
                             Response._truncate_value(k_i): Response._truncate_value(v_i) for k_i, v_i in value.items()
                         }
+                else:
+                    value = Response._truncate_value(value)
+
                 # appended == False <==> either the value was not a collection or it did not exceed the max length
                 if not appended:
                     message_parts.append(f"{attribute}={value!r}")

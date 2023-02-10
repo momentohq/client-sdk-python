@@ -10,7 +10,7 @@ import google
 from momento.responses.response import ControlResponse
 
 
-@dataclass(repr=False)
+@dataclass
 class CreateSigningKeyResponse(ControlResponse):
     """The response from creating a signing key.
 
@@ -61,7 +61,7 @@ class SigningKey:
         return SigningKey(key_id, expires_at, endpoint)
 
 
-@dataclass(repr=False)
+@dataclass
 class ListSigningKeysResponse(ControlResponse):
     """A list signing keys response.
 

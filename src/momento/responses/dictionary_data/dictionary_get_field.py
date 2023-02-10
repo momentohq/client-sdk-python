@@ -19,7 +19,7 @@ class CacheDictionaryGetFieldResponse(CacheResponse):
 class CacheDictionaryGetField(ABC):
     """Groups all `CacheDictionaryGetFieldResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Hit(CacheDictionaryGetFieldResponse, ValueStringMixin):
         """Contains the result of a cache hit."""
 

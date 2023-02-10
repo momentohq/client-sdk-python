@@ -18,7 +18,7 @@ class CacheListConcatenateBackResponse(CacheResponse):
 class CacheListConcatenateBack(ABC):
     """Groups all `CacheListConcatenateBackResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Success(CacheListConcatenateBackResponse):
         """Indicates the concatenation was successful."""
 

@@ -52,7 +52,7 @@ class CacheInfo:
 class ListCaches(ABC):
     """Groups all `ListCachesResponse` derived types under a common namespace."""
 
-    @dataclass(repr=False)
+    @dataclass
     class Success(ListCachesResponse):
         """Indicates the request was successful."""
 
