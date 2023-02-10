@@ -24,28 +24,19 @@ class Response(ABC):
                 # To truncate a collection, we must render it as a string all at once to account for the ellipsis
                 if type(value) == list:
                     if len(value) > max_collection_length:
-                        value = value[:5]
-                        message_parts.append(
-                            f"{attribute}=[{', '.join(str(Response._truncate_value(v_i)) for v_i in value)}, ...]"
-                        )
+                        message_parts.append(Response._display_list(attribute, value, max_collection_length))
                         appended = True
                     else:
                         value = [Response._truncate_value(v_i) for v_i in value]
                 elif type(value) == set:
                     if len(value) > max_collection_length:
-                        value = list(value)[:5]
-                        message_parts.append(
-                            f"{attribute}={{{', '.join(str(Response._truncate_value(v_i)) for v_i in value)}, ...}}"
-                        )
+                        message_parts.append(Response._display_set(attribute, value, max_collection_length))
                         appended = True
                     else:
                         value = {Response._truncate_value(v_i) for v_i in value}
                 elif type(value) == dict:
                     if len(value) > max_collection_length:
-                        value = dict(list(value.items())[:5])
-                        message_parts.append(
-                            f"{attribute}={{{', '.join(str(Response._truncate_value(k_i)) + ': ' + str(Response._truncate_value(v_i)) for k_i, v_i in value.items())}, ...}}"  # noqa: E501
-                        )
+                        message_parts.append(Response._display_dict(attribute, value, max_collection_length))
                         appended = True
                     else:
                         value = {
@@ -60,6 +51,24 @@ class Response(ABC):
         message = ", ".join(message_parts)
 
         return f"{class_name}({message})"
+
+    @staticmethod
+    @no_type_check
+    def _display_list(attribute: object, list_: list[bytes], max_collection_length: int) -> str:
+        list_ = list_[:max_collection_length]
+        return f"{attribute}=[{', '.join(str(Response._truncate_value(list_i)) for list_i in list_)}, ...]"
+
+    @staticmethod
+    @no_type_check
+    def _display_set(attribute: object, set_: set[bytes], max_collection_length: int) -> str:
+        set_ = list(set_)[:max_collection_length]
+        return f"{attribute}={{{', '.join(str(Response._truncate_value(set_i)) for set_i in set_)}, ...}}"
+
+    @staticmethod
+    @no_type_check
+    def _display_dict(attribute: object, dict_: dict[bytes, bytes], max_collection_length: int) -> str:
+        dict_ = dict(list(dict_.items())[:5])
+        return f"{attribute}={{{', '.join(str(Response._truncate_value(k_i)) + ': ' + str(Response._truncate_value(v_i)) for k_i, v_i in dict_.items())}, ...}}"  # noqa: E501
 
     @no_type_check
     def __repr__(self) -> str:
