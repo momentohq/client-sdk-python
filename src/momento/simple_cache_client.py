@@ -52,6 +52,7 @@ from momento.responses import (
     CacheDictionarySetFields,
     CacheDictionarySetFieldsResponse,
     CacheGetResponse,
+    CacheIncrementResponse,
     CacheListConcatenateBackResponse,
     CacheListConcatenateFrontResponse,
     CacheListFetchResponse,
@@ -234,6 +235,28 @@ class SimpleCacheClient:
             SdkException: validation, server-side, or other runtime error
         """
         return self._control_client.list_signing_keys(self._cache_endpoint, next_token)
+
+    def increment(
+        self,
+        cache_name: str,
+        key: str | bytes,
+        amount: int = 1,
+        ttl: Optional[timedelta] = None,
+    ) -> CacheIncrementResponse:
+        """Add to a value.
+
+        Args:
+            cache_name (str): Name of the cache to store the item in.
+            key (str|bytes): The key to set.
+            amount (int, optional): The quantity to add to the value. Defaults to 1.
+            ttl (Optional[timedelta], optional): TTL for the item in cache.
+            This TTL takes precedence over the TTL used when initializing a cache client.
+            Defaults to client TTL. If specified must be strictly positive.
+
+        Returns:
+            CacheIncrementResponse
+        """
+        return self._data_client.increment(cache_name, key, amount, ttl)
 
     def set(
         self,

@@ -54,6 +54,8 @@ from .scalar_data import (
     CacheDeleteResponse,
     CacheGet,
     CacheGetResponse,
+    CacheIncrement,
+    CacheIncrementResponse,
     CacheSet,
     CacheSetIfNotExists,
     CacheSetIfNotExistsResponse,
