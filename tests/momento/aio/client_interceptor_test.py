@@ -73,7 +73,8 @@ def test_sanitize_client_grpc_request() -> None:
             # Test with unknown generic dict passed as metadata
             client_input=build_test_client_request(metadata_to_set={}),
             expected_output=None,
-            expected_err=InvalidArgumentException,  # type: ignore[arg-type] # Make sure we throw on unkown metadata input
+            # Make sure we throw on unkown metadata input
+            expected_err=InvalidArgumentException,  # type: ignore[arg-type]
         ),
     ]
 
