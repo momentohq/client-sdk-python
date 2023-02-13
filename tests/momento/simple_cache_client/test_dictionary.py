@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 from functools import partial
 from time import sleep
+from typing import Union, cast
 
 from pytest import fixture
 from pytest_describe import behaves_like
@@ -232,7 +233,7 @@ class TDictionarySetter(Protocol):
         field: TDictionaryField,
         value: TDictionaryValue,
         *,
-        ttl: CollectionTtl,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheResponse:
         ...
 
@@ -730,6 +731,7 @@ def describe_dictionary_remove_field() -> None:
         assert isinstance(set_response, CacheDictionarySetField.Success)
 
         for field in [dictionary_field_str, dictionary_field_bytes]:
+            field = cast(Union[str, bytes], field)
             set_response = client.dictionary_set_field(cache_name, dictionary_name, field, dictionary_value_str)
             assert isinstance(set_response, CacheDictionarySetField.Success)
 

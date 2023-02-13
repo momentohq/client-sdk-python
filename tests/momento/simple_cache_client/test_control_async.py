@@ -6,22 +6,25 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheGet, CacheSet, CreateCache, DeleteCache, ListCaches
+from tests.conftest import TUniqueCacheNameAsync
 from tests.utils import uuid_str
 
 
 async def test_create_cache_get_set_values_and_delete_cache(
-    client_async: SimpleCacheClientAsync, cache_name: str, unique_cache_name_async
+    client_async: SimpleCacheClientAsync,
+    cache_name: str,
+    unique_cache_name_async: TUniqueCacheNameAsync,
 ) -> None:
     key = uuid_str()
     value = uuid_str()
-    unique_cache_name = unique_cache_name_async(client_async)
+    new_cache_name = unique_cache_name_async(client_async)
 
-    await client_async.create_cache(unique_cache_name)
+    await client_async.create_cache(new_cache_name)
 
-    set_resp = await client_async.set(unique_cache_name, key, value)
+    set_resp = await client_async.set(new_cache_name, key, value)
     assert isinstance(set_resp, CacheSet.Success)
 
-    get_resp = await client_async.get(unique_cache_name, key)
+    get_resp = await client_async.get(new_cache_name, key)
     assert isinstance(get_resp, CacheGet.Hit)
     assert get_resp.value_string == value
 
@@ -47,7 +50,7 @@ async def test_create_cache_throws_exception_for_empty_cache_name(
 async def test_create_cache_throws_validation_exception_for_null_cache_name(
     client_async: SimpleCacheClientAsync,
 ) -> None:
-    response = await client_async.create_cache(None)
+    response = await client_async.create_cache(None)  # type: ignore[arg-type]
     assert isinstance(response, CreateCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert response.inner_exception.message == "Cache name must be a string"
@@ -56,7 +59,7 @@ async def test_create_cache_throws_validation_exception_for_null_cache_name(
 async def test_create_cache_with_bad_cache_name_throws_exception(
     client_async: SimpleCacheClientAsync,
 ) -> None:
-    response = await client_async.create_cache(1)
+    response = await client_async.create_cache(1)  # type: ignore[arg-type]
     assert isinstance(response, CreateCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert response.inner_exception.message == "Cache name must be a string"
@@ -66,13 +69,13 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
     bad_token_credential_provider: CredentialProvider,
     configuration: Configuration,
     default_ttl_seconds: timedelta,
-    unique_cache_name_async,
+    unique_cache_name_async: TUniqueCacheNameAsync,
 ) -> None:
     async with SimpleCacheClientAsync(
         configuration, bad_token_credential_provider, default_ttl_seconds
     ) as client_async:
-        unique_cache_name = unique_cache_name_async(client_async)
-        response = await client_async.create_cache(unique_cache_name)
+        new_cache_name = unique_cache_name_async(client_async)
+        response = await client_async.create_cache(new_cache_name)
         assert isinstance(response, CreateCache.Error)
         assert response.error_code == errors.MomentoErrorCode.AUTHENTICATION_ERROR
 
@@ -84,12 +87,12 @@ async def test_delete_cache_succeeds(client_async: SimpleCacheClientAsync, cache
     response = await client_async.create_cache(cache_name)
     assert isinstance(response, CreateCache.Success)
 
-    response = await client_async.delete_cache(cache_name)
-    assert isinstance(response, DeleteCache.Success)
+    delete_response = await client_async.delete_cache(cache_name)
+    assert isinstance(delete_response, DeleteCache.Success)
 
-    response = await client_async.delete_cache(cache_name)
-    assert isinstance(response, DeleteCache.Error)
-    assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+    delete_response = await client_async.delete_cache(cache_name)
+    assert isinstance(delete_response, DeleteCache.Error)
+    assert delete_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
 
 
 async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
@@ -104,7 +107,7 @@ async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
 async def test_delete_cache_throws_invalid_input_for_null_cache_name(
     client_async: SimpleCacheClientAsync,
 ) -> None:
-    response = await client_async.delete_cache(None)
+    response = await client_async.delete_cache(None)  # type: ignore[arg-type]
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
@@ -117,10 +120,8 @@ async def test_delete_cache_throws_exception_for_empty_cache_name(
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-async def test_delete_with_bad_cache_name_throws_exception(
-    client_async: SimpleCacheClientAsync, cache_name: str
-) -> None:
-    response = await client_async.delete_cache(1)
+async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClientAsync) -> None:
+    response = await client_async.delete_cache(1)  # type: ignore[arg-type]
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert response.inner_exception.message == "Cache name must be a string"
@@ -173,7 +174,7 @@ async def test_list_caches_throws_authentication_exception_for_bad_token(
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
-async def test_list_caches_with_next_token_works(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+async def test_list_caches_with_next_token_works() -> None:
     """skip until pagination is actually implemented, see
     https://github.com/momentohq/control-plane-service/issues/83"""
     pass

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import timedelta
 from functools import partial
 from time import sleep
@@ -20,14 +22,7 @@ from momento.responses import (
     CacheSetRemoveElements,
 )
 from momento.responses.mixins import ErrorResponseMixin
-from momento.typing import (
-    TCacheName,
-    TSetElement,
-    TSetElementsInput,
-    TSetElementsInputBytes,
-    TSetElementsInputStr,
-    TSetName,
-)
+from momento.typing import TCacheName, TSetElement, TSetElementsInput, TSetName
 from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors import (
@@ -319,7 +314,7 @@ def describe_set_add_elements() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
-        elements_str: TSetElementsInputStr,
+        elements_str: set[str],
     ) -> None:
         add_resp = client.set_add_elements(cache_name, set_name, elements_str)
         assert isinstance(add_resp, CacheSetAddElements.Success)
@@ -340,7 +335,7 @@ def describe_set_add_elements() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
-        elements_bytes: TSetElementsInputBytes,
+        elements_bytes: set[bytes],
     ) -> None:
         add_resp = client.set_add_elements(cache_name, set_name, elements_bytes)
         assert isinstance(add_resp, CacheSetAddElements.Success)
@@ -520,7 +515,7 @@ def describe_set_remove_elements() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
-        elements_str: TSetElementsInputStr,
+        elements_str: set[str],
     ) -> None:
         remove_resp = client.set_remove_elements(cache_name, set_name, elements_str)
         assert isinstance(remove_resp, CacheSetRemoveElements.Success)
@@ -543,7 +538,7 @@ def describe_set_remove_elements() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
-        elements_bytes: TSetElementsInputStr,
+        elements_bytes: set[bytes],
     ) -> None:
         remove_resp = client.set_remove_elements(cache_name, set_name, elements_bytes)
         assert isinstance(remove_resp, CacheSetRemoveElements.Success)
