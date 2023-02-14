@@ -47,7 +47,7 @@ os.environ[test_env_var_name] = test_token
         ),
     ],
 )
-def test_endpoints(provider, auth_token, control_endpoint, cache_endpoint) -> None:
+def test_endpoints(provider: CredentialProvider, auth_token: str, control_endpoint: str, cache_endpoint: str) -> None:
     assert provider.auth_token == auth_token
     assert provider.control_endpoint == control_endpoint
     assert provider.cache_endpoint == cache_endpoint

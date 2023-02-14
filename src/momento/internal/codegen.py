@@ -123,6 +123,7 @@ name_replacements = NameReplacement(
         ("(.*?)_async_(.*)", "\\1_\\2"),
         ("(.*?)_async$", "\\1"),
         ("^(SimpleCacheClient)Async$", "\\1"),
+        ("^(TUniqueCacheName)Async$", "\\1"),
         ("__aenter__", "__enter__"),
         ("__aexit__", "__exit__"),
         ("^aio$", "synchronous"),

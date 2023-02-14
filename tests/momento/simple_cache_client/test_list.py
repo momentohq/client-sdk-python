@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import Counter
 from datetime import timedelta
 from functools import partial
@@ -30,7 +32,6 @@ from momento.typing import (
     TListName,
     TListValue,
     TListValuesInput,
-    TListValuesInputBytes,
     TListValuesInputStr,
 )
 from tests.utils import uuid_bytes, uuid_str
@@ -127,14 +128,16 @@ def a_list_concatenator() -> None:
         list_concatenator: TListConcatenator,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValuesInput,
+        values: list[str | bytes],
     ) -> None:
         resp = list_concatenator(cache_name, list_name, values)
         length = len(values)
+        assert isinstance(resp, CacheListConcatenateBack.Success) or isinstance(resp, CacheListConcatenateFront.Success)
         assert resp.list_length == length
 
         resp = list_concatenator(cache_name, list_name, values)
         length += len(values)
+        assert isinstance(resp, CacheListConcatenateBack.Success) or isinstance(resp, CacheListConcatenateFront.Success)
         assert resp.list_length == length
 
     def with_bytes_it_succeeds(
@@ -142,9 +145,12 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_bytes: TListValuesInputBytes,
+        values_bytes: list[bytes],
     ) -> None:
         concat_resp = list_concatenator(cache_name, list_name, values_bytes)
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success) or isinstance(
+            concat_resp, CacheListConcatenateFront.Success
+        )
         assert concat_resp.list_length == len(values_bytes)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
@@ -156,9 +162,12 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_str: TListValuesInputStr,
+        values_str: list[str],
     ) -> None:
         concat_resp = list_concatenator(cache_name, list_name, values_str)
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success) or isinstance(
+            concat_resp, CacheListConcatenateFront.Success
+        )
         assert concat_resp.list_length == len(values_str)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
@@ -170,10 +179,13 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_str: TListValuesInputStr,
+        values_str: list[str],
     ) -> None:
         iterator = iter(values_str)
         concat_resp = list_concatenator(cache_name, list_name, iterator)
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success) or isinstance(
+            concat_resp, CacheListConcatenateFront.Success
+        )
         assert concat_resp.list_length == len(values_str)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
@@ -235,31 +247,34 @@ def a_list_pusher() -> None:
         for value in values:
             resp = list_pusher(cache_name, list_name, value)
             length += 1
+            assert isinstance(resp, CacheListPushBack.Success) or isinstance(resp, CacheListPushFront.Success)
             assert resp.list_length == length
 
     def with_bytes_it_succeeds(
-        list_pusher: TListConcatenator,
+        list_pusher: TListPusher,
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
     ) -> None:
         value = uuid_bytes()
-        concat_resp = list_pusher(cache_name, list_name, value)
-        assert concat_resp.list_length == 1
+        resp = list_pusher(cache_name, list_name, value)
+        assert isinstance(resp, CacheListPushBack.Success) or isinstance(resp, CacheListPushFront.Success)
+        assert resp.list_length == 1
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
         assert fetch_resp.values_bytes == [value]
 
     def with_strings_it_succeeds(
-        list_pusher: TListConcatenator,
+        list_pusher: TListPusher,
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
     ) -> None:
         value = uuid_str()
-        concat_resp = list_pusher(cache_name, list_name, value)
-        assert concat_resp.list_length == 1
+        resp = list_pusher(cache_name, list_name, value)
+        assert isinstance(resp, CacheListPushBack.Success) or isinstance(resp, CacheListPushFront.Success)
+        assert resp.list_length == 1
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
@@ -478,7 +493,7 @@ def describe_list_length() -> None:
         return partial(client.list_length, cache_name=cache_name)
 
     def it_returns_the_list_length(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: list[str | bytes]
     ) -> None:
         client.list_concatenate_back(cache_name, list_name, values)
 

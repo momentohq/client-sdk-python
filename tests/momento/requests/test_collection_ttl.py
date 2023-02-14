@@ -60,4 +60,4 @@ def describe_collection_ttl() -> None:
 
     def test_int_ttl() -> None:
         with pytest.raises(InvalidArgumentException, match=r"ttl must be a timedelta."):
-            CollectionTtl(ttl=23)
+            CollectionTtl(ttl=23)  # type: ignore[arg-type]
