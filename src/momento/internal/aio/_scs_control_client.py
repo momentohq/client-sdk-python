@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Optional
 
 import grpc
 from momento_wire_types.controlclient_pb2 import (
@@ -72,10 +71,10 @@ class _ScsControlClient:
             return DeleteCache.Error(convert_error(e))
         return DeleteCache.Success()
 
-    async def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
+    async def list_caches(self) -> ListCachesResponse:
         try:
             list_caches_request = _ListCachesRequest()
-            list_caches_request.next_token = next_token if next_token is not None else ""
+            list_caches_request.next_token = ""
             response = await self._build_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             return ListCaches.Success.from_grpc_response(response)
         except Exception as e:
@@ -107,10 +106,10 @@ class _ScsControlClient:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
             raise convert_error(e)
 
-    async def list_signing_keys(self, endpoint: str, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+    async def list_signing_keys(self, endpoint: str) -> ListSigningKeysResponse:
         try:
             list_signing_keys_request = _ListSigningKeysRequest()
-            list_signing_keys_request.next_token = next_token if next_token is not None else ""
+            list_signing_keys_request.next_token = ""
             return ListSigningKeysResponse.from_grpc_response(
                 await self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS),
                 endpoint,

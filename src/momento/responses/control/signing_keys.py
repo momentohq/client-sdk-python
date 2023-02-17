@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import google
 
@@ -68,11 +68,9 @@ class ListSigningKeysResponse(ControlResponse):
     Responses are paginated.
 
     Args:
-        next_token: Optional[str] - the token to get the next page
         signing_keys: list[SigningKey] - all signing keys in this page
     """
 
-    next_token: Optional[str]
     signing_keys: list[SigningKey]
 
     @staticmethod
@@ -85,11 +83,8 @@ class ListSigningKeysResponse(ControlResponse):
             grpc_list_signing_keys_response: google.protobuf.message.Message
         """
         print(f"Name: {grpc_list_signing_keys_response.__class__.__bases__}")
-        next_token: Optional[str] = (
-            grpc_list_signing_keys_response.next_token if grpc_list_signing_keys_response.next_token != "" else None
-        )
         signing_keys: list[SigningKey] = [
             SigningKey.from_grpc_response(signing_key, endpoint)
             for signing_key in grpc_list_signing_keys_response.signing_key
         ]
-        return ListSigningKeysResponse(next_token, signing_keys)
+        return ListSigningKeysResponse(signing_keys)
