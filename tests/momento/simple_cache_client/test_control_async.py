@@ -174,12 +174,6 @@ async def test_list_caches_throws_authentication_exception_for_bad_token(
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
-async def test_list_caches_with_next_token_works() -> None:
-    """skip until pagination is actually implemented, see
-    https://github.com/momentohq/control-plane-service/issues/83"""
-    pass
-
-
 async def test_create_list_revoke_signing_keys(client_async: SimpleCacheClientAsync) -> None:
     create_resp = await client_async.create_signing_key(timedelta(minutes=30))
     list_resp = await client_async.list_signing_keys()
