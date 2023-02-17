@@ -23,6 +23,7 @@ requires support for `3.6` then we can revisit at that time.
 
 - [pyenv](https://github.com/pyenv/pyenv)
 - [poetry](https://python-poetry.org/docs/)
+- [rust](https://www.rust-lang.org)
 
 <br/>
 
@@ -71,6 +72,12 @@ version numbers, and from now on whenever you `cd` into this directory,
 `pyenv` will automatically know which python versions you want to use.
 
 <br />
+
+### Install rust
+
+The code generation used to create the synchronous client from the
+asynchronous one requires rust. Install it by following the
+instructions on the rust [website](https://www.rust-lang.org/tools/install).
 
 ### Install dependencies with Poetry
 
