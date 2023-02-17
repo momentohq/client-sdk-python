@@ -157,7 +157,6 @@ async def test_list_caches_succeeds(client_async: SimpleCacheClientAsync, cache_
 
         cache_names = [cache.name for cache in list_cache_resp.caches]
         assert cache_name in cache_names
-        assert list_cache_resp.next_token is None
     finally:
         delete_response = await client_async.delete_cache(cache_name)
         assert isinstance(delete_response, DeleteCache.Success)

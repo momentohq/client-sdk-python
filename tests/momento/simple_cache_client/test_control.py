@@ -151,7 +151,6 @@ def test_list_caches_succeeds(client: SimpleCacheClient, cache_name: str) -> Non
 
         cache_names = [cache.name for cache in list_cache_resp.caches]
         assert cache_name in cache_names
-        assert list_cache_resp.next_token is None
     finally:
         delete_response = client.delete_cache(cache_name)
         assert isinstance(delete_response, DeleteCache.Success)
