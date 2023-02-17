@@ -131,7 +131,11 @@ name_replacements = NameReplacement(
 )
 
 simple_string_replacements = SimpleStringReplacement(
-    [(r"(.*?)Async(\s+Simple\s+Cache\s+Client.*?)", "\\1Synchronous\\2"), (r"(.*?)\bawait\s+(.*?)", "\\1\\2")]
+    [
+        ("(SimpleCacheClient)Async", "\\1"),
+        (r"(.*?)Async(\s+Simple\s+Cache\s+Client.*?)", "\\1Synchronous\\2"),
+        (r"(.*?)\bawait\s+(.*?)", "\\1\\2"),
+    ]
 )
 
 canonical_pipeline = Pipeline([AsyncToSyncTransformer(), name_replacements, simple_string_replacements])
