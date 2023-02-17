@@ -135,8 +135,8 @@ class SimpleCacheClientAsync:
                 It is possible to override this setting when calling the set method.
         Raises:
             IllegalArgumentException: If method arguments fail validations.
-        Example:
-        ::
+        Example::
+
             configuration = Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
