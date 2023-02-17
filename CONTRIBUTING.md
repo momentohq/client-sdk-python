@@ -75,7 +75,7 @@ version numbers, and from now on whenever you `cd` into this directory,
 
 ### Install rust
 
-The code generation used to create the synchronous client from the
+The code generation library used to create the synchronous client from the
 asynchronous one requires rust. Install it by following the
 instructions on the rust [website](https://www.rust-lang.org/tools/install).
 
