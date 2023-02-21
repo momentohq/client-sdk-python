@@ -26,6 +26,7 @@ from momento.responses import (
     DeleteCacheResponse,
     ListCaches,
     ListCachesResponse,
+    ListSigningKeys,
     ListSigningKeysResponse,
     RevokeSigningKey,
     RevokeSigningKeyResponse,
@@ -110,14 +111,17 @@ class _ScsControlClient:
 
     async def list_signing_keys(self, endpoint: str, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         try:
+            self._logger.info("List signing keys")
             list_signing_keys_request = _ListSigningKeysRequest()
             list_signing_keys_request.next_token = next_token if next_token is not None else ""
-            return ListSigningKeysResponse.from_grpc_response(
-                await self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS),
+            response = await self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS)
+            return ListSigningKeys.Success.from_grpc_response(
+                response,
                 endpoint,
             )
         except Exception as e:
-            raise convert_error(e)
+            self._logger.warning(f"Failed to list signing keys with exception: {e}")
+            return ListSigningKeys.Error(convert_error(e))
 
     def _build_stub(self) -> ScsControlStub:
         return self._grpc_manager.async_stub()

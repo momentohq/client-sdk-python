@@ -81,17 +81,14 @@ class RevokeSigningKey(ABC):
 
 @dataclass
 class SigningKey:
-    """Signing keys returned from requesting list signing keys.
-
-    Args:
-        key_id: str - the ID of the signing key
-        expires_at: datetime - when the key expires
-        endpoint: str - endpoint of the signing key
-    """
+    """Signing keys returned from requesting list signing keys."""
 
     key_id: str
+    """the ID of the signing key"""
     expires_at: datetime
+    """when the key expires"""
     endpoint: str
+    """endpoint of the signing key"""
 
     @staticmethod
     def from_grpc_response(grpc_listed_signing_key: Any, endpoint: str) -> SigningKey:  # type: ignore[misc]
@@ -100,35 +97,53 @@ class SigningKey:
         return SigningKey(key_id, expires_at, endpoint)
 
 
-@dataclass
 class ListSigningKeysResponse(ControlResponse):
-    """A list signing keys response.
+    """Parent response type for a cache `list_signing_key` request. Its subtypes are:
 
-    Responses are paginated.
+    - `ListSigningKeys.Success`
+    - `ListSigningKeys.Error`
 
-    Args:
-        next_token: Optional[str] - the token to get the next page
-        signing_keys: list[SigningKey] - all signing keys in this page
+    See `SimpleCacheClient` for how to work with responses.
     """
 
-    next_token: Optional[str]
-    signing_keys: list[SigningKey]
 
-    @staticmethod
-    def from_grpc_response(  # type:ignore[misc]
-        grpc_list_signing_keys_response: google.protobuf.message.Message, endpoint: str
-    ) -> ListSigningKeysResponse:
-        """Creates a ListSigningKeysResponse from a grpc response.
+class ListSigningKeys(ABC):
+    """Groups all `ListSigningKeysResponse` derived types under a common namespace."""
 
-        Args:
-            grpc_list_signing_keys_response: google.protobuf.message.Message
+    @dataclass
+    class Success(ListSigningKeysResponse):
+        """The response from listing signing keys."""
+
+        next_token: Optional[str]
+        """the token to get the next page"""
+        signing_keys: list[SigningKey]
+        """all signing keys in this page"""
+
+        @staticmethod
+        def from_grpc_response(  # type:ignore[misc]
+            grpc_list_signing_keys_response: google.protobuf.message.Message, endpoint: str
+        ) -> ListSigningKeys.Success:
+            """Creates a ListSigningKeysResponse from a grpc response.
+
+            Args:
+                grpc_list_signing_keys_response (google.protobuf.message.Message):
+                endpoint (str): _description_
+
+            Returns:
+                ListSigningKeysResponse
+            """
+            next_token: Optional[str] = (
+                grpc_list_signing_keys_response.next_token if grpc_list_signing_keys_response.next_token != "" else None
+            )
+            signing_keys: list[SigningKey] = [
+                SigningKey.from_grpc_response(signing_key, endpoint)
+                for signing_key in grpc_list_signing_keys_response.signing_key
+            ]
+            return ListSigningKeys.Success(next_token, signing_keys)
+
+    class Error(ListSigningKeysResponse, ErrorResponseMixin):
+        """Contains information about an error returned from a request:
+
+        - `error_code`: `MomentoErrorCode` value for the error.
+        - `messsage`: a detailed error message.
         """
-        print(f"Name: {grpc_list_signing_keys_response.__class__.__bases__}")
-        next_token: Optional[str] = (
-            grpc_list_signing_keys_response.next_token if grpc_list_signing_keys_response.next_token != "" else None
-        )
-        signing_keys: list[SigningKey] = [
-            SigningKey.from_grpc_response(signing_key, endpoint)
-            for signing_key in grpc_list_signing_keys_response.signing_key
-        ]
-        return ListSigningKeysResponse(next_token, signing_keys)
