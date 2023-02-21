@@ -8,81 +8,72 @@ from .control.signing_key.list import (
     SigningKey,
 )
 from .control.signing_key.revoke import RevokeSigningKey, RevokeSigningKeyResponse
-from .data.dictionary_data.dictionary_fetch import (
+from .data.dictionary.dictionary_fetch import (
     CacheDictionaryFetch,
     CacheDictionaryFetchResponse,
 )
-from .data.dictionary_data.dictionary_get_field import (
+from .data.dictionary.dictionary_get_field import (
     CacheDictionaryGetField,
     CacheDictionaryGetFieldResponse,
 )
-from .data.dictionary_data.dictionary_get_fields import (
+from .data.dictionary.dictionary_get_fields import (
     CacheDictionaryGetFields,
     CacheDictionaryGetFieldsResponse,
 )
-from .data.dictionary_data.dictionary_increment import (
+from .data.dictionary.dictionary_increment import (
     CacheDictionaryIncrement,
     CacheDictionaryIncrementResponse,
 )
-from .data.dictionary_data.dictionary_remove_field import (
+from .data.dictionary.dictionary_remove_field import (
     CacheDictionaryRemoveField,
     CacheDictionaryRemoveFieldResponse,
 )
-from .data.dictionary_data.dictionary_remove_fields import (
+from .data.dictionary.dictionary_remove_fields import (
     CacheDictionaryRemoveFields,
     CacheDictionaryRemoveFieldsResponse,
 )
-from .data.dictionary_data.dictionary_set_field import (
+from .data.dictionary.dictionary_set_field import (
     CacheDictionarySetField,
     CacheDictionarySetFieldResponse,
 )
-from .data.dictionary_data.dictionary_set_fields import (
+from .data.dictionary.dictionary_set_fields import (
     CacheDictionarySetFields,
     CacheDictionarySetFieldsResponse,
 )
-from .data.list_data.list_concatenate_back import (
+from .data.list.list_concatenate_back import (
     CacheListConcatenateBack,
     CacheListConcatenateBackResponse,
 )
-from .data.list_data.list_concatenate_front import (
+from .data.list.list_concatenate_front import (
     CacheListConcatenateFront,
     CacheListConcatenateFrontResponse,
 )
-from .data.list_data.list_fetch import CacheListFetch, CacheListFetchResponse
-from .data.list_data.list_length import CacheListLength, CacheListLengthResponse
-from .data.list_data.list_pop_back import CacheListPopBack, CacheListPopBackResponse
-from .data.list_data.list_pop_front import CacheListPopFront, CacheListPopFrontResponse
-from .data.list_data.list_push_back import CacheListPushBack, CacheListPushBackResponse
-from .data.list_data.list_push_front import (
-    CacheListPushFront,
-    CacheListPushFrontResponse,
-)
-from .data.list_data.list_remove_value import (
+from .data.list.list_fetch import CacheListFetch, CacheListFetchResponse
+from .data.list.list_length import CacheListLength, CacheListLengthResponse
+from .data.list.list_pop_back import CacheListPopBack, CacheListPopBackResponse
+from .data.list.list_pop_front import CacheListPopFront, CacheListPopFrontResponse
+from .data.list.list_push_back import CacheListPushBack, CacheListPushBackResponse
+from .data.list.list_push_front import CacheListPushFront, CacheListPushFrontResponse
+from .data.list.list_remove_value import (
     CacheListRemoveValue,
     CacheListRemoveValueResponse,
 )
-from .data.scalar_data.delete import CacheDelete, CacheDeleteResponse
-from .data.scalar_data.get import CacheGet, CacheGetResponse
-from .data.scalar_data.increment import CacheIncrement, CacheIncrementResponse
-from .data.scalar_data.set import CacheSet, CacheSetResponse
-from .data.scalar_data.set_if_not_exists import (
+from .data.scalar.delete import CacheDelete, CacheDeleteResponse
+from .data.scalar.get import CacheGet, CacheGetResponse
+from .data.scalar.increment import CacheIncrement, CacheIncrementResponse
+from .data.scalar.set import CacheSet, CacheSetResponse
+from .data.scalar.set_if_not_exists import (
     CacheSetIfNotExists,
     CacheSetIfNotExistsResponse,
 )
-from .data.set_data.set_add_element import (
-    CacheSetAddElement,
-    CacheSetAddElementResponse,
-)
-from .data.set_data.set_add_elements import (
-    CacheSetAddElements,
-    CacheSetAddElementsResponse,
-)
-from .data.set_data.set_fetch import CacheSetFetch, CacheSetFetchResponse
-from .data.set_data.set_remove_element import (
+from .data.set.set_add_element import CacheSetAddElement, CacheSetAddElementResponse
+from .data.set.set_add_elements import CacheSetAddElements, CacheSetAddElementsResponse
+from .data.set.set_fetch import CacheSetFetch, CacheSetFetchResponse
+from .data.set.set_remove_element import (
     CacheSetRemoveElement,
     CacheSetRemoveElementResponse,
 )
-from .data.set_data.set_remove_elements import (
+from .data.set.set_remove_elements import (
     CacheSetRemoveElements,
     CacheSetRemoveElementsResponse,
 )
