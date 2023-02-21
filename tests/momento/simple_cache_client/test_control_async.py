@@ -5,7 +5,14 @@ from momento import SimpleCacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
-from momento.responses import CacheGet, CacheSet, CreateCache, DeleteCache, ListCaches
+from momento.responses import (
+    CacheGet,
+    CacheSet,
+    CreateCache,
+    CreateSigningKey,
+    DeleteCache,
+    ListCaches,
+)
 from tests.conftest import TUniqueCacheNameAsync
 from tests.utils import uuid_str
 
@@ -181,10 +188,12 @@ async def test_list_caches_with_next_token_works() -> None:
 
 
 async def test_create_list_revoke_signing_keys(client_async: SimpleCacheClientAsync) -> None:
-    create_resp = await client_async.create_signing_key(timedelta(minutes=30))
-    list_resp = await client_async.list_signing_keys()
-    assert create_resp.key_id in [signing_key.key_id for signing_key in list_resp.signing_keys]
+    create_response = await client_async.create_signing_key(timedelta(minutes=30))
+    assert isinstance(create_response, CreateSigningKey.Success)
 
-    await client_async.revoke_signing_key(create_resp.key_id)
-    list_resp = await client_async.list_signing_keys()
-    assert create_resp.key_id not in [signing_key.key_id for signing_key in list_resp.signing_keys]
+    list_response = await client_async.list_signing_keys()
+    assert create_response.key_id in [signing_key.key_id for signing_key in list_response.signing_keys]
+
+    await client_async.revoke_signing_key(create_response.key_id)
+    list_response = await client_async.list_signing_keys()
+    assert create_response.key_id not in [signing_key.key_id for signing_key in list_response.signing_keys]

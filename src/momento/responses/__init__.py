@@ -1,6 +1,7 @@
 from .control import (
     CreateCache,
     CreateCacheResponse,
+    CreateSigningKey,
     CreateSigningKeyResponse,
     DeleteCache,
     DeleteCacheResponse,
