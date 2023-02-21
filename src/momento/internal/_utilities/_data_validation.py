@@ -14,10 +14,10 @@ from momento.typing import (
 )
 
 DEFAULT_BYTES_CONVERSION_ERROR = "Could not convert the given type to bytes: "
-DEFAULT_LIST_CONVERSION_ERROR = "The given type is not List[bytes] or List[str]: "
+DEFAULT_LIST_CONVERSION_ERROR = "The given type is not list[str | bytes]: "
 DEFAULT_DICTIONARY_CONVERSION_ERROR = "The given type is not a valid Mapping: "
-DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR = "The given type is not Iterable[TDictionaryField]: "
-DEFAULT_SET_CONVERSION_ERROR = "The given type is not Set[bytes] or Set[str]: "
+DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR = "The given type is not Iterable[str | bytes]: "
+DEFAULT_SET_CONVERSION_ERROR = "The given type is not set[str | bytes]: "
 
 
 def _validate_name(name: str, field_name: str) -> None:
