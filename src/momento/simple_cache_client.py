@@ -135,6 +135,12 @@ class SimpleCacheClient:
                 It is possible to override this setting when calling the set method.
         Raises:
             IllegalArgumentException: If method arguments fail validations.
+        Example::
+
+            configuration = Laptop.latest()
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            ttl_seconds = timedelta(seconds=60)
+            SimpleCacheClient(configuration, credential_provider, ttl_seconds)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
