@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from momento_wire_types.controlclient_pb2 import _ListCachesResponse
 
@@ -58,8 +58,6 @@ class ListCaches(ABC):
 
         caches: List[CacheInfo]
         """The list of caches available to the user."""
-        next_token: Optional[str]
-        """A token to specify where to start paging. This is the `NextToken` from a previous response."""
 
         @staticmethod
         def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> ListCaches.Success:  # type: ignore[misc] # noqa: E501
@@ -68,13 +66,8 @@ class ListCaches(ABC):
             Args:
                 grpc_list_cache_response: Protobuf based response returned by Scs.
             """
-            next_token: Optional[str] = (
-                grpc_list_cache_response.next_token  # type: ignore[misc]
-                if grpc_list_cache_response.next_token != ""  # type: ignore[misc]
-                else None
-            )
             caches = [CacheInfo(cache.cache_name) for cache in grpc_list_cache_response.cache]  # type: ignore[misc]
-            return ListCaches.Success(caches=caches, next_token=next_token)
+            return ListCaches.Success(caches=caches)
 
     class Error(ListCachesResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:

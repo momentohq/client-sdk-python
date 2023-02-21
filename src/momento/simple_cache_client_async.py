@@ -181,17 +181,13 @@ class SimpleCacheClientAsync:
         """
         return await self._control_client.delete_cache(cache_name)
 
-    async def list_caches(self, *, next_token: Optional[str] = None) -> ListCachesResponse:
+    async def list_caches(self) -> ListCachesResponse:
         """Lists all caches.
-
-        Args:
-            next_token (Optional[str], optional): A token to specify where to start paginating.
-            This is the NextToken from a previous response. Defaults to None.
 
         Returns:
             ListCachesResponse:
         """
-        return await self._control_client.list_caches(next_token)
+        return await self._control_client.list_caches()
 
     async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
         """Creates a Momento signing key
@@ -215,20 +211,13 @@ class SimpleCacheClientAsync:
         """
         return await self._control_client.revoke_signing_key(key_id)
 
-    async def list_signing_keys(self, *, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+    async def list_signing_keys(self) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
-
-        Args:
-            next_token (Optional[str], optional) Token to continue paginating through the list.
-            It's used to handle large paginated lists. Defaults to None.
 
         Returns:
             ListSigningKeysResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
-        return await self._control_client.list_signing_keys(self._cache_endpoint, next_token)
+        return await self._control_client.list_signing_keys(self._cache_endpoint)
 
     async def increment(
         self,

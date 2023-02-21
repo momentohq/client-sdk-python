@@ -4,7 +4,7 @@ import json
 from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import google
 
@@ -100,10 +100,11 @@ class SigningKey:
 class ListSigningKeysResponse(ControlResponse):
     """Parent response type for a cache `list_signing_key` request. Its subtypes are:
 
-    - `ListSigningKeys.Success`
-    - `ListSigningKeys.Error`
+        - `ListSigningKeys.Success`
+        - `ListSigningKeys.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    <<<<<<< HEAD
+        See `SimpleCacheClient` for how to work with responses.
     """
 
 
@@ -114,8 +115,6 @@ class ListSigningKeys(ABC):
     class Success(ListSigningKeysResponse):
         """The response from listing signing keys."""
 
-        next_token: Optional[str]
-        """the token to get the next page"""
         signing_keys: list[SigningKey]
         """all signing keys in this page"""
 
@@ -132,14 +131,11 @@ class ListSigningKeys(ABC):
             Returns:
                 ListSigningKeysResponse
             """
-            next_token: Optional[str] = (
-                grpc_list_signing_keys_response.next_token if grpc_list_signing_keys_response.next_token != "" else None
-            )
             signing_keys: list[SigningKey] = [
                 SigningKey.from_grpc_response(signing_key, endpoint)
                 for signing_key in grpc_list_signing_keys_response.signing_key
             ]
-            return ListSigningKeys.Success(next_token, signing_keys)
+            return ListSigningKeys.Success(signing_keys)
 
     class Error(ListSigningKeysResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request:

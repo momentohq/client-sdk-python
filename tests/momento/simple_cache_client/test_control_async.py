@@ -166,7 +166,6 @@ async def test_list_caches_succeeds(client_async: SimpleCacheClientAsync, cache_
 
         cache_names = [cache.name for cache in list_cache_resp.caches]
         assert cache_name in cache_names
-        assert list_cache_resp.next_token is None
     finally:
         delete_response = await client_async.delete_cache(cache_name)
         assert isinstance(delete_response, DeleteCache.Success)
@@ -181,12 +180,6 @@ async def test_list_caches_throws_authentication_exception_for_bad_token(
         response = await client_async.list_caches()
         assert isinstance(response, ListCaches.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
-
-
-async def test_list_caches_with_next_token_works() -> None:
-    """skip until pagination is actually implemented, see
-    https://github.com/momentohq/control-plane-service/issues/83"""
-    pass
 
 
 async def test_create_list_revoke_signing_keys(client_async: SimpleCacheClientAsync) -> None:
