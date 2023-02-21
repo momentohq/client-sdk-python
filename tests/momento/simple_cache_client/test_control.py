@@ -12,6 +12,7 @@ from momento.responses import (
     CreateSigningKey,
     DeleteCache,
     ListCaches,
+    RevokeSigningKey,
 )
 from tests.conftest import TUniqueCacheName
 from tests.utils import uuid_str
@@ -186,6 +187,8 @@ def test_create_list_revoke_signing_keys(client: SimpleCacheClient) -> None:
     list_response = client.list_signing_keys()
     assert create_response.key_id in [signing_key.key_id for signing_key in list_response.signing_keys]
 
-    client.revoke_signing_key(create_response.key_id)
+    revoke_response = client.revoke_signing_key(create_response.key_id)
+    assert isinstance(revoke_response, RevokeSigningKey.Success)
+
     list_response = client.list_signing_keys()
     assert create_response.key_id not in [signing_key.key_id for signing_key in list_response.signing_keys]

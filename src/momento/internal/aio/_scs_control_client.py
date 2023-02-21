@@ -27,6 +27,7 @@ from momento.responses import (
     ListCaches,
     ListCachesResponse,
     ListSigningKeysResponse,
+    RevokeSigningKey,
     RevokeSigningKeyResponse,
 )
 
@@ -102,10 +103,10 @@ class _ScsControlClient:
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
             await self._build_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
-            return RevokeSigningKeyResponse()
+            return RevokeSigningKey.Success()
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
-            raise convert_error(e)
+            return RevokeSigningKey.Error(convert_error(e))
 
     async def list_signing_keys(self, endpoint: str, next_token: Optional[str] = None) -> ListSigningKeysResponse:
         try:

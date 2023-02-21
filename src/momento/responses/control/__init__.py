@@ -5,6 +5,7 @@ from .signing_keys import (
     CreateSigningKey,
     CreateSigningKeyResponse,
     ListSigningKeysResponse,
+    RevokeSigningKey,
     RevokeSigningKeyResponse,
     SigningKey,
 )

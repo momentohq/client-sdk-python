@@ -212,9 +212,6 @@ class SimpleCacheClientAsync:
 
         Returns:
             RevokeSigningKeyResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
         return await self._control_client.revoke_signing_key(key_id)
 

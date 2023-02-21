@@ -8,6 +8,7 @@ from .control import (
     ListCaches,
     ListCachesResponse,
     ListSigningKeysResponse,
+    RevokeSigningKey,
     RevokeSigningKeyResponse,
     SigningKey,
 )
