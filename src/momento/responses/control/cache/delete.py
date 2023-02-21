@@ -2,7 +2,7 @@ from abc import ABC
 
 from momento.responses.response import ControlResponse
 
-from ..mixins import ErrorResponseMixin
+from ...mixins import ErrorResponseMixin
 
 
 class DeleteCacheResponse(ControlResponse):

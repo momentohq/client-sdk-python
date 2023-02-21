@@ -19,12 +19,15 @@ from momento.internal.aio._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
     CreateCache,
     CreateCacheResponse,
+    CreateSigningKey,
     CreateSigningKeyResponse,
     DeleteCache,
     DeleteCacheResponse,
     ListCaches,
     ListCachesResponse,
+    ListSigningKeys,
     ListSigningKeysResponse,
+    RevokeSigningKey,
     RevokeSigningKeyResponse,
 )
 
@@ -82,18 +85,17 @@ class _ScsControlClient:
 
     async def create_signing_key(self, ttl: timedelta, endpoint: str) -> CreateSigningKeyResponse:
         try:
+            self._logger.info(f"Creating signing key with ttl={ttl!r} and endpoint={endpoint!r}")
             _validate_ttl(ttl)
             ttl_minutes = round(ttl.total_seconds() / 60)
             self._logger.info(f"Creating signing key with ttl (in minutes): {ttl_minutes}")
             create_signing_key_request = _CreateSigningKeyRequest()
             create_signing_key_request.ttl_minutes = ttl_minutes
-            return CreateSigningKeyResponse.from_grpc_response(
-                await self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS),
-                endpoint,
-            )
+            response = await self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS)
+            return CreateSigningKey.Success.from_grpc_response(response, endpoint)
         except Exception as e:
             self._logger.warning(f"Failed to create signing key with exception: {e}")
-            raise convert_error(e)
+            return CreateSigningKey.Error(convert_error(e))
 
     async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         try:
@@ -101,21 +103,24 @@ class _ScsControlClient:
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
             await self._build_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
-            return RevokeSigningKeyResponse()
+            return RevokeSigningKey.Success()
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
-            raise convert_error(e)
+            return RevokeSigningKey.Error(convert_error(e))
 
     async def list_signing_keys(self, endpoint: str) -> ListSigningKeysResponse:
         try:
+            self._logger.info("List signing keys")
             list_signing_keys_request = _ListSigningKeysRequest()
             list_signing_keys_request.next_token = ""
-            return ListSigningKeysResponse.from_grpc_response(
-                await self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS),
+            response = await self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS)
+            return ListSigningKeys.Success.from_grpc_response(
+                response,
                 endpoint,
             )
         except Exception as e:
-            raise convert_error(e)
+            self._logger.warning(f"Failed to list signing keys with exception: {e}")
+            return ListSigningKeys.Error(convert_error(e))
 
     def _build_stub(self) -> ScsControlStub:
         return self._grpc_manager.async_stub()

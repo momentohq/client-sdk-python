@@ -5,7 +5,16 @@ from momento import SimpleCacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
-from momento.responses import CacheGet, CacheSet, CreateCache, DeleteCache, ListCaches
+from momento.responses import (
+    CacheGet,
+    CacheSet,
+    CreateCache,
+    CreateSigningKey,
+    DeleteCache,
+    ListCaches,
+    ListSigningKeys,
+    RevokeSigningKey,
+)
 from tests.conftest import TUniqueCacheName
 from tests.utils import uuid_str
 
@@ -166,10 +175,16 @@ def test_list_caches_throws_authentication_exception_for_bad_token(
 
 
 def test_create_list_revoke_signing_keys(client: SimpleCacheClient) -> None:
-    create_resp = client.create_signing_key(timedelta(minutes=30))
-    list_resp = client.list_signing_keys()
-    assert create_resp.key_id in [signing_key.key_id for signing_key in list_resp.signing_keys]
+    create_response = client.create_signing_key(timedelta(minutes=30))
+    assert isinstance(create_response, CreateSigningKey.Success)
 
-    client.revoke_signing_key(create_resp.key_id)
-    list_resp = client.list_signing_keys()
-    assert create_resp.key_id not in [signing_key.key_id for signing_key in list_resp.signing_keys]
+    list_response = client.list_signing_keys()
+    assert isinstance(list_response, ListSigningKeys.Success)
+    assert create_response.key_id in [signing_key.key_id for signing_key in list_response.signing_keys]
+
+    revoke_response = client.revoke_signing_key(create_response.key_id)
+    assert isinstance(revoke_response, RevokeSigningKey.Success)
+
+    list_response = client.list_signing_keys()
+    assert isinstance(list_response, ListSigningKeys.Success)
+    assert create_response.key_id not in [signing_key.key_id for signing_key in list_response.signing_keys]

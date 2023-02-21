@@ -203,9 +203,6 @@ class SimpleCacheClient:
 
         Returns:
             CreateSigningKeyResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
         return self._control_client.create_signing_key(ttl, self._cache_endpoint)
 
@@ -217,9 +214,6 @@ class SimpleCacheClient:
 
         Returns:
             RevokeSigningKeyResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
         return self._control_client.revoke_signing_key(key_id)
 
@@ -228,9 +222,6 @@ class SimpleCacheClient:
 
         Returns:
             ListSigningKeysResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
         return self._control_client.list_signing_keys(self._cache_endpoint)
 
