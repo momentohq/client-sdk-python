@@ -8,7 +8,7 @@ from momento_wire_types.controlclient_pb2 import _ListCachesResponse
 
 from momento.responses.response import ControlResponse
 
-from ..mixins import ErrorResponseMixin
+from ...mixins import ErrorResponseMixin
 
 
 class ListCachesResponse(ControlResponse):

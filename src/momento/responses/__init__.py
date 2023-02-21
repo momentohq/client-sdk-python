@@ -1,18 +1,13 @@
-from .control import (
-    CreateCache,
-    CreateCacheResponse,
-    CreateSigningKey,
-    CreateSigningKeyResponse,
-    DeleteCache,
-    DeleteCacheResponse,
-    ListCaches,
-    ListCachesResponse,
+from .control.cache.create import CreateCache, CreateCacheResponse
+from .control.cache.delete import DeleteCache, DeleteCacheResponse
+from .control.cache.list import ListCaches, ListCachesResponse
+from .control.signing_key.create import CreateSigningKey, CreateSigningKeyResponse
+from .control.signing_key.list import (
     ListSigningKeys,
     ListSigningKeysResponse,
-    RevokeSigningKey,
-    RevokeSigningKeyResponse,
     SigningKey,
 )
+from .control.signing_key.revoke import RevokeSigningKey, RevokeSigningKeyResponse
 from .dictionary_data import (
     CacheDictionaryFetch,
     CacheDictionaryFetchResponse,
