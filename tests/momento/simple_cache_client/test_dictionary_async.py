@@ -355,7 +355,8 @@ def a_dictionary_setter() -> None:
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert (
                 response.message
-                == f"Invalid argument passed to Momento client: Could not decode bytes to UTF-8<class '{bad_type}'>"
+                == f"Invalid argument passed to Momento client: Could not convert the given type to bytes: "
+                f"<class '{bad_type}'>"
             )
 
 

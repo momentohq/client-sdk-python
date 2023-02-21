@@ -122,9 +122,7 @@ def a_set_which_takes_an_element() -> None:
         resp = await set_which_takes_an_element(cache_name, set_name, 1)  # type:ignore[arg-type]
         if isinstance(resp, ErrorResponseMixin):
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-            # This error is wrong. See https://github.com/momentohq/client-sdk-python/issues/242
-            # Should be "Could not convert an int to bytes"
-            assert resp.inner_exception.message == "Could not decode bytes to UTF-8<class 'int'>"
+            assert resp.inner_exception.message == "Could not convert the given type to bytes: <class 'int'>"
         else:
             assert False
 
@@ -136,9 +134,7 @@ def a_set_which_takes_an_element() -> None:
         resp = await set_which_takes_an_element(cache_name, set_name, None)  # type:ignore[arg-type]
         if isinstance(resp, ErrorResponseMixin):
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-            # This error is wrong. See https://github.com/momentohq/client-sdk-python/issues/242
-            # Should be "Could not convert an int to bytes"
-            assert resp.inner_exception.message == "Could not decode bytes to UTF-8<class 'NoneType'>"
+            assert resp.inner_exception.message == "Could not convert the given type to bytes: <class 'NoneType'>"
         else:
             assert False
 
