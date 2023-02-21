@@ -5,10 +5,7 @@ from dataclasses import dataclass
 
 from ...mixins import ErrorResponseMixin, ValueStringMixin
 from ...response import CacheResponse
-from .dictionary_get_field import (
-    CacheDictionaryGetField,
-    CacheDictionaryGetFieldResponse,
-)
+from .get_field import CacheDictionaryGetField, CacheDictionaryGetFieldResponse
 
 
 class CacheDictionaryGetFieldsResponse(CacheResponse):
