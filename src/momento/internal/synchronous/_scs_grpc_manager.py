@@ -16,7 +16,7 @@ from momento.internal.synchronous._retry_interceptor import (
 
 
 class _ControlGrpcManager:
-    """Internal gRPC control maanger."""
+    """Internal gRPC control mananger."""
 
     version = pkg_resources.get_distribution("momento").version
 
@@ -35,7 +35,7 @@ class _ControlGrpcManager:
 
 
 class _DataGrpcManager:
-    """Internal gRPC data maanger."""
+    """Internal gRPC data mananger."""
 
     version = pkg_resources.get_distribution("momento").version
 
