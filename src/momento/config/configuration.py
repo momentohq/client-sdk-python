@@ -47,7 +47,7 @@ class Configuration(ConfigurationBase):
         """Copy constructor for overriding TransportStrategy.
 
         Args:
-            transport_strategy (TransportStrategy):
+            transport_strategy (TransportStrategy): the new TransportStrategy.
 
         Returns:
             Configuration: a new Configuration object with the specified TransportStrategy.

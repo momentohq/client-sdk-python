@@ -25,7 +25,7 @@ class TransportStrategy(ABC):
         """Copy constructor for overriding the gRPC configuration.
 
         Args:
-            grpc_configuration (GrpcConfiguration): gRPC configuration.
+            grpc_configuration (GrpcConfiguration): the new gRPC configuration.
 
         Returns:
             TransportStrategy: a new TransportStrategy with the specified gRPC config.
