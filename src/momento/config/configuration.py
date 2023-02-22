@@ -55,7 +55,7 @@ class Configuration(ConfigurationBase):
         return Configuration(transport_strategy)
 
     def with_client_timeout(self, client_timeout: timedelta) -> Configuration:
-        """Convenience copy constructor that updates the client-side timeout setting in the TransportStrategy.
+        """Copies the Configuration and sets the new client-side timeout in the copy's TransportStrategy.
 
         Args:
             client_timeout (timedelta): timedelta specifying the new timeout value.
