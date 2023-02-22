@@ -27,7 +27,7 @@ class CacheListConcatenateFront(ABC):
         """The number of values in the list after this concatenation"""
 
     class Error(CacheListConcatenateFrontResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request.
+        """Indicates an error occurred in the request.
 
         This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
