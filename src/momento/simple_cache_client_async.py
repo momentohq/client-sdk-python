@@ -568,7 +568,7 @@ class SimpleCacheClientAsync:
         return await self._data_client.list_length(cache_name, list_name)
 
     async def list_pop_back(self, cache_name: str, list_name: str) -> CacheListPopBackResponse:
-        """Gets removes and returns the last value from the list.
+        """Gets, removes, and returns the last value from the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -580,7 +580,7 @@ class SimpleCacheClientAsync:
         return await self._data_client.list_pop_back(cache_name, list_name)
 
     async def list_pop_front(self, cache_name: str, list_name: str) -> CacheListPopFrontResponse:
-        """Gets removes and returns the first value from the list.
+        """Gets, removes, and returns the first value from the list.
 
         Args:
             cache_name (str): The cache where the list is.
