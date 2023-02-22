@@ -50,7 +50,7 @@ class Configuration(ConfigurationBase):
             transport_strategy (TransportStrategy): the new TransportStrategy.
 
         Returns:
-            Configuration: a new Configuration object with the specified TransportStrategy.
+            Configuration: the new Configuration with the specified TransportStrategy.
         """
         return Configuration(transport_strategy)
 
@@ -58,10 +58,9 @@ class Configuration(ConfigurationBase):
         """Copies the Configuration and sets the new client-side timeout in the copy's TransportStrategy.
 
         Args:
-            client_timeout (timedelta): timedelta specifying the new timeout value.
+            client_timeout (timedelta): the new client-side timeout.
 
         Return:
-            Configuration: a new Configuration object with its TransportStrategy updated to use
-            the specified client timeout.
+            Configuration: the new Configuration.
         """
         return Configuration(self._transport_strategy.with_client_timeout(client_timeout))

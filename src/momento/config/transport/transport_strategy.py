@@ -34,13 +34,13 @@ class TransportStrategy(ABC):
 
     @abstractmethod
     def with_client_timeout(self, client_timeout: timedelta) -> TransportStrategy:
-        """Copy constructor to update the client-side timeout.
+        """Copies the TransportStrategy and updates the copy's client-side timeout.
 
         Args:
-            client_timeout (timedelta): timedelta representing the new client timeout value.
+            client_timeout (timedelta): the new client-side timeout.
 
         Returns:
-            TransportStrategy: a new TransportStrategy with the specified client timeout.
+            TransportStrategy: the new TransportStrategy.
         """
         pass
 

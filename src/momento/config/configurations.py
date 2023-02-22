@@ -40,10 +40,9 @@ class InRegion:
     class LowLatency(Configuration):
         """Prioritizes keeping p99.9 latencies as low as possible.
 
-        Potentially sacrificing some throughput to achieve this.  It has a very aggressive client-side timeout.
+        It potentially sacrifices some throughput to achieve this.  It has a very aggressive client-side timeout.
         Use this configuration if the most important factor is to ensure that cache unavailability doesn't
-        force unacceptably high latencies for your own
-        application.
+        force unacceptably high latencies for your application.
         """
 
         @staticmethod
