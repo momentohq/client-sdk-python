@@ -5,7 +5,7 @@ from typing import Any, no_type_check
 
 
 class Response(ABC):
-    """Parent of all responses"""
+    """Parent of all responses."""
 
     # We need to work with Any.
     @no_type_check

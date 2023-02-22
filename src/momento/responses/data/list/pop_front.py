@@ -6,8 +6,9 @@ from ...response import CacheResponse
 
 
 class CacheListPopFrontResponse(CacheResponse):
-    """Parent response type for a `list_pop_front` request. Its subtypes are:
+    """Parent response type for a `list_pop_front` request.
 
+    Its subtypes are:
     - `CacheListPopFront.Hit`
     - `CacheListPopFront.Miss`
     - `CacheListPopFront.Error`
@@ -30,8 +31,9 @@ class CacheListPopFront(ABC):
         """Indicates the list does not exist."""
 
     class Error(CacheListPopFrontResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

@@ -13,9 +13,7 @@ debug = logger.debug
 
 
 def add_logging_level(level_name: str, level_num: int, method_name: Optional[str] = None) -> None:
-    """
-    Comprehensively adds a new logging level to the `logging` module and the
-    currently configured logging class.
+    """Comprehensively adds a new logging level to the `logging` module and the currently configured logging class.
 
     `level_name` becomes an attribute of the `logging` module with the value
     `level_num`. `method_name` becomes a convenience method for both `logging`
@@ -25,9 +23,9 @@ def add_logging_level(level_name: str, level_num: int, method_name: Optional[str
 
     To avoid accidental clobberings of existing attributes, this method will
     raise an `AttributeError` if the level name is already an attribute of the
-    `logging` module or if the method name is already present
+    `logging` module or if the method name is already present.
 
-    Example
+    Example::
     -------
     >>> add_logging_level('TRACE', logging.DEBUG - 5)
     >>> logging.getLogger(__name__).setLevel("TRACE")

@@ -31,8 +31,9 @@ class SigningKey:
 
 
 class ListSigningKeysResponse(ControlResponse):
-    """Parent response type for a cache `list_signing_key` request. Its subtypes are:
+    """Parent response type for a cache `list_signing_key` request.
 
+    Its subtypes are:
     - `ListSigningKeys.Success`
     - `ListSigningKeys.Error`
 
@@ -70,8 +71,9 @@ class ListSigningKeys(ABC):
             return ListSigningKeys.Success(signing_keys)
 
     class Error(ListSigningKeysResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

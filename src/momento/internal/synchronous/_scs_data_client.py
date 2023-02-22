@@ -116,7 +116,7 @@ from momento.typing import (
 
 
 class _ScsDataClient:
-    """Internal"""
+    """Internal data client."""
 
     __UNSUPPORTED_LIST_NAME_TYPE_MSG = "Unsupported type for list_name: "
     __UNSUPPORTED_LIST_VALUE_TYPE_MSG = "Unsupported type for value: "

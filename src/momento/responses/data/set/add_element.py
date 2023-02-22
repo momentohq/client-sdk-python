@@ -5,8 +5,9 @@ from ...response import CacheResponse
 
 
 class CacheSetAddElementResponse(CacheResponse):
-    """Parent response type for a `set_add_element` request. Its subtypes are:
+    """Parent response type for a `set_add_element` request.
 
+    Its subtypes are:
     - `CacheSetAddElement.Success`
     - `CacheSetAddElement.Error`
 
@@ -21,8 +22,9 @@ class CacheSetAddElement(ABC):
         """Indicates the element was added."""
 
     class Error(CacheSetAddElementResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

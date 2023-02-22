@@ -13,24 +13,34 @@ class TransportStrategy(ABC):
 
     @abstractmethod
     def get_grpc_configuration(self) -> GrpcConfiguration:
-        """:return: low-level gRPC settings for the Momento client's communication"""
+        """Access the gRPC configuration.
+
+        Returns:
+            GrpcConfiguration: low-level gRPC settings for the Momento client's communication.
+        """
         pass
 
     @abstractmethod
     def with_grpc_configuration(self, grpc_configuration: GrpcConfiguration) -> TransportStrategy:
-        """Copy constructor for overriding the gRPC configuration
+        """Copy constructor for overriding the gRPC configuration.
 
-        :param grpc_configuration: GrpcConfiguration
-        :return: a new TransportStrategy with the specified gRPC config.
+        Args:
+            grpc_configuration (GrpcConfiguration): the new gRPC configuration.
+
+        Returns:
+            TransportStrategy: a new TransportStrategy with the specified gRPC config.
         """
         pass
 
     @abstractmethod
     def with_client_timeout(self, client_timeout: timedelta) -> TransportStrategy:
-        """Copy constructor to update the client-side timeout
+        """Copies the TransportStrategy and updates the copy's client-side timeout.
 
-        :param client_timeout: timedelta representing the new client timeout value
-        :return: a new TransportStrategy with the specified client timeout.
+        Args:
+            client_timeout (timedelta): the new client-side timeout.
+
+        Returns:
+            TransportStrategy: the new TransportStrategy.
         """
         pass
 

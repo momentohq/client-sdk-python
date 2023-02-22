@@ -8,8 +8,9 @@ from ...response import CacheResponse
 
 
 class CacheListFetchResponse(CacheResponse):
-    """Response type for a `list_fetch` request. Its subtypes are:
+    """Response type for a `list_fetch` request.
 
+    Its subtypes are:
     - `CacheListFetch.Hit`
     - `CacheListFetch.Miss`
     - `CacheListFetch.Error`
@@ -39,15 +40,15 @@ class CacheListFetch(ABC):
             Returns:
                 list[str]
             """
-
             return [v.decode("utf-8") for v in self.values_bytes]
 
     class Miss(CacheListFetchResponse):
         """Indicates the list does not exist."""
 
     class Error(CacheListFetchResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request:
+        """Indicates an error occured in the request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

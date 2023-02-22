@@ -25,16 +25,16 @@ class AsyncToSyncTransformer(cst.CSTTransformer):
     """Convert async methods, async context managers, and awaited expressions into synchronous ones."""
 
     def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.BaseStatement:
-        """Remove async function keyword"""
+        """Remove async function keyword."""
         updated_node = updated_node.with_changes(asynchronous=None)
         return updated_node
 
     def leave_Await(self, original_node: cst.Await, updated_node: cst.BaseExpression) -> cst.BaseExpression:
-        """Remove await keywords and lift awaited expressions"""
+        """Remove await keywords and lift awaited expressions."""
         return original_node.expression
 
     def leave_With(self, original_node: cst.With, updated_node: cst.With) -> cst.With:
-        """Remove the async keyword from context managers"""
+        """Remove the async keyword from context managers."""
         updated_node = updated_node.with_changes(asynchronous=None)
         return updated_node
 
@@ -43,9 +43,9 @@ class AsyncToSyncTransformer(cst.CSTTransformer):
         # You only await one thing so we test the slice is length one
         if (
             isinstance(original_node.value, cst.Name)
-            and original_node.value.value == "Awaitable"
-            and original_node.slice is not None
-            and len(original_node.slice) == 1
+            and original_node.value.value == "Awaitable"  # noqa: W503
+            and original_node.slice is not None  # noqa: W503
+            and len(original_node.slice) == 1  # noqa: W503
         ):
             return original_node.slice[0]  # type: ignore
         return updated_node
@@ -66,7 +66,7 @@ class NameReplacement(cst.CSTTransformer):
     """Applies regex-based substitutions to names in the AST."""
 
     def __init__(self, substitutions: list[Tuple[str, str]]) -> None:
-        """Instantiate a `NameReplacement`
+        """Instantiate a `NameReplacement`.
 
         Args:
             substitutions (List[Tuple[str, str]]): A list of regex (string) and replacements to apply, in order.
@@ -87,7 +87,7 @@ class SimpleStringReplacement(cst.CSTTransformer):
     """Applies regex-based substitutions to simple strings in the AST."""
 
     def __init__(self, substitutions: list[Tuple[str, str]]) -> None:
-        """Instantiate a `SimpleStringReplacement`
+        """Instantiate a `SimpleStringReplacement`.
 
         Args:
             substitutions (List[Tuple[str, str]]): A list of regex (string) and replacements to apply, in order.
@@ -95,7 +95,7 @@ class SimpleStringReplacement(cst.CSTTransformer):
         self.substitutions = [(re.compile(pattern_), substitution) for pattern_, substitution in substitutions]
 
     def leave_SimpleString(self, original_node: cst.SimpleString, updated_node: cst.SimpleString) -> cst.BaseExpression:
-        """_Alter comments and docstrings"""
+        """_Alter comments and docstrings."""
         value = original_node.value
 
         for pattern, replacement in self.substitutions:

@@ -12,15 +12,15 @@ from ...mixins import ErrorResponseMixin
 
 
 class ListCachesResponse(ControlResponse):
-    """Parent response type for a list caches request. The
-    response object is resolved to a type-safe object of one of
-    the following subtypes:
+    """Parent response type for a list caches request.
 
+    The response object is resolved to a type-safe object of one of
+    the following subtypes:
     - `ListCaches.Success`
     - `ListCaches.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example, in python 3.10+:
+    For example, in python 3.10+::
 
         match response:
             case ListCaches.Success():
@@ -30,7 +30,7 @@ class ListCachesResponse(ControlResponse):
             case _:
                 # Shouldn't happen
 
-    or equivalently in earlier versions of python:
+    or equivalently in earlier versions of python::
 
         if isinstance(response, ListCaches.Success):
             ...
@@ -70,8 +70,9 @@ class ListCaches(ABC):
             return ListCaches.Success(caches=caches)
 
     class Error(ListCachesResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

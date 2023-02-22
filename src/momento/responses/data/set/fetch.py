@@ -8,8 +8,9 @@ from ...response import CacheResponse
 
 
 class CacheSetFetchResponse(CacheResponse):
-    """Response type for a `set_fetch` request. Its subtypes are:
+    """Parent response type for a `set_fetch` request.
 
+    Its subtypes are:
     - `CacheSetFetch.Hit`
     - `CacheSetFetch.Miss`
     - `CacheSetFetch.Error`
@@ -38,15 +39,15 @@ class CacheSetFetch(ABC):
             Returns:
                 TSetElementsOutputStr
             """
-
             return {v.decode("utf-8") for v in self.value_set_bytes}
 
     class Miss(CacheSetFetchResponse):
         """Indicates the set does not exist."""
 
     class Error(CacheSetFetchResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request:
+        """Indicates an error occured in the request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

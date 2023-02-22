@@ -6,8 +6,9 @@ from ...response import CacheResponse
 
 
 class CacheListPushFrontResponse(CacheResponse):
-    """Response type for a `list_push_front` request. Its subtypes are:
+    """Response type for a `list_push_front` request.
 
+    Its subtypes are:
     - `CacheListPushFront.Success`
     - `CacheListPushFront.Error`
 
@@ -26,8 +27,9 @@ class CacheListPushFront(ABC):
         """The number of values in the list after this push"""
 
     class Error(CacheListPushFrontResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request:
+        """Indicates an error occured in the request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

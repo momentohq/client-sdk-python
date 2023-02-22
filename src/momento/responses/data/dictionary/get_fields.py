@@ -9,8 +9,9 @@ from .get_field import CacheDictionaryGetField, CacheDictionaryGetFieldResponse
 
 
 class CacheDictionaryGetFieldsResponse(CacheResponse):
-    """Parent response type for a cache `dictionary_get_fields` request. Its subtypes are:
+    """Parent response type for a cache `dictionary_get_fields` request.
 
+    Its subtypes are:
     - `CacheDictionaryGetFields.Hit`
     - `CacheDictionaryGetFields.Miss`
     - `CacheDictionaryGetFields.Error`
@@ -86,8 +87,9 @@ class CacheDictionaryGetFields(ABC):
         """Indicates the dictionary does not exist."""
 
     class Error(CacheDictionaryGetFieldsResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

@@ -5,8 +5,9 @@ from ...response import CacheResponse
 
 
 class CacheDictionaryRemoveFieldResponse(CacheResponse):
-    """Parent response type for a cache `dictionary_remove_field` request. Its subtypes are:
+    """Parent response type for a cache `dictionary_remove_field` request.
 
+    Its subtypes are:
     - `CacheDictionaryRemoveField.Success`
     - `CacheDictionaryRemoveField.Error`
 
@@ -21,8 +22,9 @@ class CacheDictionaryRemoveField(ABC):
         """Indicates the request was successful."""
 
     class Error(CacheDictionaryRemoveFieldResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

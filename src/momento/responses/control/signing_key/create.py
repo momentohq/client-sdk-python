@@ -12,8 +12,9 @@ from ...mixins import ErrorResponseMixin
 
 
 class CreateSigningKeyResponse(ControlResponse):
-    """Parent response type for a cache `create_signing_key` request. Its subtypes are:
+    """Parent response type for a cache `create_signing_key` request.
 
+    Its subtypes are:
     - `CreateSigningKey.Success`
     - `CreateSigningKey.Error`
 
@@ -45,8 +46,9 @@ class CreateSigningKey(ABC):
             return CreateSigningKey.Success(key_id, endpoint, key, expires_at)
 
     class Error(CreateSigningKeyResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

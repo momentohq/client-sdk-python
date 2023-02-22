@@ -7,8 +7,9 @@ import grpc
 
 @enum.unique
 class MomentoErrorCode(enum.Enum):
-    """A list of all available Momento error codes.  These can be used to check
-    for specific types of errors on a failure response.
+    """A list of all available Momento error codes.
+
+    These can be used to check for specific types of errors on a failure response.
     """
 
     INVALID_ARGUMENT_ERROR = (1,)
@@ -45,8 +46,9 @@ class MomentoErrorCode(enum.Enum):
 
 @dataclass
 class MomentoGrpcErrorDetails:
-    """Captures low-level information about an error, at the gRPC level.  Hopefully
-    this is only needed in rare cases, by Momento engineers, for debugging.
+    """Captures low-level information about an error, at the gRPC level.
+
+    Hopefully this is only needed in rare cases, by Momento engineers, for debugging.
     """
 
     code: grpc.StatusCode

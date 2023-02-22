@@ -12,7 +12,7 @@ from ._retry_interceptor import get_retry_interceptor_if_enabled
 
 
 class _ControlGrpcManager:
-    """Momento Internal."""
+    """Internal gRPC control mananger."""
 
     version = pkg_resources.get_distribution("momento").version
 
@@ -31,7 +31,7 @@ class _ControlGrpcManager:
 
 
 class _DataGrpcManager:
-    """Momento Internal."""
+    """Internal gRPC data mananger."""
 
     version = pkg_resources.get_distribution("momento").version
 

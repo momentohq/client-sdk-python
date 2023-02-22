@@ -195,7 +195,7 @@ def bad_auth_token() -> str:
 
 @pytest.fixture(scope="session")
 def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
-    """cf https://github.com/pytest-dev/pytest-asyncio#event_loop"""
+    """See also: https://github.com/pytest-dev/pytest-asyncio#event_loop."""
     policy = asyncio.get_event_loop_policy()
     loop = policy.new_event_loop()
     yield loop
@@ -234,8 +234,7 @@ TUniqueCacheName = Callable[[SimpleCacheClient], str]
 
 @pytest.fixture
 def unique_cache_name(client: SimpleCacheClient) -> Iterator[Callable[[SimpleCacheClient], str]]:
-    """Synchronous version of unique_cache_name_async"""
-
+    """Synchronous version of unique_cache_name_async."""
     cache_names = []
 
     def _unique_cache_name(client: SimpleCacheClient) -> str:
@@ -257,8 +256,9 @@ TUniqueCacheNameAsync = Callable[[SimpleCacheClientAsync], str]
 async def unique_cache_name_async(
     client_async: SimpleCacheClientAsync,
 ) -> AsyncIterator[Callable[[SimpleCacheClientAsync], str]]:
-    """Returns unique cache name for testing, and ensures the cache is deleted after the test,
-    even if the test fails.
+    """Returns unique cache name for testing.
+
+    Also ensures the cache is deleted after the test, even if the test fails.
 
     It does not create the cache for you.
 
@@ -268,7 +268,6 @@ async def unique_cache_name_async(
     Returns:
         str: the unique cache name
     """
-
     cache_names = []
 
     def _unique_cache_name_async(client: SimpleCacheClientAsync) -> str:

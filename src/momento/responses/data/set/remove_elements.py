@@ -5,8 +5,9 @@ from ...response import CacheResponse
 
 
 class CacheSetRemoveElementsResponse(CacheResponse):
-    """Parent response type for a `set_remove_elements` request. Its subtypes are:
+    """Parent response type for a `set_remove_elements` request.
 
+    Its subtypes are:
     - `CacheSetRemoveElements.Success`
     - `CacheSetRemoveElements.Error`
 
@@ -21,8 +22,9 @@ class CacheSetRemoveElements(ABC):
         """Indicates the elements were removed."""
 
     class Error(CacheSetRemoveElementsResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """
