@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import os
 import random
 from datetime import timedelta
-from typing import Optional, cast
+from typing import AsyncIterator, Callable, Iterator, List, Optional, Union, cast
 
 import pytest
 import pytest_asyncio
@@ -16,16 +18,12 @@ from momento.typing import (
     TDictionaryFields,
     TDictionaryItems,
     TDictionaryName,
-    TDictionaryValue,
     TListName,
     TListValue,
-    TListValuesInput,
-    TListValuesInputBytes,
-    TListValuesInputStr,
+    TScalarKey,
+    TScalarValue,
     TSetElement,
     TSetElementsInput,
-    TSetElementsInputBytes,
-    TSetElementsInputStr,
     TSetName,
 )
 from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
@@ -79,27 +77,43 @@ def list_name() -> TListName:
 
 @pytest.fixture
 def list_value() -> TListValue:
-    return random.choice((uuid_bytes(), uuid_str()))
+    return cast(TListValue, random.choice((uuid_bytes(), uuid_str())))
 
 
 @pytest.fixture
-def values_bytes() -> TListValuesInputBytes:
+def key() -> TScalarKey:
+    return cast(TScalarKey, random.choice((uuid_bytes(), uuid_str())))
+
+
+@pytest.fixture
+def value() -> TScalarValue:
+    return cast(TScalarValue, random.choice((uuid_bytes(), uuid_str())))
+
+
+@pytest.fixture
+def values_bytes() -> list[bytes]:
     return [uuid_bytes(), uuid_bytes(), uuid_bytes()]
 
 
 @pytest.fixture()
-def values() -> TListValuesInput:
-    return random.choice(([uuid_bytes(), uuid_bytes(), uuid_bytes()], [uuid_str(), uuid_str(), uuid_str()]))
+def values() -> list[str | bytes]:
+    val = random.choice(([uuid_bytes(), uuid_bytes(), uuid_bytes()], [uuid_str(), uuid_str(), uuid_str()]))
+    return cast(List[Union[str, bytes]], val)
 
 
 @pytest.fixture
-def values_str() -> TListValuesInputStr:
+def values_str() -> list[str]:
     return [uuid_str(), uuid_str(), uuid_str()]
 
 
 @pytest.fixture
 def dictionary_name() -> TDictionaryName:
     return uuid_str()
+
+
+@pytest.fixture
+def dictionary_field() -> TDictionaryField:
+    return cast(TDictionaryField, random.choice((uuid_bytes(), uuid_str())))
 
 
 @pytest.fixture
@@ -129,7 +143,7 @@ def dictionary_fields() -> TDictionaryFields:
 
 @pytest.fixture
 def dictionary_items() -> TDictionaryItems:
-    return dict([(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())])
+    return cast(TDictionaryItems, dict([(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())]))
 
 
 @pytest.fixture
@@ -144,25 +158,28 @@ def set_name() -> TSetName:
 
 @pytest.fixture
 def element() -> TSetElement:
-    return random.choice((uuid_bytes(), uuid_str()))
+    return cast(TSetElement, random.choice((uuid_bytes(), uuid_str())))
 
 
 @pytest.fixture
 def elements() -> TSetElementsInput:
-    return {
-        random.choice((uuid_bytes(), uuid_str())),
-        random.choice((uuid_bytes(), uuid_str())),
-        random.choice((uuid_bytes(), uuid_str())),
-    }
+    return cast(
+        TSetElementsInput,
+        {
+            random.choice((uuid_bytes(), uuid_str())),
+            random.choice((uuid_bytes(), uuid_str())),
+            random.choice((uuid_bytes(), uuid_str())),
+        },
+    )
 
 
 @pytest.fixture
-def elements_str() -> TSetElementsInputStr:
+def elements_str() -> set[str]:
     return {uuid_str(), uuid_str(), uuid_str()}
 
 
 @pytest.fixture
-def elements_bytes() -> TSetElementsInputBytes:
+def elements_bytes() -> set[bytes]:
     return {uuid_bytes(), uuid_bytes(), uuid_bytes()}
 
 
@@ -177,8 +194,8 @@ def bad_auth_token() -> str:
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> asyncio.AbstractEventLoop:  # type: ignore
-    """cf https://github.com/pytest-dev/pytest-asyncio#event_loop"""
+def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
+    """See also: https://github.com/pytest-dev/pytest-asyncio#event_loop."""
     policy = asyncio.get_event_loop_policy()
     loop = policy.new_event_loop()
     yield loop
@@ -186,36 +203,38 @@ def event_loop() -> asyncio.AbstractEventLoop:  # type: ignore
 
 
 @pytest.fixture(scope="session")
-def client() -> SimpleCacheClient:
+def client() -> Iterator[SimpleCacheClient]:
     configuration = Laptop.latest()
     credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
     with SimpleCacheClient(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
-        _client.create_cache(TEST_CACHE_NAME)
+        _client.create_cache(cast(str, TEST_CACHE_NAME))
         try:
             yield _client
         finally:
-            _client.delete_cache(TEST_CACHE_NAME)
+            _client.delete_cache(cast(str, TEST_CACHE_NAME))
 
 
 @pytest_asyncio.fixture(scope="session")
-async def client_async() -> SimpleCacheClientAsync:
+async def client_async() -> AsyncIterator[SimpleCacheClientAsync]:
     configuration = Laptop.latest()
     credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
     async with SimpleCacheClientAsync(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         # TODO consider deleting cache on when test runner shuts down
-        await _client.create_cache(TEST_CACHE_NAME)
+        await _client.create_cache(cast(str, TEST_CACHE_NAME))
         try:
             yield _client
         finally:
-            await _client.delete_cache(TEST_CACHE_NAME)
+            await _client.delete_cache(cast(str, TEST_CACHE_NAME))
+
+
+TUniqueCacheName = Callable[[SimpleCacheClient], str]
 
 
 @pytest.fixture
-def unique_cache_name(client: SimpleCacheClient) -> str:
-    """Synchronous version of unique_cache_name_async"""
-
+def unique_cache_name(client: SimpleCacheClient) -> Iterator[Callable[[SimpleCacheClient], str]]:
+    """Synchronous version of unique_cache_name_async."""
     cache_names = []
 
     def _unique_cache_name(client: SimpleCacheClient) -> str:
@@ -230,11 +249,16 @@ def unique_cache_name(client: SimpleCacheClient) -> str:
             client.delete_cache(cache_name)
 
 
-#
+TUniqueCacheNameAsync = Callable[[SimpleCacheClientAsync], str]
+
+
 @pytest_asyncio.fixture
-async def unique_cache_name_async(client_async: SimpleCacheClientAsync) -> str:
-    """Returns unique cache name for testing, and ensures the cache is deleted after the test,
-    even if the test fails.
+async def unique_cache_name_async(
+    client_async: SimpleCacheClientAsync,
+) -> AsyncIterator[Callable[[SimpleCacheClientAsync], str]]:
+    """Returns unique cache name for testing.
+
+    Also ensures the cache is deleted after the test, even if the test fails.
 
     It does not create the cache for you.
 
@@ -244,7 +268,6 @@ async def unique_cache_name_async(client_async: SimpleCacheClientAsync) -> str:
     Returns:
         str: the unique cache name
     """
-
     cache_names = []
 
     def _unique_cache_name_async(client: SimpleCacheClientAsync) -> str:

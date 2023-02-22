@@ -52,7 +52,7 @@ SDK_ERROR_MESSAGE = "SDK Failed to process the request."
 def convert_error(
     exception: Exception, transport_metadata: Optional[Metadata | list[Tuple[str, str]]] = None
 ) -> SdkException:
-    """Convert a low-level exception raised by gRPC to a Momento `SdkException`
+    """Convert a low-level exception raised by gRPC to a Momento `SdkException`.
 
     Note about the metadata type: Metadata in the asynchronous gRPC client is of
     type Metadata, while metadata in the synchronous client is a list of tuples.

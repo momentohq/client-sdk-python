@@ -13,11 +13,11 @@ from momento.typing import (
     TSetElementsInputBytes,
 )
 
-DEFAULT_STRING_CONVERSION_ERROR = "Could not decode bytes to UTF-8"
-DEFAULT_LIST_CONVERSION_ERROR = "Could not decode List[bytes] to UTF-8"
-DEFAULT_DICTIONARY_CONVERSION_ERROR = "Could not decode Mapping[bytes, bytes] to UTF-8"
-DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR = "Could not decode Iterable[bytes, bytes] to UTF-8"
-DEFAULT_SET_CONVERSION_ERROR = "Could not decode Set[bytes] to UTF-8"
+DEFAULT_BYTES_CONVERSION_ERROR = "Could not convert the given type to bytes: "
+DEFAULT_LIST_CONVERSION_ERROR = "The given type is not list[str | bytes]: "
+DEFAULT_DICTIONARY_CONVERSION_ERROR = "The given type is not a valid Mapping: "
+DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR = "The given type is not Iterable[str | bytes]: "
+DEFAULT_SET_CONVERSION_ERROR = "The given type is not set[str | bytes]: "
 
 
 def _validate_name(name: str, field_name: str) -> None:
@@ -45,7 +45,7 @@ def _validate_set_name(set_name: str) -> None:
 
 def _as_bytes(
     data: str | bytes,
-    error_message: Optional[str] = DEFAULT_STRING_CONVERSION_ERROR,
+    error_message: Optional[str] = DEFAULT_BYTES_CONVERSION_ERROR,
 ) -> bytes:
     if isinstance(data, str):
         return data.encode("utf-8")

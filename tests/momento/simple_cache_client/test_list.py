@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from collections import Counter
 from datetime import timedelta
 from functools import partial
 from time import sleep
-from typing import Callable
 
 import pytest
 from pytest import fixture
@@ -31,7 +32,6 @@ from momento.typing import (
     TListName,
     TListValue,
     TListValuesInput,
-    TListValuesInputBytes,
     TListValuesInputStr,
 )
 from tests.utils import uuid_bytes, uuid_str
@@ -118,23 +118,26 @@ def a_list_adder() -> None:
             assert isinstance(fetch_resp, CacheListFetch.Miss)
 
 
-TListConcatenator = Callable[[TCacheName, TListName, TListValuesInput], CacheResponse]
+class TListConcatenator(Protocol):
+    def __call__(self, cache_name: TCacheName, list_name: TListName, values: TListValuesInput) -> CacheResponse:
+        ...
 
 
 def a_list_concatenator() -> None:
     def it_returns_the_new_list_length(
         list_concatenator: TListConcatenator,
-        client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values: TListValuesInput,
+        values: list[str | bytes],
     ) -> None:
         resp = list_concatenator(cache_name, list_name, values)
         length = len(values)
+        assert isinstance(resp, CacheListConcatenateBack.Success) or isinstance(resp, CacheListConcatenateFront.Success)
         assert resp.list_length == length
 
         resp = list_concatenator(cache_name, list_name, values)
         length += len(values)
+        assert isinstance(resp, CacheListConcatenateBack.Success) or isinstance(resp, CacheListConcatenateFront.Success)
         assert resp.list_length == length
 
     def with_bytes_it_succeeds(
@@ -142,9 +145,12 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_bytes: TListValuesInputBytes,
+        values_bytes: list[bytes],
     ) -> None:
         concat_resp = list_concatenator(cache_name, list_name, values_bytes)
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success) or isinstance(
+            concat_resp, CacheListConcatenateFront.Success
+        )
         assert concat_resp.list_length == len(values_bytes)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
@@ -156,9 +162,12 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_str: TListValuesInputStr,
+        values_str: list[str],
     ) -> None:
         concat_resp = list_concatenator(cache_name, list_name, values_str)
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success) or isinstance(
+            concat_resp, CacheListConcatenateFront.Success
+        )
         assert concat_resp.list_length == len(values_str)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
@@ -170,10 +179,13 @@ def a_list_concatenator() -> None:
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
-        values_str: TListValuesInputStr,
+        values_str: list[str],
     ) -> None:
         iterator = iter(values_str)
         concat_resp = list_concatenator(cache_name, list_name, iterator)
+        assert isinstance(concat_resp, CacheListConcatenateBack.Success) or isinstance(
+            concat_resp, CacheListConcatenateFront.Success
+        )
         assert concat_resp.list_length == len(values_str)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
@@ -186,44 +198,47 @@ def a_list_concatenator() -> None:
         cache_name: TCacheName,
         list_name: TListName,
     ) -> None:
-        resp = list_concatenator(cache_name, list_name, 234)
+        resp = list_concatenator(cache_name, list_name, 234)  # type:ignore[arg-type]
         assert isinstance(resp, ErrorResponseMixin)
         assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert resp.message == "Invalid argument passed to Momento client: Unsupported type for values: <class 'int'>"
 
 
-TListNameValidator = Callable[[TListName], CacheResponse]
+class TListNameValidator(Protocol):
+    def __call__(self, list_name: TListName) -> CacheResponse:
+        ...
 
 
 def a_list_name_validator() -> None:
-    def with_null_list_name_it_returns_invalid(list_name_validator: TListNameValidator, cache_name: TCacheName) -> None:
-        response = list_name_validator(cache_name, None)  # type: ignore
-        assert isinstance(response, ErrorResponseMixin)
-        assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == "List name must be a string"
+    def with_null_list_name_it_returns_invalid(list_name_validator: TListNameValidator) -> None:
+        response = list_name_validator(list_name=None)  # type: ignore
+        if isinstance(response, ErrorResponseMixin):
+            assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+            assert response.inner_exception.message == "List name must be a string"
+        else:
+            assert False
 
-    def with_empty_list_name_it_returns_invalid(
-        list_name_validator: TListNameValidator, cache_name: TCacheName
-    ) -> None:
-        response = list_name_validator(cache_name, "")
+    def with_empty_list_name_it_returns_invalid(list_name_validator: TListNameValidator) -> None:
+        response = list_name_validator(list_name="")
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "List name must not be empty"
 
-    def with_bad_list_name_it_returns_invalid(list_name_validator: TCacheNameValidator, cache_name: TCacheName) -> None:
-        response = list_name_validator(cache_name, 1)  # type: ignore
+    def with_bad_list_name_it_returns_invalid(list_name_validator: TCacheNameValidator) -> None:
+        response = list_name_validator(list_name=1)  # type: ignore
         assert isinstance(response, ErrorResponseMixin)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "List name must be a string"
 
 
-TListPusher = Callable[[TCacheName, TListName, TListValue], CacheResponse]
+class TListPusher(Protocol):
+    def __call__(self, cache_name: TCacheName, list_name: TListName, value: TListValue) -> CacheResponse:
+        ...
 
 
 def a_list_pusher() -> None:
     def it_returns_the_new_list_length(
         list_pusher: TListPusher,
-        client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
         values: TListValuesInput,
@@ -232,31 +247,34 @@ def a_list_pusher() -> None:
         for value in values:
             resp = list_pusher(cache_name, list_name, value)
             length += 1
+            assert isinstance(resp, CacheListPushBack.Success) or isinstance(resp, CacheListPushFront.Success)
             assert resp.list_length == length
 
     def with_bytes_it_succeeds(
-        list_pusher: TListConcatenator,
+        list_pusher: TListPusher,
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
     ) -> None:
         value = uuid_bytes()
-        concat_resp = list_pusher(cache_name, list_name, value)
-        assert concat_resp.list_length == 1
+        resp = list_pusher(cache_name, list_name, value)
+        assert isinstance(resp, CacheListPushBack.Success) or isinstance(resp, CacheListPushFront.Success)
+        assert resp.list_length == 1
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
         assert fetch_resp.values_bytes == [value]
 
     def with_strings_it_succeeds(
-        list_pusher: TListConcatenator,
+        list_pusher: TListPusher,
         client: SimpleCacheClient,
         cache_name: TCacheName,
         list_name: TListName,
     ) -> None:
         value = uuid_str()
-        concat_resp = list_pusher(cache_name, list_name, value)
-        assert concat_resp.list_length == 1
+        resp = list_pusher(cache_name, list_name, value)
+        assert isinstance(resp, CacheListPushBack.Success) or isinstance(resp, CacheListPushFront.Success)
+        assert resp.list_length == 1
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
@@ -268,7 +286,7 @@ def a_list_pusher() -> None:
         cache_name: TCacheName,
         list_name: TListName,
     ) -> None:
-        resp = list_pusher(cache_name, list_name, 234)
+        resp = list_pusher(cache_name, list_name, 234)  # type:ignore[arg-type]
         assert isinstance(resp, ErrorResponseMixin)
         assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert resp.message == "Invalid argument passed to Momento client: Unsupported type for value: <class 'int'>"
@@ -286,10 +304,11 @@ def describe_list_concatenate_back() -> None:
         return partial(client.list_concatenate_back, list_name=list_name, values=[uuid_str()])
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
-            return client.list_concatenate_back(cache_name, list_name, [uuid_str()])
+    def connection_validator(
+        cache_name: TCacheName, list_name: TListName, values: TListValuesInput
+    ) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+            return client.list_concatenate_back(cache_name, list_name, values)
 
         return _connection_validator
 
@@ -309,14 +328,12 @@ def describe_list_concatenate_back() -> None:
 
     @fixture
     def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
+        client: SimpleCacheClient, cache_name: TCacheName, values: TListValuesInput
     ) -> TListNameValidator:
-        return partial(client.list_concatenate_back, values=values)
+        return partial(client.list_concatenate_back, cache_name=cache_name, values=values)
 
     @fixture
-    def list_concatenator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
-    ) -> TListConcatenator:
+    def list_concatenator(client: SimpleCacheClient) -> TListConcatenator:
         return partial(client.list_concatenate_back)
 
     def it_truncates_the_front(
@@ -345,7 +362,10 @@ def describe_list_concatenate_back() -> None:
         assert concat_resp.list_length <= truncate_to
 
         fetch_resp = client.list_fetch(cache_name, list_name)
-        assert fetch_resp.values_string == ["three", "four", "five", "six"]
+        if isinstance(fetch_resp, CacheListFetch.Hit):
+            assert fetch_resp.values_string == ["three", "four", "five", "six"]
+        else:
+            assert False
 
 
 @behaves_like(a_cache_name_validator)
@@ -360,10 +380,12 @@ def describe_list_concatenate_front() -> None:
         return partial(client.list_concatenate_front, list_name=list_name, values=[uuid_str()])
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
+    def connection_validator(
+        cache_name: TCacheName, list_name: TListName, values: TListValuesInput
+    ) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             list_name = uuid_str()
-            return client.list_concatenate_front(cache_name, list_name, [uuid_str()])
+            return client.list_concatenate_front(cache_name, list_name, values)
 
         return _connection_validator
 
@@ -383,14 +405,12 @@ def describe_list_concatenate_front() -> None:
 
     @fixture
     def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
+        client: SimpleCacheClient, cache_name: TCacheName, values: TListValuesInput
     ) -> TListNameValidator:
-        return partial(client.list_concatenate_front, values=values)
+        return partial(client.list_concatenate_front, cache_name=cache_name, values=values)
 
     @fixture
-    def list_concatenator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
-    ) -> TListConcatenator:
+    def list_concatenator(client: SimpleCacheClient) -> TListConcatenator:
         return partial(client.list_concatenate_front)
 
     def it_truncates_the_back(
@@ -419,7 +439,10 @@ def describe_list_concatenate_front() -> None:
         assert concat_resp.list_length <= truncate_to
 
         fetch_resp = client.list_fetch(cache_name, list_name)
-        assert fetch_resp.values_string == ["four", "five", "six", "one"]
+        if isinstance(fetch_resp, CacheListFetch.Hit):
+            assert fetch_resp.values_string == ["four", "five", "six", "one"]
+        else:
+            assert False
 
 
 @behaves_like(a_cache_name_validator)
@@ -432,18 +455,15 @@ def describe_list_fetch() -> None:
         return partial(client.list_fetch, list_name=list_name)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
+    def connection_validator(cache_name: TCacheName, list_name: TListName) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.list_fetch(cache_name, list_name)
 
         return _connection_validator
 
     @fixture
-    def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
-        return partial(client.list_fetch)
+    def list_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TListNameValidator:
+        return partial(client.list_fetch, cache_name=cache_name)
 
     def misses_when_the_list_does_not_exist(
         client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
@@ -462,21 +482,18 @@ def describe_list_length() -> None:
         return partial(client.list_length, list_name=list_name)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
+    def connection_validator(cache_name: TCacheName, list_name: TListName) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.list_length(cache_name, list_name)
 
         return _connection_validator
 
     @fixture
-    def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
-        return partial(client.list_length)
+    def list_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TListNameValidator:
+        return partial(client.list_length, cache_name=cache_name)
 
     def it_returns_the_list_length(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
+        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, values: list[str | bytes]
     ) -> None:
         client.list_concatenate_back(cache_name, list_name, values)
 
@@ -501,18 +518,15 @@ def describe_list_pop_back() -> None:
         return partial(client.list_pop_back, list_name=list_name)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
+    def connection_validator(cache_name: TCacheName, list_name: TListName) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.list_pop_back(cache_name, list_name)
 
         return _connection_validator
 
     @fixture
-    def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
-        return partial(client.list_pop_back)
+    def list_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TListNameValidator:
+        return partial(client.list_pop_back, cache_name=cache_name)
 
     def it_pops_the_back(client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName) -> None:
         values = ["one", "two", "three"]
@@ -540,18 +554,15 @@ def describe_list_pop_front() -> None:
         return partial(client.list_pop_front, list_name=list_name)
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
+    def connection_validator(cache_name: TCacheName, list_name: TListName) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
             return client.list_pop_front(cache_name, list_name)
 
         return _connection_validator
 
     @fixture
-    def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
-        return partial(client.list_pop_front)
+    def list_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TListNameValidator:
+        return partial(client.list_pop_front, cache_name=cache_name)
 
     def it_pops_the_front(client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName) -> None:
         values = ["one", "two", "three"]
@@ -581,10 +592,9 @@ def describe_list_push_back() -> None:
         return partial(client.list_push_back, list_name=list_name, value=uuid_str())
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
-            return client.list_push_back(cache_name=cache_name, list_name=list_name, value=uuid_str())
+    def connection_validator(cache_name: TCacheName, list_name: TListName, value: TListValue) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+            return client.list_push_back(cache_name=cache_name, list_name=list_name, value=value)
 
         return _connection_validator
 
@@ -602,11 +612,9 @@ def describe_list_push_back() -> None:
         return _list_adder
 
     @fixture
-    def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
+    def list_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TListNameValidator:
         value = uuid_str()
-        return partial(client.list_push_back, value=value)
+        return partial(client.list_push_back, cache_name=cache_name, value=value)
 
     @fixture
     def list_pusher(client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName) -> TListPusher:
@@ -629,7 +637,10 @@ def describe_list_push_back() -> None:
             assert isinstance(concat_resp, CacheListPushBack.Success)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
-        assert fetch_resp.values_string == ["2", "3"]
+        if isinstance(fetch_resp, CacheListFetch.Hit):
+            assert fetch_resp.values_string == ["2", "3"]
+        else:
+            assert False
 
 
 @behaves_like(a_cache_name_validator)
@@ -644,10 +655,9 @@ def describe_list_push_front() -> None:
         return partial(client.list_push_front, list_name=list_name, value=uuid_str())
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
-            return client.list_push_front(cache_name=cache_name, list_name=list_name, value=uuid_str())
+    def connection_validator(cache_name: TCacheName, list_name: TListName, value: TListValue) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+            return client.list_push_front(cache_name=cache_name, list_name=list_name, value=value)
 
         return _connection_validator
 
@@ -666,16 +676,12 @@ def describe_list_push_front() -> None:
         return _list_adder
 
     @fixture
-    def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
+    def list_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TListNameValidator:
         value = uuid_str()
-        return partial(client.list_push_front, value=value)
+        return partial(client.list_push_front, cache_name=cache_name, value=value)
 
     @fixture
-    def list_pusher(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName, list_value: TListValue
-    ) -> TListPusher:
+    def list_pusher(client: SimpleCacheClient) -> TListPusher:
         return partial(client.list_push_front)
 
     def it_truncates_the_back(
@@ -695,7 +701,10 @@ def describe_list_push_front() -> None:
             assert isinstance(concat_resp, CacheListPushFront.Success)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
-        assert fetch_resp.values_string == ["3", "2"]
+        if isinstance(fetch_resp, CacheListFetch.Hit):
+            assert fetch_resp.values_string == ["3", "2"]
+        else:
+            assert False
 
 
 @behaves_like(a_cache_name_validator)
@@ -708,19 +717,16 @@ def describe_list_remove_value() -> None:
         return partial(client.list_remove_value, list_name=list_name, value=uuid_str())
 
     @fixture
-    def connection_validator() -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient, cache_name: TCacheName) -> ErrorResponseMixin:
-            list_name = uuid_str()
-            return client.list_remove_value(cache_name=cache_name, list_name=list_name, value=uuid_str())
+    def connection_validator(cache_name: TCacheName, list_name: TListName, value: TListValue) -> TConnectionValidator:
+        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+            return client.list_remove_value(cache_name=cache_name, list_name=list_name, value=value)
 
         return _connection_validator
 
     @fixture
-    def list_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, list_name: TListName
-    ) -> TListNameValidator:
+    def list_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TListNameValidator:
         value = uuid_str()
-        return partial(client.list_remove_value, value=value)
+        return partial(client.list_remove_value, cache_name=cache_name, value=value)
 
     @pytest.mark.parametrize(
         "values, to_remove, expected_values",
@@ -745,4 +751,7 @@ def describe_list_remove_value() -> None:
         client.list_remove_value(cache_name, list_name, to_remove)
 
         fetch_resp = client.list_fetch(cache_name, list_name)
-        assert fetch_resp.values_string == expected_values
+        if isinstance(fetch_resp, CacheListFetch.Hit):
+            assert fetch_resp.values_string == expected_values
+        else:
+            assert False

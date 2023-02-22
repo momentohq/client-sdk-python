@@ -24,28 +24,43 @@ class ConfigurationBase(ABC):
 
 
 class Configuration(ConfigurationBase):
-    """Configuration options for Momento Simple Cache Client"""
+    """Configuration options for Momento Simple Cache Client."""
 
     def __init__(self, transport_strategy: TransportStrategy):
-        """:param transport_strategy: Configuration options for wire interactions with the Momento service"""
+        """Instantiate a Configuration.
+
+        Args:
+            transport_strategy (TransportStrategy): Configuration options for networking with
+            the Momento service.
+        """
         self._transport_strategy = transport_strategy
 
     def get_transport_strategy(self) -> TransportStrategy:
-        """:return: the current configuration options for wire interactions with the Momento service"""
+        """Access the transport strategy.
+
+        Returns:
+            TransportStrategy: the current configuration options for wire interactions with the Momento service.
+        """
         return self._transport_strategy
 
     def with_transport_strategy(self, transport_strategy: TransportStrategy) -> Configuration:
-        """Copy constructor for overriding TransportStrategy
+        """Copy constructor for overriding TransportStrategy.
 
-        :param transport_strategy: TransportStrategy
-        :return: a new Configuration object with the specified TransportStrategy
+        Args:
+            transport_strategy (TransportStrategy): the new TransportStrategy.
+
+        Returns:
+            Configuration: the new Configuration with the specified TransportStrategy.
         """
         return Configuration(transport_strategy)
 
     def with_client_timeout(self, client_timeout: timedelta) -> Configuration:
-        """Convenience copy constructor that updates the client-side timeout setting in the TransportStrategy
+        """Copies the Configuration and sets the new client-side timeout in the copy's TransportStrategy.
 
-        :param client_timeout: timedelta specifying the new timeout value
-        :return: a new Configuration object with its TransportStrategy updated to use the specified client timeout
+        Args:
+            client_timeout (timedelta): the new client-side timeout.
+
+        Return:
+            Configuration: the new Configuration.
         """
         return Configuration(self._transport_strategy.with_client_timeout(client_timeout))

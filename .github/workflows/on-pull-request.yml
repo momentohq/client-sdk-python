@@ -40,10 +40,10 @@ jobs:
       - name: Run mypy
         # mypy has inconsistencies between 3.7 and the rest; default to lowest common denominator
         if: matrix.python-version == '3.7'
-        run: poetry run mypy src/
+        run: poetry run mypy src tests
 
       - name: Run flake8
-        run: poetry run flake8 src/
+        run: poetry run flake8 src tests
 
       - name: Run black
         run: poetry run black src tests --check --diff
@@ -85,7 +85,7 @@ jobs:
         if: ${{ matrix.python-version }} == '3.10'
         with:
           project_status: official
-          project_stability: alpha
+          project_stability: beta
           project_type: sdk
           sdk_language: Python
           usage_example_path: ./examples/${{ matrix.package }}/example.py

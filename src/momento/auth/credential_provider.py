@@ -2,16 +2,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
 from . import momento_endpoint_resolver
 
 
 @dataclass
 class CredentialProvider:
-    """Provides information that the SimpleCacheClient needs in order to establish a connection to and authenticate with
-    the Momento service.
-    """
+    """Information the SimpleCacheClient needs to connect to and authenticate with the Momento service."""
 
     auth_token: str
     control_endpoint: str
@@ -65,3 +63,12 @@ class CredentialProvider:
         control_endpoint = control_endpoint or endpoints.control_endpoint
         cache_endpoint = cache_endpoint or endpoints.cache_endpoint
         return CredentialProvider(auth_token, control_endpoint, cache_endpoint)
+
+    def __repr__(self) -> str:
+        attributes: Dict[str, str] = vars(self)
+        attributes["auth_token"] = self._obscure(attributes["auth_token"])
+        message = ", ".join(f"{k}={v!r}" for k, v in attributes.items())
+        return f"{self.__class__.__name__}({message})"
+
+    def _obscure(self, value: str) -> str:
+        return f"{value[:10]}...{value[-10:]}"

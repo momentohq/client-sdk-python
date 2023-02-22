@@ -29,7 +29,7 @@ async def test_init_throws_exception_when_client_uses_integer_request_timeout_ms
     configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: int
 ) -> None:
     with pytest.raises(InvalidArgumentException, match="Request timeout must be a timedelta."):
-        configuration.with_client_timeout(-1)
+        configuration.with_client_timeout(-1)  # type: ignore[arg-type]
 
 
 async def test_init_throws_exception_when_client_uses_negative_request_timeout_ms(

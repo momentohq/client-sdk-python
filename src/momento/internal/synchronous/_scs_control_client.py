@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Optional
 
 import grpc
 from momento_wire_types.controlclient_pb2 import (
@@ -20,12 +19,15 @@ from momento.internal.synchronous._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
     CreateCache,
     CreateCacheResponse,
+    CreateSigningKey,
     CreateSigningKeyResponse,
     DeleteCache,
     DeleteCacheResponse,
     ListCaches,
     ListCachesResponse,
+    ListSigningKeys,
     ListSigningKeysResponse,
+    RevokeSigningKey,
     RevokeSigningKeyResponse,
 )
 
@@ -72,10 +74,10 @@ class _ScsControlClient:
             return DeleteCache.Error(convert_error(e))
         return DeleteCache.Success()
 
-    def list_caches(self, next_token: Optional[str] = None) -> ListCachesResponse:
+    def list_caches(self) -> ListCachesResponse:
         try:
             list_caches_request = _ListCachesRequest()
-            list_caches_request.next_token = next_token if next_token is not None else ""
+            list_caches_request.next_token = ""
             response = self._build_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             return ListCaches.Success.from_grpc_response(response)
         except Exception as e:
@@ -83,18 +85,17 @@ class _ScsControlClient:
 
     def create_signing_key(self, ttl: timedelta, endpoint: str) -> CreateSigningKeyResponse:
         try:
+            self._logger.info(f"Creating signing key with ttl={ttl!r} and endpoint={endpoint!r}")
             _validate_ttl(ttl)
             ttl_minutes = round(ttl.total_seconds() / 60)
             self._logger.info(f"Creating signing key with ttl (in minutes): {ttl_minutes}")
             create_signing_key_request = _CreateSigningKeyRequest()
             create_signing_key_request.ttl_minutes = ttl_minutes
-            return CreateSigningKeyResponse.from_grpc_response(
-                self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS),
-                endpoint,
-            )
+            response = self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS)
+            return CreateSigningKey.Success.from_grpc_response(response, endpoint)
         except Exception as e:
             self._logger.warning(f"Failed to create signing key with exception: {e}")
-            raise convert_error(e)
+            return CreateSigningKey.Error(convert_error(e))
 
     def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         try:
@@ -102,21 +103,24 @@ class _ScsControlClient:
             request = _RevokeSigningKeyRequest()
             request.key_id = key_id
             self._build_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
-            return RevokeSigningKeyResponse()
+            return RevokeSigningKey.Success()
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
-            raise convert_error(e)
+            return RevokeSigningKey.Error(convert_error(e))
 
-    def list_signing_keys(self, endpoint: str, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+    def list_signing_keys(self, endpoint: str) -> ListSigningKeysResponse:
         try:
+            self._logger.info("List signing keys")
             list_signing_keys_request = _ListSigningKeysRequest()
-            list_signing_keys_request.next_token = next_token if next_token is not None else ""
-            return ListSigningKeysResponse.from_grpc_response(
-                self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS),
+            list_signing_keys_request.next_token = ""
+            response = self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS)
+            return ListSigningKeys.Success.from_grpc_response(
+                response,
                 endpoint,
             )
         except Exception as e:
-            raise convert_error(e)
+            self._logger.warning(f"Failed to list signing keys with exception: {e}")
+            return ListSigningKeys.Error(convert_error(e))
 
     def _build_stub(self) -> ScsControlStub:
         return self._grpc_manager.stub()

@@ -21,8 +21,8 @@ format:
 .PHONY: lint
 ## Lint the code using mypy and flake8
 lint:
-	@poetry run mypy src
-	@poetry run flake8 src
+	@poetry run mypy src tests
+	@poetry run flake8 src tests
 
 .PHONY: do-gen-sync
 do-gen-sync:

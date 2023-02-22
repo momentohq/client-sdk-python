@@ -45,6 +45,7 @@ pytest-sugar = "^0.9.5"
 flake8 = "^5.0.4"
 mypy = "^0.971"
 types-setuptools = "^65.3.0"
+flake8-docstrings = "^1.7.0"
 
 [tool.poetry.group.format.dependencies]
 black = "^22.8.0"
@@ -88,7 +89,9 @@ disallow_subclassing_any    = false
 [[tool.mypy.overrides]]
 module = [
   "momento_wire_types.*",
-  "grpc.*"
+  "grpc.*",
+  "google.*",
+  "pytest_describe"
 ]
 ignore_missing_imports      = true
 
@@ -109,7 +112,7 @@ module = [
   "momento.internal.aio._scs_data_client",
   "momento.internal.aio._scs_grpc_manager",
   "momento.internal.aio._utilities",
-  "momento.responses.control.signing_keys"
+  "momento.responses.control.signing_key.*"
 ]
 disallow_any_expr           = false
 

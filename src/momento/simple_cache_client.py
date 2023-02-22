@@ -52,6 +52,7 @@ from momento.responses import (
     CacheDictionarySetFields,
     CacheDictionarySetFieldsResponse,
     CacheGetResponse,
+    CacheIncrementResponse,
     CacheListConcatenateBackResponse,
     CacheListConcatenateFrontResponse,
     CacheListFetchResponse,
@@ -83,14 +84,14 @@ from momento.typing import TDictionaryItems
 
 
 class SimpleCacheClient:
-    """Synchronous Simple Cache Client
+    """Synchronous Simple Cache Client.
 
     Cache and control methods return a response object unique to each request.
     The response object is resolved to a type-safe object of one of several
     sub-types. See the documentation for each response type for details.
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example, in python 3.10+ if you're deleting a key:
+    For example, in python 3.10+ if you're deleting a key::
 
         response = client.delete(cache_name, key)
         match response:
@@ -99,7 +100,7 @@ class SimpleCacheClient:
             case CacheDelete.Error():
                 ...there was an error trying to delete the key...
 
-    or equivalently in earlier versions of python:
+    or equivalently in earlier versions of python::
 
         response = client.delete(cache_name, key)
         if isinstance(response, CacheDelete.Success):
@@ -132,8 +133,15 @@ class SimpleCacheClient:
             credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
             default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
                 It is possible to override this setting when calling the set method.
+
         Raises:
             IllegalArgumentException: If method arguments fail validations.
+        Example::
+
+            configuration = Laptop.latest()
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            ttl_seconds = timedelta(seconds=60)
+            client = SimpleCacheClient(configuration, credential_provider, ttl_seconds)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
@@ -180,60 +188,65 @@ class SimpleCacheClient:
         """
         return self._control_client.delete_cache(cache_name)
 
-    def list_caches(self, *, next_token: Optional[str] = None) -> ListCachesResponse:
+    def list_caches(self) -> ListCachesResponse:
         """Lists all caches.
-
-        Args:
-            next_token (Optional[str], optional): A token to specify where to start paginating.
-            This is the NextToken from a previous response. Defaults to None.
 
         Returns:
             ListCachesResponse:
         """
-        return self._control_client.list_caches(next_token)
+        return self._control_client.list_caches()
 
     def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
-        """Creates a Momento signing key
+        """Creates a Momento signing key.
 
         Args:
             ttl (timedelta): The key's time-to-live represented as a timedelta
 
         Returns:
             CreateSigningKeyResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
         return self._control_client.create_signing_key(ttl, self._cache_endpoint)
 
     def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
-        """Revokes a Momento signing key, all tokens signed by which will be invalid
+        """Revokes a Momento signing key, all tokens signed by which will be invalid.
 
         Args:
             key_id (str): The id of the Momento signing key to revoke
 
         Returns:
             RevokeSigningKeyResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
         return self._control_client.revoke_signing_key(key_id)
 
-    def list_signing_keys(self, *, next_token: Optional[str] = None) -> ListSigningKeysResponse:
+    def list_signing_keys(self) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
-
-        Args:
-            next_token (Optional[str], optional) Token to continue paginating through the list.
-            It's used to handle large paginated lists. Defaults to None.
 
         Returns:
             ListSigningKeysResponse
-
-        Raises:
-            SdkException: validation, server-side, or other runtime error
         """
-        return self._control_client.list_signing_keys(self._cache_endpoint, next_token)
+        return self._control_client.list_signing_keys(self._cache_endpoint)
+
+    def increment(
+        self,
+        cache_name: str,
+        key: str | bytes,
+        amount: int = 1,
+        ttl: Optional[timedelta] = None,
+    ) -> CacheIncrementResponse:
+        """Add to a value.
+
+        Args:
+            cache_name (str): Name of the cache to store the item in.
+            key (str|bytes): The key to set.
+            amount (int, optional): The quantity to add to the value. Defaults to 1.
+            ttl (Optional[timedelta], optional): TTL for the item in cache.
+            This TTL takes precedence over the TTL used when initializing a cache client.
+            Defaults to client TTL. If specified must be strictly positive.
+
+        Returns:
+            CacheIncrementResponse
+        """
+        return self._data_client.increment(cache_name, key, amount, ttl)
 
     def set(
         self,
@@ -489,8 +502,7 @@ class SimpleCacheClient:
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListConcatenateBackResponse:
-        """
-        Add values to the end of the list.
+        """Add values to the end of the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -503,7 +515,6 @@ class SimpleCacheClient:
         Returns:
             CacheListConcatenateBackResponse:
         """
-
         return self._data_client.list_concatenate_back(cache_name, list_name, values, ttl, truncate_front_to_size)
 
     def list_concatenate_front(
@@ -515,8 +526,7 @@ class SimpleCacheClient:
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListConcatenateFrontResponse:
-        """
-        Add values to the start of the list.
+        """Add values to the start of the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -529,12 +539,10 @@ class SimpleCacheClient:
         Returns:
             CacheListConcatenateFrontResponse:
         """
-
         return self._data_client.list_concatenate_front(cache_name, list_name, values, ttl, truncate_back_to_size)
 
     def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
-        """
-        Gets all values from the list.
+        """Gets all values from the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -543,12 +551,10 @@ class SimpleCacheClient:
         Returns:
             CacheListFetchResponse:
         """
-
         return self._data_client.list_fetch(cache_name, list_name)
 
     def list_length(self, cache_name: str, list_name: str) -> CacheListLengthResponse:
-        """
-        Gets the number of values in the list.
+        """Gets the number of values in the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -557,12 +563,10 @@ class SimpleCacheClient:
         Returns:
             CacheListLengthResponse:
         """
-
         return self._data_client.list_length(cache_name, list_name)
 
     def list_pop_back(self, cache_name: str, list_name: str) -> CacheListPopBackResponse:
-        """
-        Gets removes and returns the last value from the list.
+        """Gets, removes, and returns the last value from the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -571,12 +575,10 @@ class SimpleCacheClient:
         Returns:
             CacheListPopBackResponse:
         """
-
         return self._data_client.list_pop_back(cache_name, list_name)
 
     def list_pop_front(self, cache_name: str, list_name: str) -> CacheListPopFrontResponse:
-        """
-        Gets removes and returns the first value from the list.
+        """Gets, removes, and returns the first value from the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -585,7 +587,6 @@ class SimpleCacheClient:
         Returns:
             CacheListPopFrontResponse:
         """
-
         return self._data_client.list_pop_front(cache_name, list_name)
 
     def list_push_back(
@@ -597,8 +598,7 @@ class SimpleCacheClient:
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_front_to_size: Optional[int] = None,
     ) -> CacheListPushBackResponse:
-        """
-        Add values to the end of the list.
+        """Add values to the end of the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -611,7 +611,6 @@ class SimpleCacheClient:
         Returns:
             CacheListPushBackResponse:
         """
-
         return self._data_client.list_push_back(cache_name, list_name, value, ttl, truncate_front_to_size)
 
     def list_push_front(
@@ -623,8 +622,7 @@ class SimpleCacheClient:
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         truncate_back_to_size: Optional[int] = None,
     ) -> CacheListPushFrontResponse:
-        """
-        Add values to the start of the list.
+        """Add values to the start of the list.
 
         Args:
             cache_name (str): The cache where the list is.
@@ -637,7 +635,6 @@ class SimpleCacheClient:
         Returns:
             CacheListPushFrontResponse:
         """
-
         return self._data_client.list_push_front(cache_name, list_name, value, ttl, truncate_back_to_size)
 
     def list_remove_value(
@@ -646,8 +643,7 @@ class SimpleCacheClient:
         list_name: str,
         value: str | bytes,
     ) -> CacheListRemoveValueResponse:
-        """
-        Removes all matching values from the list.
+        """Removes all matching values from the list.
 
         Example:
             client.list_concatenate_front(cache_name, list_name, ['up', 'up', 'down', 'down', 'left', 'right'])
@@ -665,7 +661,6 @@ class SimpleCacheClient:
         Returns:
             CacheListRemoveValueResponse
         """
-
         return self._data_client.list_remove_value(cache_name, list_name, value)
 
     # SET COLLECTION METHODS
@@ -677,8 +672,7 @@ class SimpleCacheClient:
         *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementResponse:
-        """
-        Adds an element to a set.
+        """Adds an element to a set.
 
         Args:
             cache_name (str): The cache name with the set.
@@ -689,7 +683,6 @@ class SimpleCacheClient:
         Returns:
             CacheSetAddElementResponse
         """
-
         resp = self.set_add_elements(cache_name, set_name, (element,), ttl=ttl)
 
         if isinstance(resp, CacheSetAddElements.Success):
@@ -707,8 +700,7 @@ class SimpleCacheClient:
         *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheSetAddElementsResponse:
-        """
-        Add an elements to a set.
+        """Add an elements to a set.
 
         Args:
             cache_name (str): The cache name with the set.
@@ -726,8 +718,7 @@ class SimpleCacheClient:
         cache_name: str,
         set_name: str,
     ) -> CacheSetFetchResponse:
-        """
-        Fetches a set.
+        """Fetches a set.
 
         Args:
             cache_name (str): The cache name with the set.
@@ -739,8 +730,7 @@ class SimpleCacheClient:
         return self._data_client.set_fetch(cache_name, set_name)
 
     def set_remove_element(self, cache_name: str, set_name: str, element: str | bytes) -> CacheSetRemoveElementResponse:
-        """
-        Remove an element from a set.
+        """Remove an element from a set.
 
         Args:
             cache_name (str): The cache name with the set.
@@ -761,8 +751,7 @@ class SimpleCacheClient:
     def set_remove_elements(
         self, cache_name: str, set_name: str, elements: Iterable[str | bytes]
     ) -> CacheSetRemoveElementsResponse:
-        """
-        Remove elements from a set.
+        """Remove elements from a set.
 
         Args:
             cache_name (str): The cache name with the set.

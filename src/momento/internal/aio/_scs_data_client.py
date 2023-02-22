@@ -14,6 +14,7 @@ from momento_wire_types.cacheclient_pb2 import (
     _DictionaryIncrementRequest,
     _DictionarySetRequest,
     _GetRequest,
+    _IncrementRequest,
     _ListConcatenateBackRequest,
     _ListConcatenateFrontRequest,
     _ListFetchRequest,
@@ -67,6 +68,8 @@ from momento.responses import (
     CacheDictionarySetFieldsResponse,
     CacheGet,
     CacheGetResponse,
+    CacheIncrement,
+    CacheIncrementResponse,
     CacheListConcatenateBack,
     CacheListConcatenateBackResponse,
     CacheListConcatenateFront,
@@ -113,7 +116,7 @@ from momento.typing import (
 
 
 class _ScsDataClient:
-    """Internal"""
+    """Internal data client."""
 
     __UNSUPPORTED_LIST_NAME_TYPE_MSG = "Unsupported type for list_name: "
     __UNSUPPORTED_LIST_VALUE_TYPE_MSG = "Unsupported type for value: "
@@ -143,6 +146,31 @@ class _ScsDataClient:
     @property
     def endpoint(self) -> str:
         return self._endpoint
+
+    async def increment(
+        self, cache_name: TCacheName, key: TScalarKey, amount: int = 1, ttl: Optional[timedelta] = None
+    ) -> CacheIncrementResponse:
+        try:
+            self._log_issuing_request("Increment", {"key": str(key), "amount": str(amount)})
+            _validate_cache_name(cache_name)
+            item_ttl = self._default_ttl if ttl is None else ttl
+            _validate_ttl(item_ttl)
+
+            request = _IncrementRequest()
+            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+            request.increment_by = amount
+            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+
+            response = await self._build_stub().Increment(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("Increment", {"key": str(key), "amount": str(amount)})
+            return CacheIncrement.Success(response.value)
+        except Exception as e:
+            self._log_request_error("increment", e)
+            return CacheIncrement.Error(convert_error(e))
 
     async def set(
         self,
@@ -487,7 +515,7 @@ class _ScsDataClient:
             if type == "missing":
                 return CacheListFetch.Miss()
             elif type == "found":
-                return CacheListFetch.Hit(response.found.values)
+                return CacheListFetch.Hit(list(response.found.values))
             else:
                 raise UnknownException("Unknown list field")
         except Exception as e:
