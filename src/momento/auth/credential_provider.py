@@ -9,7 +9,7 @@ from . import momento_endpoint_resolver
 
 @dataclass
 class CredentialProvider:
-    """Information the SimpleCacheClient to establish a connection to and authenticate with the Momento service."""
+    """Information the SimpleCacheClient needs to establish a connection to and authenticate with the Momento service."""
 
     auth_token: str
     control_endpoint: str
