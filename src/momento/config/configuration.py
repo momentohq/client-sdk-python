@@ -30,7 +30,7 @@ class Configuration(ConfigurationBase):
         """Instantiate a Configuration.
 
         Args:
-            transport_strategy (TransportStrategy): Configuration options for wire interactions  with
+            transport_strategy (TransportStrategy): Configuration options for networking with
             the Momento service.
         """
         self._transport_strategy = transport_strategy
