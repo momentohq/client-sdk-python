@@ -8,8 +8,9 @@ from ...response import CacheResponse
 
 
 class CacheDictionaryFetchResponse(CacheResponse):
-    """Response type for a `dictionary_fetch` request. Its subtypes are:
+    """Response type for a `dictionary_fetch` request.
 
+    Its subtypes are:
     - `CacheDictionaryFetch.Hit`
     - `CacheDictionaryFetch.Miss`
     - `CacheDictionaryFetch.Error`
@@ -39,7 +40,6 @@ class CacheDictionaryFetch(ABC):
             Returns:
                 dict[str, bytes]
             """
-
             return {k.decode("utf-8"): v for k, v in self.value_dictionary_bytes_bytes.items()}
 
         @property
@@ -49,15 +49,15 @@ class CacheDictionaryFetch(ABC):
             Returns:
                 dict[str, str]
             """
-
             return {k.decode("utf-8"): v.decode("utf-8") for k, v in self.value_dictionary_bytes_bytes.items()}
 
     class Miss(CacheDictionaryFetchResponse):
         """Indicates the dictionary does not exist."""
 
     class Error(CacheDictionaryFetchResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request:
+        """Indicates an error occured in the request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

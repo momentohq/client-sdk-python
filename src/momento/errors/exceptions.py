@@ -4,7 +4,7 @@ from momento.errors import MomentoErrorCode, MomentoErrorTransportDetails
 
 
 class SdkException(Exception):
-    """Base class for all Momento client exceptions"""
+    """Base class for all Momento client exceptions."""
 
     message: str
     """Exception message"""

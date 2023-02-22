@@ -5,8 +5,9 @@ from ...response import CacheResponse
 
 
 class CacheDictionarySetFieldResponse(CacheResponse):
-    """Parent response type for a cache `dictionary_set_field` request. Its subtypes are:
+    """Parent response type for a cache `dictionary_set_field` request.
 
+    Its subtypes are:
     - `CacheDictionarySetField.Success`
     - `CacheDictionarySetField.Error`
 
@@ -21,8 +22,9 @@ class CacheDictionarySetField(ABC):
         """Indicates the request was successful."""
 
     class Error(CacheDictionarySetFieldResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

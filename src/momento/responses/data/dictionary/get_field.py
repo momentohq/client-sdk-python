@@ -6,8 +6,9 @@ from ...response import CacheResponse
 
 
 class CacheDictionaryGetFieldResponse(CacheResponse):
-    """Parent response type for a cache `dictionary_get_field` request. Its subtypes are:
+    """Parent response type for a cache `dictionary_get_field` request.
 
+    Its subtypes are:
     - `CacheDictionaryGetField.Hit`
     - `CacheDictionaryGetField.Miss`
     - `CacheDictionaryGetField.Error`
@@ -32,7 +33,7 @@ class CacheDictionaryGetField(ABC):
 
         @property
         def field_string(self) -> str:
-            """Convert the bytes `field` to a UTF-8 string
+            """Convert the bytes `field` to a UTF-8 string.
 
             Returns:
                 str: UTF-8 representation of the `field`
@@ -43,8 +44,9 @@ class CacheDictionaryGetField(ABC):
         """Indicates the dictionary or dictionary field does not exist."""
 
     class Error(CacheDictionaryGetFieldResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

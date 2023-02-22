@@ -5,8 +5,9 @@ from ...response import CacheResponse
 
 
 class CacheListRemoveValueResponse(CacheResponse):
-    """Response type for a `list_remove_value` request. Its subtypes are:
+    """Response type for a `list_remove_value` request.
 
+    Its subtypes are:
     - `CacheListRemoveValue.Success`
     - `CacheListRemoveValue.Error`
 
@@ -21,8 +22,9 @@ class CacheListRemoveValue(ABC):
         """Indicates removing the values was successful."""
 
     class Error(CacheListRemoveValueResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request:
+        """Indicates an error occured in the request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

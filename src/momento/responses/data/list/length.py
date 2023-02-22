@@ -6,8 +6,9 @@ from ...response import CacheResponse
 
 
 class CacheListLengthResponse(CacheResponse):
-    """Response type for a `list_length` request. Its subtypes are:
+    """Response type for a `list_length` request.
 
+    Its subtypes are:
     - `CacheListLength.Hit`
     - `CacheListLength.Miss`
     - `CacheListLength.Error`
@@ -30,8 +31,9 @@ class CacheListLength(ABC):
         """Indicates the list does not exist."""
 
     class Error(CacheListLengthResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request:
+        """Indicates an error occured in the request.
 
+        This includes
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

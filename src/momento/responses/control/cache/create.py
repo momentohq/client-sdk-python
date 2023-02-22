@@ -6,16 +6,16 @@ from ...mixins import ErrorResponseMixin
 
 
 class CreateCacheResponse(ControlResponse):
-    """Parent response type for a create cache request. The
-    response object is resolved to a type-safe object of one of
-    the following subtypes:
+    """Parent response type for a create cache request.
 
+    The response object is resolved to a type-safe object of one of
+    the following subtypes:
     - `CreateCache.Success`
     - `CreateCache.CacheAlreadyExists`
     - `CreateCache.Error`
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example, in python 3.10+:
+    For example, in python 3.10+::
 
         match response:
             case CreateCache.Success():
@@ -27,7 +27,7 @@ class CreateCacheResponse(ControlResponse):
             case _:
                 # Shouldn't happen
 
-    or equivalently in earlier versions of python:
+    or equivalently in earlier versions of python::
 
         if isinstance(response, CreateCache.Success):
             ...
@@ -50,8 +50,9 @@ class CreateCache(ABC):
         """Indicates that a cache with the requested name has already been created in the requesting account."""
 
     class Error(CreateCacheResponse, ErrorResponseMixin):
-        """Contains information about an error returned from a request:
+        """Contains information about an error returned from a request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

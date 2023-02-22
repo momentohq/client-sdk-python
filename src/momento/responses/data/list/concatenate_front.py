@@ -6,8 +6,9 @@ from ...response import CacheResponse
 
 
 class CacheListConcatenateFrontResponse(CacheResponse):
-    """Response type for a `list_concatenate_front` request. Its subtypes are:
+    """Response type for a `list_concatenate_front` request.
 
+    Its subtypes are:
     - `CacheListConcatenateFront.Success`
     - `CacheListConcatenateFront.Error`
 
@@ -26,8 +27,9 @@ class CacheListConcatenateFront(ABC):
         """The number of values in the list after this concatenation"""
 
     class Error(CacheListConcatenateFrontResponse, ErrorResponseMixin):
-        """Indicates an error occured in the request:
+        """Indicates an error occured in the request.
 
+        This includes:
         - `error_code`: `MomentoErrorCode` value for the error.
         - `messsage`: a detailed error message.
         """

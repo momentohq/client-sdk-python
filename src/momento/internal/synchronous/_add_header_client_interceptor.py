@@ -61,23 +61,18 @@ class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
 
 
 def sanitize_client_call_details(client_call_details: grpc.ClientCallDetails) -> grpc.ClientCallDetails:
-    """
-    Defensive function meant to handle inbound grpc client request objects and make sure we can handle properly
-    when we inject our own metadata onto request object. This was mainly done as temporary fix after we observed
-    ddtrace grpc client interceptor passing client_call_details.metadata as a list instead of a grpc.aio.Metadata
-    object. See this ticket for follow-up actions to come back in and address this longer term:
+    """Defensive function meant to handle inbound gRPC client request objects.
+
+    Makes sure we can handle properly when we inject our own metadata onto request object.
+    This was mainly done as temporary fix after we observed ddtrace grpc client interceptor passing
+    client_call_details.metadata as a list instead of a grpc.aio.Metadata object.
+    See this ticket for follow-up actions to come back in and address this longer term:
         https://github.com/momentohq/client-sdk-python/issues/149
-
-    In the synchronous gRPC implementation, grpc.ClientCallDetails (vs grpc.aio.ClientCallDetails) does actually
-    use a list of tuples to represent the metadata.  So we do that here, which is different from our behavior on
-    the asynchronous client.
-
     Args:
         client_call_details: the original inbound client grpc request we are intercepting
 
-    Returns: a new client_call_details object with metadata properly initialized
+    Returns: a new client_call_details object with metadata properly initialized to a `grpc.aio.Metadata` object
     """
-
     # If no metadata set on passed in client call details then we are first to set, so we should just initialize
     if client_call_details.metadata is None:
         return _ClientCallDetails(

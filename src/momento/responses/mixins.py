@@ -20,7 +20,7 @@ class ValueStringMixin:
 
     @property
     def value_string(self) -> str:
-        """Convert the bytes `value` to a UTF-8 string
+        """Convert the bytes `value` to a UTF-8 string.
 
         Returns:
             str: UTF-8 representation of the `value`
