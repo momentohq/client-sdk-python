@@ -86,7 +86,7 @@ class CollectionTtl:
     def with_refresh_ttl_on_updates(self) -> CollectionTtl:
         """Specifies the TTL for the collection be refreshed when the collection is modified.
 
-        NB: This is the default behavior.
+        This is the default behavior for a CollectionTTL.
 
         Returns:
             CollectionTtl
@@ -96,8 +96,8 @@ class CollectionTtl:
     def with_no_refresh_ttl_on_updates(self) -> CollectionTtl:
         """Specifies the TTL for the collection should not be refreshed when the collection is modified.
 
-        Use this if ou want to ensure that your collection expires at the originally specified time,
-        even if you make modifications to the value of the collection.
+        Use this to ensure your collection expires at the originally specified time,
+        even if you make modifications to the collection.
 
         Returns:
             CollectionTtl

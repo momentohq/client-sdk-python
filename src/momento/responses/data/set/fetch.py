@@ -8,7 +8,7 @@ from ...response import CacheResponse
 
 
 class CacheSetFetchResponse(CacheResponse):
-    """Response type for a `set_fetch` request.
+    """Parent response type for a `set_fetch` request.
 
     Its subtypes are:
     - `CacheSetFetch.Hit`
