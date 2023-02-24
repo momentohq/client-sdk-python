@@ -73,7 +73,6 @@ from .data.set.remove_elements import (
 )
 from .response import CacheResponse, ControlResponse
 
-
 __all__ = [
     "CreateCache",
     "CreateCacheResponse",
