@@ -91,7 +91,7 @@ def a_list_adder() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
-        assert Counter(fetch_resp.values_string) == Counter(values)
+        assert Counter(fetch_resp.value_list_string) == Counter(values)
 
     def it_uses_the_default_ttl_when_the_collection_ttl_has_no_ttl(
         configuration: Configuration,
@@ -111,7 +111,7 @@ def a_list_adder() -> None:
 
             fetch_resp = client.list_fetch(cache_name, list_name)
             assert isinstance(fetch_resp, CacheListFetch.Hit)
-            assert fetch_resp.values_string == [value]
+            assert fetch_resp.value_list_string == [value]
 
             sleep(ttl_seconds / 2)
             fetch_resp = client.list_fetch(cache_name, list_name)
@@ -155,7 +155,7 @@ def a_list_concatenator() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
-        assert fetch_resp.values_bytes == values_bytes
+        assert fetch_resp.value_list_bytes == values_bytes
 
     def with_strings_it_succeeds(
         list_concatenator: TListConcatenator,
@@ -172,7 +172,7 @@ def a_list_concatenator() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
-        assert fetch_resp.values_string == values_str
+        assert fetch_resp.value_list_string == values_str
 
     def with_iterable_values_it_succeeds(
         list_concatenator: TListConcatenator,
@@ -190,7 +190,7 @@ def a_list_concatenator() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
-        assert fetch_resp.values_string == values_str
+        assert fetch_resp.value_list_string == values_str
 
     def with_other_values_type_it_errors(
         list_concatenator: TListConcatenator,
@@ -263,7 +263,7 @@ def a_list_pusher() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
-        assert fetch_resp.values_bytes == [value]
+        assert fetch_resp.value_list_bytes == [value]
 
     def with_strings_it_succeeds(
         list_pusher: TListPusher,
@@ -278,7 +278,7 @@ def a_list_pusher() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         assert isinstance(fetch_resp, CacheListFetch.Hit)
-        assert fetch_resp.values_string == [value]
+        assert fetch_resp.value_list_string == [value]
 
     def with_other_value_type_it_errors(
         list_pusher: TListPusher,
@@ -363,7 +363,7 @@ def describe_list_concatenate_back() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         if isinstance(fetch_resp, CacheListFetch.Hit):
-            assert fetch_resp.values_string == ["three", "four", "five", "six"]
+            assert fetch_resp.value_list_string == ["three", "four", "five", "six"]
         else:
             assert False
 
@@ -440,7 +440,7 @@ def describe_list_concatenate_front() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         if isinstance(fetch_resp, CacheListFetch.Hit):
-            assert fetch_resp.values_string == ["four", "five", "six", "one"]
+            assert fetch_resp.value_list_string == ["four", "five", "six", "one"]
         else:
             assert False
 
@@ -638,7 +638,7 @@ def describe_list_push_back() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         if isinstance(fetch_resp, CacheListFetch.Hit):
-            assert fetch_resp.values_string == ["2", "3"]
+            assert fetch_resp.value_list_string == ["2", "3"]
         else:
             assert False
 
@@ -702,7 +702,7 @@ def describe_list_push_front() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         if isinstance(fetch_resp, CacheListFetch.Hit):
-            assert fetch_resp.values_string == ["3", "2"]
+            assert fetch_resp.value_list_string == ["3", "2"]
         else:
             assert False
 
@@ -752,6 +752,6 @@ def describe_list_remove_value() -> None:
 
         fetch_resp = client.list_fetch(cache_name, list_name)
         if isinstance(fetch_resp, CacheListFetch.Hit):
-            assert fetch_resp.values_string == expected_values
+            assert fetch_resp.value_list_string == expected_values
         else:
             assert False

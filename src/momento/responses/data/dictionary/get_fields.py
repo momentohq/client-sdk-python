@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from ...mixins import ErrorResponseMixin, ValueStringMixin
+from ...mixins import ErrorResponseMixin
 from ...response import CacheResponse
 from .get_field import CacheDictionaryGetField, CacheDictionaryGetFieldResponse
 
@@ -24,7 +24,7 @@ class CacheDictionaryGetFields(ABC):
     """Groups all `CacheDictionaryGetFieldsResponse` derived types under a common namespace."""
 
     @dataclass
-    class Hit(CacheDictionaryGetFieldsResponse, ValueStringMixin):
+    class Hit(CacheDictionaryGetFieldsResponse):
         """Contains the result of a cache hit."""
 
         responses: list[CacheDictionaryGetFieldResponse]
