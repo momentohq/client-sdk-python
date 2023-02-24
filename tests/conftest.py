@@ -9,9 +9,13 @@ from typing import AsyncIterator, Callable, Iterator, List, Optional, Union, cas
 import pytest
 import pytest_asyncio
 
-from momento import SimpleCacheClient, SimpleCacheClientAsync
-from momento.auth import CredentialProvider
-from momento.config import Configuration, Laptop
+from momento import (
+    CredentialProvider,
+    SimpleCacheClient,
+    SimpleCacheClientAsync,
+    configurations,
+)
+from momento.config import Configuration
 from momento.typing import (
     TCacheName,
     TDictionaryField,
@@ -32,7 +36,7 @@ from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 # Integration test data
 #######################
 
-TEST_CONFIGURATION = Laptop.latest()
+TEST_CONFIGURATION = configurations.Laptop.latest()
 
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
 
@@ -204,9 +208,7 @@ def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
 
 @pytest.fixture(scope="session")
 def client() -> Iterator[SimpleCacheClient]:
-    configuration = Laptop.latest()
-    credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
-    with SimpleCacheClient(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
+    with SimpleCacheClient(TEST_CONFIGURATION, TEST_AUTH_PROVIDER, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         _client.create_cache(cast(str, TEST_CACHE_NAME))
         try:
@@ -217,9 +219,7 @@ def client() -> Iterator[SimpleCacheClient]:
 
 @pytest_asyncio.fixture(scope="session")
 async def client_async() -> AsyncIterator[SimpleCacheClientAsync]:
-    configuration = Laptop.latest()
-    credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
-    async with SimpleCacheClientAsync(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
+    async with SimpleCacheClientAsync(TEST_CONFIGURATION, TEST_AUTH_PROVIDER, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         # TODO consider deleting cache on when test runner shuts down
         await _client.create_cache(cast(str, TEST_CACHE_NAME))
