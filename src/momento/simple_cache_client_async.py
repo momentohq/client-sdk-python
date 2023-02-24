@@ -139,9 +139,9 @@ class SimpleCacheClientAsync:
         Example::
 
             from datetime import timedelta
-            from momento import configurations, CredentialProvider, SimpleCacheClientAsync
+            from momento import Configurations, CredentialProvider, SimpleCacheClientAsync
 
-            configuration = configurations.Laptop.latest()
+            configuration = Configurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
             client = SimpleCacheClientAsync(configuration, credential_provider, ttl_seconds)

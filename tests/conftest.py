@@ -10,10 +10,10 @@ import pytest
 import pytest_asyncio
 
 from momento import (
+    Configurations,
     CredentialProvider,
     SimpleCacheClient,
     SimpleCacheClientAsync,
-    configurations,
 )
 from momento.config import Configuration
 from momento.typing import (
@@ -36,7 +36,7 @@ from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 # Integration test data
 #######################
 
-TEST_CONFIGURATION = configurations.Laptop.latest()
+TEST_CONFIGURATION = Configurations.Laptop.latest()
 
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
 
