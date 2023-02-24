@@ -138,7 +138,10 @@ class SimpleCacheClient:
             IllegalArgumentException: If method arguments fail validations.
         Example::
 
-            configuration = Laptop.latest()
+            from datetime import timedelta
+            from momento import Configurations, CredentialProvider, SimpleCacheClient
+
+            configuration = Configurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
             client = SimpleCacheClient(configuration, credential_provider, ttl_seconds)
