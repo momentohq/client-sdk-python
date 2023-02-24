@@ -26,21 +26,17 @@ class CacheListFetch(ABC):
     class Hit(CacheListFetchResponse):
         """Indicates the list exists and its values were fetched."""
 
-        values_bytes: list[bytes]
-        """The values for the fetched list, as bytes.
-
-        Returns:
-            list[bytes]
-        """
+        value_list_bytes: list[bytes]
+        """The values for the fetched list, as bytes."""
 
         @property
-        def values_string(self) -> list[str]:
+        def value_list_string(self) -> list[str]:
             """The values for the fetched list, as utf-8 encoded strings.
 
             Returns:
                 list[str]
             """
-            return [v.decode("utf-8") for v in self.values_bytes]
+            return [v.decode("utf-8") for v in self.value_list_bytes]
 
     class Miss(CacheListFetchResponse):
         """Indicates the list does not exist."""
