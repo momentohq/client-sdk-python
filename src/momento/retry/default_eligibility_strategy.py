@@ -57,8 +57,9 @@ RETRYABLE_REQUEST_TYPES: list[str] = [
 
 class DefaultEligibilityStrategy(EligibilityStrategy):
     def is_eligible_for_retry(self, props: RetryableProps) -> bool:
-        """Determines whether a grpc call can safely be retried based on the result of the last invocation of the call
-           and whether the call is idempotent.
+        """Determines whether a grpc call is able to be retried.
+
+        The determination is based on the result of the last invocation of the call and whether the call is idempotent.
 
         Args:
             props (RetryableProps): Information about the grpc call and its last invocation.
