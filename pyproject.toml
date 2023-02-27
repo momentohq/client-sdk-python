@@ -112,7 +112,7 @@ module = [
   "momento.internal.aio._scs_data_client",
   "momento.internal.aio._scs_grpc_manager",
   "momento.internal.aio._utilities",
-  "momento.responses.control.signing_key.*"
+  "momento.responses.control.signing_key.*",
 ]
 disallow_any_expr           = false
 
