@@ -81,9 +81,7 @@ class BasicPythonLoadGen:
 
     async def run(self) -> None:
         cache_item_ttl_seconds = timedelta(seconds=60)
-        config = Configurations.Laptop.latest().with_client_timeout(
-            timedelta(milliseconds=self.options.request_timeout_ms)
-        )
+        config = Configurations.Laptop.v1().with_client_timeout(timedelta(milliseconds=self.options.request_timeout_ms))
         async with CacheClientAsync(config, self.auth_provider, cache_item_ttl_seconds) as cache_client:
             create_cache_response = await cache_client.create_cache(BasicPythonLoadGen.cache_name)
             match create_cache_response:

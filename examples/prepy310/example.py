@@ -55,7 +55,7 @@ def _list_caches(cache_client: CacheClient) -> None:
 if __name__ == "__main__":
     initialize_logging()
     _print_start_banner()
-    with CacheClient(Configurations.Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    with CacheClient(Configurations.Laptop.v1(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         _create_cache(cache_client, _CACHE_NAME)
         _list_caches(cache_client)
 
