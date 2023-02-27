@@ -31,18 +31,20 @@ RETRYABLE_REQUEST_TYPES: list[str] = [
     "/cache_client.Scs/Set",
     "/cache_client.Scs/Get",
     "/cache_client.Scs/Delete",
+    # not idempotent: "/cache_client.Scs/Increment"
     "/cache_client.Scs/DictionarySet",
-    # not idempotent: '/cache_client.Scs/DictionaryIncrement',
+    # not idempotent: "/cache_client.Scs/DictionaryIncrement",
     "/cache_client.Scs/DictionaryGet",
     "/cache_client.Scs/DictionaryFetch",
     "/cache_client.Scs/DictionaryDelete",
     "/cache_client.Scs/SetUnion",
     "/cache_client.Scs/SetDifference",
     "/cache_client.Scs/SetFetch",
-    # not idempotent: '/cache_client.Scs/ListPushFront',
-    # not idempotent: '/cache_client.Scs/ListPushBack',
-    # not idempotent: '/cache_client.Scs/ListPopFront',
-    # not idempotent: '/cache_client.Scs/ListPopBack',
+    # not idempotent: "/cache_client.Scs/SetIfNotExists"
+    # not idempotent: "/cache_client.Scs/ListPushFront",
+    # not idempotent: "/cache_client.Scs/ListPushBack",
+    # not idempotent: "/cache_client.Scs/ListPopFront",
+    # not idempotent: "/cache_client.Scs/ListPopBack",
     "/cache_client.Scs/ListFetch",
     # Warning: in the future, this may not be idempotent
     # Currently it supports removing all occurrences of a value.
@@ -50,8 +52,8 @@ RETRYABLE_REQUEST_TYPES: list[str] = [
     # In the latter case it is not idempotent.
     "/cache_client.Scs/ListRemove",
     "/cache_client.Scs/ListLength",
-    # not idempotent: '/cache_client.Scs/ListConcatenateFront',
-    # not idempotent: '/cache_client.Scs/ListConcatenateBack'
+    # not idempotent: "/cache_client.Scs/ListConcatenateFront",
+    # not idempotent: "/cache_client.Scs/ListConcatenateBack"
 ]
 
 
