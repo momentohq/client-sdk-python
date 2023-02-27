@@ -28,7 +28,7 @@ class CollectionTtl:
 
     ttl: Optional[timedelta] = None
     """The duration after which the cached collection should be expired from the cache.
-    If `null`, we use the default TTL that was passed to the `SimpleCacheClient` init method.
+    If `null`, we use the default TTL that was passed to the `CacheClient` init method.
     """
     refresh_ttl: bool = True
     """If `True`, the collection's TTL will be refreshed (to prolong the life of the collection)
@@ -46,7 +46,7 @@ class CollectionTtl:
         """The default way to handle TTLs for collections.
 
         The default TTL `timedelta` that was specified when instantiating the
-        `SimpleCacheClient` will be used, and the TTL for the collection will be
+        `CacheClient` will be used, and the TTL for the collection will be
         refreshed any time the collection is modified.
 
         Returns:

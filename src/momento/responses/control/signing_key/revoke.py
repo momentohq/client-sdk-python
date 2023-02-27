@@ -15,7 +15,7 @@ class RevokeSigningKeyResponse(ControlResponse):
     - `RevokeSigningKey.Success`
     - `RevokeSigningKey.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

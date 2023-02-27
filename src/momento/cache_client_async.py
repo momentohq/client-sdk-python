@@ -139,12 +139,12 @@ class CacheClientAsync:
         Example::
 
             from datetime import timedelta
-            from momento import Configurations, CredentialProvider, SimpleCacheClientAsync
+            from momento import Configurations, CredentialProvider, CacheClientAsync
 
             configuration = Configurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
-            client = SimpleCacheClientAsync(configuration, credential_provider, ttl_seconds)
+            client = CacheClientAsync(configuration, credential_provider, ttl_seconds)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger

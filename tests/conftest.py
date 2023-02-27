@@ -258,7 +258,7 @@ async def unique_cache_name_async(
     It does not create the cache for you.
 
     Args:
-        client_async (SimpleCacheClientAsync): The client to use to delete the cache.
+        client_async (CacheClientAsync): The client to use to delete the cache.
 
     Returns:
         str: the unique cache name
