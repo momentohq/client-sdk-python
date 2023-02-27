@@ -24,14 +24,16 @@ class Configurations:
         def latest() -> Configurations.Laptop:
             """Provides the latest recommended configuration for a laptop development environment.
 
-            This configuration will be updated every time there is a new version of the laptop configuration."""
+            This configuration will be updated every time there is a new version of the laptop configuration.
+            """
             return Configurations.Laptop.v1()
 
         @staticmethod
         def v1() -> Configurations.Laptop:
             """Provides the v1 recommended configuration for a laptop development environment.
 
-            This configuration is guaranteed not to change in future releases of the Momento Python SDK."""
+            This configuration is guaranteed not to change in future releases of the Momento Python SDK.
+            """
             return Configurations.Laptop(
                 StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=15))),
                 FixedCountRetryStrategy(max_attempts=3),
@@ -54,14 +56,16 @@ class Configurations:
             def latest() -> Configurations.InRegion.Default:
                 """Provides the latest recommended configuration for a typical in-region environment.
 
-                This configuration will be updated every time there is a new version of the in-region configuration."""
+                This configuration will be updated every time there is a new version of the in-region configuration.
+                """
                 return Configurations.InRegion.Default.v1()
 
             @staticmethod
             def v1() -> Configurations.InRegion.Default:
                 """Provides the v1 recommended configuration for a typical in-region environment.
 
-                This configuration is guaranteed not to change in future releases of the Momento Python SDK."""
+                This configuration is guaranteed not to change in future releases of the Momento Python SDK.
+                """
                 return Configurations.InRegion.Default(
                     StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=1100))),
                     FixedCountRetryStrategy(max_attempts=3),
@@ -79,15 +83,16 @@ class Configurations:
             def latest() -> Configurations.InRegion.LowLatency:
                 """Provides the latest recommended configuration for an environment with low-latency requirements.
 
-                This configuration will be updated every time there is a new version of the
-                low-latency configuration."""
+                This configuration will be updated every time there is a new version of the low-latency configuration.
+                """
                 return Configurations.InRegion.LowLatency.v1()
 
             @staticmethod
             def v1() -> Configurations.InRegion.LowLatency:
                 """Provides the v1 recommended configuration for an environment with low-latency requirements.
 
-                This configuration is guaranteed not to change in future releases of the Momento Python SDK."""
+                This configuration is guaranteed not to change in future releases of the Momento Python SDK.
+                """
                 return Configurations.InRegion.LowLatency(
                     StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=500))),
                     FixedCountRetryStrategy(max_attempts=3),
