@@ -12,7 +12,7 @@ class CacheListPushBackResponse(CacheResponse):
     - `CacheListPushBack.Success`
     - `CacheListPushBack.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

@@ -83,8 +83,8 @@ from momento.responses import (
 from momento.typing import TDictionaryItems
 
 
-class SimpleCacheClient:
-    """Synchronous Simple Cache Client.
+class CacheClient:
+    """Synchronous Cache Client.
 
     Cache and control methods return a response object unique to each request.
     The response object is resolved to a type-safe object of one of several
@@ -139,12 +139,12 @@ class SimpleCacheClient:
         Example::
 
             from datetime import timedelta
-            from momento import Configurations, CredentialProvider, SimpleCacheClient
+            from momento import Configurations, CredentialProvider, CacheClient
 
             configuration = Configurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
-            client = SimpleCacheClient(configuration, credential_provider, ttl_seconds)
+            client = CacheClient(configuration, credential_provider, ttl_seconds)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
@@ -152,11 +152,10 @@ class SimpleCacheClient:
         self._control_client = _ScsControlClient(configuration, credential_provider)
         self._cache_endpoint = credential_provider.cache_endpoint
         self._data_clients = [
-            _ScsDataClient(configuration, credential_provider, default_ttl)
-            for _ in range(SimpleCacheClient._NUM_CLIENTS)
+            _ScsDataClient(configuration, credential_provider, default_ttl) for _ in range(CacheClient._NUM_CLIENTS)
         ]
 
-    def __enter__(self) -> SimpleCacheClient:
+    def __enter__(self) -> CacheClient:
         return self
 
     def __exit__(

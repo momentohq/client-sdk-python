@@ -9,7 +9,7 @@ from pytest import fixture
 from pytest_describe import behaves_like
 from typing_extensions import Protocol
 
-from momento import SimpleCacheClient
+from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -134,7 +134,7 @@ class TDictionaryGetter(Protocol):
 def a_dictionary_getter() -> None:
     def with_bytes_it_succeeds(
         dictionary_getter: TDictionaryGetter,
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_bytes: bytes,
@@ -154,7 +154,7 @@ def a_dictionary_getter() -> None:
 
     def with_string_it_succeeds(
         dictionary_getter: TDictionaryGetter,
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -182,7 +182,7 @@ class TDictionaryRemover(Protocol):
 
 def a_dictionary_remover() -> None:
     def with_string_field_succeeds(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -204,7 +204,7 @@ def a_dictionary_remover() -> None:
 
     def with_bytes_field_succeeds(
         dictionary_remover: TDictionaryRemover,
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_bytes: bytes,
@@ -227,7 +227,7 @@ def a_dictionary_remover() -> None:
 class TDictionarySetter(Protocol):
     def __call__(
         self,
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         field: TDictionaryField,
@@ -247,7 +247,7 @@ def a_dictionary_setter() -> None:
         dictionary_name: TDictionaryName,
         dictionary_items: TDictionaryItems,
     ) -> None:
-        with SimpleCacheClient(configuration, credential_provider, timedelta(hours=1)) as client:
+        with CacheClient(configuration, credential_provider, timedelta(hours=1)) as client:
             ttl_seconds = 0.5
             ttl = CollectionTtl(ttl=timedelta(seconds=ttl_seconds), refresh_ttl=False)
 
@@ -260,7 +260,7 @@ def a_dictionary_setter() -> None:
             assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
 
     def it_refreshes_the_ttl(
-        client: SimpleCacheClient,
+        client: CacheClient,
         dictionary_setter: TDictionarySetter,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
@@ -287,7 +287,7 @@ def a_dictionary_setter() -> None:
         dictionary_value_str: str,
     ) -> None:
         ttl_seconds = 1
-        with SimpleCacheClient(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
+        with CacheClient(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
             ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
 
             dictionary_setter(client, cache_name, dictionary_name, dictionary_field_str, dictionary_value_str, ttl=ttl)
@@ -304,7 +304,7 @@ def a_dictionary_setter() -> None:
 
     def with_bytes_it_succeeds(
         dictionary_setter: TDictionarySetter,
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_bytes: bytes,
@@ -323,7 +323,7 @@ def a_dictionary_setter() -> None:
 
     def with_strings_it_succeeds(
         dictionary_setter: TDictionarySetter,
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -336,7 +336,7 @@ def a_dictionary_setter() -> None:
 
     def with_other_values_type_it_errors(
         dictionary_setter: TDictionarySetter,
-        client: SimpleCacheClient,
+        client: CacheClient,
         dictionary_name: TDictionaryName,
     ) -> None:
         for field, value, bad_type in [
@@ -383,7 +383,7 @@ def a_dictionary_value_validator() -> None:
 def describe_dictionary_get_field() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient, dictionary_name: TDictionaryName, dictionary_field_str: str
+        client: CacheClient, dictionary_name: TDictionaryName, dictionary_field_str: str
     ) -> TCacheNameValidator:
         return partial(client.dictionary_get_field, dictionary_name=dictionary_name, field=dictionary_field_str)
 
@@ -391,14 +391,14 @@ def describe_dictionary_get_field() -> None:
     def connection_validator(
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_field_str: str
     ) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_get_field(cache_name, dictionary_name=dictionary_name, field=dictionary_field_str)
 
         return _connection_validator
 
     @fixture
     def dictionary_field_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> TDictionaryFieldValidator:
@@ -406,18 +406,18 @@ def describe_dictionary_get_field() -> None:
 
     @fixture
     def dictionary_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_field_str: str,
     ) -> TDictionaryNameValidator:
         return partial(client.dictionary_get_field, cache_name=cache_name, field=dictionary_field_str)
 
     @fixture
-    def dictionary_getter(client: SimpleCacheClient) -> TDictionaryGetter:
+    def dictionary_getter(client: CacheClient) -> TDictionaryGetter:
         return partial(client.dictionary_get_field)
 
     def misses_when_the_dictionary_does_not_exist(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -434,7 +434,7 @@ def describe_dictionary_get_field() -> None:
 def describe_dictionary_get_fields() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient, dictionary_name: TDictionaryName, dictionary_fields: TDictionaryFields
+        client: CacheClient, dictionary_name: TDictionaryName, dictionary_fields: TDictionaryFields
     ) -> TCacheNameValidator:
         return partial(client.dictionary_get_fields, dictionary_name=dictionary_name, fields=dictionary_fields)
 
@@ -442,14 +442,14 @@ def describe_dictionary_get_fields() -> None:
     def connection_validator(
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_fields: TDictionaryFields
     ) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_get_fields(cache_name, dictionary_name, dictionary_fields)
 
         return _connection_validator
 
     @fixture
     def dictionary_fields_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> TDictionaryFieldsValidator:
@@ -457,14 +457,14 @@ def describe_dictionary_get_fields() -> None:
 
     @fixture
     def dictionary_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_field_str: str,
     ) -> TDictionaryNameValidator:
         return partial(client.dictionary_get_fields, cache_name=cache_name, fields=dictionary_field_str)
 
     @fixture
-    def dictionary_getter(client: SimpleCacheClient) -> TDictionaryGetter:
+    def dictionary_getter(client: CacheClient) -> TDictionaryGetter:
         def _dictionary_getter(
             cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
         ) -> CacheDictionaryGetFieldResponse:
@@ -479,7 +479,7 @@ def describe_dictionary_get_fields() -> None:
         return _dictionary_getter
 
     def it_misses_when_the_dictionary_does_not_exist(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_fields: TDictionaryFields,
@@ -488,7 +488,7 @@ def describe_dictionary_get_fields() -> None:
         assert isinstance(get_response, CacheDictionaryGetFields.Miss)
 
     def it_decodes_responses_to_dictionaries_correctly(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> None:
@@ -511,7 +511,7 @@ def describe_dictionary_get_fields() -> None:
         assert get_response.value_dictionary_string_string == dictionary_items
 
     def it_excludes_misses_from_dictionary(
-        client: SimpleCacheClient, cache_name: TCacheName, dictionary_name: TDictionaryName
+        client: CacheClient, cache_name: TCacheName, dictionary_name: TDictionaryName
     ) -> None:
         dictionary_items: dict[str, str] = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
         set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
@@ -536,22 +536,22 @@ def describe_dictionary_get_fields() -> None:
 @behaves_like(a_dictionary_name_validator)
 def describe_dictionary_fetch() -> None:
     @fixture
-    def cache_name_validator(client: SimpleCacheClient, dictionary_name: TDictionaryName) -> TCacheNameValidator:
+    def cache_name_validator(client: CacheClient, dictionary_name: TDictionaryName) -> TCacheNameValidator:
         return partial(client.dictionary_fetch, dictionary_name=dictionary_name)
 
     @fixture
     def connection_validator(cache_name: TCacheName, dictionary_name: TDictionaryName) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_fetch(cache_name, dictionary_name=dictionary_name)
 
         return _connection_validator
 
     @fixture
-    def dictionary_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TDictionaryNameValidator:
+    def dictionary_name_validator(client: CacheClient, cache_name: TCacheName) -> TDictionaryNameValidator:
         return partial(client.dictionary_fetch, cache_name=cache_name)
 
     def misses_when_the_dictionary_does_not_exist(
-        client: SimpleCacheClient, cache_name: TCacheName, dictionary_name: TDictionaryName
+        client: CacheClient, cache_name: TCacheName, dictionary_name: TDictionaryName
     ) -> None:
         fetch_response = client.dictionary_fetch(cache_name, dictionary_name)
         assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
@@ -564,7 +564,7 @@ def describe_dictionary_fetch() -> None:
 def describe_dictionary_increment() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
         increment_amount: int,
@@ -583,7 +583,7 @@ def describe_dictionary_increment() -> None:
         dictionary_field_str: str,
         increment_amount: int,
     ) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_increment(
                 cache_name, dictionary_name=dictionary_name, field=dictionary_field_str, amount=increment_amount
             )
@@ -592,7 +592,7 @@ def describe_dictionary_increment() -> None:
 
     @fixture
     def dictionary_field_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         increment_amount: int,
@@ -606,7 +606,7 @@ def describe_dictionary_increment() -> None:
 
     @fixture
     def dictionary_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_field_str: str,
         increment_amount: int,
@@ -619,7 +619,7 @@ def describe_dictionary_increment() -> None:
         )
 
     def it_starts_at_zero(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -629,7 +629,7 @@ def describe_dictionary_increment() -> None:
         assert increment_response.value == 0
 
     def it_increments_when_the_field_does_not_exist(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -642,7 +642,7 @@ def describe_dictionary_increment() -> None:
         assert increment_response.value == increment_amount
 
     def it_increments_an_existing_field(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -660,7 +660,7 @@ def describe_dictionary_increment() -> None:
         assert increment_response.value == 2 * increment_amount
 
     def it_errors_on_bad_initial_values(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -684,7 +684,7 @@ def describe_dictionary_increment() -> None:
 def describe_dictionary_remove_field() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient, dictionary_name: TDictionaryName, dictionary_field_str: str
+        client: CacheClient, dictionary_name: TDictionaryName, dictionary_field_str: str
     ) -> TCacheNameValidator:
         return partial(client.dictionary_remove_field, dictionary_name=dictionary_name, field=dictionary_field_str)
 
@@ -692,7 +692,7 @@ def describe_dictionary_remove_field() -> None:
     def connection_validator(
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_field_str: str
     ) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_remove_field(
                 cache_name, dictionary_name=dictionary_name, field=dictionary_field_str
             )
@@ -701,7 +701,7 @@ def describe_dictionary_remove_field() -> None:
 
     @fixture
     def dictionary_field_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> TDictionaryFieldValidator:
@@ -709,18 +709,18 @@ def describe_dictionary_remove_field() -> None:
 
     @fixture
     def dictionary_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_field_str: str,
     ) -> TDictionaryNameValidator:
         return partial(client.dictionary_remove_field, cache_name=cache_name, field=dictionary_field_str)
 
     @fixture
-    def dictionary_remover(client: SimpleCacheClient) -> TDictionaryRemover:
+    def dictionary_remover(client: CacheClient) -> TDictionaryRemover:
         return partial(client.dictionary_remove_field)
 
     def it_removes_a_field(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -753,7 +753,7 @@ def describe_dictionary_remove_field() -> None:
 def describe_dictionary_remove_fields() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         dictionary_name: TDictionaryName,
         dictionary_fields: TDictionaryFields,
     ) -> TCacheNameValidator:
@@ -763,7 +763,7 @@ def describe_dictionary_remove_fields() -> None:
     def connection_validator(
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_fields: TDictionaryFields
     ) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_remove_fields(
                 cache_name, dictionary_name=dictionary_name, fields=dictionary_fields
             )
@@ -772,7 +772,7 @@ def describe_dictionary_remove_fields() -> None:
 
     @fixture
     def dictionary_fields_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> TDictionaryFieldsValidator:
@@ -780,14 +780,14 @@ def describe_dictionary_remove_fields() -> None:
 
     @fixture
     def dictionary_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_fields: TDictionaryFields,
     ) -> TDictionaryNameValidator:
         return partial(client.dictionary_remove_fields, cache_name=cache_name, fields=dictionary_fields)
 
     @fixture
-    def dictionary_remover(client: SimpleCacheClient) -> TDictionaryRemover:
+    def dictionary_remover(client: CacheClient) -> TDictionaryRemover:
         def _dictionary_remover(
             cache_name: TCacheName, dictionary_name: TDictionaryName, field: TDictionaryField
         ) -> CacheResponse:
@@ -798,7 +798,7 @@ def describe_dictionary_remove_fields() -> None:
         return _dictionary_remover
 
     def it_removes_multiple_items(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_items: TDictionaryItems,
@@ -827,7 +827,7 @@ def describe_dictionary_remove_fields() -> None:
 def describe_dictionary_set_field() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
         dictionary_value_str: str,
@@ -843,7 +843,7 @@ def describe_dictionary_set_field() -> None:
     def connection_validator(
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_field_str: str, dictionary_value_str: str
     ) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_set_field(
                 cache_name,
                 dictionary_name=dictionary_name,
@@ -855,7 +855,7 @@ def describe_dictionary_set_field() -> None:
 
     @fixture
     def dictionary_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_field_str: str,
         dictionary_value_str: str,
@@ -870,7 +870,7 @@ def describe_dictionary_set_field() -> None:
     @fixture
     def dictionary_setter() -> TDictionarySetter:
         def _dictionary_setter(
-            client: SimpleCacheClient,
+            client: CacheClient,
             cache_name: TCacheName,
             dictionary_name: TDictionaryName,
             field: TDictionaryField,
@@ -890,7 +890,7 @@ def describe_dictionary_set_field() -> None:
 
     @fixture
     def dictionary_value_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
@@ -911,7 +911,7 @@ def describe_dictionary_set_field() -> None:
 def describe_dictionary_set_fields() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         dictionary_name: TDictionaryName,
         dictionary_items: TDictionaryItems,
     ) -> TCacheNameValidator:
@@ -921,14 +921,14 @@ def describe_dictionary_set_fields() -> None:
     def connection_validator(
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_items: TDictionaryItems
     ) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             return client.dictionary_set_fields(cache_name, dictionary_name=dictionary_name, items=dictionary_items)
 
         return _connection_validator
 
     @fixture
     def dictionary_items_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> TDictionaryItemsValidator:
@@ -940,7 +940,7 @@ def describe_dictionary_set_fields() -> None:
 
     @fixture
     def dictionary_name_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_items: TDictionaryItems,
     ) -> TDictionaryNameValidator:
@@ -949,7 +949,7 @@ def describe_dictionary_set_fields() -> None:
     @fixture
     def dictionary_setter() -> TDictionarySetter:
         def _dictionary_setter(
-            client: SimpleCacheClient,
+            client: CacheClient,
             cache_name: TCacheName,
             dictionary_name: TDictionaryName,
             field: TDictionaryField,
@@ -968,7 +968,7 @@ def describe_dictionary_set_fields() -> None:
 
     @fixture
     def dictionary_value_validator(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         field: TDictionaryField,
@@ -983,7 +983,7 @@ def describe_dictionary_set_fields() -> None:
         return _value_validator
 
     def it_sets_multiple_items(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
         dictionary_items: TDictionaryItems,

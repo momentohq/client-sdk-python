@@ -123,11 +123,11 @@ def test_name_replacement(input_: str, expected: str) -> None:
         (
             """
 class A:
-    \"\"\"Async Simple Cache Client\"\"\"
+    \"\"\"Async Cache Client\"\"\"
 """,
             """
 class A:
-    \"\"\"Synchronous Simple Cache Client\"\"\"
+    \"\"\"Synchronous Cache Client\"\"\"
 """,
         ),
         (

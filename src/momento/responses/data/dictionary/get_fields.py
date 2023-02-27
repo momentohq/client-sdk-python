@@ -16,7 +16,7 @@ class CacheDictionaryGetFieldsResponse(CacheResponse):
     - `CacheDictionaryGetFields.Miss`
     - `CacheDictionaryGetFields.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

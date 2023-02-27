@@ -8,7 +8,7 @@ from pytest import fixture
 from pytest_describe import behaves_like
 from typing_extensions import Protocol
 
-from momento import SimpleCacheClient
+from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -36,7 +36,7 @@ from .shared_behaviors import (
 class TSetAdder(Protocol):
     def __call__(
         self,
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
         element: TSetElement,
@@ -55,7 +55,7 @@ def a_set_adder() -> None:
         set_name: TSetName,
         elements: TSetElementsInput,
     ) -> None:
-        with SimpleCacheClient(configuration, credential_provider, timedelta(hours=1)) as client:
+        with CacheClient(configuration, credential_provider, timedelta(hours=1)) as client:
             ttl_seconds = 0.5
             ttl = CollectionTtl(ttl=timedelta(seconds=ttl_seconds), refresh_ttl=False)
 
@@ -68,7 +68,7 @@ def a_set_adder() -> None:
             assert isinstance(fetch_resp, CacheSetFetch.Miss)
 
     def it_refreshes_the_ttl(
-        client: SimpleCacheClient, set_adder: TSetAdder, cache_name: TCacheName, set_name: TSetName
+        client: CacheClient, set_adder: TSetAdder, cache_name: TCacheName, set_name: TSetName
     ) -> None:
         ttl_seconds = 1
         ttl = CollectionTtl.of(timedelta(seconds=ttl_seconds))
@@ -90,7 +90,7 @@ def a_set_adder() -> None:
         set_name: TSetName,
     ) -> None:
         ttl_seconds = 1
-        with SimpleCacheClient(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
+        with CacheClient(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
             ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
 
             element = uuid_str()
@@ -172,14 +172,12 @@ def a_set_name_validator() -> None:
 @behaves_like(a_set_which_takes_an_element)
 def describe_set_add_element() -> None:
     @fixture
-    def cache_name_validator(
-        client: SimpleCacheClient, set_name: TSetName, element: TSetElement
-    ) -> TCacheNameValidator:
+    def cache_name_validator(client: CacheClient, set_name: TSetName, element: TSetElement) -> TCacheNameValidator:
         return partial(client.set_add_element, set_name=set_name, element=element)
 
     @fixture
     def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             set_name = uuid_str()
             element = uuid_str()
             return client.set_add_element(cache_name=cache_name, set_name=set_name, element=element)
@@ -187,9 +185,9 @@ def describe_set_add_element() -> None:
         return _connection_validator
 
     @fixture
-    def set_adder(client: SimpleCacheClient) -> TSetAdder:
+    def set_adder(client: CacheClient) -> TSetAdder:
         def _set_adder(
-            client: SimpleCacheClient,
+            client: CacheClient,
             cache_name: TCacheName,
             set_name: TSetName,
             element: TSetElement,
@@ -201,13 +199,11 @@ def describe_set_add_element() -> None:
         return _set_adder
 
     @fixture
-    def set_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, element: TSetElement
-    ) -> TSetNameValidator:
+    def set_name_validator(client: CacheClient, cache_name: TCacheName, element: TSetElement) -> TSetNameValidator:
         return partial(client.set_add_element, cache_name=cache_name, element=element)
 
     @fixture
-    def set_which_takes_an_element(client: SimpleCacheClient) -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client: CacheClient) -> TSetWhichTakesAnElement:
         def _set_which_takes_an_element(
             cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
@@ -215,7 +211,7 @@ def describe_set_add_element() -> None:
 
         return _set_which_takes_an_element
 
-    def it_adds_a_string_element(client: SimpleCacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
+    def it_adds_a_string_element(client: CacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
         element1 = uuid_str()
         element2 = uuid_str()
 
@@ -235,7 +231,7 @@ def describe_set_add_element() -> None:
         assert isinstance(fetch_resp, CacheSetFetch.Hit)
         assert fetch_resp.value_set_string == {element1, element2}
 
-    def it_adds_a_byte_element(client: SimpleCacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
+    def it_adds_a_byte_element(client: CacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
         element1 = uuid_bytes()
         element2 = uuid_bytes()
 
@@ -264,13 +260,13 @@ def describe_set_add_element() -> None:
 def describe_set_add_elements() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient, set_name: TSetName, elements: TSetElementsInput
+        client: CacheClient, set_name: TSetName, elements: TSetElementsInput
     ) -> TCacheNameValidator:
         return partial(client.set_add_elements, set_name=set_name, elements=elements)
 
     @fixture
     def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             set_name = uuid_str()
             elements = {uuid_str()}
             return client.set_add_elements(cache_name=cache_name, set_name=set_name, elements=elements)
@@ -278,9 +274,9 @@ def describe_set_add_elements() -> None:
         return _connection_validator
 
     @fixture
-    def set_adder(client: SimpleCacheClient) -> TSetAdder:
+    def set_adder(client: CacheClient) -> TSetAdder:
         def _set_adder(
-            client: SimpleCacheClient,
+            client: CacheClient,
             cache_name: TCacheName,
             set_name: TSetName,
             element: TSetElement,
@@ -293,12 +289,12 @@ def describe_set_add_elements() -> None:
 
     @fixture
     def set_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, elements: TSetElementsInput
+        client: CacheClient, cache_name: TCacheName, elements: TSetElementsInput
     ) -> TSetNameValidator:
         return partial(client.set_add_elements, cache_name=cache_name, elements=elements)
 
     @fixture
-    def set_which_takes_an_element(client: SimpleCacheClient) -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client: CacheClient) -> TSetWhichTakesAnElement:
         def _set_which_takes_an_element(
             cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
@@ -307,7 +303,7 @@ def describe_set_add_elements() -> None:
         return _set_which_takes_an_element
 
     def it_adds_string_elements(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
         elements_str: set[str],
@@ -328,7 +324,7 @@ def describe_set_add_elements() -> None:
         assert fetch_resp.value_set_string == elements_str
 
     def it_adds_byte_elements(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
         elements_bytes: set[bytes],
@@ -355,22 +351,22 @@ def describe_set_add_elements() -> None:
 @behaves_like(a_set_name_validator)
 def describe_set_fetch() -> None:
     @fixture
-    def cache_name_validator(client: SimpleCacheClient, set_name: TSetName) -> TCacheNameValidator:
+    def cache_name_validator(client: CacheClient, set_name: TSetName) -> TCacheNameValidator:
         return partial(client.set_fetch, set_name=set_name)
 
     @fixture
     def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             set_name = uuid_str()
             return client.set_fetch(cache_name=cache_name, set_name=set_name)
 
         return _connection_validator
 
     @fixture
-    def set_name_validator(client: SimpleCacheClient, cache_name: TCacheName) -> TSetNameValidator:
+    def set_name_validator(client: CacheClient, cache_name: TCacheName) -> TSetNameValidator:
         return partial(client.set_fetch, cache_name=cache_name)
 
-    def when_the_set_exists_it_fetches(client: SimpleCacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
+    def when_the_set_exists_it_fetches(client: CacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
         elements = {"one", "two"}
         client.set_add_elements(cache_name, set_name, elements)
 
@@ -379,9 +375,7 @@ def describe_set_fetch() -> None:
         assert resp.value_set_string == elements
         assert resp.value_set_bytes == {b"one", b"two"}
 
-    def when_the_set_does_not_exist_it_misses(
-        client: SimpleCacheClient, cache_name: TCacheName, set_name: TSetName
-    ) -> None:
+    def when_the_set_does_not_exist_it_misses(client: CacheClient, cache_name: TCacheName, set_name: TSetName) -> None:
         resp = client.set_fetch(cache_name, set_name)
         assert isinstance(resp, CacheSetFetch.Miss)
 
@@ -392,14 +386,12 @@ def describe_set_fetch() -> None:
 @behaves_like(a_set_which_takes_an_element)
 def describe_set_remove_element() -> None:
     @fixture
-    def cache_name_validator(
-        client: SimpleCacheClient, set_name: TSetName, element: TSetElement
-    ) -> TCacheNameValidator:
+    def cache_name_validator(client: CacheClient, set_name: TSetName, element: TSetElement) -> TCacheNameValidator:
         return partial(client.set_remove_element, set_name=set_name, element=element)
 
     @fixture
     def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             set_name = uuid_str()
             element = uuid_str()
             return client.set_remove_element(cache_name=cache_name, set_name=set_name, element=element)
@@ -407,13 +399,11 @@ def describe_set_remove_element() -> None:
         return _connection_validator
 
     @fixture
-    def set_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, element: TSetElement
-    ) -> TSetNameValidator:
+    def set_name_validator(client: CacheClient, cache_name: TCacheName, element: TSetElement) -> TSetNameValidator:
         return partial(client.set_remove_element, cache_name=cache_name, element=element)
 
     @fixture
-    def set_which_takes_an_element(client: SimpleCacheClient) -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client: CacheClient) -> TSetWhichTakesAnElement:
         def _set_which_takes_an_element(
             cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
@@ -422,7 +412,7 @@ def describe_set_remove_element() -> None:
         return _set_which_takes_an_element
 
     def it_removes_a_string_element(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
     ) -> None:
@@ -447,7 +437,7 @@ def describe_set_remove_element() -> None:
         assert fetch_resp.value_set_string == new_elements
 
     def it_removes_a_byte_element(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
     ) -> None:
@@ -479,13 +469,13 @@ def describe_set_remove_element() -> None:
 def describe_set_remove_elements() -> None:
     @fixture
     def cache_name_validator(
-        client: SimpleCacheClient, set_name: TSetName, elements: TSetElementsInput
+        client: CacheClient, set_name: TSetName, elements: TSetElementsInput
     ) -> TCacheNameValidator:
         return partial(client.set_remove_elements, set_name=set_name, elements=elements)
 
     @fixture
     def connection_validator(cache_name: TCacheName) -> TConnectionValidator:
-        def _connection_validator(client: SimpleCacheClient) -> CacheResponse:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
             set_name = uuid_str()
             elements = {uuid_str()}
             return client.set_remove_elements(cache_name=cache_name, set_name=set_name, elements=elements)
@@ -494,12 +484,12 @@ def describe_set_remove_elements() -> None:
 
     @fixture
     def set_name_validator(
-        client: SimpleCacheClient, cache_name: TCacheName, elements: TSetElementsInput
+        client: CacheClient, cache_name: TCacheName, elements: TSetElementsInput
     ) -> TSetNameValidator:
         return partial(client.set_remove_elements, cache_name=cache_name, elements=elements)
 
     @fixture
-    def set_which_takes_an_element(client: SimpleCacheClient) -> TSetWhichTakesAnElement:
+    def set_which_takes_an_element(client: CacheClient) -> TSetWhichTakesAnElement:
         def _set_which_takes_an_element(
             cache_name: TCacheName, set_name: TSetName, element: TSetElement
         ) -> CacheResponse:
@@ -508,7 +498,7 @@ def describe_set_remove_elements() -> None:
         return _set_which_takes_an_element
 
     def it_removes_string_elements(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
         elements_str: set[str],
@@ -531,7 +521,7 @@ def describe_set_remove_elements() -> None:
         assert fetch_resp.value_set_string == new_elements
 
     def it_removes_bytes_elements(
-        client: SimpleCacheClient,
+        client: CacheClient,
         cache_name: TCacheName,
         set_name: TSetName,
         elements_bytes: set[bytes],

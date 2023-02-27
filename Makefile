@@ -28,7 +28,7 @@ lint:
 do-gen-sync:
 	@poetry run python -m momento.internal.codegen src/momento/internal/aio/_scs_control_client.py src/momento/internal/synchronous/_scs_control_client.py
 	@poetry run python -m momento.internal.codegen src/momento/internal/aio/_scs_data_client.py src/momento/internal/synchronous/_scs_data_client.py
-	@poetry run python -m momento.internal.codegen src/momento/simple_cache_client_async.py src/momento/simple_cache_client.py
+	@poetry run python -m momento.internal.codegen src/momento/cache_client_async.py src/momento/cache_client.py
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/shared_behaviors_async.py tests/momento/simple_cache_client/shared_behaviors.py 
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_init_async.py tests/momento/simple_cache_client/test_init.py
 	@poetry run python -m momento.internal.codegen tests/momento/simple_cache_client/test_control_async.py tests/momento/simple_cache_client/test_control.py
@@ -55,7 +55,7 @@ precommit: gen-sync format lint test
 ## Remove intermediate files
 clean:
 	@rm -rf dist .mypy_cache .pytest_cache
-	@find -name "*__pycache__*" | xargs rm -rf
+	@find . -name "*__pycache__*" | xargs rm -rf
 
 
 # See <https://gist.github.com/klmr/575726c7e05d8780505a> for explanation.
