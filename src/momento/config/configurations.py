@@ -22,6 +22,10 @@ class Configurations:
 
         @staticmethod
         def latest() -> Configurations.Laptop:
+            return Configurations.Laptop.v1()
+
+        @staticmethod
+        def v1() -> Configurations.Laptop:
             return Configurations.Laptop(
                 StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=15))),
                 FixedCountRetryStrategy(max_attempts=3),
@@ -42,6 +46,10 @@ class Configurations:
 
             @staticmethod
             def latest() -> Configurations.InRegion.Default:
+                return Configurations.InRegion.Default.v1()
+
+            @staticmethod
+            def v1() -> Configurations.InRegion.Default:
                 return Configurations.InRegion.Default(
                     StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=1100))),
                     FixedCountRetryStrategy(max_attempts=3),
@@ -57,6 +65,10 @@ class Configurations:
 
             @staticmethod
             def latest() -> Configurations.InRegion.LowLatency:
+                return Configurations.InRegion.LowLatency.v1()
+
+            @staticmethod
+            def v1() -> Configurations.InRegion.LowLatency:
                 return Configurations.InRegion.LowLatency(
                     StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=500))),
                     FixedCountRetryStrategy(max_attempts=3),
