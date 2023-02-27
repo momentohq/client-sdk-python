@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 import momento.errors as errors
-from momento import SimpleCacheClientAsync
+from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -20,7 +20,7 @@ from tests.utils import uuid_str
 
 
 async def test_create_cache_get_set_values_and_delete_cache(
-    client_async: SimpleCacheClientAsync,
+    client_async: CacheClientAsync,
     cache_name: str,
     unique_cache_name_async: TUniqueCacheNameAsync,
 ) -> None:
@@ -42,14 +42,14 @@ async def test_create_cache_get_set_values_and_delete_cache(
 
 
 async def test_create_cache__already_exists_when_creating_existing_cache(
-    client_async: SimpleCacheClientAsync, cache_name: str
+    client_async: CacheClientAsync, cache_name: str
 ) -> None:
     response = await client_async.create_cache(cache_name)
     assert isinstance(response, CreateCache.CacheAlreadyExists)
 
 
 async def test_create_cache_throws_exception_for_empty_cache_name(
-    client_async: SimpleCacheClientAsync,
+    client_async: CacheClientAsync,
 ) -> None:
     response = await client_async.create_cache("")
     assert isinstance(response, CreateCache.Error)
@@ -57,7 +57,7 @@ async def test_create_cache_throws_exception_for_empty_cache_name(
 
 
 async def test_create_cache_throws_validation_exception_for_null_cache_name(
-    client_async: SimpleCacheClientAsync,
+    client_async: CacheClientAsync,
 ) -> None:
     response = await client_async.create_cache(None)  # type: ignore[arg-type]
     assert isinstance(response, CreateCache.Error)
@@ -66,7 +66,7 @@ async def test_create_cache_throws_validation_exception_for_null_cache_name(
 
 
 async def test_create_cache_with_bad_cache_name_throws_exception(
-    client_async: SimpleCacheClientAsync,
+    client_async: CacheClientAsync,
 ) -> None:
     response = await client_async.create_cache(1)  # type: ignore[arg-type]
     assert isinstance(response, CreateCache.Error)
@@ -80,9 +80,7 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
     default_ttl_seconds: timedelta,
     unique_cache_name_async: TUniqueCacheNameAsync,
 ) -> None:
-    async with SimpleCacheClientAsync(
-        configuration, bad_token_credential_provider, default_ttl_seconds
-    ) as client_async:
+    async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         new_cache_name = unique_cache_name_async(client_async)
         response = await client_async.create_cache(new_cache_name)
         assert isinstance(response, CreateCache.Error)
@@ -90,7 +88,7 @@ async def test_create_cache_throws_authentication_exception_for_bad_token(
 
 
 # Delete cache
-async def test_delete_cache_succeeds(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+async def test_delete_cache_succeeds(client_async: CacheClientAsync, cache_name: str) -> None:
     cache_name = uuid_str()
 
     response = await client_async.create_cache(cache_name)
@@ -105,7 +103,7 @@ async def test_delete_cache_succeeds(client_async: SimpleCacheClientAsync, cache
 
 
 async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
-    client_async: SimpleCacheClientAsync,
+    client_async: CacheClientAsync,
 ) -> None:
     cache_name = uuid_str()
     response = await client_async.delete_cache(cache_name)
@@ -114,7 +112,7 @@ async def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
 
 
 async def test_delete_cache_throws_invalid_input_for_null_cache_name(
-    client_async: SimpleCacheClientAsync,
+    client_async: CacheClientAsync,
 ) -> None:
     response = await client_async.delete_cache(None)  # type: ignore[arg-type]
     assert isinstance(response, DeleteCache.Error)
@@ -122,14 +120,14 @@ async def test_delete_cache_throws_invalid_input_for_null_cache_name(
 
 
 async def test_delete_cache_throws_exception_for_empty_cache_name(
-    client_async: SimpleCacheClientAsync,
+    client_async: CacheClientAsync,
 ) -> None:
     response = await client_async.delete_cache("")
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleCacheClientAsync) -> None:
+async def test_delete_with_bad_cache_name_throws_exception(client_async: CacheClientAsync) -> None:
     response = await client_async.delete_cache(1)  # type: ignore[arg-type]
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -139,16 +137,14 @@ async def test_delete_with_bad_cache_name_throws_exception(client_async: SimpleC
 async def test_delete_cache_throws_authentication_exception_for_bad_token(
     bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ) -> None:
-    async with SimpleCacheClientAsync(
-        configuration, bad_token_credential_provider, default_ttl_seconds
-    ) as client_async:
+    async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         response = await client_async.delete_cache(uuid_str())
         assert isinstance(response, DeleteCache.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
 # List caches
-async def test_list_caches_succeeds(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+async def test_list_caches_succeeds(client_async: CacheClientAsync, cache_name: str) -> None:
     cache_name = uuid_str()
 
     initial_response = await client_async.list_caches()
@@ -174,15 +170,13 @@ async def test_list_caches_succeeds(client_async: SimpleCacheClientAsync, cache_
 async def test_list_caches_throws_authentication_exception_for_bad_token(
     bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ) -> None:
-    async with SimpleCacheClientAsync(
-        configuration, bad_token_credential_provider, default_ttl_seconds
-    ) as client_async:
+    async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
         response = await client_async.list_caches()
         assert isinstance(response, ListCaches.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
-async def test_create_list_revoke_signing_keys(client_async: SimpleCacheClientAsync) -> None:
+async def test_create_list_revoke_signing_keys(client_async: CacheClientAsync) -> None:
     create_response = await client_async.create_signing_key(timedelta(minutes=30))
     assert isinstance(create_response, CreateSigningKey.Success)
 

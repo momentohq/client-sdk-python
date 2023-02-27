@@ -12,8 +12,8 @@ from momento.requests import CollectionTtl
 
 try:
     from momento.internal._utilities import _validate_request_timeout
-    from momento.internal.synchronous._scs_control_client import _ScsControlClient
-    from momento.internal.synchronous._scs_data_client import _ScsDataClient
+    from momento.internal.aio._scs_control_client import _ScsControlClient
+    from momento.internal.aio._scs_data_client import _ScsDataClient
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -83,8 +83,8 @@ from momento.responses import (
 from momento.typing import TDictionaryItems
 
 
-class SimpleCacheClient:
-    """Synchronous Simple Cache Client.
+class CacheClientAsync:
+    """Async Cache Client.
 
     Cache and control methods return a response object unique to each request.
     The response object is resolved to a type-safe object of one of several
@@ -93,7 +93,7 @@ class SimpleCacheClient:
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+ if you're deleting a key::
 
-        response = client.delete(cache_name, key)
+        response = await client.delete(cache_name, key)
         match response:
             case CacheDelete.Success():
                 ...they key was deleted or not found...
@@ -102,7 +102,7 @@ class SimpleCacheClient:
 
     or equivalently in earlier versions of python::
 
-        response = client.delete(cache_name, key)
+        response = await client.delete(cache_name, key)
         if isinstance(response, CacheDelete.Success):
             ...
         elif isinstance(response, CacheDelete.Error):
@@ -139,12 +139,12 @@ class SimpleCacheClient:
         Example::
 
             from datetime import timedelta
-            from momento import Configurations, CredentialProvider, SimpleCacheClient
+            from momento import Configurations, CredentialProvider, SimpleCacheClientAsync
 
             configuration = Configurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
-            client = SimpleCacheClient(configuration, credential_provider, ttl_seconds)
+            client = SimpleCacheClientAsync(configuration, credential_provider, ttl_seconds)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
@@ -153,23 +153,23 @@ class SimpleCacheClient:
         self._cache_endpoint = credential_provider.cache_endpoint
         self._data_clients = [
             _ScsDataClient(configuration, credential_provider, default_ttl)
-            for _ in range(SimpleCacheClient._NUM_CLIENTS)
+            for _ in range(CacheClientAsync._NUM_CLIENTS)
         ]
 
-    def __enter__(self) -> SimpleCacheClient:
+    async def __aenter__(self) -> CacheClientAsync:
         return self
 
-    def __exit__(
+    async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        self._control_client.close()
+        await self._control_client.close()
         for data_client in self._data_clients:
-            data_client.close()
+            await data_client.close()
 
-    def create_cache(self, cache_name: str) -> CreateCacheResponse:
+    async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a cache if it doesn't exist.
 
         Args:
@@ -178,9 +178,9 @@ class SimpleCacheClient:
         Returns:
             CreateCacheResponse:
         """
-        return self._control_client.create_cache(cache_name)
+        return await self._control_client.create_cache(cache_name)
 
-    def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
+    async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         """Deletes a cache and all of the items within it.
 
         Args:
@@ -189,17 +189,17 @@ class SimpleCacheClient:
         Returns:
             DeleteCacheResponse:
         """
-        return self._control_client.delete_cache(cache_name)
+        return await self._control_client.delete_cache(cache_name)
 
-    def list_caches(self) -> ListCachesResponse:
+    async def list_caches(self) -> ListCachesResponse:
         """Lists all caches.
 
         Returns:
             ListCachesResponse:
         """
-        return self._control_client.list_caches()
+        return await self._control_client.list_caches()
 
-    def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
+    async def create_signing_key(self, ttl: timedelta) -> CreateSigningKeyResponse:
         """Creates a Momento signing key.
 
         Args:
@@ -208,9 +208,9 @@ class SimpleCacheClient:
         Returns:
             CreateSigningKeyResponse
         """
-        return self._control_client.create_signing_key(ttl, self._cache_endpoint)
+        return await self._control_client.create_signing_key(ttl, self._cache_endpoint)
 
-    def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
+    async def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         """Revokes a Momento signing key, all tokens signed by which will be invalid.
 
         Args:
@@ -219,17 +219,17 @@ class SimpleCacheClient:
         Returns:
             RevokeSigningKeyResponse
         """
-        return self._control_client.revoke_signing_key(key_id)
+        return await self._control_client.revoke_signing_key(key_id)
 
-    def list_signing_keys(self) -> ListSigningKeysResponse:
+    async def list_signing_keys(self) -> ListSigningKeysResponse:
         """Lists all Momento signing keys for the provided auth token.
 
         Returns:
             ListSigningKeysResponse
         """
-        return self._control_client.list_signing_keys(self._cache_endpoint)
+        return await self._control_client.list_signing_keys(self._cache_endpoint)
 
-    def increment(
+    async def increment(
         self,
         cache_name: str,
         key: str | bytes,
@@ -249,9 +249,9 @@ class SimpleCacheClient:
         Returns:
             CacheIncrementResponse
         """
-        return self._data_client.increment(cache_name, key, amount, ttl)
+        return await self._data_client.increment(cache_name, key, amount, ttl)
 
-    def set(
+    async def set(
         self,
         cache_name: str,
         key: str | bytes,
@@ -271,9 +271,9 @@ class SimpleCacheClient:
         Returns:
             CacheSetResponse:
         """
-        return self._data_client.set(cache_name, key, value, ttl)
+        return await self._data_client.set(cache_name, key, value, ttl)
 
-    def set_if_not_exists(
+    async def set_if_not_exists(
         self,
         cache_name: str,
         key: str | bytes,
@@ -293,9 +293,9 @@ class SimpleCacheClient:
         Returns:
             CacheSetIfNotExistsResponse:
         """
-        return self._data_client.set_if_not_exists(cache_name, key, value, ttl)
+        return await self._data_client.set_if_not_exists(cache_name, key, value, ttl)
 
-    def get(self, cache_name: str, key: str | bytes) -> CacheGetResponse:
+    async def get(self, cache_name: str, key: str | bytes) -> CacheGetResponse:
         """Get the cache value stored for the given key.
 
         Args:
@@ -305,9 +305,9 @@ class SimpleCacheClient:
         Returns:
             CacheGetResponse:
         """
-        return self._data_client.get(cache_name, key)
+        return await self._data_client.get(cache_name, key)
 
-    def delete(self, cache_name: str, key: str | bytes) -> CacheDeleteResponse:
+    async def delete(self, cache_name: str, key: str | bytes) -> CacheDeleteResponse:
         """Remove the key from the cache.
 
         Args:
@@ -317,10 +317,10 @@ class SimpleCacheClient:
         Returns:
             CacheDeleteResponse:
         """
-        return self._data_client.delete(cache_name, key)
+        return await self._data_client.delete(cache_name, key)
 
     # DICTIONARY COLLECTION METHODS
-    def dictionary_fetch(self, cache_name: str, dictionary_name: str) -> CacheDictionaryFetchResponse:
+    async def dictionary_fetch(self, cache_name: str, dictionary_name: str) -> CacheDictionaryFetchResponse:
         """Fetch the entire dictionary from the cache.
 
         Args:
@@ -330,9 +330,9 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryFetchResponse: result of the fetch operation and the associated dictionary.
         """
-        return self._data_client.dictionary_fetch(cache_name, dictionary_name)
+        return await self._data_client.dictionary_fetch(cache_name, dictionary_name)
 
-    def dictionary_get_field(
+    async def dictionary_get_field(
         self, cache_name: str, dictionary_name: str, field: str | bytes
     ) -> CacheDictionaryGetFieldResponse:
         """Get the cache value stored for the given dictionary and field.
@@ -345,7 +345,7 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryGetFieldResponse: the status and value for the field.
         """
-        get_fields_response = self.dictionary_get_fields(cache_name, dictionary_name, [field])
+        get_fields_response = await self.dictionary_get_fields(cache_name, dictionary_name, [field])
         if isinstance(get_fields_response, CacheDictionaryGetFields.Hit):
             if len(get_fields_response.responses) == 0:
                 return CacheDictionaryGetField.Error(UnknownException("Unknown get fields response had no data"))
@@ -357,7 +357,7 @@ class SimpleCacheClient:
         else:
             return CacheDictionaryGetField.Error(UnknownException(f"Unknown get field response: {get_fields_response}"))
 
-    def dictionary_get_fields(
+    async def dictionary_get_fields(
         self, cache_name: str, dictionary_name: str, fields: Iterable[str | bytes]
     ) -> CacheDictionaryGetFieldsResponse:
         """Get several values from a dictionary.
@@ -370,9 +370,9 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryGetFieldsResponse: the status and associated value for each field.
         """
-        return self._data_client.dictionary_get_fields(cache_name, dictionary_name, fields)
+        return await self._data_client.dictionary_get_fields(cache_name, dictionary_name, fields)
 
-    def dictionary_increment(
+    async def dictionary_increment(
         self,
         cache_name: str,
         dictionary_name: str,
@@ -395,9 +395,9 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryIncrementResponse: result of the increment operation.
         """
-        return self._data_client.dictionary_increment(cache_name, dictionary_name, field, amount, ttl)
+        return await self._data_client.dictionary_increment(cache_name, dictionary_name, field, amount, ttl)
 
-    def dictionary_remove_field(
+    async def dictionary_remove_field(
         self, cache_name: str, dictionary_name: str, field: str | bytes
     ) -> CacheDictionaryRemoveFieldResponse:
         """Remove a field from a dictionary.
@@ -412,7 +412,7 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryRemoveFieldResponse: result of the remove operation.
         """
-        remove_fields_response = self.dictionary_remove_fields(cache_name, dictionary_name, fields=[field])
+        remove_fields_response = await self.dictionary_remove_fields(cache_name, dictionary_name, fields=[field])
         if isinstance(remove_fields_response, CacheDictionaryRemoveFields.Success):
             return CacheDictionaryRemoveField.Success()
         elif isinstance(remove_fields_response, CacheDictionaryRemoveFields.Error):
@@ -422,7 +422,7 @@ class SimpleCacheClient:
                 UnknownException(f"Unknown remove fields response: {remove_fields_response}")
             )
 
-    def dictionary_remove_fields(
+    async def dictionary_remove_fields(
         self, cache_name: str, dictionary_name: str, fields: Iterable[str | bytes]
     ) -> CacheDictionaryRemoveFieldsResponse:
         """Remove fields from a dictionary.
@@ -437,9 +437,9 @@ class SimpleCacheClient:
         Returns:
             CacheDictionaryRemoveFieldsResponse: result of the remove fields operation.
         """
-        return self._data_client.dictionary_remove_fields(cache_name, dictionary_name, fields)
+        return await self._data_client.dictionary_remove_fields(cache_name, dictionary_name, fields)
 
-    def dictionary_set_field(
+    async def dictionary_set_field(
         self,
         cache_name: str,
         dictionary_name: str,
@@ -462,7 +462,9 @@ class SimpleCacheClient:
         Returns:
             CacheDictionarySetFieldResponse: result of the set operation.
         """
-        set_fields_response = self.dictionary_set_fields(cache_name, dictionary_name, items={field: value}, ttl=ttl)
+        set_fields_response = await self.dictionary_set_fields(
+            cache_name, dictionary_name, items={field: value}, ttl=ttl
+        )
         if isinstance(set_fields_response, CacheDictionarySetFields.Success):
             return CacheDictionarySetField.Success()
         elif isinstance(set_fields_response, CacheDictionarySetFields.Error):
@@ -472,7 +474,7 @@ class SimpleCacheClient:
                 UnknownException(f"Unknown set fields response: {set_fields_response}")
             )
 
-    def dictionary_set_fields(
+    async def dictionary_set_fields(
         self,
         cache_name: str,
         dictionary_name: str,
@@ -493,10 +495,10 @@ class SimpleCacheClient:
         Returns:
             CacheDictionarySetFieldsResponse: result of the set fields operation.
         """
-        return self._data_client.dictionary_set_fields(cache_name, dictionary_name, items, ttl)
+        return await self._data_client.dictionary_set_fields(cache_name, dictionary_name, items, ttl)
 
     # LIST COLLECTION METHODS
-    def list_concatenate_back(
+    async def list_concatenate_back(
         self,
         cache_name: str,
         list_name: str,
@@ -518,9 +520,9 @@ class SimpleCacheClient:
         Returns:
             CacheListConcatenateBackResponse:
         """
-        return self._data_client.list_concatenate_back(cache_name, list_name, values, ttl, truncate_front_to_size)
+        return await self._data_client.list_concatenate_back(cache_name, list_name, values, ttl, truncate_front_to_size)
 
-    def list_concatenate_front(
+    async def list_concatenate_front(
         self,
         cache_name: str,
         list_name: str,
@@ -542,9 +544,9 @@ class SimpleCacheClient:
         Returns:
             CacheListConcatenateFrontResponse:
         """
-        return self._data_client.list_concatenate_front(cache_name, list_name, values, ttl, truncate_back_to_size)
+        return await self._data_client.list_concatenate_front(cache_name, list_name, values, ttl, truncate_back_to_size)
 
-    def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
+    async def list_fetch(self, cache_name: str, list_name: str) -> CacheListFetchResponse:
         """Gets all values from the list.
 
         Args:
@@ -554,9 +556,9 @@ class SimpleCacheClient:
         Returns:
             CacheListFetchResponse:
         """
-        return self._data_client.list_fetch(cache_name, list_name)
+        return await self._data_client.list_fetch(cache_name, list_name)
 
-    def list_length(self, cache_name: str, list_name: str) -> CacheListLengthResponse:
+    async def list_length(self, cache_name: str, list_name: str) -> CacheListLengthResponse:
         """Gets the number of values in the list.
 
         Args:
@@ -566,9 +568,9 @@ class SimpleCacheClient:
         Returns:
             CacheListLengthResponse:
         """
-        return self._data_client.list_length(cache_name, list_name)
+        return await self._data_client.list_length(cache_name, list_name)
 
-    def list_pop_back(self, cache_name: str, list_name: str) -> CacheListPopBackResponse:
+    async def list_pop_back(self, cache_name: str, list_name: str) -> CacheListPopBackResponse:
         """Gets, removes, and returns the last value from the list.
 
         Args:
@@ -578,9 +580,9 @@ class SimpleCacheClient:
         Returns:
             CacheListPopBackResponse:
         """
-        return self._data_client.list_pop_back(cache_name, list_name)
+        return await self._data_client.list_pop_back(cache_name, list_name)
 
-    def list_pop_front(self, cache_name: str, list_name: str) -> CacheListPopFrontResponse:
+    async def list_pop_front(self, cache_name: str, list_name: str) -> CacheListPopFrontResponse:
         """Gets, removes, and returns the first value from the list.
 
         Args:
@@ -590,9 +592,9 @@ class SimpleCacheClient:
         Returns:
             CacheListPopFrontResponse:
         """
-        return self._data_client.list_pop_front(cache_name, list_name)
+        return await self._data_client.list_pop_front(cache_name, list_name)
 
-    def list_push_back(
+    async def list_push_back(
         self,
         cache_name: str,
         list_name: str,
@@ -614,9 +616,9 @@ class SimpleCacheClient:
         Returns:
             CacheListPushBackResponse:
         """
-        return self._data_client.list_push_back(cache_name, list_name, value, ttl, truncate_front_to_size)
+        return await self._data_client.list_push_back(cache_name, list_name, value, ttl, truncate_front_to_size)
 
-    def list_push_front(
+    async def list_push_front(
         self,
         cache_name: str,
         list_name: str,
@@ -638,9 +640,9 @@ class SimpleCacheClient:
         Returns:
             CacheListPushFrontResponse:
         """
-        return self._data_client.list_push_front(cache_name, list_name, value, ttl, truncate_back_to_size)
+        return await self._data_client.list_push_front(cache_name, list_name, value, ttl, truncate_back_to_size)
 
-    def list_remove_value(
+    async def list_remove_value(
         self,
         cache_name: str,
         list_name: str,
@@ -649,8 +651,8 @@ class SimpleCacheClient:
         """Removes all matching values from the list.
 
         Example:
-            client.list_concatenate_front(cache_name, list_name, ['up', 'up', 'down', 'down', 'left', 'right'])
-            client.list_remove_value(cache_name, list_name, 'up')
+            await client.list_concatenate_front(cache_name, list_name, ['up', 'up', 'down', 'down', 'left', 'right'])
+            await client.list_remove_value(cache_name, list_name, 'up')
             fetch_resp = client.list_fetch(cache_name, list_name)
 
             # ['down', 'down', 'left', 'right']
@@ -664,10 +666,10 @@ class SimpleCacheClient:
         Returns:
             CacheListRemoveValueResponse
         """
-        return self._data_client.list_remove_value(cache_name, list_name, value)
+        return await self._data_client.list_remove_value(cache_name, list_name, value)
 
     # SET COLLECTION METHODS
-    def set_add_element(
+    async def set_add_element(
         self,
         cache_name: str,
         set_name: str,
@@ -686,7 +688,7 @@ class SimpleCacheClient:
         Returns:
             CacheSetAddElementResponse
         """
-        resp = self.set_add_elements(cache_name, set_name, (element,), ttl=ttl)
+        resp = await self.set_add_elements(cache_name, set_name, (element,), ttl=ttl)
 
         if isinstance(resp, CacheSetAddElements.Success):
             return CacheSetAddElement.Success()
@@ -695,7 +697,7 @@ class SimpleCacheClient:
         else:
             raise UnknownException(f"Unknown response type: {type(resp)}")
 
-    def set_add_elements(
+    async def set_add_elements(
         self,
         cache_name: str,
         set_name: str,
@@ -714,9 +716,9 @@ class SimpleCacheClient:
         Returns:
             CacheSetAddElementsResponse
         """
-        return self._data_client.set_add_elements(cache_name, set_name, elements, ttl)
+        return await self._data_client.set_add_elements(cache_name, set_name, elements, ttl)
 
-    def set_fetch(
+    async def set_fetch(
         self,
         cache_name: str,
         set_name: str,
@@ -730,9 +732,11 @@ class SimpleCacheClient:
         Returns:
             CacheSetFetchResponse
         """
-        return self._data_client.set_fetch(cache_name, set_name)
+        return await self._data_client.set_fetch(cache_name, set_name)
 
-    def set_remove_element(self, cache_name: str, set_name: str, element: str | bytes) -> CacheSetRemoveElementResponse:
+    async def set_remove_element(
+        self, cache_name: str, set_name: str, element: str | bytes
+    ) -> CacheSetRemoveElementResponse:
         """Remove an element from a set.
 
         Args:
@@ -743,7 +747,7 @@ class SimpleCacheClient:
         Returns:
             CacheSetRemoveElementResponse
         """
-        resp = self.set_remove_elements(cache_name, set_name, (element,))
+        resp = await self.set_remove_elements(cache_name, set_name, (element,))
         if isinstance(resp, CacheSetRemoveElements.Success):
             return CacheSetRemoveElement.Success()
         elif isinstance(resp, CacheSetRemoveElements.Error):
@@ -751,7 +755,7 @@ class SimpleCacheClient:
         else:
             raise UnknownException(f"Unknown response type: {type(resp)}")
 
-    def set_remove_elements(
+    async def set_remove_elements(
         self, cache_name: str, set_name: str, elements: Iterable[str | bytes]
     ) -> CacheSetRemoveElementsResponse:
         """Remove elements from a set.
@@ -764,7 +768,7 @@ class SimpleCacheClient:
         Returns:
             CacheSetRemoveElementsResponse
         """
-        return self._data_client.set_remove_elements(cache_name, set_name, elements)
+        return await self._data_client.set_remove_elements(cache_name, set_name, elements)
 
     @property
     def _data_client(self) -> _ScsDataClient:

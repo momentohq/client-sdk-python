@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from typing_extensions import Protocol
 
-from momento import SimpleCacheClient
+from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -70,7 +70,7 @@ def a_key_validator() -> None:
 
 
 class TConnectionValidator(Protocol):
-    def __call__(self, client: SimpleCacheClient) -> CacheResponse:
+    def __call__(self, client: CacheClient) -> CacheResponse:
         ...
 
 
@@ -81,7 +81,7 @@ def a_connection_validator() -> None:
         default_ttl_seconds: timedelta,
         connection_validator: TConnectionValidator,
     ) -> None:
-        with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
+        with CacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
             response = connection_validator(client)
             assert_response_is_error(response, error_code=MomentoErrorCode.AUTHENTICATION_ERROR)
 
@@ -92,6 +92,6 @@ def a_connection_validator() -> None:
         connection_validator: TConnectionValidator,
     ) -> None:
         configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
-        with SimpleCacheClient(configuration, credential_provider, default_ttl_seconds) as client:
+        with CacheClient(configuration, credential_provider, default_ttl_seconds) as client:
             response = connection_validator(client)
             assert_response_is_error(response, error_code=MomentoErrorCode.TIMEOUT_ERROR)

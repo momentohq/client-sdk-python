@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 import momento.errors as errors
-from momento import SimpleCacheClient
+from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -20,7 +20,7 @@ from tests.utils import uuid_str
 
 
 def test_create_cache_get_set_values_and_delete_cache(
-    client: SimpleCacheClient,
+    client: CacheClient,
     cache_name: str,
     unique_cache_name: TUniqueCacheName,
 ) -> None:
@@ -41,13 +41,13 @@ def test_create_cache_get_set_values_and_delete_cache(
     assert isinstance(get_for_key_in_some_other_cache, CacheGet.Miss)
 
 
-def test_create_cache__already_exists_when_creating_existing_cache(client: SimpleCacheClient, cache_name: str) -> None:
+def test_create_cache__already_exists_when_creating_existing_cache(client: CacheClient, cache_name: str) -> None:
     response = client.create_cache(cache_name)
     assert isinstance(response, CreateCache.CacheAlreadyExists)
 
 
 def test_create_cache_throws_exception_for_empty_cache_name(
-    client: SimpleCacheClient,
+    client: CacheClient,
 ) -> None:
     response = client.create_cache("")
     assert isinstance(response, CreateCache.Error)
@@ -55,7 +55,7 @@ def test_create_cache_throws_exception_for_empty_cache_name(
 
 
 def test_create_cache_throws_validation_exception_for_null_cache_name(
-    client: SimpleCacheClient,
+    client: CacheClient,
 ) -> None:
     response = client.create_cache(None)  # type: ignore[arg-type]
     assert isinstance(response, CreateCache.Error)
@@ -64,7 +64,7 @@ def test_create_cache_throws_validation_exception_for_null_cache_name(
 
 
 def test_create_cache_with_bad_cache_name_throws_exception(
-    client: SimpleCacheClient,
+    client: CacheClient,
 ) -> None:
     response = client.create_cache(1)  # type: ignore[arg-type]
     assert isinstance(response, CreateCache.Error)
@@ -78,7 +78,7 @@ def test_create_cache_throws_authentication_exception_for_bad_token(
     default_ttl_seconds: timedelta,
     unique_cache_name: TUniqueCacheName,
 ) -> None:
-    with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
+    with CacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
         new_cache_name = unique_cache_name(client)
         response = client.create_cache(new_cache_name)
         assert isinstance(response, CreateCache.Error)
@@ -86,7 +86,7 @@ def test_create_cache_throws_authentication_exception_for_bad_token(
 
 
 # Delete cache
-def test_delete_cache_succeeds(client: SimpleCacheClient, cache_name: str) -> None:
+def test_delete_cache_succeeds(client: CacheClient, cache_name: str) -> None:
     cache_name = uuid_str()
 
     response = client.create_cache(cache_name)
@@ -101,7 +101,7 @@ def test_delete_cache_succeeds(client: SimpleCacheClient, cache_name: str) -> No
 
 
 def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
-    client: SimpleCacheClient,
+    client: CacheClient,
 ) -> None:
     cache_name = uuid_str()
     response = client.delete_cache(cache_name)
@@ -110,7 +110,7 @@ def test_delete_cache_throws_not_found_when_deleting_unknown_cache(
 
 
 def test_delete_cache_throws_invalid_input_for_null_cache_name(
-    client: SimpleCacheClient,
+    client: CacheClient,
 ) -> None:
     response = client.delete_cache(None)  # type: ignore[arg-type]
     assert isinstance(response, DeleteCache.Error)
@@ -118,14 +118,14 @@ def test_delete_cache_throws_invalid_input_for_null_cache_name(
 
 
 def test_delete_cache_throws_exception_for_empty_cache_name(
-    client: SimpleCacheClient,
+    client: CacheClient,
 ) -> None:
     response = client.delete_cache("")
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient) -> None:
+def test_delete_with_bad_cache_name_throws_exception(client: CacheClient) -> None:
     response = client.delete_cache(1)  # type: ignore[arg-type]
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -135,14 +135,14 @@ def test_delete_with_bad_cache_name_throws_exception(client: SimpleCacheClient) 
 def test_delete_cache_throws_authentication_exception_for_bad_token(
     bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ) -> None:
-    with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
+    with CacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
         response = client.delete_cache(uuid_str())
         assert isinstance(response, DeleteCache.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
 # List caches
-def test_list_caches_succeeds(client: SimpleCacheClient, cache_name: str) -> None:
+def test_list_caches_succeeds(client: CacheClient, cache_name: str) -> None:
     cache_name = uuid_str()
 
     initial_response = client.list_caches()
@@ -168,13 +168,13 @@ def test_list_caches_succeeds(client: SimpleCacheClient, cache_name: str) -> Non
 def test_list_caches_throws_authentication_exception_for_bad_token(
     bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
 ) -> None:
-    with SimpleCacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
+    with CacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
         response = client.list_caches()
         assert isinstance(response, ListCaches.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
-def test_create_list_revoke_signing_keys(client: SimpleCacheClient) -> None:
+def test_create_list_revoke_signing_keys(client: CacheClient) -> None:
     create_response = client.create_signing_key(timedelta(minutes=30))
     assert isinstance(create_response, CreateSigningKey.Success)
 

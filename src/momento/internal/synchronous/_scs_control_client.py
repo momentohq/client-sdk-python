@@ -42,7 +42,7 @@ class _ScsControlClient:
         endpoint = credential_provider.control_endpoint
         self._logger = logs.logger
         self._logger.debug("Simple cache control client instantiated with endpoint: %s", endpoint)
-        self._grpc_manager = _ControlGrpcManager(credential_provider, configuration)
+        self._grpc_manager = _ControlGrpcManager(configuration, credential_provider)
         self._endpoint = endpoint
 
     @property

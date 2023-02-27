@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from example_utils.example_logging import initialize_logging
 
-from momento import SimpleCacheClientAsync
+from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Laptop
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
@@ -30,7 +30,7 @@ def _print_end_banner() -> None:
     _logger.info("******************************************************************")
 
 
-async def _create_cache(cache_client: SimpleCacheClientAsync, cache_name: str) -> None:
+async def _create_cache(cache_client: CacheClientAsync, cache_name: str) -> None:
     create_cache_response = await cache_client.create_cache(cache_name)
     match create_cache_response:
         case CreateCache.Success():
@@ -43,7 +43,7 @@ async def _create_cache(cache_client: SimpleCacheClientAsync, cache_name: str) -
             _logger.error("Unreachable")
 
 
-async def _list_caches(cache_client: SimpleCacheClientAsync) -> None:
+async def _list_caches(cache_client: CacheClientAsync) -> None:
     _logger.info("Listing caches:")
     list_caches_response = await cache_client.list_caches()
     while True:
@@ -66,7 +66,7 @@ async def _list_caches(cache_client: SimpleCacheClientAsync) -> None:
 async def main() -> None:
     initialize_logging()
     _print_start_banner()
-    async with SimpleCacheClientAsync(Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    async with CacheClientAsync(Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         await _create_cache(cache_client, _CACHE_NAME)
         await _list_caches(cache_client)
 

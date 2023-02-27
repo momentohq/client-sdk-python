@@ -5,7 +5,7 @@ from typing import Awaitable
 
 from typing_extensions import Protocol
 
-from momento import SimpleCacheClientAsync
+from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -71,7 +71,7 @@ def a_key_validator() -> None:
 
 
 class TConnectionValidator(Protocol):
-    def __call__(self, client_async: SimpleCacheClientAsync) -> Awaitable[CacheResponse]:
+    def __call__(self, client_async: CacheClientAsync) -> Awaitable[CacheResponse]:
         ...
 
 
@@ -82,9 +82,7 @@ def a_connection_validator() -> None:
         default_ttl_seconds: timedelta,
         connection_validator: TConnectionValidator,
     ) -> None:
-        async with SimpleCacheClientAsync(
-            configuration, bad_token_credential_provider, default_ttl_seconds
-        ) as client_async:
+        async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
             response = await connection_validator(client_async)
             assert_response_is_error(response, error_code=MomentoErrorCode.AUTHENTICATION_ERROR)
 
@@ -95,6 +93,6 @@ def a_connection_validator() -> None:
         connection_validator: TConnectionValidator,
     ) -> None:
         configuration = configuration.with_client_timeout(timedelta(milliseconds=1))
-        async with SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds) as client_async:
+        async with CacheClientAsync(configuration, credential_provider, default_ttl_seconds) as client_async:
             response = await connection_validator(client_async)
             assert_response_is_error(response, error_code=MomentoErrorCode.TIMEOUT_ERROR)
