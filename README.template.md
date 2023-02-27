@@ -127,6 +127,17 @@ if __name__ == "__main__":
     _print_end_banner()
 ```
 
+### Logging
+To avoid cluttering DEBUG logging with per-method logs the Momento SDK adds a TRACE logging level. This will only happen
+if the TRACE level does not already exist.
+
+To enable TRACE level logging you can call logging.basicConfig() before making any log statements:
+```agsl
+import logging
+
+logging.basicConfig(level='TRACE')
+```
+
 ### Error Handling
 
 Coming Soon!
