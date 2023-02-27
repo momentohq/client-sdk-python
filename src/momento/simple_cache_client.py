@@ -149,7 +149,7 @@ class SimpleCacheClient:
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
         self._next_client_index = 0
-        self._control_client = _ScsControlClient(credential_provider)
+        self._control_client = _ScsControlClient(configuration, credential_provider)
         self._cache_endpoint = credential_provider.cache_endpoint
         self._data_clients = [
             _ScsDataClient(configuration, credential_provider, default_ttl)

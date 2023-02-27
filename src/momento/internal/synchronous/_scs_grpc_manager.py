@@ -6,13 +6,13 @@ import momento_wire_types.controlclient_pb2_grpc as control_client
 import pkg_resources
 
 from momento.auth import CredentialProvider
+from momento.config import Configuration
 from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     Header,
 )
-from momento.internal.synchronous._retry_interceptor import (
-    get_retry_interceptor_if_enabled,
-)
+from momento.internal.synchronous._retry_interceptor import RetryInterceptor
+from momento.retry import RetryStrategy
 
 
 class _ControlGrpcManager:
@@ -20,11 +20,13 @@ class _ControlGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, credential_provider: CredentialProvider):
+    def __init__(self, credential_provider: CredentialProvider, configuration: Configuration):
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.control_endpoint, credentials=grpc.ssl_channel_credentials()
         )
-        intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(credential_provider.auth_token))
+        intercept_channel = grpc.intercept_channel(
+            self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
+        )
         self._stub = control_client.ScsControlStub(intercept_channel)
 
     def close(self) -> None:
@@ -39,12 +41,14 @@ class _DataGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, credential_provider: CredentialProvider):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
         )
-        intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(credential_provider.auth_token))
+        intercept_channel = grpc.intercept_channel(
+            self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
+        )
         self._stub = cache_client.ScsStub(intercept_channel)
 
     def close(self) -> None:
@@ -54,6 +58,6 @@ class _DataGrpcManager:
         return self._stub
 
 
-def _interceptors(auth_token: str) -> list[grpc.UnaryUnaryClientInterceptor]:
+def _interceptors(auth_token: str, retry_strategy: RetryStrategy) -> list[grpc.UnaryUnaryClientInterceptor]:
     headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
-    return [AddHeaderClientInterceptor(headers), *get_retry_interceptor_if_enabled()]
+    return [AddHeaderClientInterceptor(headers), RetryInterceptor(retry_strategy)]

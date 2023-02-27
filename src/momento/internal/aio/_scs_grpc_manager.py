@@ -6,9 +6,11 @@ import momento_wire_types.controlclient_pb2_grpc as control_client
 import pkg_resources
 
 from momento.auth import CredentialProvider
+from momento.config import Configuration
+from momento.retry import RetryStrategy
 
 from ._add_header_client_interceptor import AddHeaderClientInterceptor, Header
-from ._retry_interceptor import get_retry_interceptor_if_enabled
+from ._retry_interceptor import RetryInterceptor
 
 
 class _ControlGrpcManager:
@@ -16,11 +18,11 @@ class _ControlGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, credential_provider: CredentialProvider):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=_interceptors(credential_provider.auth_token),
+            interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
         )
 
     async def close(self) -> None:
@@ -35,11 +37,11 @@ class _DataGrpcManager:
 
     version = pkg_resources.get_distribution("momento").version
 
-    def __init__(self, credential_provider: CredentialProvider):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=_interceptors(credential_provider.auth_token),
+            interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
             # Here is where you would pass override configuration to the underlying C gRPC layer.
             # However, I have tried several different tuning options here and did not see any
             # performance improvements, so sticking with the defaults for now.
@@ -63,12 +65,12 @@ class _DataGrpcManager:
         return cache_client.ScsStub(self._secure_channel)
 
 
-def _interceptors(auth_token: str) -> list[grpc.aio.ClientInterceptor]:
+def _interceptors(auth_token: str, retry_strategy: RetryStrategy) -> list[grpc.aio.ClientInterceptor]:
     headers = [
         Header("authorization", auth_token),
         Header("agent", f"python:{_ControlGrpcManager.version}"),
     ]
     return [
         AddHeaderClientInterceptor(headers),
-        *get_retry_interceptor_if_enabled(),
+        RetryInterceptor(retry_strategy),
     ]

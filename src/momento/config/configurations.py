@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from momento.retry import FixedCountRetryStrategy
+
 from .configuration import Configuration
 from .transport.transport_strategy import (
     StaticGrpcConfiguration,
@@ -20,7 +22,10 @@ class Configurations:
 
         @staticmethod
         def latest() -> Configurations.Laptop:
-            return Configurations.Laptop(StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=15))))
+            return Configurations.Laptop(
+                StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=15))),
+                FixedCountRetryStrategy(max_attempts=3),
+            )
 
     class InRegion:
         """Default for application running in the same region as the Momento service.
@@ -38,7 +43,8 @@ class Configurations:
             @staticmethod
             def latest() -> Configurations.InRegion.Default:
                 return Configurations.InRegion.Default(
-                    StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=1100)))
+                    StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=1100))),
+                    FixedCountRetryStrategy(max_attempts=3),
                 )
 
         class LowLatency(Configuration):
@@ -52,5 +58,6 @@ class Configurations:
             @staticmethod
             def latest() -> Configurations.InRegion.LowLatency:
                 return Configurations.InRegion.LowLatency(
-                    StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=500)))
+                    StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=500))),
+                    FixedCountRetryStrategy(max_attempts=3),
                 )
