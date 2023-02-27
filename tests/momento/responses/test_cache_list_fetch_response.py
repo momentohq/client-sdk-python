@@ -10,15 +10,15 @@ from momento.responses import CacheListFetch
     [
         (
             [b"hello", b"world"],
-            "CacheListFetch.Hit(values_bytes=[b'hello', b'world'])",
+            "CacheListFetch.Hit(value_list_bytes=[b'hello', b'world'])",
         ),
         (
             [("i" * 100).encode()],
-            f"CacheListFetch.Hit(values_bytes=[b'{'i'*32}...'])",
+            f"CacheListFetch.Hit(value_list_bytes=[b'{'i'*32}...'])",
         ),
         (
             [f"{i}".encode() for i in range(10)],
-            "CacheListFetch.Hit(values_bytes=[b'0', b'1', b'2', b'3', b'4', ...])",
+            "CacheListFetch.Hit(value_list_bytes=[b'0', b'1', b'2', b'3', b'4', ...])",
         ),
     ],
 )

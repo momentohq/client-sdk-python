@@ -12,7 +12,7 @@ class CacheDictionaryIncrementResponse(CacheResponse):
     - `CacheDictionaryIncrement.Success`
     - `CacheDictionaryIncrement.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

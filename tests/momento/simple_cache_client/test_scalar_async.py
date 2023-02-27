@@ -7,7 +7,7 @@ from pytest import fixture
 from pytest_describe import behaves_like
 from typing_extensions import Protocol
 
-from momento import SimpleCacheClientAsync
+from momento import CacheClientAsync
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet, CacheSetIfNotExists
 from momento.responses.mixins import ErrorResponseMixin
@@ -34,7 +34,7 @@ class TTtlSetter(Protocol):
 
 def a_ttl_setter() -> None:
     async def expires_items_after_ttl(
-        ttl_setter: TTtlSetter, client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ttl_setter: TTtlSetter, client_async: CacheClientAsync, cache_name: TCacheName
     ) -> None:
         key = uuid_str()
 
@@ -47,7 +47,7 @@ def a_ttl_setter() -> None:
         assert isinstance(get_response, CacheGet.Miss)
 
     async def with_different_ttl(
-        ttl_setter: TTtlSetter, client_async: SimpleCacheClientAsync, cache_name: TCacheName
+        ttl_setter: TTtlSetter, client_async: CacheClientAsync, cache_name: TCacheName
     ) -> None:
         key1 = uuid_str()
         key2 = uuid_str()
@@ -70,7 +70,7 @@ def a_ttl_setter() -> None:
         assert isinstance(get_response, CacheGet.Hit)
 
     async def negative_ttl_throws_exception(
-        ttl_setter: TTtlSetter, client_async: SimpleCacheClientAsync, cache_name: str
+        ttl_setter: TTtlSetter, client_async: CacheClientAsync, cache_name: str
     ) -> None:
         set_response = await ttl_setter(cache_name, "foo", ttl=timedelta(seconds=-1))
         if isinstance(set_response, ErrorResponseMixin):
@@ -89,7 +89,7 @@ class TSetter(Protocol):
 
 def a_setter() -> None:
     async def with_null_value_throws_exception(
-        setter: TSetter, client_async: SimpleCacheClientAsync, cache_name: str
+        setter: TSetter, client_async: CacheClientAsync, cache_name: str
     ) -> None:
         set_response = await setter(cache_name, "foo", None)  # type:ignore[arg-type]
         if isinstance(set_response, ErrorResponseMixin):
@@ -97,9 +97,7 @@ def a_setter() -> None:
         else:
             assert False
 
-    async def with_bad_value_throws_exception(
-        setter: TSetter, client_async: SimpleCacheClientAsync, cache_name: str
-    ) -> None:
+    async def with_bad_value_throws_exception(setter: TSetter, client_async: CacheClientAsync, cache_name: str) -> None:
         set_response = await setter(cache_name, "foo", 1)  # type:ignore[arg-type]
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -109,7 +107,7 @@ def a_setter() -> None:
 
 
 def describe_set_and_get() -> None:
-    async def with_hit(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+    async def with_hit(client_async: CacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
         value = uuid_str()
 
@@ -123,7 +121,7 @@ def describe_set_and_get() -> None:
         else:
             assert False
 
-    async def with_byte_key_values(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+    async def with_byte_key_values(client_async: CacheClientAsync, cache_name: str) -> None:
         key = uuid_bytes()
         value = uuid_bytes()
 
@@ -140,22 +138,22 @@ def describe_set_and_get() -> None:
 @behaves_like(a_connection_validator)
 def describe_get() -> None:
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+    def cache_name_validator(client_async: CacheClientAsync) -> TCacheNameValidator:
         key = uuid_str()
         return partial(client_async.get, key=key)
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
+    def key_validator(client_async: CacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
         return partial(client_async.get, cache_name=cache_name)
 
     @fixture
     def connection_validator(cache_name: TCacheName, key: TScalarKey) -> TConnectionValidator:
-        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
             return await client_async.get(cache_name, key)
 
         return _connection_validator
 
-    async def returns_miss(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+    async def returns_miss(client_async: CacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
 
         get_resp = await client_async.get(cache_name, key)
@@ -168,26 +166,26 @@ def describe_get() -> None:
 @behaves_like(a_ttl_setter)
 def describe_increment() -> None:
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+    def cache_name_validator(client_async: CacheClientAsync) -> TCacheNameValidator:
         key = uuid_str()
         return partial(client_async.increment, key=key)
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
+    def key_validator(client_async: CacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
         return partial(client_async.increment, cache_name=cache_name)
 
     @fixture
     def connection_validator(cache_name: TCacheName, key: TScalarKey) -> TConnectionValidator:
-        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
             return await client_async.increment(cache_name, key)
 
         return _connection_validator
 
     @fixture
-    def ttl_setter(client_async: SimpleCacheClientAsync) -> TTtlSetter:
+    def ttl_setter(client_async: CacheClientAsync) -> TTtlSetter:
         return partial(client_async.increment, amount=5)
 
-    async def it_expires_items_after_ttl(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> None:
+    async def it_expires_items_after_ttl(client_async: CacheClientAsync, cache_name: TCacheName) -> None:
         key = uuid_str()
 
         await client_async.increment(cache_name, key, ttl=timedelta(seconds=2))
@@ -206,29 +204,29 @@ def describe_increment() -> None:
 @behaves_like(a_setter)
 def describe_set() -> None:
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+    def cache_name_validator(client_async: CacheClientAsync) -> TCacheNameValidator:
         key = uuid_str()
         value = uuid_str()
         return partial(client_async.set, key=key, value=value)
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
+    def key_validator(client_async: CacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
         value = uuid_str()
         return partial(client_async.set, cache_name=cache_name, value=value)
 
     @fixture
     def connection_validator(cache_name: TCacheName, key: TScalarKey, value: TScalarValue) -> TConnectionValidator:
-        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
             return await client_async.set(cache_name, key, value)
 
         return _connection_validator
 
     @fixture
-    def setter(client_async: SimpleCacheClientAsync) -> TSetter:
+    def setter(client_async: CacheClientAsync) -> TSetter:
         return partial(client_async.set)
 
     @fixture
-    def ttl_setter(client_async: SimpleCacheClientAsync) -> TTtlSetter:
+    def ttl_setter(client_async: CacheClientAsync) -> TTtlSetter:
         return partial(client_async.set, value=uuid_str())
 
 
@@ -239,33 +237,33 @@ def describe_set() -> None:
 @behaves_like(a_setter)
 def describe_set_if_not_exists() -> None:
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+    def cache_name_validator(client_async: CacheClientAsync) -> TCacheNameValidator:
         key = uuid_str()
         value = uuid_str()
         return partial(client_async.set_if_not_exists, key=key, value=value)
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
+    def key_validator(client_async: CacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
         value = uuid_str()
         return partial(client_async.set_if_not_exists, cache_name=cache_name, value=value)
 
     @fixture
     def connection_validator(cache_name: TCacheName, key: TScalarKey, value: TScalarValue) -> TConnectionValidator:
-        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
             return await client_async.set_if_not_exists(cache_name, key, value)
 
         return _connection_validator
 
     @fixture
-    def setter(client_async: SimpleCacheClientAsync) -> TSetter:
+    def setter(client_async: CacheClientAsync) -> TSetter:
         return partial(client_async.set_if_not_exists)
 
     @fixture
-    def ttl_setter(client_async: SimpleCacheClientAsync) -> TTtlSetter:
+    def ttl_setter(client_async: CacheClientAsync) -> TTtlSetter:
         return partial(client_async.set_if_not_exists, value=uuid_str())
 
     async def it_only_sets_when_the_key_does_not_exist(
-        client_async: SimpleCacheClientAsync,
+        client_async: CacheClientAsync,
         cache_name: TCacheName,
     ) -> None:
         key = uuid_str()
@@ -294,22 +292,22 @@ def describe_set_if_not_exists() -> None:
 @behaves_like(a_connection_validator)
 def describe_delete() -> None:
     @fixture
-    def cache_name_validator(client_async: SimpleCacheClientAsync) -> TCacheNameValidator:
+    def cache_name_validator(client_async: CacheClientAsync) -> TCacheNameValidator:
         key = uuid_str()
         return partial(client_async.delete, key=key)
 
     @fixture
-    def key_validator(client_async: SimpleCacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
+    def key_validator(client_async: CacheClientAsync, cache_name: TCacheName) -> TKeyValidator:
         return partial(client_async.delete, cache_name=cache_name)
 
     @fixture
     def connection_validator(cache_name: TCacheName, key: TScalarKey) -> TConnectionValidator:
-        async def _connection_validator(client_async: SimpleCacheClientAsync) -> CacheResponse:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
             return await client_async.delete(cache_name, key)
 
         return _connection_validator
 
-    async def key_doesnt_exist(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+    async def key_doesnt_exist(client_async: CacheClientAsync, cache_name: str) -> None:
         key = uuid_str()
         get_response = await client_async.get(cache_name, key)
         assert isinstance(get_response, CacheGet.Miss)
@@ -319,7 +317,7 @@ def describe_delete() -> None:
         get_response = await client_async.get(cache_name, key)
         assert isinstance(get_response, CacheGet.Miss)
 
-    async def delete_a_key(client_async: SimpleCacheClientAsync, cache_name: str) -> None:
+    async def delete_a_key(client_async: CacheClientAsync, cache_name: str) -> None:
         # Set an item to then delete...
         key, value = uuid_str(), uuid_str()
         get_response = await client_async.get(cache_name, key)

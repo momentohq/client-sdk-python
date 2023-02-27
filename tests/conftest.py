@@ -9,9 +9,8 @@ from typing import AsyncIterator, Callable, Iterator, List, Optional, Union, cas
 import pytest
 import pytest_asyncio
 
-from momento import SimpleCacheClient, SimpleCacheClientAsync
-from momento.auth import CredentialProvider
-from momento.config import Configuration, Laptop
+from momento import CacheClient, CacheClientAsync, Configurations, CredentialProvider
+from momento.config import Configuration
 from momento.typing import (
     TCacheName,
     TDictionaryField,
@@ -32,7 +31,7 @@ from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 # Integration test data
 #######################
 
-TEST_CONFIGURATION = Laptop.latest()
+TEST_CONFIGURATION = Configurations.Laptop.latest()
 
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
 
@@ -203,10 +202,8 @@ def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
 
 
 @pytest.fixture(scope="session")
-def client() -> Iterator[SimpleCacheClient]:
-    configuration = Laptop.latest()
-    credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
-    with SimpleCacheClient(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
+def client() -> Iterator[CacheClient]:
+    with CacheClient(TEST_CONFIGURATION, TEST_AUTH_PROVIDER, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         _client.create_cache(cast(str, TEST_CACHE_NAME))
         try:
@@ -216,10 +213,8 @@ def client() -> Iterator[SimpleCacheClient]:
 
 
 @pytest_asyncio.fixture(scope="session")
-async def client_async() -> AsyncIterator[SimpleCacheClientAsync]:
-    configuration = Laptop.latest()
-    credential_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
-    async with SimpleCacheClientAsync(configuration, credential_provider, DEFAULT_TTL_SECONDS) as _client:
+async def client_async() -> AsyncIterator[CacheClientAsync]:
+    async with CacheClientAsync(TEST_CONFIGURATION, TEST_AUTH_PROVIDER, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         # TODO consider deleting cache on when test runner shuts down
         await _client.create_cache(cast(str, TEST_CACHE_NAME))
@@ -229,15 +224,15 @@ async def client_async() -> AsyncIterator[SimpleCacheClientAsync]:
             await _client.delete_cache(cast(str, TEST_CACHE_NAME))
 
 
-TUniqueCacheName = Callable[[SimpleCacheClient], str]
+TUniqueCacheName = Callable[[CacheClient], str]
 
 
 @pytest.fixture
-def unique_cache_name(client: SimpleCacheClient) -> Iterator[Callable[[SimpleCacheClient], str]]:
+def unique_cache_name(client: CacheClient) -> Iterator[Callable[[CacheClient], str]]:
     """Synchronous version of unique_cache_name_async."""
     cache_names = []
 
-    def _unique_cache_name(client: SimpleCacheClient) -> str:
+    def _unique_cache_name(client: CacheClient) -> str:
         cache_name = unique_test_cache_name()
         cache_names.append(cache_name)
         return cache_name
@@ -249,13 +244,13 @@ def unique_cache_name(client: SimpleCacheClient) -> Iterator[Callable[[SimpleCac
             client.delete_cache(cache_name)
 
 
-TUniqueCacheNameAsync = Callable[[SimpleCacheClientAsync], str]
+TUniqueCacheNameAsync = Callable[[CacheClientAsync], str]
 
 
 @pytest_asyncio.fixture
 async def unique_cache_name_async(
-    client_async: SimpleCacheClientAsync,
-) -> AsyncIterator[Callable[[SimpleCacheClientAsync], str]]:
+    client_async: CacheClientAsync,
+) -> AsyncIterator[Callable[[CacheClientAsync], str]]:
     """Returns unique cache name for testing.
 
     Also ensures the cache is deleted after the test, even if the test fails.
@@ -263,14 +258,14 @@ async def unique_cache_name_async(
     It does not create the cache for you.
 
     Args:
-        client_async (SimpleCacheClientAsync): The client to use to delete the cache.
+        client_async (CacheClientAsync): The client to use to delete the cache.
 
     Returns:
         str: the unique cache name
     """
     cache_names = []
 
-    def _unique_cache_name_async(client: SimpleCacheClientAsync) -> str:
+    def _unique_cache_name_async(client: CacheClientAsync) -> str:
         cache_name = unique_test_cache_name()
         cache_names.append(cache_name)
         return cache_name

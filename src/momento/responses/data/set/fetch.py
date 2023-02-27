@@ -15,7 +15,7 @@ class CacheSetFetchResponse(CacheResponse):
     - `CacheSetFetch.Miss`
     - `CacheSetFetch.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

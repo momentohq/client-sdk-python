@@ -13,6 +13,7 @@ from momento_wire_types.controlclient_pb2_grpc import ScsControlStub
 
 from momento import logs
 from momento.auth import CredentialProvider
+from momento.config import Configuration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_cache_name, _validate_ttl
 from momento.internal.synchronous._scs_grpc_manager import _ControlGrpcManager
@@ -37,11 +38,11 @@ _DEADLINE_SECONDS = 60.0  # 1 minute
 class _ScsControlClient:
     """Momento Internal."""
 
-    def __init__(self, credential_provider: CredentialProvider):
+    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         endpoint = credential_provider.control_endpoint
         self._logger = logs.logger
         self._logger.debug("Simple cache control client instantiated with endpoint: %s", endpoint)
-        self._grpc_manager = _ControlGrpcManager(credential_provider)
+        self._grpc_manager = _ControlGrpcManager(configuration, credential_provider)
         self._endpoint = endpoint
 
     @property

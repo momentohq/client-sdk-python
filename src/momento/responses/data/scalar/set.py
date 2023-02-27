@@ -11,7 +11,7 @@ class CacheSetResponse(CacheResponse):
     - `CacheSet.Success`
     - `CacheSet.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

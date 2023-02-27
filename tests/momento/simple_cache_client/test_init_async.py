@@ -3,7 +3,7 @@ from datetime import timedelta
 
 import pytest
 
-from momento import SimpleCacheClientAsync
+from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import InvalidArgumentException
@@ -13,7 +13,7 @@ async def test_init_throws_exception_when_client_uses_negative_default_ttl(
     configuration: Configuration, credential_provider: CredentialProvider
 ) -> None:
     with pytest.raises(InvalidArgumentException, match="TTL must be a positive amount of time."):
-        SimpleCacheClientAsync(configuration, credential_provider, timedelta(seconds=-1))
+        CacheClientAsync(configuration, credential_provider, timedelta(seconds=-1))
 
 
 async def test_init_throws_exception_for_non_jwt_token(
@@ -22,7 +22,7 @@ async def test_init_throws_exception_for_non_jwt_token(
     with pytest.raises(InvalidArgumentException, match="Invalid Auth token."):
         os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
         credential_provider = CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
-        SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds)
+        CacheClientAsync(configuration, credential_provider, default_ttl_seconds)
 
 
 async def test_init_throws_exception_when_client_uses_integer_request_timeout_ms(
@@ -37,7 +37,7 @@ async def test_init_throws_exception_when_client_uses_negative_request_timeout_m
 ) -> None:
     with pytest.raises(InvalidArgumentException, match="Request timeout must be a positive amount of time."):
         configuration = configuration.with_client_timeout(timedelta(seconds=-1))
-        SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds)
+        CacheClientAsync(configuration, credential_provider, default_ttl_seconds)
 
 
 async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
@@ -45,4 +45,4 @@ async def test_init_throws_exception_when_client_uses_zero_request_timeout_ms(
 ) -> None:
     with pytest.raises(InvalidArgumentException, match="Request timeout must be a positive amount of time."):
         configuration = configuration.with_client_timeout(timedelta(seconds=0))
-        SimpleCacheClientAsync(configuration, credential_provider, default_ttl_seconds)
+        CacheClientAsync(configuration, credential_provider, default_ttl_seconds)

@@ -1,2 +1,4 @@
 from .configuration import Configuration
-from .configurations import InRegion, Laptop
+from .configurations import Configurations
+
+__all__ = ["Configuration", "Configurations"]

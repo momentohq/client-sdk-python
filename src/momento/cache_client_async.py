@@ -83,8 +83,8 @@ from momento.responses import (
 from momento.typing import TDictionaryItems
 
 
-class SimpleCacheClientAsync:
-    """Async Simple Cache Client.
+class CacheClientAsync:
+    """Async Cache Client.
 
     Cache and control methods return a response object unique to each request.
     The response object is resolved to a type-safe object of one of several
@@ -138,22 +138,25 @@ class SimpleCacheClientAsync:
             IllegalArgumentException: If method arguments fail validations.
         Example::
 
-            configuration = Laptop.latest()
+            from datetime import timedelta
+            from momento import Configurations, CredentialProvider, CacheClientAsync
+
+            configuration = Configurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
-            client = SimpleCacheClientAsync(configuration, credential_provider, ttl_seconds)
+            client = CacheClientAsync(configuration, credential_provider, ttl_seconds)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
         self._next_client_index = 0
-        self._control_client = _ScsControlClient(credential_provider)
+        self._control_client = _ScsControlClient(configuration, credential_provider)
         self._cache_endpoint = credential_provider.cache_endpoint
         self._data_clients = [
             _ScsDataClient(configuration, credential_provider, default_ttl)
-            for _ in range(SimpleCacheClientAsync._NUM_CLIENTS)
+            for _ in range(CacheClientAsync._NUM_CLIENTS)
         ]
 
-    async def __aenter__(self) -> SimpleCacheClientAsync:
+    async def __aenter__(self) -> CacheClientAsync:
         return self
 
     async def __aexit__(

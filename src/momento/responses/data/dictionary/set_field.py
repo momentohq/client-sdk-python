@@ -11,7 +11,7 @@ class CacheDictionarySetFieldResponse(CacheResponse):
     - `CacheDictionarySetField.Success`
     - `CacheDictionarySetField.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

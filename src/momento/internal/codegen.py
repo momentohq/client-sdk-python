@@ -122,7 +122,7 @@ name_replacements = NameReplacement(
         ("^async_(.*)", "\\1"),
         ("(.*?)_async_(.*)", "\\1_\\2"),
         ("(.*?)_async$", "\\1"),
-        ("^(SimpleCacheClient)Async$", "\\1"),
+        ("^(CacheClient)Async$", "\\1"),
         ("^(TUniqueCacheName)Async$", "\\1"),
         ("__aenter__", "__enter__"),
         ("__aexit__", "__exit__"),
@@ -132,8 +132,8 @@ name_replacements = NameReplacement(
 
 simple_string_replacements = SimpleStringReplacement(
     [
-        ("(SimpleCacheClient)Async", "\\1"),
-        (r"(.*?)Async(\s+Simple\s+Cache\s+Client.*?)", "\\1Synchronous\\2"),
+        ("(CacheClient)Async", "\\1"),
+        (r"(.*?)Async(\s+Cache\s+Client.*?)", "\\1Synchronous\\2"),
         (r"(.*?)\bawait\s+(.*?)", "\\1\\2"),
     ]
 )

@@ -11,7 +11,7 @@ class CacheListRemoveValueResponse(CacheResponse):
     - `CacheListRemoveValue.Success`
     - `CacheListRemoveValue.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 

@@ -40,7 +40,7 @@ from datetime import timedelta
 
 from example_utils.example_logging import initialize_logging
 
-from momento import SimpleCacheClient
+from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Laptop
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
@@ -66,7 +66,7 @@ def _print_end_banner() -> None:
     _logger.info("******************************************************************")
 
 
-def _create_cache(cache_client: SimpleCacheClient, cache_name: str) -> None:
+def _create_cache(cache_client: CacheClient, cache_name: str) -> None:
     create_cache_response = cache_client.create_cache(cache_name)
     if isinstance(create_cache_response, CreateCache.Success):
         pass
@@ -78,7 +78,7 @@ def _create_cache(cache_client: SimpleCacheClient, cache_name: str) -> None:
         _logger.error("Unreachable")
 
 
-def _list_caches(cache_client: SimpleCacheClient) -> None:
+def _list_caches(cache_client: CacheClient) -> None:
     _logger.info("Listing caches:")
     list_caches_response = cache_client.list_caches()
     while True:
@@ -100,7 +100,7 @@ def _list_caches(cache_client: SimpleCacheClient) -> None:
 if __name__ == "__main__":
     initialize_logging()
     _print_start_banner()
-    with SimpleCacheClient(Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    with CacheClient(Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         _create_cache(cache_client, _CACHE_NAME)
         _list_caches(cache_client)
 
@@ -125,6 +125,19 @@ if __name__ == "__main__":
         else:
             _logger.error("Unreachable")
     _print_end_banner()
+```
+
+### Logging
+
+To avoid cluttering DEBUG logging with per-method logs the Momento SDK adds a TRACE logging level. This will only happen
+if the TRACE level does not already exist.
+
+To enable TRACE level logging you can call logging.basicConfig() before making any log statements:
+
+```python
+import logging
+
+logging.basicConfig(level='TRACE')
 ```
 
 ### Error Handling

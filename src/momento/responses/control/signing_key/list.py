@@ -37,7 +37,7 @@ class ListSigningKeysResponse(ControlResponse):
     - `ListSigningKeys.Success`
     - `ListSigningKeys.Error`
 
-    See `SimpleCacheClient` for how to work with responses.
+    See `CacheClient` for how to work with responses.
     """
 
 
