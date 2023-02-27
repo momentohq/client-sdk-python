@@ -134,7 +134,7 @@ if the TRACE level does not already exist.
 
 To enable TRACE level logging you can call logging.basicConfig() before making any log statements:
 
-```agsl
+```python
 import logging
 
 logging.basicConfig(level='TRACE')

@@ -1,4 +1,5 @@
 import logging
+import warnings
 from typing import Optional
 
 logger = logging.getLogger("momentosdk")
@@ -41,6 +42,11 @@ def add_logging_level(level_name: str, level_num: int, method_name: Optional[str
     if hasattr(logging, level_name) or hasattr(logging, method_name) or hasattr(logging.getLoggerClass(), method_name):
         # Do nothing if the logging level already exists. Since this affects logging globally we can't know if the user
         # or another dependency has already added the same level.
+        warnings.warn(
+            "Logging level {level} or logging method {method} already defined. Skipping.".format(
+                level=level_name, method=method_name
+            )
+        )
         return False
 
     # This method was inspired by the answers to Stack Overflow post
