@@ -1,4 +1,5 @@
 import logging
+import warnings
 from typing import Optional
 
 logger = logging.getLogger("momentosdk")
@@ -12,7 +13,7 @@ info = logger.info
 debug = logger.debug
 
 
-def add_logging_level(level_name: str, level_num: int, method_name: Optional[str] = None) -> None:
+def add_logging_level(level_name: str, level_num: int, method_name: Optional[str] = None) -> bool:
     """Comprehensively adds a new logging level to the `logging` module and the currently configured logging class.
 
     `level_name` becomes an attribute of the `logging` module with the value
@@ -38,12 +39,15 @@ def add_logging_level(level_name: str, level_num: int, method_name: Optional[str
     if not method_name:
         method_name = level_name.lower()
 
-    if hasattr(logging, level_name):
-        raise AttributeError("{} already defined in logging module".format(level_name))
-    if hasattr(logging, method_name):
-        raise AttributeError("{} already defined in logging module".format(method_name))
-    if hasattr(logging.getLoggerClass(), method_name):
-        raise AttributeError("{} already defined in logger class".format(method_name))
+    if hasattr(logging, level_name) or hasattr(logging, method_name) or hasattr(logging.getLoggerClass(), method_name):
+        # Do nothing if the logging level already exists. Since this affects logging globally we can't know if the user
+        # or another dependency has already added the same level.
+        warnings.warn(
+            "Logging level {level} or logging method {method} already defined. Skipping.".format(
+                level=level_name, method=method_name
+            )
+        )
+        return False
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -59,6 +63,8 @@ def add_logging_level(level_name: str, level_num: int, method_name: Optional[str
     setattr(logging, level_name, level_num)
     setattr(logging.getLoggerClass(), method_name, logForLevel)  # type: ignore[misc]
     setattr(logging, method_name, logToRoot)  # type: ignore[misc]
+
+    return True
 
 
 TRACE = logging.DEBUG - 5
