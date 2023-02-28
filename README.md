@@ -44,9 +44,7 @@ from datetime import timedelta
 
 from example_utils.example_logging import initialize_logging
 
-from momento import SimpleCacheClient
-from momento.auth import CredentialProvider
-from momento.config import Laptop
+from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
@@ -70,7 +68,7 @@ def _print_end_banner() -> None:
     _logger.info("******************************************************************")
 
 
-def _create_cache(cache_client: SimpleCacheClient, cache_name: str) -> None:
+def _create_cache(cache_client: CacheClient, cache_name: str) -> None:
     create_cache_response = cache_client.create_cache(cache_name)
     match create_cache_response:
         case CreateCache.Success():
@@ -83,30 +81,24 @@ def _create_cache(cache_client: SimpleCacheClient, cache_name: str) -> None:
             _logger.error("Unreachable")
 
 
-def _list_caches(cache_client: SimpleCacheClient) -> None:
+def _list_caches(cache_client: CacheClient) -> None:
     _logger.info("Listing caches:")
     list_caches_response = cache_client.list_caches()
-    while True:
-        match list_caches_response:
-            case ListCaches.Success() as success:
-                for cache_info in success.caches:
-                    _logger.info(f"- {cache_info.name!r}")
-                next_token = success.next_token
-                if next_token is None:
-                    break
-            case ListCaches.Error() as error:
-                _logger.error(f"Error creating cache: {error.message}")
-            case _:
-                _logger.error("Unreachable")
-
-        list_caches_response = cache_client.list_caches(next_token)
+    match list_caches_response:
+        case ListCaches.Success() as success:
+            for cache_info in success.caches:
+                _logger.info(f"- {cache_info.name!r}")
+        case ListCaches.Error() as error:
+            _logger.error(f"Error creating cache: {error.message}")
+        case _:
+            _logger.error("Unreachable")
     _logger.info("")
 
 
 if __name__ == "__main__":
     initialize_logging()
     _print_start_banner()
-    with SimpleCacheClient(Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    with CacheClient(Configurations.Laptop.v1(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         _create_cache(cache_client, _CACHE_NAME)
         _list_caches(cache_client)
 
