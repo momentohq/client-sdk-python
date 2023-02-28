@@ -15,7 +15,7 @@ repository = "https://github.com/momentohq/client-sdk-python"
 keywords = ["Momento", "caching", "key-value store", "serverless"]
 
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Operating System :: OS Independent",
   "Framework :: AsyncIO",
   "Environment :: Console",
