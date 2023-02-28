@@ -11,9 +11,7 @@ import colorlog  # type: ignore
 from hdrh.histogram import HdrHistogram
 
 import momento.errors
-from momento import SimpleCacheClientAsync
-from momento.auth import CredentialProvider
-from momento.config import Laptop
+from momento import CacheClientAsync, Configurations, CredentialProvider
 from momento.logs import initialize_momento_logging
 from momento.responses import (
     CacheGet,
@@ -84,10 +82,8 @@ class BasicPythonLoadGen:
 
     async def run(self) -> None:
         cache_item_ttl_seconds = timedelta(seconds=60)
-        config = Laptop.latest().with_client_timeout(timedelta(milliseconds=self.options.request_timeout_ms))
-        async with SimpleCacheClientAsync(
-            config, self.auth_provider, cache_item_ttl_seconds
-        ) as cache_client:
+        config = Configurations.Laptop.v1().with_client_timeout(timedelta(milliseconds=self.options.request_timeout_ms))
+        async with CacheClientAsync(config, self.auth_provider, cache_item_ttl_seconds) as cache_client:
             create_cache_response = await cache_client.create_cache(BasicPythonLoadGen.cache_name)
             match create_cache_response:
                 case CreateCache.Success():
@@ -132,7 +128,7 @@ class BasicPythonLoadGen:
 
     async def start(
         self,
-        cache_client: SimpleCacheClientAsync,
+        cache_client: CacheClientAsync,
     ) -> None:
         async_get_set_results = (
             self.launch_and_run_worker(
@@ -164,7 +160,7 @@ class BasicPythonLoadGen:
 
     async def launch_and_run_worker(
         self,
-        client: SimpleCacheClientAsync,
+        client: CacheClientAsync,
         worker_id: int,
     ) -> None:
         operation_id = 1
@@ -179,7 +175,7 @@ class BasicPythonLoadGen:
 
     async def issue_async_set_get(
         self,
-        client: SimpleCacheClientAsync,
+        client: CacheClientAsync,
         worker_id: int,
         operation_id: int,
     ) -> None:

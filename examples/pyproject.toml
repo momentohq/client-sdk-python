@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "examples-prepy310"
+name = "examples"
 version = "0.1.0"
-description = "Momento Python SDK Examples for Python < 3.10"
+description = "Momento Python SDK Examples for Python"
 authors = ["Momento <hello@momentohq.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.12"
 
-momento = "0.22.0"
+momento = "0.24.0"
 colorlog = "6.7.0"
 hdrhistogram = "^0.10.1"
 

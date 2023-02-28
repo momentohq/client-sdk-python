@@ -4,9 +4,7 @@ from datetime import timedelta
 
 from example_utils.example_logging import initialize_logging
 
-from momento import SimpleCacheClientAsync
-from momento.auth import CredentialProvider
-from momento.config import Laptop
+from momento import CacheClientAsync, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
@@ -30,7 +28,7 @@ def _print_end_banner() -> None:
     _logger.info("******************************************************************")
 
 
-async def _create_cache(cache_client: SimpleCacheClientAsync, cache_name: str) -> None:
+async def _create_cache(cache_client: CacheClientAsync, cache_name: str) -> None:
     create_cache_response = await cache_client.create_cache(cache_name)
     if isinstance(create_cache_response, CreateCache.Success):
         pass
@@ -42,29 +40,23 @@ async def _create_cache(cache_client: SimpleCacheClientAsync, cache_name: str) -
         _logger.error("Unreachable")
 
 
-async def _list_caches(cache_client: SimpleCacheClientAsync) -> None:
+async def _list_caches(cache_client: CacheClientAsync) -> None:
     _logger.info("Listing caches:")
     list_caches_response = await cache_client.list_caches()
-    while True:
-        if isinstance(list_caches_response, ListCaches.Success):
-            for cache_info in list_caches_response.caches:
-                _logger.info(f"- {cache_info.name!r}")
-            next_token = list_caches_response.next_token
-            if next_token is None:
-                break
-        elif isinstance(list_caches_response, ListCaches.Error):
-            _logger.error(f"Error creating cache: {list_caches_response.message}")
-        else:
-            _logger.error("Unreachable")
-
-        list_caches_response = await cache_client.list_caches(next_token)
+    if isinstance(list_caches_response, ListCaches.Success):
+        for cache_info in list_caches_response.caches:
+            _logger.info(f"- {cache_info.name!r}")
+    elif isinstance(list_caches_response, ListCaches.Error):
+        _logger.error(f"Error creating cache: {list_caches_response.message}")
+    else:
+        _logger.error("Unreachable")
     _logger.info("")
 
 
 async def main() -> None:
     initialize_logging()
     _print_start_banner()
-    async with SimpleCacheClientAsync(Laptop.latest(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    async with CacheClientAsync(Configurations.Laptop.v1(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         await _create_cache(cache_client, _CACHE_NAME)
         await _list_caches(cache_client)
 
