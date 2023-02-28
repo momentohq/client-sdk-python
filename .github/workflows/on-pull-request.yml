@@ -132,6 +132,7 @@ jobs:
         continue-on-error: true
         working-directory: ./examples
         run: |
+          poetry run python -m ${{ matrix.package }}.quickstart
           poetry run python -m ${{ matrix.package }}.example
           poetry run python -m ${{ matrix.package }}.example_async
 
