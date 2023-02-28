@@ -2,7 +2,6 @@ import logging
 import os
 
 import colorlog  # type: ignore
-
 from momento.logs import TRACE, initialize_momento_logging
 
 

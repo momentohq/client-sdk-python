@@ -8,9 +8,8 @@ from time import perf_counter_ns
 from typing import Callable, Coroutine, Optional, Tuple, TypeVar
 
 import colorlog  # type: ignore
-from hdrh.histogram import HdrHistogram
-
 import momento.errors
+from hdrh.histogram import HdrHistogram
 from momento import CacheClientAsync, Configurations, CredentialProvider
 from momento.logs import initialize_momento_logging
 from momento.responses import (
