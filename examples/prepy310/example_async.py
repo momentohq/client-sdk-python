@@ -2,10 +2,10 @@ import asyncio
 import logging
 from datetime import timedelta
 
+from example_utils.example_logging import initialize_logging
+
 from momento import CacheClientAsync, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
-
-from example_utils.example_logging import initialize_logging
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
 _CACHE_NAME = "cache"
