@@ -1,3 +1,10 @@
+"""Momento client error handling.
+
+The SDK error base class is `SdkException`, which is a subclass of `Exception`.
+Should a command raise an exception, the client will capture it return an `Error` response
+containing the exception details.
+"""
+
 from .error_details import (
     MomentoErrorCode,
     MomentoErrorTransportDetails,

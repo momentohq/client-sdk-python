@@ -9,7 +9,7 @@
 
 ### Examples
 
-Ready to dive right in? Just check out the [examples](./examples/README.md) directory for complete, working examples of
+Ready to dive right in? Just check out the [examples](https://github.com/momentohq/client-sdk-python/tree/main/examples) directory for complete, working examples of
 how to use the SDK.
 
 ### Installation

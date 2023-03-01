@@ -1,10 +1,7 @@
-<head>
-  <meta name="Momento Python Client Library Documentation" content="Python client software development kit for Momento Serverless Cache">
-</head>
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
-[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-beta.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md) 
+[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-stable.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md) 
 
 # Momento Python Client Library
 
@@ -23,7 +20,7 @@ any of the operational overhead required by traditional caching solutions!
 
 ### Examples
 
-Ready to dive right in? Just check out the [examples](./examples/README.md) directory for complete, working examples of
+Ready to dive right in? Just check out the [examples](https://github.com/momentohq/client-sdk-python/tree/main/examples) directory for complete, working examples of
 how to use the SDK.
 
 ### Installation

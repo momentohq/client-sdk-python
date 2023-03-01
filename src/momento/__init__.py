@@ -1,3 +1,10 @@
+"""Momento client library.
+
+Instantiate a client with `CacheClient` or `CacheClientAsync` (for asyncio).
+Use `CredentialProvider` to read credentials for the client.
+Use `Configurations` for pre-built network configurations.
+"""
+
 import logging
 
 from momento import logs
