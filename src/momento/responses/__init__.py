@@ -1,3 +1,16 @@
+"""Momento client response types.
+
+In general a command returns a type with a name ending in "Response", and
+you can access the concrete types in the namespace of the name, eg:
+
+- `get` returns `CacheGetResponse` which is one of `CacheGet.Hit`, `CacheGet.Miss`, `CacheGet.Error`
+- `set` returns `CacheSetResponse` which is one of `CacheSet.Success`, `CacheSet.Error`
+- `delete` returns `CacheDeleteResponse` which is one of `CacheDelete.Success`, `CacheDelete.Error`
+- `dictionary_get_field` returns `CacheDictionaryGetFieldResponse` which is one of `CacheDictionaryGetField.Hit`,
+    `CacheDictionaryGetField.Miss`, `CacheDictionaryGetField.Error`
+- etc
+"""
+
 from .control.cache.create import CreateCache, CreateCacheResponse
 from .control.cache.delete import DeleteCache, DeleteCacheResponse
 from .control.cache.list import ListCaches, ListCachesResponse
