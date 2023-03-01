@@ -1,6 +1,3 @@
-<head>
-  <meta name="Momento Python Client Library Documentation" content="Python client software development kit for Momento Serverless Cache">
-</head>
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
