@@ -152,7 +152,8 @@ class CacheClient:
         self._control_client = _ScsControlClient(configuration, credential_provider)
         self._cache_endpoint = credential_provider.cache_endpoint
         self._data_clients = [
-            _ScsDataClient(configuration, credential_provider, default_ttl) for _ in range(CacheClient._NUM_CLIENTS)
+            _ScsDataClient(configuration, credential_provider, default_ttl)
+            for _ in range(CacheClient._NUM_CLIENTS)
         ]
 
     def __enter__(self) -> CacheClient:
@@ -461,7 +462,9 @@ class CacheClient:
         Returns:
             CacheDictionarySetFieldResponse: result of the set operation.
         """
-        set_fields_response = self.dictionary_set_fields(cache_name, dictionary_name, items={field: value}, ttl=ttl)
+        set_fields_response = self.dictionary_set_fields(
+            cache_name, dictionary_name, items={field: value}, ttl=ttl
+        )
         if isinstance(set_fields_response, CacheDictionarySetFields.Success):
             return CacheDictionarySetField.Success()
         elif isinstance(set_fields_response, CacheDictionarySetFields.Error):
@@ -731,7 +734,9 @@ class CacheClient:
         """
         return self._data_client.set_fetch(cache_name, set_name)
 
-    def set_remove_element(self, cache_name: str, set_name: str, element: str | bytes) -> CacheSetRemoveElementResponse:
+    def set_remove_element(
+        self, cache_name: str, set_name: str, element: str | bytes
+    ) -> CacheSetRemoveElementResponse:
         """Remove an element from a set.
 
         Args:

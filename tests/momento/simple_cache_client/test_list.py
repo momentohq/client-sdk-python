@@ -119,7 +119,9 @@ def a_list_adder() -> None:
 
 
 class TListConcatenator(Protocol):
-    def __call__(self, cache_name: TCacheName, list_name: TListName, values: TListValuesInput) -> CacheResponse:
+    def __call__(
+        self, cache_name: TCacheName, list_name: TListName, values: TListValuesInput
+    ) -> CacheResponse:
         ...
 
 
@@ -465,7 +467,9 @@ def describe_list_fetch() -> None:
     def list_name_validator(client: CacheClient, cache_name: TCacheName) -> TListNameValidator:
         return partial(client.list_fetch, cache_name=cache_name)
 
-    def misses_when_the_list_does_not_exist(client: CacheClient, cache_name: TCacheName, list_name: TListName) -> None:
+    def misses_when_the_list_does_not_exist(
+        client: CacheClient, cache_name: TCacheName, list_name: TListName
+    ) -> None:
         resp = client.list_fetch(cache_name, list_name)
         assert isinstance(resp, CacheListFetch.Miss)
 

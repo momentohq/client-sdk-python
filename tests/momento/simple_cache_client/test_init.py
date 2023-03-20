@@ -16,7 +16,9 @@ def test_init_throws_exception_when_client_uses_negative_default_ttl(
         CacheClient(configuration, credential_provider, timedelta(seconds=-1))
 
 
-def test_init_throws_exception_for_non_jwt_token(configuration: Configuration, default_ttl_seconds: timedelta) -> None:
+def test_init_throws_exception_for_non_jwt_token(
+    configuration: Configuration, default_ttl_seconds: timedelta
+) -> None:
     with pytest.raises(InvalidArgumentException, match="Invalid Auth token."):
         os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
         credential_provider = CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")

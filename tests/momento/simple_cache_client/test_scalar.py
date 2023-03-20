@@ -26,12 +26,16 @@ from .shared_behaviors import (
 
 
 class TTtlSetter(Protocol):
-    def __call__(self, cache_name: TCacheName, key: TScalarKey, ttl: Optional[timedelta] = None) -> CacheResponse:
+    def __call__(
+        self, cache_name: TCacheName, key: TScalarKey, ttl: Optional[timedelta] = None
+    ) -> CacheResponse:
         ...
 
 
 def a_ttl_setter() -> None:
-    def expires_items_after_ttl(ttl_setter: TTtlSetter, client: CacheClient, cache_name: TCacheName) -> None:
+    def expires_items_after_ttl(
+        ttl_setter: TTtlSetter, client: CacheClient, cache_name: TCacheName
+    ) -> None:
         key = uuid_str()
 
         ttl_setter(cache_name, key, ttl=timedelta(seconds=2))
@@ -42,7 +46,9 @@ def a_ttl_setter() -> None:
         get_response = client.get(cache_name, key)
         assert isinstance(get_response, CacheGet.Miss)
 
-    def with_different_ttl(ttl_setter: TTtlSetter, client: CacheClient, cache_name: TCacheName) -> None:
+    def with_different_ttl(
+        ttl_setter: TTtlSetter, client: CacheClient, cache_name: TCacheName
+    ) -> None:
         key1 = uuid_str()
         key2 = uuid_str()
 
@@ -63,7 +69,9 @@ def a_ttl_setter() -> None:
         get_response = client.get(cache_name, key2)
         assert isinstance(get_response, CacheGet.Hit)
 
-    def negative_ttl_throws_exception(ttl_setter: TTtlSetter, client: CacheClient, cache_name: str) -> None:
+    def negative_ttl_throws_exception(
+        ttl_setter: TTtlSetter, client: CacheClient, cache_name: str
+    ) -> None:
         set_response = ttl_setter(cache_name, "foo", ttl=timedelta(seconds=-1))
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -80,7 +88,9 @@ class TSetter(Protocol):
 
 
 def a_setter() -> None:
-    def with_null_value_throws_exception(setter: TSetter, client: CacheClient, cache_name: str) -> None:
+    def with_null_value_throws_exception(
+        setter: TSetter, client: CacheClient, cache_name: str
+    ) -> None:
         set_response = setter(cache_name, "foo", None)  # type:ignore[arg-type]
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
