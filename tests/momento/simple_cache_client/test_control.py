@@ -41,9 +41,7 @@ def test_create_cache_get_set_values_and_delete_cache(
     assert isinstance(get_for_key_in_some_other_cache, CacheGet.Miss)
 
 
-def test_create_cache__already_exists_when_creating_existing_cache(
-    client: CacheClient, cache_name: str
-) -> None:
+def test_create_cache__already_exists_when_creating_existing_cache(client: CacheClient, cache_name: str) -> None:
     response = client.create_cache(cache_name)
     assert isinstance(response, CreateCache.CacheAlreadyExists)
 
@@ -177,12 +175,11 @@ def test_list_caches_throws_authentication_exception_for_bad_token(
 
 
 def test_list_caches_succeeds_even_if_cred_provider_has_been_printed() -> None:
-    creds_provider = CredentialProvider.from_environment_variable('TEST_AUTH_TOKEN');
+    creds_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
     print(f"Printing creds provider to ensure that it does not corrupt it :) : {creds_provider}")
     with CacheClient(Configurations.Laptop.v1(), creds_provider, timedelta(seconds=60)) as client:
         response = client.list_caches()
         assert isinstance(response, ListCaches.Success)
-
 
 
 def test_create_list_revoke_signing_keys(client: CacheClient) -> None:

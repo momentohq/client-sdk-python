@@ -189,9 +189,7 @@ class _ScsDataClient:
             request.cache_body = _as_bytes(value, "Unsupported type for value: ")
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
 
-            self._build_stub().Set(
-                request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
-            )
+            self._build_stub().Set(request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds)
 
             self._log_received_response("Set", {"key": str(key)})
             return CacheSet.Success()

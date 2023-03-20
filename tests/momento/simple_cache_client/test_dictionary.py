@@ -290,9 +290,7 @@ def a_dictionary_setter() -> None:
         with CacheClient(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
             ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
 
-            dictionary_setter(
-                client, cache_name, dictionary_name, dictionary_field_str, dictionary_value_str, ttl=ttl
-            )
+            dictionary_setter(client, cache_name, dictionary_name, dictionary_field_str, dictionary_value_str, ttl=ttl)
 
             sleep(ttl_seconds / 2)
 
@@ -394,9 +392,7 @@ def describe_dictionary_get_field() -> None:
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_field_str: str
     ) -> TConnectionValidator:
         def _connection_validator(client: CacheClient) -> CacheResponse:
-            return client.dictionary_get_field(
-                cache_name, dictionary_name=dictionary_name, field=dictionary_field_str
-            )
+            return client.dictionary_get_field(cache_name, dictionary_name=dictionary_name, field=dictionary_field_str)
 
         return _connection_validator
 
@@ -628,9 +624,7 @@ def describe_dictionary_increment() -> None:
         dictionary_name: TDictionaryName,
         dictionary_field_str: str,
     ) -> None:
-        increment_response = client.dictionary_increment(
-            cache_name, dictionary_name, dictionary_field_str, 0
-        )
+        increment_response = client.dictionary_increment(cache_name, dictionary_name, dictionary_field_str, 0)
         assert isinstance(increment_response, CacheDictionaryIncrement.Success)
         assert increment_response.value == 0
 
@@ -672,9 +666,7 @@ def describe_dictionary_increment() -> None:
         dictionary_field_str: str,
         increment_amount: int,
     ) -> None:
-        set_response = client.dictionary_set_field(
-            cache_name, dictionary_name, dictionary_field_str, "hello, world!"
-        )
+        set_response = client.dictionary_set_field(cache_name, dictionary_name, dictionary_field_str, "hello, world!")
         assert isinstance(set_response, CacheDictionarySetField.Success)
 
         increment_response = client.dictionary_increment(
@@ -694,9 +686,7 @@ def describe_dictionary_remove_field() -> None:
     def cache_name_validator(
         client: CacheClient, dictionary_name: TDictionaryName, dictionary_field_str: str
     ) -> TCacheNameValidator:
-        return partial(
-            client.dictionary_remove_field, dictionary_name=dictionary_name, field=dictionary_field_str
-        )
+        return partial(client.dictionary_remove_field, dictionary_name=dictionary_name, field=dictionary_field_str)
 
     @fixture
     def connection_validator(
@@ -743,9 +733,7 @@ def describe_dictionary_remove_field() -> None:
 
         for field in [dictionary_field_str, dictionary_field_bytes]:
             field = cast(Union[str, bytes], field)
-            set_response = client.dictionary_set_field(
-                cache_name, dictionary_name, field, dictionary_value_str
-            )
+            set_response = client.dictionary_set_field(cache_name, dictionary_name, field, dictionary_value_str)
             assert isinstance(set_response, CacheDictionarySetField.Success)
 
             remove_response = client.dictionary_remove_field(cache_name, dictionary_name, field)
@@ -819,9 +807,7 @@ def describe_dictionary_remove_fields() -> None:
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 
         extra_field, extra_value = uuid_str(), uuid_str()
-        unary_set_response = client.dictionary_set_field(
-            cache_name, dictionary_name, extra_field, extra_value
-        )
+        unary_set_response = client.dictionary_set_field(cache_name, dictionary_name, extra_field, extra_value)
         assert isinstance(unary_set_response, CacheDictionarySetField.Success)
 
         fields = [field for field, _ in dictionary_items.items()]
@@ -936,9 +922,7 @@ def describe_dictionary_set_fields() -> None:
         cache_name: TCacheName, dictionary_name: TDictionaryName, dictionary_items: TDictionaryItems
     ) -> TConnectionValidator:
         def _connection_validator(client: CacheClient) -> CacheResponse:
-            return client.dictionary_set_fields(
-                cache_name, dictionary_name=dictionary_name, items=dictionary_items
-            )
+            return client.dictionary_set_fields(cache_name, dictionary_name=dictionary_name, items=dictionary_items)
 
         return _connection_validator
 

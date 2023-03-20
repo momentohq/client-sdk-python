@@ -66,7 +66,7 @@ class CredentialProvider:
         return CredentialProvider(auth_token, control_endpoint, cache_endpoint)
 
     def __repr__(self) -> str:
-        attributes: Dict[str, str] = copy.copy(vars(self))
+        attributes: Dict[str, str] = copy.copy(vars(self))  # type: ignore[misc]
         attributes["auth_token"] = self._obscure(attributes["auth_token"])
         message = ", ".join(f"{k}={v!r}" for k, v in attributes.items())
         return f"{self.__class__.__name__}({message})"
