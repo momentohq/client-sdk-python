@@ -198,7 +198,7 @@ Fear not! This is not twice the work. Since the synchronous client delegates beh
 to the asynchronous one, we can re-use the async test cases.
 
 When developing new test cases, only write tests for the async client in the appropriate
-`test_*_async.py` file. Then run `tests/scripts/sync_from_async.sh` to generate
-the synchronous client tests.
+`test_*_async.py` file. Then run `make gen-sync` to generate the synchronous client
+tests.
 
 <br/>
