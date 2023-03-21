@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 import momento.errors as errors
-from momento import CacheClient
+from momento import CacheClient, Configurations
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -172,6 +172,14 @@ def test_list_caches_throws_authentication_exception_for_bad_token(
         response = client.list_caches()
         assert isinstance(response, ListCaches.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
+
+
+def test_list_caches_succeeds_even_if_cred_provider_has_been_printed() -> None:
+    creds_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
+    print(f"Printing creds provider to ensure that it does not corrupt it :) : {creds_provider}")
+    with CacheClient(Configurations.Laptop.v1(), creds_provider, timedelta(seconds=60)) as client:
+        response = client.list_caches()
+        assert isinstance(response, ListCaches.Success)
 
 
 def test_create_list_revoke_signing_keys(client: CacheClient) -> None:
