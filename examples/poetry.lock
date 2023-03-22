@@ -228,14 +228,14 @@ files = [
 
 [[package]]
 name = "momento"
-version = "0.24.0"
+version = "1.0.2"
 description = "SDK for Momento"
 category = "main"
 optional = false
 python-versions = ">=3.7,<3.12"
 files = [
-    {file = "momento-0.24.0-py3-none-any.whl", hash = "sha256:5848f67433513995c869c537351ffe13e135e471a1d6f9651f55b5d65a9b2a7c"},
-    {file = "momento-0.24.0.tar.gz", hash = "sha256:ea0ba8812b2569967a3f0346bcf6861474d3e7eb19bbc8cdf0f48ffeb757608d"},
+    {file = "momento-1.0.2-py3-none-any.whl", hash = "sha256:45cb7100d0f881c52b95aba78dfef7937a7790c13beb163bb2607f8a2a96ad82"},
+    {file = "momento-1.0.2.tar.gz", hash = "sha256:d48a52d4b611f434f2b3c880d13836f99df06bae42487442e9513541a0ce8ac6"},
 ]
 
 [package.dependencies]
@@ -513,4 +513,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.12"
-content-hash = "6f9b13569d4b060b00f5fbddf791239d18e85b0d8433b07edb550e1a8f4a487d"
+content-hash = "7cd998c33e5e5f95af76c34d6c2005eeb6e963b2c0c2bd4d78ebe70a3443dcad"
