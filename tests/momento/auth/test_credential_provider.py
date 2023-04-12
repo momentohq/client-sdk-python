@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import sys
 
 import jwt
 import pytest
@@ -19,8 +20,9 @@ test_v1_env_var_name = uuid_str()
 test_v1_api_key = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE2NzgzMDU4MTIsImV4cCI6NDg2NTUxNTQxMiwiYXVkIjoiIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSJ9.8Iy8q84Lsr-D3YCo_HP4d-xjHdT8UCIuvAYcxhFMyz8"  # noqa: E501
 test_decoded_v1_token = _Base64DecodedV1Token(api_key=test_v1_api_key, endpoint="test.momentohq.com")
 test_encoded_v1_token = base64.b64encode(json.dumps(test_decoded_v1_token.__dict__).encode("utf-8"))
+
 os.environ[test_env_var_name] = test_token
-os.environ[test_v1_env_var_name] = test_encoded_v1_token.decode("ascii")
+os.environ[test_v1_env_var_name] = test_encoded_v1_token.decode("utf-8")
 
 
 @pytest.mark.parametrize(
