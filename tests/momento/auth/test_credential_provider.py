@@ -54,7 +54,7 @@ os.environ[test_v1_env_var_name] = test_encoded_v1_token.decode("ascii")
             "secret.cache.test.com",
         ),
         (
-            CredentialProvider.from_string(auth_token=test_encoded_v1_token),
+            CredentialProvider.from_string(auth_token=test_encoded_v1_token.decode("utf-8")),
             test_v1_api_key,
             "control.test.momentohq.com",
             "cache.test.momentohq.com",
@@ -67,7 +67,7 @@ os.environ[test_v1_env_var_name] = test_encoded_v1_token.decode("ascii")
         ),
         (
             CredentialProvider.from_string(
-                auth_token=test_encoded_v1_token,
+                auth_token=test_encoded_v1_token.decode("utf-8"),
                 control_endpoint="give.me.control.test.com",
                 cache_endpoint="secret.cache.test.com",
             ),
