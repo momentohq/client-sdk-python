@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import os
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from . import momento_endpoint_resolver
 
@@ -44,7 +44,7 @@ class CredentialProvider:
 
     @staticmethod
     def from_string(
-        auth_token: str,
+        auth_token: Union[bytes, str],
         control_endpoint: Optional[str] = None,
         cache_endpoint: Optional[str] = None,
     ) -> CredentialProvider:
@@ -60,9 +60,10 @@ class CredentialProvider:
         Returns:
             CredentialProvider
         """
-        endpoints = momento_endpoint_resolver.resolve(auth_token)
-        control_endpoint = control_endpoint or endpoints.control_endpoint
-        cache_endpoint = cache_endpoint or endpoints.cache_endpoint
+        token_and_endpoints = momento_endpoint_resolver.resolve(auth_token)
+        control_endpoint = control_endpoint or token_and_endpoints.control_endpoint
+        cache_endpoint = cache_endpoint or token_and_endpoints.cache_endpoint
+        auth_token = token_and_endpoints.auth_token
         return CredentialProvider(auth_token, control_endpoint, cache_endpoint)
 
     def __repr__(self) -> str:
