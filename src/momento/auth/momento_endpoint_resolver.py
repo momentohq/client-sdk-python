@@ -22,12 +22,12 @@ class _TokenAndEndpoints:
 
 
 @dataclass
-class Base64DecodedToken:
+class _Base64DecodedV1Token:
     api_key: str
     endpoint: str
 
 
-def resolve(auth_token: Union[bytes, str]) -> _TokenAndEndpoints:
+def resolve(auth_token: str) -> _TokenAndEndpoints:
     if not auth_token:
         raise InvalidArgumentException("malformed auth token")
 
@@ -40,8 +40,6 @@ def resolve(auth_token: Union[bytes, str]) -> _TokenAndEndpoints:
             auth_token=info["api_key"],  # type: ignore[misc]
         )
     else:
-        if isinstance(auth_token, (bytes, bytearray)):
-            auth_token = auth_token.decode("utf-8")
         return _get_endpoint_from_token(auth_token)
 
 

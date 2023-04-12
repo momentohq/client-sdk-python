@@ -44,7 +44,7 @@ class CredentialProvider:
 
     @staticmethod
     def from_string(
-        auth_token: Union[bytes, str],
+        auth_token: str,
         control_endpoint: Optional[str] = None,
         cache_endpoint: Optional[str] = None,
     ) -> CredentialProvider:
