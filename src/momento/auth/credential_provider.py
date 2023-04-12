@@ -60,9 +60,10 @@ class CredentialProvider:
         Returns:
             CredentialProvider
         """
-        endpoints = momento_endpoint_resolver.resolve(auth_token)
-        control_endpoint = control_endpoint or endpoints.control_endpoint
-        cache_endpoint = cache_endpoint or endpoints.cache_endpoint
+        token_and_endpoints = momento_endpoint_resolver.resolve(auth_token)
+        control_endpoint = control_endpoint or token_and_endpoints.control_endpoint
+        cache_endpoint = cache_endpoint or token_and_endpoints.cache_endpoint
+        auth_token = token_and_endpoints.auth_token
         return CredentialProvider(auth_token, control_endpoint, cache_endpoint)
 
     def __repr__(self) -> str:
