@@ -39,6 +39,9 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             call = await continuation(client_call_details, request)
             response_code = await call.code()
 
+            if response_code == grpc.StatusCode.OK:
+                return call
+
             retryTime = self._retry_strategy.determine_when_to_retry(
                 RetryableProps(response_code, client_call_details.method.decode("utf-8"), attempt_number)
             )
