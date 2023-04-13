@@ -340,7 +340,7 @@ load_generator_options = BasicPythonLoadGenOptions(
     # Limit the load generator to this many requests per second to avoid being
     # rate limited by Momento servers.
     #
-    max_requests_per_second=100,
+    max_requests_per_second=2000,
     #
     # Controls the number of concurrent requests that will be made (via asynchronous
     # function calls) by the load test.  Increasing this number may improve throughput,
