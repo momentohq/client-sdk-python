@@ -40,6 +40,9 @@ class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
             call = continuation(client_call_details, request)
             response_code = call.code()  # type: ignore[attr-defined]  # noqa: F401
 
+            if response_code == grpc.StatusCode.OK:
+                return call
+
             retryTime = self._retry_strategy.determine_when_to_retry(
                 RetryableProps(response_code, client_call_details.method, attempt_number)
             )
