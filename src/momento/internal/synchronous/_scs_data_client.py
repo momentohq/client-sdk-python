@@ -158,7 +158,7 @@ class _ScsDataClient:
 
             request = _IncrementRequest()
             request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            request.increment_by = amount
+            request.amount = amount
             request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
 
             response = self._build_stub().Increment(
