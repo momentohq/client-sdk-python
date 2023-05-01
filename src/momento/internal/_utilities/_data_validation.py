@@ -11,6 +11,7 @@ from momento.typing import (
     TListValuesInput,
     TSetElementsInput,
     TSetElementsInputBytes,
+    TSortedSetElements,
 )
 
 DEFAULT_BYTES_CONVERSION_ERROR = "Could not convert the given type to bytes: "
@@ -41,6 +42,16 @@ def _validate_dictionary_name(dictionary_name: str) -> None:
 
 def _validate_set_name(set_name: str) -> None:
     _validate_name(set_name, "Set name")
+
+
+def _validate_sorted_set_name(sorted_set_name: str) -> None:
+    _validate_name(sorted_set_name, "Sorted set name")
+
+
+def _validate_sorted_set_score(score: float) -> float:
+    if isinstance(score, float):
+        return score
+    raise InvalidArgumentException(f"score must be a float. Given type: {type(score)}")
 
 
 def _as_bytes(
@@ -85,6 +96,15 @@ def _gen_set_input_as_bytes(
 ) -> TSetElementsInputBytes:
     # NB: the set input does not need to be unique
     yield from _gen_iterable_as_bytes(elements, error_message)
+
+
+def _gen_sorted_set_elements_as_bytes(
+    items: TSortedSetElements, error_message: str = DEFAULT_DICTIONARY_CONVERSION_ERROR
+) -> Iterable[Tuple[bytes, float]]:
+    if not isinstance(items, collections.abc.Mapping):
+        raise InvalidArgumentException(f"{error_message}{type(items)}")
+    for value, score in items.items():
+        yield _as_bytes(value), score
 
 
 def _validate_timedelta_ttl(ttl: Optional[timedelta], field_name: str) -> None:

@@ -84,6 +84,15 @@ from .data.set.remove_elements import (
     CacheSetRemoveElements,
     CacheSetRemoveElementsResponse,
 )
+from .data.sorted_set.fetch import CacheSortedSetFetch, CacheSortedSetFetchResponse
+from .data.sorted_set.put_element import (
+    CacheSortedSetPutElement,
+    CacheSortedSetPutElementResponse,
+)
+from .data.sorted_set.put_elements import (
+    CacheSortedSetPutElements,
+    CacheSortedSetPutElementsResponse,
+)
 from .response import CacheResponse, ControlResponse
 
 __all__ = [
@@ -154,6 +163,12 @@ __all__ = [
     "CacheSetRemoveElementResponse",
     "CacheSetRemoveElements",
     "CacheSetRemoveElementsResponse",
+    "CacheSortedSetPutElement",
+    "CacheSortedSetPutElementResponse",
+    "CacheSortedSetPutElements",
+    "CacheSortedSetPutElementsResponse",
+    "CacheSortedSetFetch",
+    "CacheSortedSetFetchResponse",
     "CacheResponse",
     "ControlResponse",
 ]

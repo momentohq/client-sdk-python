@@ -24,6 +24,9 @@ from momento.typing import (
     TSetElement,
     TSetElementsInput,
     TSetName,
+    TSortedSetElements,
+    TSortedSetName,
+    TSortedSetScore,
 )
 from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
@@ -153,6 +156,31 @@ def increment_amount() -> int:
 @pytest.fixture
 def set_name() -> TSetName:
     return uuid_str()
+
+
+@pytest.fixture
+def sorted_set_name() -> TSortedSetName:
+    return uuid_str()
+
+
+@pytest.fixture
+def sorted_set_value_str() -> str:
+    return uuid_str()
+
+
+@pytest.fixture
+def sorted_set_value_bytes() -> bytes:
+    return uuid_bytes()
+
+
+@pytest.fixture
+def sorted_set_score() -> TSortedSetScore:
+    return random.random()
+
+
+@pytest.fixture
+def sorted_set_elements() -> TSortedSetElements:
+    return cast(TSortedSetElements, dict([(uuid_str(), random.random()), (uuid_bytes(), random.random())]))
 
 
 @pytest.fixture
