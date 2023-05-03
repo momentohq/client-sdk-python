@@ -834,26 +834,26 @@ class CacheClient:
         self,
         cache_name: str,
         sorted_set_name: str,
-        min_score: float | None = None,
-        max_score: float | None = None,
+        min_score: Optional[float] = None,
+        max_score: Optional[float] = None,
         sort_order: SortOrder = SortOrder.ASCENDING,
-        offset: int | None = None,
-        count: int | None = None,
+        offset: Optional[int] = None,
+        count: Optional[int] = None,
     ) -> CacheSortedSetFetchResponse:
         """Fetches a sorted set by score range.
 
         Args:
             cache_name (str): Name of the cache containing the sorted set.
             sorted_set_name (str): The name of the sorted set to fetch.
-            min_score (float, optional): The minimum score of the range to fetch from the sorted set.
+            min_score (Optional[float]): The minimum score of the range to fetch from the sorted set.
                                          If None, fetches from the lowest score. Defaults to None.
-            max_score (float, optional): The maximum score of the range to fetch from the sorted set.
+            max_score (Optional[float]): The maximum score of the range to fetch from the sorted set.
                                          If None, fetches until the highest score. Defaults to None.
-            sort_order (SortOrder, optional): The sort order to use when fetching the sorted set.
-                                              Defaults to SortOrder.ASCENDING.
-            offset (int, optional): The number of elements to skip before starting to return elements.
+            sort_order (SortOrder): The sort order to use when fetching the sorted set.
+                                    Defaults to SortOrder.ASCENDING.
+            offset (Optional[int]): The number of elements to skip before starting to return elements.
                                     If None, starts from the first element within the specified range. Defaults to None.
-            count (int, optional): The maximum number of elements to return.
+            count (Optional[int]): The maximum number of elements to return.
                                    If None, returns all elements within the specified range. Defaults to None.
 
         Returns:
@@ -867,8 +867,8 @@ class CacheClient:
         self,
         cache_name: str,
         sorted_set_name: str,
-        start_rank: int | None = None,
-        end_rank: int | None = None,
+        start_rank: Optional[int] = None,
+        end_rank: Optional[int] = None,
         sort_order: SortOrder = SortOrder.ASCENDING,
     ) -> CacheSortedSetFetchResponse:
         """Fetches a sorted set by rank range.
@@ -876,11 +876,11 @@ class CacheClient:
         Args:
             cache_name (str): Name of the cache containing the sorted set.
             sorted_set_name (str): The name of the sorted set to fetch.
-            start_rank (int, optional): The start rank of the range to fetch from the sorted set.
+            start_rank (Optional[int]): The start rank of the range to fetch from the sorted set.
                                         If None, fetches from the beginning of the set. Defaults to None.
-            end_rank (int, optional): The end rank of the range to fetch from the sorted set.
+            end_rank (Optional[int]): The end rank of the range to fetch from the sorted set.
                                       If None, fetches until the end of the set. Defaults to None.
-            sort_order (SortOrder, optional): The sort order to use when fetching the sorted set.
+            sort_order (SortOrder): The sort order to use when fetching the sorted set.
                                               Defaults to SortOrder.ASCENDING.
 
         Returns:

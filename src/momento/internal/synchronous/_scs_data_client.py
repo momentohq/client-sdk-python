@@ -831,11 +831,11 @@ class _ScsDataClient:
         self,
         cache_name: TCacheName,
         sorted_set_name: TSortedSetName,
-        min_score: float | None,
-        max_score: float | None,
+        min_score: Optional[float],
+        max_score: Optional[float],
         sort_order: SortOrder,
-        offset: int | None,
-        count: int | None,
+        offset: Optional[int],
+        count: Optional[int],
     ) -> CacheSortedSetFetchResponse:
         try:
             self._log_issuing_request("SortedSetFetch", {"sorted_set_name": str(sorted_set_name)})
@@ -896,8 +896,8 @@ class _ScsDataClient:
         self,
         cache_name: TCacheName,
         sorted_set_name: TSortedSetName,
-        start_rank: int | None,
-        end_rank: int | None,
+        start_rank: Optional[int],
+        end_rank: Optional[int],
         sort_order: SortOrder,
     ) -> CacheSortedSetFetchResponse:
         try:

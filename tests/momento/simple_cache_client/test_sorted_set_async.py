@@ -1,7 +1,7 @@
 from datetime import timedelta
 from functools import partial
 from time import sleep
-from typing import Union
+from typing import Optional
 
 from pytest import fixture
 from pytest_describe import behaves_like
@@ -223,8 +223,8 @@ class TSortedSetFetcher(Protocol):
         cache_name: TCacheName,
         sorted_set_name: TSortedSetName,
         sort_order: SortOrder,
-        minimum: Union[int, None] = None,
-        maximum: Union[int, None] = None,
+        minimum: Optional[int] = None,
+        maximum: Optional[int] = None,
     ) -> Awaitable[CacheSortedSetFetchResponse]:
         ...
 
