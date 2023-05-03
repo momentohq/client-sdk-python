@@ -12,6 +12,7 @@ from momento.typing import (
     TSetElementsInput,
     TSetElementsInputBytes,
     TSortedSetElements,
+    TSortedSetValues,
 )
 
 DEFAULT_BYTES_CONVERSION_ERROR = "Could not convert the given type to bytes: "
@@ -106,6 +107,12 @@ def _gen_sorted_set_elements_as_bytes(
         raise InvalidArgumentException(f"{error_message}{type(elements)}")
     for value, score in elements.items():
         yield _as_bytes(value), score
+
+
+def _gen_sorted_set_values_as_bytes(
+    fields: TSortedSetValues, error_message: str = DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR
+) -> Iterable[bytes]:
+    yield from _gen_iterable_as_bytes(fields, error_message)
 
 
 def _validate_timedelta_ttl(ttl: Optional[timedelta], field_name: str) -> None:

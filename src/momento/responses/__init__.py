@@ -85,6 +85,18 @@ from .data.set.remove_elements import (
     CacheSetRemoveElementsResponse,
 )
 from .data.sorted_set.fetch import CacheSortedSetFetch, CacheSortedSetFetchResponse
+from .data.sorted_set.get_rank import (
+    CacheSortedSetGetRank,
+    CacheSortedSetGetRankResponse,
+)
+from .data.sorted_set.get_score import (
+    CacheSortedSetGetScore,
+    CacheSortedSetGetScoreResponse,
+)
+from .data.sorted_set.get_scores import (
+    CacheSortedSetGetScores,
+    CacheSortedSetGetScoresResponse,
+)
 from .data.sorted_set.put_element import (
     CacheSortedSetPutElement,
     CacheSortedSetPutElementResponse,
@@ -164,6 +176,12 @@ __all__ = [
     "CacheSetRemoveElements",
     "CacheSetRemoveElementsResponse",
     "CacheSortedSetPutElement",
+    "CacheSortedSetGetRank",
+    "CacheSortedSetGetRankResponse",
+    "CacheSortedSetGetScore",
+    "CacheSortedSetGetScoreResponse",
+    "CacheSortedSetGetScores",
+    "CacheSortedSetGetScoresResponse",
     "CacheSortedSetPutElementResponse",
     "CacheSortedSetPutElements",
     "CacheSortedSetPutElementsResponse",

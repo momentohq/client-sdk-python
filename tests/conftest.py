@@ -27,6 +27,7 @@ from momento.typing import (
     TSortedSetElements,
     TSortedSetName,
     TSortedSetScore,
+    TSortedSetValues,
 )
 from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
@@ -171,6 +172,11 @@ def sorted_set_value_str() -> str:
 @pytest.fixture
 def sorted_set_value_bytes() -> bytes:
     return uuid_bytes()
+
+
+@pytest.fixture
+def sorted_set_values() -> TSortedSetValues:
+    return [uuid_str(), uuid_str(), uuid_bytes(), uuid_bytes()]
 
 
 @pytest.fixture

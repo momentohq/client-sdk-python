@@ -10,6 +10,15 @@ from momento.config import Configuration
 from momento.errors import UnknownException
 from momento.requests import CollectionTtl, SortOrder
 from momento.responses.data.sorted_set.fetch import CacheSortedSetFetchResponse
+from momento.responses.data.sorted_set.get_rank import CacheSortedSetGetRankResponse
+from momento.responses.data.sorted_set.get_score import (
+    CacheSortedSetGetScore,
+    CacheSortedSetGetScoreResponse,
+)
+from momento.responses.data.sorted_set.get_scores import (
+    CacheSortedSetGetScores,
+    CacheSortedSetGetScoresResponse,
+)
 from momento.responses.data.sorted_set.put_element import (
     CacheSortedSetPutElement,
     CacheSortedSetPutElementResponse,
@@ -894,6 +903,64 @@ class CacheClientAsync:
         return await self._data_client.sorted_set_fetch_by_rank(
             cache_name, sorted_set_name, start_rank, end_rank, sort_order
         )
+
+    async def sorted_set_get_score(
+        self, cache_name: str, sorted_set_name: str, value: str | bytes
+    ) -> CacheSortedSetGetScoreResponse:
+        """Get the score stored for the given sorted set and value.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            value (str | bytes): The value in the sorted set to look up.
+
+        Returns:
+            CacheSortedSetGetScoreResponse: the status and score for the value.
+        """
+        get_scores_response = await self.sorted_set_get_scores(cache_name, sorted_set_name, [value])
+        if isinstance(get_scores_response, CacheSortedSetGetScores.Hit):
+            if len(get_scores_response.responses) == 0:
+                return CacheSortedSetGetScore.Error(UnknownException("Unknown get scores response had no data"))
+            return get_scores_response.responses[0]
+        elif isinstance(get_scores_response, CacheSortedSetGetScores.Miss):
+            bytes_value = value.encode("utf-8") if isinstance(value, str) else value
+            return CacheSortedSetGetScore.Miss(bytes_value)
+        elif isinstance(get_scores_response, CacheSortedSetGetScores.Error):
+            return CacheSortedSetGetScore.Error(get_scores_response.inner_exception)
+        else:
+            return CacheSortedSetGetScore.Error(UnknownException(f"Unknown get scores response: {get_scores_response}"))
+
+    async def sorted_set_get_scores(
+        self, cache_name: str, sorted_set_name: str, values: Iterable[str | bytes]
+    ) -> CacheSortedSetGetScoresResponse:
+        """Get several scores from a sorted set.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            values (Iterable[str | bytes]): The values in the sorted set to look up.
+
+        Returns:
+            CacheSortedSetGetScoresResponse: the status and associated score for each value.
+        """
+        return await self._data_client.sorted_set_get_scores(cache_name, sorted_set_name, values)
+
+    async def sorted_set_get_rank(
+        self, cache_name: str, sorted_set_name: str, value: str | bytes, sort_order: SortOrder = SortOrder.ASCENDING
+    ) -> CacheSortedSetGetRankResponse:
+        """Get the rank for the given sorted set and value.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            value (str | bytes): The value in the sorted set to look up.
+            sort_order (SortOrder): The sort order to use when determining the rank
+                                    of the value in the sorted set. Defaults to SortOrder.ASCENDING.
+
+        Returns:
+            CacheSortedSetGetScoresResponse: the status and associated score for each value.
+        """
+        return await self._data_client.sorted_set_get_rank(cache_name, sorted_set_name, value, sort_order)
 
     @property
     def _data_client(self) -> _ScsDataClient:

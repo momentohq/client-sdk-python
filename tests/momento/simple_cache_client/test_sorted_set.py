@@ -15,6 +15,12 @@ from momento.responses import (
     CacheResponse,
     CacheSortedSetFetch,
     CacheSortedSetFetchResponse,
+    CacheSortedSetGetRank,
+    CacheSortedSetGetRankResponse,
+    CacheSortedSetGetScore,
+    CacheSortedSetGetScoreResponse,
+    CacheSortedSetGetScores,
+    CacheSortedSetPutElement,
     CacheSortedSetPutElements,
 )
 from momento.responses.mixins import ErrorResponseMixin
@@ -23,6 +29,8 @@ from momento.typing import (
     TSortedSetElements,
     TSortedSetName,
     TSortedSetScore,
+    TSortedSetValue,
+    TSortedSetValues,
 )
 from tests.utils import uuid_str
 
@@ -209,6 +217,172 @@ def a_sorted_set_setter() -> None:
                 == f"Invalid argument passed to Momento client: score must be a float. Given type: "  # noqa: W503,E501
                 f"<class '{bad_type}'>"
             )
+
+
+class TSortedSetScoreGetter(Protocol):
+    def __call__(
+        self, cache_name: TCacheName, sorted_set_name: TSortedSetName, value: TSortedSetValue
+    ) -> CacheSortedSetGetScoreResponse:
+        ...
+
+
+def a_sorted_set_score_getter() -> None:
+    def with_bytes_it_succeeds(
+        sorted_set_score_getter: TSortedSetScoreGetter,
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_bytes: bytes,
+        sorted_set_score: TSortedSetScore,
+    ) -> None:
+        set_response = client.sorted_set_put_element(
+            cache_name, sorted_set_name, sorted_set_value_bytes, sorted_set_score
+        )
+        assert isinstance(set_response, CacheSortedSetPutElement.Success)
+
+        get_response = sorted_set_score_getter(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_bytes
+        )
+        assert isinstance(get_response, CacheSortedSetGetScore.Hit)
+        assert get_response.value_bytes == sorted_set_value_bytes
+        assert get_response.score == sorted_set_score
+
+    def with_strings_it_succeeds(
+        sorted_set_score_getter: TSortedSetScoreGetter,
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+        sorted_set_score: TSortedSetScore,
+    ) -> None:
+        set_response = client.sorted_set_put_element(
+            cache_name, sorted_set_name, sorted_set_value_str, sorted_set_score
+        )
+        assert isinstance(set_response, CacheSortedSetPutElement.Success)
+
+        get_response = sorted_set_score_getter(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str
+        )
+        assert isinstance(get_response, CacheSortedSetGetScore.Hit)
+        assert get_response.value_string == sorted_set_value_str
+        assert get_response.score == sorted_set_score
+
+
+class TSortedSetRankGetter(Protocol):
+    def __call__(
+        self,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        value: TSortedSetValue,
+        sort_order: SortOrder = SortOrder.ASCENDING,
+    ) -> CacheSortedSetGetRankResponse:
+        ...
+
+
+def a_sorted_set_rank_getter() -> None:
+    def with_bytes_it_succeeds_ascending(
+        sorted_set_rank_getter: TSortedSetRankGetter,
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_elements: TSortedSetElements,
+    ) -> None:
+        set_response = client.sorted_set_put_elements(cache_name, sorted_set_name, sorted_set_elements)
+        assert isinstance(set_response, CacheSortedSetPutElements.Success)
+
+        sorted_keys = [k for k, v in sorted(sorted_set_elements.items(), key=lambda item: item[1])]
+        first_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_keys[0]
+        )
+        assert isinstance(first_rank_response, CacheSortedSetGetRank.Hit)
+        assert first_rank_response.rank == 0
+
+        second_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_keys[1]
+        )
+        assert isinstance(second_rank_response, CacheSortedSetGetRank.Hit)
+        assert second_rank_response.rank == 1
+
+    def with_bytes_it_succeeds_descending(
+        sorted_set_rank_getter: TSortedSetRankGetter,
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_elements: TSortedSetElements,
+    ) -> None:
+        set_response = client.sorted_set_put_elements(cache_name, sorted_set_name, sorted_set_elements)
+        assert isinstance(set_response, CacheSortedSetPutElements.Success)
+
+        sorted_keys = [k for k, v in sorted(sorted_set_elements.items(), key=lambda item: item[1])]
+        first_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name,
+            sorted_set_name=sorted_set_name,
+            value=sorted_keys[0],
+            sort_order=SortOrder.DESCENDING,
+        )
+        assert isinstance(first_rank_response, CacheSortedSetGetRank.Hit)
+        assert first_rank_response.rank == 1
+
+        second_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name,
+            sorted_set_name=sorted_set_name,
+            value=sorted_keys[1],
+            sort_order=SortOrder.DESCENDING,
+        )
+        assert isinstance(second_rank_response, CacheSortedSetGetRank.Hit)
+        assert second_rank_response.rank == 0
+
+    def it_succeeds_ascending(
+        sorted_set_rank_getter: TSortedSetRankGetter,
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_elements: TSortedSetElements,
+    ) -> None:
+        set_response = client.sorted_set_put_elements(cache_name, sorted_set_name, sorted_set_elements)
+        assert isinstance(set_response, CacheSortedSetPutElements.Success)
+
+        sorted_keys = [k for k, v in sorted(sorted_set_elements.items(), key=lambda item: item[1])]
+        first_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_keys[0]
+        )
+        assert isinstance(first_rank_response, CacheSortedSetGetRank.Hit)
+        assert first_rank_response.rank == 0
+
+        second_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_keys[1]
+        )
+        assert isinstance(second_rank_response, CacheSortedSetGetRank.Hit)
+        assert second_rank_response.rank == 1
+
+    def it_succeeds_descending(
+        sorted_set_rank_getter: TSortedSetRankGetter,
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_elements: TSortedSetElements,
+    ) -> None:
+        set_response = client.sorted_set_put_elements(cache_name, sorted_set_name, sorted_set_elements)
+        assert isinstance(set_response, CacheSortedSetPutElements.Success)
+
+        sorted_keys = [k for k, v in sorted(sorted_set_elements.items(), key=lambda item: item[1])]
+        first_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name,
+            sorted_set_name=sorted_set_name,
+            value=sorted_keys[0],
+            sort_order=SortOrder.DESCENDING,
+        )
+        assert isinstance(first_rank_response, CacheSortedSetGetRank.Hit)
+        assert first_rank_response.rank == 1
+
+        second_rank_response = sorted_set_rank_getter(
+            cache_name=cache_name,
+            sorted_set_name=sorted_set_name,
+            value=sorted_keys[1],
+            sort_order=SortOrder.DESCENDING,
+        )
+        assert isinstance(second_rank_response, CacheSortedSetGetRank.Hit)
+        assert second_rank_response.rank == 0
 
 
 class TSortedSetFetcher(Protocol):
@@ -466,3 +640,126 @@ def describe_sorted_set_fetch_by_score() -> None:
         client: CacheClient, cache_name: TCacheName, sorted_set_name: TSortedSetName
     ) -> TSortedSetFetcher:
         return partial(client.sorted_set_fetch_by_score, cache_name=cache_name, sorted_set_name=sorted_set_name)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_sorted_set_name_validator)
+@behaves_like(a_sorted_set_score_getter)
+def describe_sorted_set_get_score() -> None:
+    @fixture
+    def cache_name_validator(
+        client: CacheClient,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TCacheNameValidator:
+        return partial(client.sorted_set_get_score, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
+
+    @fixture
+    def connection_validator(
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TConnectionValidator:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
+            return client.sorted_set_get_score(cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
+
+        return _connection_validator
+
+    @fixture
+    def sorted_set_name_validator(
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_value_str: str,
+    ) -> TSortedSetNameValidator:
+        return partial(client.sorted_set_get_score, cache_name=cache_name, value=sorted_set_value_str)
+
+    @fixture
+    def sorted_set_score_getter(client: CacheClient) -> TSortedSetScoreGetter:
+        return partial(client.sorted_set_get_score)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_sorted_set_name_validator)
+@behaves_like(a_sorted_set_score_getter)
+def describe_sorted_set_get_scores() -> None:
+    @fixture
+    def cache_name_validator(
+        client: CacheClient,
+        sorted_set_name: TSortedSetName,
+        sorted_set_values: TSortedSetValues,
+    ) -> TCacheNameValidator:
+        return partial(client.sorted_set_get_scores, sorted_set_name=sorted_set_name, values=sorted_set_values)
+
+    @fixture
+    def connection_validator(
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_values: TSortedSetValues,
+    ) -> TConnectionValidator:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
+            return client.sorted_set_get_scores(cache_name, sorted_set_name=sorted_set_name, values=sorted_set_values)
+
+        return _connection_validator
+
+    @fixture
+    def sorted_set_name_validator(
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_values: TSortedSetValues,
+    ) -> TSortedSetNameValidator:
+        return partial(client.sorted_set_get_scores, cache_name=cache_name, values=sorted_set_values)
+
+    @fixture
+    def sorted_set_score_getter(client: CacheClient) -> TSortedSetScoreGetter:
+        def _sorted_set_score_getter(
+            cache_name: TCacheName, sorted_set_name: TSortedSetName, value: TSortedSetValue
+        ) -> CacheSortedSetGetScoreResponse:
+            response = client.sorted_set_get_scores(cache_name, sorted_set_name, [value])
+            if isinstance(response, CacheSortedSetGetScores.Error):
+                return CacheSortedSetGetScore.Error(response.inner_exception)
+            elif isinstance(response, CacheSortedSetGetScores.Miss):
+                bytes_value = value.encode("utf-8") if isinstance(value, str) else value
+                return CacheSortedSetGetScore.Miss(bytes_value)
+            assert isinstance(response, CacheSortedSetGetScores.Hit)
+            return response.responses[0]
+
+        return _sorted_set_score_getter
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_sorted_set_name_validator)
+@behaves_like(a_sorted_set_rank_getter)
+def describe_sorted_set_get_rank() -> None:
+    @fixture
+    def cache_name_validator(
+        client: CacheClient,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TCacheNameValidator:
+        return partial(client.sorted_set_get_rank, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
+
+    @fixture
+    def connection_validator(
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TConnectionValidator:
+        def _connection_validator(client: CacheClient) -> CacheResponse:
+            return client.sorted_set_get_rank(cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
+
+        return _connection_validator
+
+    @fixture
+    def sorted_set_name_validator(
+        client: CacheClient,
+        cache_name: TCacheName,
+        sorted_set_value_str: str,
+    ) -> TSortedSetNameValidator:
+        return partial(client.sorted_set_get_rank, cache_name=cache_name, value=sorted_set_value_str)
+
+    @fixture
+    def sorted_set_rank_getter(client: CacheClient) -> TSortedSetRankGetter:
+        return partial(client.sorted_set_get_rank)

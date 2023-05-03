@@ -31,6 +31,8 @@ from momento_wire_types.cacheclient_pb2 import (
     _SetUnionRequest,
     _SortedSetElement,
     _SortedSetFetchRequest,
+    _SortedSetGetRankRequest,
+    _SortedSetGetScoreRequest,
     _SortedSetPutRequest,
     _Unbounded,
 )
@@ -54,6 +56,7 @@ from momento.internal._utilities import (
 )
 from momento.internal._utilities._data_validation import (
     _gen_sorted_set_elements_as_bytes,
+    _gen_sorted_set_values_as_bytes,
     _validate_sorted_set_name,
     _validate_sorted_set_score,
 )
@@ -112,6 +115,18 @@ from momento.responses.data.sorted_set.fetch import (
     CacheSortedSetFetch,
     CacheSortedSetFetchResponse,
 )
+from momento.responses.data.sorted_set.get_rank import (
+    CacheSortedSetGetRank,
+    CacheSortedSetGetRankResponse,
+)
+from momento.responses.data.sorted_set.get_score import (
+    CacheSortedSetGetScore,
+    CacheSortedSetGetScoreResponse,
+)
+from momento.responses.data.sorted_set.get_scores import (
+    CacheSortedSetGetScores,
+    CacheSortedSetGetScoresResponse,
+)
 from momento.responses.data.sorted_set.put_elements import (
     CacheSortedSetPutElements,
     CacheSortedSetPutElementsResponse,
@@ -131,6 +146,8 @@ from momento.typing import (
     TSetName,
     TSortedSetElements,
     TSortedSetName,
+    TSortedSetValue,
+    TSortedSetValues,
 )
 
 
@@ -144,6 +161,8 @@ class _ScsDataClient:
     __UNSUPPORTED_SET_ELEMENTS_TYPE_MSG = "Unsupported type for elements: "
     __UNSUPPORTED_SORTED_SET_NAME_TYPE_MSG = "Unsupported type for sorted_set_name: "
     __UNSUPPORTED_SORTED_SET_ELEMENTS_TYPE_MSG = "Unsupported type for sorted set elements: "
+    __UNSUPPORTED_SORTED_SET_VALUE_TYPE_MSG = "Unsupported type for sorted set value: "
+    __UNSUPPORTED_SORTED_SET_VALUES_TYPE_MSG = "Unsupported type for sorted set values: "
 
     __UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG = "Unsupported type for dictionary_name: "
     __UNSUPPORTED_DICTIONARY_FIELD_TYPE_MSG = "Unsupported type for field: "
@@ -944,6 +963,83 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("sorted_set_fetch", e)
             return CacheSortedSetFetch.Error(convert_error(e))
+
+    def sorted_set_get_scores(
+        self, cache_name: TCacheName, sorted_set_name: TSortedSetName, values: TSortedSetValues
+    ) -> CacheSortedSetGetScoresResponse:
+        try:
+            self._log_issuing_request("SortedSetGetScores", {"sorted_set_name": str(sorted_set_name)})
+            _validate_cache_name(cache_name)
+            _validate_sorted_set_name(sorted_set_name)
+
+            request = _SortedSetGetScoreRequest()
+            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
+
+            bytes_values = list(_gen_sorted_set_values_as_bytes(values, self.__UNSUPPORTED_SORTED_SET_VALUES_TYPE_MSG))
+            request.values.extend(bytes_values)
+
+            response = self._build_stub().SortedSetGetScore(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("SortedSetGetScores", {"sorted_set_name": str(request.set_name)})
+
+            type = response.WhichOneof("sorted_set")
+            if type == "found":
+                get_responses: list[CacheSortedSetGetScoreResponse] = []
+                for value, get_response in zip(bytes_values, response.found.elements):
+                    if get_response.result == Miss:
+                        get_responses.append(CacheSortedSetGetScore.Miss(value))
+                    else:
+                        get_responses.append(CacheSortedSetGetScore.Hit(value, get_response.score))
+                return CacheSortedSetGetScores.Hit(get_responses)
+            elif type == "missing":
+                return CacheSortedSetGetScores.Miss()
+            else:
+                raise UnknownException(f"Unknown field in response: {type}")
+        except Exception as e:
+            self._log_request_error("sorted_set_get_scores", e)
+            return CacheSortedSetGetScores.Error(convert_error(e))
+
+    def sorted_set_get_rank(
+        self,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        value: TSortedSetValue,
+        sort_order: SortOrder,
+    ) -> CacheSortedSetGetRankResponse:
+        try:
+            self._log_issuing_request("SortedSetGetRank", {"sorted_set_name": str(sorted_set_name)})
+            _validate_cache_name(cache_name)
+            _validate_sorted_set_name(sorted_set_name)
+
+            request = _SortedSetGetRankRequest()
+            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
+            request.value = _as_bytes(value, self.__UNSUPPORTED_SORTED_SET_VALUE_TYPE_MSG)
+
+            # ascending = 0, descending = 1
+            if sort_order == SortOrder.ASCENDING:
+                request.order = 0
+            else:
+                request.order = 1
+
+            response = self._build_stub().SortedSetGetRank(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("SortedSetGetRank", {"sorted_set_name": str(request.set_name)})
+
+            if response.element_rank.result == Hit:
+                return CacheSortedSetGetRank.Hit(response.element_rank.rank)
+            if response.element_rank.result == Miss:
+                return CacheSortedSetGetRank.Miss()
+            else:
+                raise UnknownException(f"Unknown field in response: {type}")
+        except Exception as e:
+            self._log_request_error("sorted_set_get_rank", e)
+            return CacheSortedSetGetRank.Error(convert_error(e))
 
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")
