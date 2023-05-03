@@ -23,7 +23,6 @@ from momento.typing import (
     TSortedSetElements,
     TSortedSetName,
     TSortedSetScore,
-    TSortedSetValue,
 )
 from tests.utils import uuid_str
 
@@ -68,8 +67,7 @@ class TSortedSetSetter(Protocol):
         client: CacheClient,
         cache_name: TCacheName,
         sorted_set_name: TSortedSetName,
-        value: TSortedSetValue,
-        score: TSortedSetScore,
+        elements: TSortedSetElements,
         *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
     ) -> CacheResponse:
@@ -89,9 +87,7 @@ def a_sorted_set_setter() -> None:
             ttl_seconds = 0.5
             ttl = CollectionTtl(ttl=timedelta(seconds=ttl_seconds), refresh_ttl=False)
 
-            for value, score in sorted_set_elements.items():
-                sorted_set_setter(client, cache_name, sorted_set_name, value, score, ttl=ttl)
-
+            sorted_set_setter(client, cache_name, sorted_set_name, sorted_set_elements, ttl=ttl)
             sleep(ttl_seconds * 2)
 
             fetch_response = client.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
@@ -105,15 +101,16 @@ def a_sorted_set_setter() -> None:
     ) -> None:
         ttl_seconds = 1
         ttl = CollectionTtl.of(timedelta(seconds=ttl_seconds))
-        items = dict([("one", 1.0), ("two", 2.0), ("three", 3.0), ("four", 3.0)])
+        elements = dict([("one", 1.0), ("two", 2.0), ("three", 3.0), ("four", 4.0)])
+        elements_list = [(value, score) for value, score in sorted(elements.items(), key=lambda item: item[1])]
 
-        for value, score in items.items():
-            sorted_set_setter(client, cache_name, sorted_set_name, value, score, ttl=ttl)
-            sleep(ttl_seconds / 2)
+        sorted_set_setter(client, cache_name, sorted_set_name, elements, ttl=ttl)
+        sleep(ttl_seconds / 2)
+        sorted_set_setter(client, cache_name, sorted_set_name, elements, ttl=ttl)
 
         fetch_response = client.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
         assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
-        assert fetch_response.value_dictionary_string == items
+        assert fetch_response.value_list_string == elements_list
 
     def it_uses_the_default_ttl_when_the_collection_ttl_has_no_ttl(
         configuration: Configuration,
@@ -128,13 +125,13 @@ def a_sorted_set_setter() -> None:
         with CacheClient(configuration, credential_provider, timedelta(seconds=ttl_seconds)) as client:
             ttl = CollectionTtl.from_cache_ttl().with_no_refresh_ttl_on_updates()
 
-            sorted_set_setter(client, cache_name, sorted_set_name, sorted_set_value_str, sorted_set_score, ttl=ttl)
+            sorted_set_setter(client, cache_name, sorted_set_name, {sorted_set_value_str: sorted_set_score}, ttl=ttl)
 
             sleep(ttl_seconds / 2)
 
             fetch_response = client.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
             assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
-            assert fetch_response.value_dictionary_string == {sorted_set_value_str: sorted_set_score}
+            assert fetch_response.value_list_string == [(sorted_set_value_str, sorted_set_score)]
 
             sleep(ttl_seconds / 2)
             fetch_response = client.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
@@ -152,12 +149,11 @@ def a_sorted_set_setter() -> None:
             client,
             cache_name,
             sorted_set_name,
-            sorted_set_value_bytes,
-            sorted_set_score,
+            {sorted_set_value_bytes: sorted_set_score},
         )
         fetch_response = client.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
         assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
-        assert fetch_response.value_dictionary_bytes == {sorted_set_value_bytes: sorted_set_score}
+        assert fetch_response.value_list_bytes == [(sorted_set_value_bytes, sorted_set_score)]
 
     def with_strings_it_succeeds(
         sorted_set_setter: TSortedSetSetter,
@@ -167,10 +163,10 @@ def a_sorted_set_setter() -> None:
         sorted_set_value_str: str,
         sorted_set_score: TSortedSetScore,
     ) -> None:
-        sorted_set_setter(client, cache_name, sorted_set_name, sorted_set_value_str, sorted_set_score)
+        sorted_set_setter(client, cache_name, sorted_set_name, {sorted_set_value_str: sorted_set_score})
         fetch_response = client.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
         assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
-        assert fetch_response.value_dictionary_string == {sorted_set_value_str: sorted_set_score}
+        assert fetch_response.value_list_string == [(sorted_set_value_str, sorted_set_score)]
 
     def with_other_values_type_it_errors(
         sorted_set_setter: TSortedSetSetter,
@@ -183,7 +179,7 @@ def a_sorted_set_setter() -> None:
         ]:
             cache_name = uuid_str()
             response = sorted_set_setter(
-                client, cache_name, sorted_set_name, value, score, ttl=CollectionTtl()  # type:ignore[arg-type]
+                client, cache_name, sorted_set_name, {value: score}, ttl=CollectionTtl()  # type:ignore[arg-type]
             )
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -204,7 +200,7 @@ def a_sorted_set_setter() -> None:
         ]:
             cache_name = uuid_str()
             response = sorted_set_setter(
-                client, cache_name, sorted_set_name, value, score, ttl=CollectionTtl()  # type:ignore[arg-type]
+                client, cache_name, sorted_set_name, {value: score}, ttl=CollectionTtl()  # type:ignore[arg-type]
             )
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -244,7 +240,7 @@ def a_sorted_set_fetcher() -> None:
             sort_order=SortOrder.ASCENDING,
         )
         assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
-        fetched_values = list(fetch_response.value_dictionary_string.values())
+        fetched_values = [element[1] for element in fetch_response.value_list_string]
         assert all(earlier <= later for earlier, later in zip(fetched_values, fetched_values[1:]))
 
     def with_string_it_succeeds_descending(
@@ -263,7 +259,7 @@ def a_sorted_set_fetcher() -> None:
             sort_order=SortOrder.DESCENDING,
         )
         assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
-        fetched_values = list(fetch_response.value_dictionary_string.values())
+        fetched_values = [element[1] for element in fetch_response.value_list_string]
         assert all(earlier >= later for earlier, later in zip(fetched_values, fetched_values[1:]))
 
 
@@ -323,18 +319,21 @@ def describe_sorted_set_put_field() -> None:
             client: CacheClient,
             cache_name: TCacheName,
             sorted_set_name: TSortedSetName,
-            value: TSortedSetValue,
-            score: TSortedSetScore,
+            elements: TSortedSetElements,
             *,
             ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         ) -> CacheResponse:
-            return client.sorted_set_put_element(
-                cache_name=cache_name,
-                sorted_set_name=sorted_set_name,
-                value=value,
-                score=score,
-                ttl=ttl,
-            )
+            response = None
+            for (value, score) in elements.items():
+                response = client.sorted_set_put_element(
+                    cache_name=cache_name,
+                    sorted_set_name=sorted_set_name,
+                    value=value,
+                    score=score,
+                    ttl=ttl,
+                )
+            assert response is not None
+            return response
 
         return _sorted_set_setter
 
@@ -387,15 +386,14 @@ def describe_sorted_set_put_fields() -> None:
             client: CacheClient,
             cache_name: TCacheName,
             sorted_set_name: TSortedSetName,
-            value: TSortedSetValue,
-            score: TSortedSetScore,
+            elements: TSortedSetElements,
             *,
             ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         ) -> CacheResponse:
             return client.sorted_set_put_elements(
                 cache_name=cache_name,
                 sorted_set_name=sorted_set_name,
-                elements={value: score},
+                elements=elements,
                 ttl=ttl,
             )
 

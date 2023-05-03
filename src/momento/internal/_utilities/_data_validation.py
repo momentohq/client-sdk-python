@@ -19,6 +19,7 @@ DEFAULT_LIST_CONVERSION_ERROR = "The given type is not list[str | bytes]: "
 DEFAULT_DICTIONARY_CONVERSION_ERROR = "The given type is not a valid Mapping: "
 DEFAULT_DICTIONARY_FIELDS_CONVERSION_ERROR = "The given type is not Iterable[str | bytes]: "
 DEFAULT_SET_CONVERSION_ERROR = "The given type is not set[str | bytes]: "
+DEFAULT_SORTED_SET_CONVERSION_ERROR = "The given type is not valid for sorted set elements: "
 
 
 def _validate_name(name: str, field_name: str) -> None:
@@ -99,11 +100,11 @@ def _gen_set_input_as_bytes(
 
 
 def _gen_sorted_set_elements_as_bytes(
-    items: TSortedSetElements, error_message: str = DEFAULT_DICTIONARY_CONVERSION_ERROR
+    elements: TSortedSetElements, error_message: str = DEFAULT_SORTED_SET_CONVERSION_ERROR
 ) -> Iterable[Tuple[bytes, float]]:
-    if not isinstance(items, collections.abc.Mapping):
-        raise InvalidArgumentException(f"{error_message}{type(items)}")
-    for value, score in items.items():
+    if not isinstance(elements, collections.abc.Mapping):
+        raise InvalidArgumentException(f"{error_message}{type(elements)}")
+    for value, score in elements.items():
         yield _as_bytes(value), score
 
 

@@ -26,35 +26,17 @@ class CacheSortedSetFetch(ABC):
     class Hit(CacheSortedSetFetchResponse):
         """Indicates the sorted set exists and its values were fetched."""
 
-        value_dictionary_bytes: dict[bytes, float]
-        """The values for the fetched sorted set, as bytes to their float scores."""
-
-        @property
-        def value_dictionary_string(self) -> dict[str, float]:
-            """The values for the fetched sorted set, as utf-8 encoded strings and their int scores.
-
-            Returns:
-                dict[str, float]
-            """
-            return {key.decode("utf-8"): value for key, value in self.value_dictionary_bytes.items()}
-
-        @property
-        def value_list_bytes(self) -> list[tuple[bytes, float]]:
-            """The values for the fetched sorted set, as a list of bytes values to int score tuples.
-
-            Returns:
-                list[tuple[bytes, float]]
-            """
-            return [(key, value) for key, value in self.value_dictionary_bytes.items()]
+        value_list_bytes: list[tuple[bytes, float]]
+        """The values for the fetched sorted set, as a list of bytes values to float score tuples."""
 
         @property
         def value_list_string(self) -> list[tuple[str, float]]:
-            """The values for the fetched sorted set, as a list of utf-8 encoded string values to int score tuples.
+            """The values for the fetched sorted set, as a list of utf-8 encoded string values to float score tuples.
 
             Returns:
                 list[tuple[str, float]]
             """
-            return [(key.decode("utf-8"), value) for key, value in self.value_dictionary_bytes.items()]
+            return [(key.decode("utf-8"), value) for key, value in self.value_list_bytes]
 
     class Miss(CacheSortedSetFetchResponse):
         """Indicates the sorted set does not exist."""
