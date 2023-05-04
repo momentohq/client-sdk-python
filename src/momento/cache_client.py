@@ -19,6 +19,7 @@ from momento.responses.data.sorted_set.get_scores import (
     CacheSortedSetGetScores,
     CacheSortedSetGetScoresResponse,
 )
+from momento.responses.data.sorted_set.increment import CacheSortedSetIncrementResponse
 from momento.responses.data.sorted_set.put_element import (
     CacheSortedSetPutElement,
     CacheSortedSetPutElementResponse,
@@ -26,6 +27,14 @@ from momento.responses.data.sorted_set.put_element import (
 from momento.responses.data.sorted_set.put_elements import (
     CacheSortedSetPutElements,
     CacheSortedSetPutElementsResponse,
+)
+from momento.responses.data.sorted_set.remove_element import (
+    CacheSortedSetRemoveElement,
+    CacheSortedSetRemoveElementResponse,
+)
+from momento.responses.data.sorted_set.remove_elements import (
+    CacheSortedSetRemoveElements,
+    CacheSortedSetRemoveElementsResponse,
 )
 
 try:
@@ -954,6 +963,74 @@ class CacheClient:
             CacheSortedSetGetScoresResponse: the status and associated score for each value.
         """
         return self._data_client.sorted_set_get_rank(cache_name, sorted_set_name, value, sort_order)
+
+    def sorted_set_remove_element(
+        self, cache_name: str, sorted_set_name: str, value: str | bytes
+    ) -> CacheSortedSetRemoveElementResponse:
+        """Remove an element from a sorted set.
+
+        Performs a no-op if the sorted set or element does not exist.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): Name of the sorted set to remove the element from.
+            value (str | bytes): Value of the element to remove from the sorted set.
+
+        Returns:
+            CacheSortedSetRemoveElementResponse: result of the remove operation.
+        """
+        remove_elements_response = self.sorted_set_remove_elements(cache_name, sorted_set_name, values=[value])
+        if isinstance(remove_elements_response, CacheSortedSetRemoveElements.Success):
+            return CacheSortedSetRemoveElement.Success()
+        elif isinstance(remove_elements_response, CacheSortedSetRemoveElements.Error):
+            return CacheSortedSetRemoveElement.Error(remove_elements_response.inner_exception)
+        else:
+            return CacheSortedSetRemoveElement.Error(
+                UnknownException(f"Unknown remove elements response: {remove_elements_response}")
+            )
+
+    def sorted_set_remove_elements(
+        self, cache_name: str, sorted_set_name: str, values: Iterable[str | bytes]
+    ) -> CacheSortedSetRemoveElementsResponse:
+        """Remove elements from a sorted set.
+
+        Performs a no-op if the sorted or a particular element does not exist.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): Name of the sorted set to remove the elements from.
+            values (Iterable[str | bytes]): The values of the elements to remove from the sorted set.
+
+        Returns:
+            CacheSortedSetRemoveElementsResponse: result of the remove elements operation.
+        """
+        return self._data_client.sorted_set_remove_elements(cache_name, sorted_set_name, values)
+
+    def sorted_set_increment(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        value: str | bytes,
+        score: float = 1.0,
+        *,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSortedSetIncrementResponse:
+        """Increments the score for the given sorted set and value.
+
+        If the value doesn't exist in the sorted set, it will be added and its score set to the given score.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            value (str | bytes): The value in the sorted set to look up.
+            score (float): The quantity to add to the score. May be positive, negative, or zero. Defaults to 1.0.
+            ttl: (CollectionTtl, optional): How to treat the sorted set's TTL.
+                Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSortedSetIncrementResponse: the status and associated score for each value.
+        """
+        return self._data_client.sorted_set_increment(cache_name, sorted_set_name, value, score, ttl)
 
     @property
     def _data_client(self) -> _ScsDataClient:

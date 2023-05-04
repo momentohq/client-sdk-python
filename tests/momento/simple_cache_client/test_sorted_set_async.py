@@ -113,8 +113,6 @@ def a_sorted_set_setter() -> None:
         elements_list = [(value, score) for value, score in sorted(elements.items(), key=lambda item: item[1])]
 
         await sorted_set_setter(client_async, cache_name, sorted_set_name, elements, ttl=ttl)
-        sleep(ttl_seconds / 2)
-        await sorted_set_setter(client_async, cache_name, sorted_set_name, elements, ttl=ttl)
 
         fetch_response = await client_async.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
         assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
@@ -437,6 +435,57 @@ def a_sorted_set_fetcher() -> None:
         assert isinstance(fetch_response, CacheSortedSetFetch.Hit)
         fetched_values = [element[1] for element in fetch_response.value_list_string]
         assert all(earlier >= later for earlier, later in zip(fetched_values, fetched_values[1:]))
+
+
+class TSortedSetRemover(Protocol):
+    def __call__(
+        self, cache_name: TCacheName, sorted_set_name: TSortedSetName, value: TSortedSetValue
+    ) -> Awaitable[CacheResponse]:
+        ...
+
+
+def a_sorted_set_remover() -> None:
+    async def with_string_field_succeeds(
+        client_async: CacheClientAsync,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+        sorted_set_score: float,
+        sorted_set_remover: TSortedSetRemover,
+    ) -> None:
+        set_response = await client_async.sorted_set_put_element(
+            cache_name, sorted_set_name, sorted_set_value_str, sorted_set_score
+        )
+        assert isinstance(set_response, CacheSortedSetPutElement.Success)
+
+        remove_response = await sorted_set_remover(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str
+        )
+        assert not isinstance(remove_response, ErrorResponseMixin)
+
+        fetch_response = await client_async.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
+        assert isinstance(fetch_response, CacheSortedSetFetch.Miss)
+
+    async def with_bytes_field_succeeds(
+        client_async: CacheClientAsync,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: bytes,
+        sorted_set_score: float,
+        sorted_set_remover: TSortedSetRemover,
+    ) -> None:
+        set_response = await client_async.sorted_set_put_element(
+            cache_name, sorted_set_name, sorted_set_value_str, sorted_set_score
+        )
+        assert isinstance(set_response, CacheSortedSetPutElement.Success)
+
+        remove_response = await sorted_set_remover(
+            cache_name=cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str
+        )
+        assert not isinstance(remove_response, ErrorResponseMixin)
+
+        fetch_response = await client_async.sorted_set_fetch_by_rank(cache_name, sorted_set_name)
+        assert isinstance(fetch_response, CacheSortedSetFetch.Miss)
 
 
 @behaves_like(a_cache_name_validator)
@@ -771,3 +820,151 @@ def describe_sorted_set_get_rank() -> None:
     @fixture
     def sorted_set_rank_getter(client_async: CacheClientAsync) -> TSortedSetRankGetter:
         return partial(client_async.sorted_set_get_rank)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_sorted_set_name_validator)
+@behaves_like(a_sorted_set_setter)
+def describe_sorted_set_increment() -> None:
+    @fixture
+    def cache_name_validator(
+        client_async: CacheClientAsync,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TCacheNameValidator:
+        return partial(client_async.sorted_set_increment, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
+
+    @fixture
+    def connection_validator(
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TConnectionValidator:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
+            return await client_async.sorted_set_increment(
+                cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str
+            )
+
+        return _connection_validator
+
+    @fixture
+    def sorted_set_name_validator(
+        client_async: CacheClientAsync,
+        cache_name: TCacheName,
+        sorted_set_value_str: str,
+    ) -> TSortedSetNameValidator:
+        return partial(client_async.sorted_set_increment, cache_name=cache_name, value=sorted_set_value_str)
+
+    @fixture
+    def sorted_set_setter() -> TSortedSetSetter:
+        async def _sorted_set_setter(
+            client_async: CacheClientAsync,
+            cache_name: TCacheName,
+            sorted_set_name: TSortedSetName,
+            elements: TSortedSetElements,
+            *,
+            ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+        ) -> CacheResponse:
+            response = None
+            for (value, score) in elements.items():
+                response = await client_async.sorted_set_increment(
+                    cache_name=cache_name,
+                    sorted_set_name=sorted_set_name,
+                    value=value,
+                    score=score,
+                    ttl=ttl,
+                )
+            assert response is not None
+            return response
+
+        return _sorted_set_setter
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_sorted_set_name_validator)
+@behaves_like(a_sorted_set_remover)
+def describe_sorted_set_remove_element() -> None:
+    @fixture
+    def cache_name_validator(
+        client_async: CacheClientAsync,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TCacheNameValidator:
+        return partial(
+            client_async.sorted_set_remove_element, sorted_set_name=sorted_set_name, value=sorted_set_value_str
+        )
+
+    @fixture
+    def connection_validator(
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_value_str: str,
+    ) -> TConnectionValidator:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
+            return await client_async.sorted_set_remove_element(
+                cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str
+            )
+
+        return _connection_validator
+
+    @fixture
+    def sorted_set_name_validator(
+        client_async: CacheClientAsync,
+        cache_name: TCacheName,
+        sorted_set_value_str: str,
+    ) -> TSortedSetNameValidator:
+        return partial(client_async.sorted_set_remove_element, cache_name=cache_name, value=sorted_set_value_str)
+
+    @fixture
+    def sorted_set_remover(client_async: CacheClientAsync) -> TSortedSetRemover:
+        return partial(client_async.sorted_set_remove_element)
+
+
+@behaves_like(a_cache_name_validator)
+@behaves_like(a_connection_validator)
+@behaves_like(a_sorted_set_name_validator)
+@behaves_like(a_sorted_set_remover)
+def describe_sorted_set_remove_elements() -> None:
+    @fixture
+    def cache_name_validator(
+        client_async: CacheClientAsync,
+        sorted_set_name: TSortedSetName,
+        sorted_set_values: TSortedSetValues,
+    ) -> TCacheNameValidator:
+        return partial(
+            client_async.sorted_set_remove_elements, sorted_set_name=sorted_set_name, values=sorted_set_values
+        )
+
+    @fixture
+    def connection_validator(
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        sorted_set_values: TSortedSetValues,
+    ) -> TConnectionValidator:
+        async def _connection_validator(client_async: CacheClientAsync) -> CacheResponse:
+            return await client_async.sorted_set_remove_elements(
+                cache_name, sorted_set_name=sorted_set_name, values=sorted_set_values
+            )
+
+        return _connection_validator
+
+    @fixture
+    def sorted_set_name_validator(
+        client_async: CacheClientAsync,
+        cache_name: TCacheName,
+        sorted_set_values: TSortedSetValues,
+    ) -> TSortedSetNameValidator:
+        return partial(client_async.sorted_set_remove_elements, cache_name=cache_name, values=sorted_set_values)
+
+    @fixture
+    def sorted_set_remover(client_async: CacheClientAsync) -> TSortedSetRemover:
+        async def _sorted_set_remover(
+            cache_name: TCacheName, sorted_set_name: TSortedSetName, value: TSortedSetValue
+        ) -> CacheResponse:
+            return await client_async.sorted_set_remove_elements(
+                cache_name=cache_name, sorted_set_name=sorted_set_name, values=[value]
+            )
+
+        return _sorted_set_remover

@@ -33,7 +33,9 @@ from momento_wire_types.cacheclient_pb2 import (
     _SortedSetFetchRequest,
     _SortedSetGetRankRequest,
     _SortedSetGetScoreRequest,
+    _SortedSetIncrementRequest,
     _SortedSetPutRequest,
+    _SortedSetRemoveRequest,
     _Unbounded,
 )
 from momento_wire_types.cacheclient_pb2_grpc import ScsStub
@@ -127,9 +129,17 @@ from momento.responses.data.sorted_set.get_scores import (
     CacheSortedSetGetScores,
     CacheSortedSetGetScoresResponse,
 )
+from momento.responses.data.sorted_set.increment import (
+    CacheSortedSetIncrement,
+    CacheSortedSetIncrementResponse,
+)
 from momento.responses.data.sorted_set.put_elements import (
     CacheSortedSetPutElements,
     CacheSortedSetPutElementsResponse,
+)
+from momento.responses.data.sorted_set.remove_elements import (
+    CacheSortedSetRemoveElements,
+    CacheSortedSetRemoveElementsResponse,
 )
 from momento.typing import (
     TCacheName,
@@ -146,6 +156,7 @@ from momento.typing import (
     TSetName,
     TSortedSetElements,
     TSortedSetName,
+    TSortedSetScore,
     TSortedSetValue,
     TSortedSetValues,
 )
@@ -1040,6 +1051,68 @@ class _ScsDataClient:
         except Exception as e:
             self._log_request_error("sorted_set_get_rank", e)
             return CacheSortedSetGetRank.Error(convert_error(e))
+
+    def sorted_set_remove_elements(
+        self,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        values: TSortedSetValues,
+    ) -> CacheSortedSetRemoveElementsResponse:
+        try:
+            self._log_issuing_request("SortedSetRemoveElements", {"sorted_set_name": str(sorted_set_name)})
+            _validate_cache_name(cache_name)
+            _validate_sorted_set_name(sorted_set_name)
+
+            request = _SortedSetRemoveRequest()
+            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
+            request.some.values.extend(
+                _gen_sorted_set_values_as_bytes(values, self.__UNSUPPORTED_SORTED_SET_VALUES_TYPE_MSG)
+            )
+
+            self._build_stub().SortedSetRemove(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("SortedSetRemoveElements", {"sorted_set_name": str(request.set_name)})
+
+            return CacheSortedSetRemoveElements.Success()
+        except Exception as e:
+            self._log_request_error("sorted_set_remove_elements", e)
+            return CacheSortedSetRemoveElements.Error(convert_error(e))
+
+    def sorted_set_increment(
+        self,
+        cache_name: TCacheName,
+        sorted_set_name: TSortedSetName,
+        value: TSortedSetValue,
+        score: TSortedSetScore,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSortedSetIncrementResponse:
+        try:
+            self._log_issuing_request("SortedSetIncrement", {"sorted_set_name": str(sorted_set_name)})
+            _validate_cache_name(cache_name)
+            _validate_sorted_set_name(sorted_set_name)
+            _validate_sorted_set_score(score)
+
+            request = _SortedSetIncrementRequest()
+            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
+            request.value = _as_bytes(value)
+            request.amount = score
+            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
+            request.refresh_ttl = ttl.refresh_ttl
+
+            response = self._build_stub().SortedSetIncrement(
+                request,
+                metadata=make_metadata(cache_name),
+                timeout=self._default_deadline_seconds,
+            )
+            self._log_received_response("SortedSetIncrement", {"sorted_set_name": str(request.set_name)})
+
+            return CacheSortedSetIncrement.Success(response.score)
+        except Exception as e:
+            self._log_request_error("sorted_set_increment", e)
+            return CacheSortedSetIncrement.Error(convert_error(e))
 
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")
