@@ -47,3 +47,15 @@ TSetElementsInput = Iterable[TSetElement]
 TSetElementsOutputStr = Set[str]
 TSetElementsOutputBytes = Set[bytes]
 TSetElementsOutput = Union[TSetElementsOutputBytes, TSetElementsOutputStr]
+
+# Sorted Set Types
+TSortedSetName = TCollectionName
+TSortedSetValue = TMomentoValue
+TSortedSetScore = float
+TSortedSetValues = Iterable[TSortedSetValue]
+TSortedSetElements = Union[
+    Mapping[TSortedSetValue, TSortedSetScore],
+    # Mapping isn't covariant, so we have to list out the types here
+    Mapping[bytes, float],
+    Mapping[str, float],
+]

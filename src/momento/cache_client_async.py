@@ -8,7 +8,34 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import UnknownException
-from momento.requests import CollectionTtl
+from momento.requests import CollectionTtl, SortOrder
+from momento.responses.data.sorted_set.fetch import CacheSortedSetFetchResponse
+from momento.responses.data.sorted_set.get_rank import CacheSortedSetGetRankResponse
+from momento.responses.data.sorted_set.get_score import (
+    CacheSortedSetGetScore,
+    CacheSortedSetGetScoreResponse,
+)
+from momento.responses.data.sorted_set.get_scores import (
+    CacheSortedSetGetScores,
+    CacheSortedSetGetScoresResponse,
+)
+from momento.responses.data.sorted_set.increment import CacheSortedSetIncrementResponse
+from momento.responses.data.sorted_set.put_element import (
+    CacheSortedSetPutElement,
+    CacheSortedSetPutElementResponse,
+)
+from momento.responses.data.sorted_set.put_elements import (
+    CacheSortedSetPutElements,
+    CacheSortedSetPutElementsResponse,
+)
+from momento.responses.data.sorted_set.remove_element import (
+    CacheSortedSetRemoveElement,
+    CacheSortedSetRemoveElementResponse,
+)
+from momento.responses.data.sorted_set.remove_elements import (
+    CacheSortedSetRemoveElements,
+    CacheSortedSetRemoveElementsResponse,
+)
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -80,7 +107,7 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.typing import TDictionaryItems
+from momento.typing import TDictionaryItems, TSortedSetElements
 
 
 class CacheClientAsync:
@@ -769,6 +796,248 @@ class CacheClientAsync:
             CacheSetRemoveElementsResponse
         """
         return await self._data_client.set_remove_elements(cache_name, set_name, elements)
+
+    async def sorted_set_put_element(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        value: str | bytes,
+        score: float,
+        *,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSortedSetPutElementResponse:
+        """Sets a sorted set element to a value and score with a given time to live (TTL) seconds.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): Name of the sorted set to set.
+            value (str | bytes): The value of the element to add.
+            score (float): The score of the element to add.
+            ttl: (CollectionTtl, optional): How to treat the sorted set's TTL.
+                Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSortedSetPutElementResponse: result of the put operation.
+        """
+        put_elements_response = await self.sorted_set_put_elements(
+            cache_name, sorted_set_name, elements={value: score}, ttl=ttl
+        )
+        if isinstance(put_elements_response, CacheSortedSetPutElements.Success):
+            return CacheSortedSetPutElement.Success()
+        elif isinstance(put_elements_response, CacheSortedSetPutElements.Error):
+            return CacheSortedSetPutElement.Error(put_elements_response.inner_exception)
+        else:
+            return CacheSortedSetPutElement.Error(
+                UnknownException(f"Unknown put elements response: {put_elements_response}")
+            )
+
+    async def sorted_set_put_elements(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        elements: TSortedSetElements,
+        *,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSortedSetPutElementsResponse:
+        """Puts elements into a sorted set.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): The name of the sorted set to add to.
+            elements (TSortedSetElements): The elements to add.
+            ttl: (CollectionTtl, optional): How to treat the sorted set's TTL.
+                Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSortedSetPutElementsResponse
+        """
+        return await self._data_client.sorted_set_put_elements(cache_name, sorted_set_name, elements, ttl)
+
+    async def sorted_set_fetch_by_score(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        min_score: Optional[float] = None,
+        max_score: Optional[float] = None,
+        sort_order: SortOrder = SortOrder.ASCENDING,
+        offset: Optional[int] = None,
+        count: Optional[int] = None,
+    ) -> CacheSortedSetFetchResponse:
+        """Fetches a sorted set by score range.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): The name of the sorted set to fetch.
+            min_score (Optional[float]): The minimum score of the range to fetch from the sorted set.
+                                         If None, fetches from the lowest score. Defaults to None.
+            max_score (Optional[float]): The maximum score of the range to fetch from the sorted set.
+                                         If None, fetches until the highest score. Defaults to None.
+            sort_order (SortOrder): The sort order to use when fetching the sorted set.
+                                    Defaults to SortOrder.ASCENDING.
+            offset (Optional[int]): The number of elements to skip before starting to return elements.
+                                    If None, starts from the first element within the specified range. Defaults to None.
+            count (Optional[int]): The maximum number of elements to return.
+                                   If None, returns all elements within the specified range. Defaults to None.
+
+        Returns:
+            CacheSortedSetFetchResponse: The fetched sorted set data with associated metadata.
+        """
+        return await self._data_client.sorted_set_fetch_by_score(
+            cache_name, sorted_set_name, min_score, max_score, sort_order, offset, count
+        )
+
+    async def sorted_set_fetch_by_rank(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        start_rank: Optional[int] = None,
+        end_rank: Optional[int] = None,
+        sort_order: SortOrder = SortOrder.ASCENDING,
+    ) -> CacheSortedSetFetchResponse:
+        """Fetches a sorted set by rank range.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): The name of the sorted set to fetch.
+            start_rank (Optional[int]): The start rank of the range to fetch from the sorted set.
+                                        If None, fetches from the beginning of the set. Defaults to None.
+            end_rank (Optional[int]): The end rank of the range to fetch from the sorted set.
+                                      If None, fetches until the end of the set. Defaults to None.
+            sort_order (SortOrder): The sort order to use when fetching the sorted set.
+                                              Defaults to SortOrder.ASCENDING.
+
+        Returns:
+            CacheSortedSetFetchResponse: The fetched sorted set data with associated metadata.
+        """
+        return await self._data_client.sorted_set_fetch_by_rank(
+            cache_name, sorted_set_name, start_rank, end_rank, sort_order
+        )
+
+    async def sorted_set_get_score(
+        self, cache_name: str, sorted_set_name: str, value: str | bytes
+    ) -> CacheSortedSetGetScoreResponse:
+        """Get the score stored for the given sorted set and value.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            value (str | bytes): The value in the sorted set to look up.
+
+        Returns:
+            CacheSortedSetGetScoreResponse: the status and score for the value.
+        """
+        get_scores_response = await self.sorted_set_get_scores(cache_name, sorted_set_name, [value])
+        if isinstance(get_scores_response, CacheSortedSetGetScores.Hit):
+            if len(get_scores_response.responses) == 0:
+                return CacheSortedSetGetScore.Error(UnknownException("Unknown get scores response had no data"))
+            return get_scores_response.responses[0]
+        elif isinstance(get_scores_response, CacheSortedSetGetScores.Miss):
+            bytes_value = value.encode("utf-8") if isinstance(value, str) else value
+            return CacheSortedSetGetScore.Miss(bytes_value)
+        elif isinstance(get_scores_response, CacheSortedSetGetScores.Error):
+            return CacheSortedSetGetScore.Error(get_scores_response.inner_exception)
+        else:
+            return CacheSortedSetGetScore.Error(UnknownException(f"Unknown get scores response: {get_scores_response}"))
+
+    async def sorted_set_get_scores(
+        self, cache_name: str, sorted_set_name: str, values: Iterable[str | bytes]
+    ) -> CacheSortedSetGetScoresResponse:
+        """Get several scores from a sorted set.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            values (Iterable[str | bytes]): The values in the sorted set to look up.
+
+        Returns:
+            CacheSortedSetGetScoresResponse: the status and associated score for each value.
+        """
+        return await self._data_client.sorted_set_get_scores(cache_name, sorted_set_name, values)
+
+    async def sorted_set_get_rank(
+        self, cache_name: str, sorted_set_name: str, value: str | bytes, sort_order: SortOrder = SortOrder.ASCENDING
+    ) -> CacheSortedSetGetRankResponse:
+        """Get the rank for the given sorted set and value.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            value (str | bytes): The value in the sorted set to look up.
+            sort_order (SortOrder): The sort order to use when determining the rank
+                                    of the value in the sorted set. Defaults to SortOrder.ASCENDING.
+
+        Returns:
+            CacheSortedSetGetScoresResponse: the status and associated score for each value.
+        """
+        return await self._data_client.sorted_set_get_rank(cache_name, sorted_set_name, value, sort_order)
+
+    async def sorted_set_remove_element(
+        self, cache_name: str, sorted_set_name: str, value: str | bytes
+    ) -> CacheSortedSetRemoveElementResponse:
+        """Remove an element from a sorted set.
+
+        Performs a no-op if the sorted set or element does not exist.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): Name of the sorted set to remove the element from.
+            value (str | bytes): Value of the element to remove from the sorted set.
+
+        Returns:
+            CacheSortedSetRemoveElementResponse: result of the remove operation.
+        """
+        remove_elements_response = await self.sorted_set_remove_elements(cache_name, sorted_set_name, values=[value])
+        if isinstance(remove_elements_response, CacheSortedSetRemoveElements.Success):
+            return CacheSortedSetRemoveElement.Success()
+        elif isinstance(remove_elements_response, CacheSortedSetRemoveElements.Error):
+            return CacheSortedSetRemoveElement.Error(remove_elements_response.inner_exception)
+        else:
+            return CacheSortedSetRemoveElement.Error(
+                UnknownException(f"Unknown remove elements response: {remove_elements_response}")
+            )
+
+    async def sorted_set_remove_elements(
+        self, cache_name: str, sorted_set_name: str, values: Iterable[str | bytes]
+    ) -> CacheSortedSetRemoveElementsResponse:
+        """Remove elements from a sorted set.
+
+        Performs a no-op if the sorted or a particular element does not exist.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): Name of the sorted set to remove the elements from.
+            values (Iterable[str | bytes]): The values of the elements to remove from the sorted set.
+
+        Returns:
+            CacheSortedSetRemoveElementsResponse: result of the remove elements operation.
+        """
+        return await self._data_client.sorted_set_remove_elements(cache_name, sorted_set_name, values)
+
+    async def sorted_set_increment(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        value: str | bytes,
+        score: float = 1.0,
+        *,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSortedSetIncrementResponse:
+        """Increments the score for the given sorted set and value.
+
+        If the value doesn't exist in the sorted set, it will be added and its score set to the given score.
+
+        Args:
+            cache_name (str): Name of the cache to perform the lookup in.
+            sorted_set_name (str): The sorted set to look up.
+            value (str | bytes): The value in the sorted set to look up.
+            score (float): The quantity to add to the score. May be positive, negative, or zero. Defaults to 1.0.
+            ttl: (CollectionTtl, optional): How to treat the sorted set's TTL.
+                Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSortedSetIncrementResponse: the status and associated score for each value.
+        """
+        return await self._data_client.sorted_set_increment(cache_name, sorted_set_name, value, score, ttl)
 
     @property
     def _data_client(self) -> _ScsDataClient:
