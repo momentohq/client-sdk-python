@@ -8,7 +8,16 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import UnknownException
-from momento.requests import CollectionTtl
+from momento.requests import CollectionTtl, SortOrder
+from momento.responses.data.sorted_set.fetch import CacheSortedSetFetchResponse
+from momento.responses.data.sorted_set.put_element import (
+    CacheSortedSetPutElement,
+    CacheSortedSetPutElementResponse,
+)
+from momento.responses.data.sorted_set.put_elements import (
+    CacheSortedSetPutElements,
+    CacheSortedSetPutElementsResponse,
+)
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -80,7 +89,7 @@ from momento.responses import (
     ListSigningKeysResponse,
     RevokeSigningKeyResponse,
 )
-from momento.typing import TDictionaryItems
+from momento.typing import TDictionaryItems, TSortedSetElements
 
 
 class CacheClientAsync:
@@ -769,6 +778,122 @@ class CacheClientAsync:
             CacheSetRemoveElementsResponse
         """
         return await self._data_client.set_remove_elements(cache_name, set_name, elements)
+
+    async def sorted_set_put_element(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        value: str | bytes,
+        score: float,
+        *,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSortedSetPutElementResponse:
+        """Sets a sorted set element to a value and score with a given time to live (TTL) seconds.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): Name of the sorted set to set.
+            value (str | bytes): The value of the element to add.
+            score (float): The score of the element to add.
+            ttl: (CollectionTtl, optional): How to treat the sorted set's TTL.
+                Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSortedSetPutElementResponse: result of the put operation.
+        """
+        put_elements_response = await self.sorted_set_put_elements(
+            cache_name, sorted_set_name, elements={value: score}, ttl=ttl
+        )
+        if isinstance(put_elements_response, CacheSortedSetPutElements.Success):
+            return CacheSortedSetPutElement.Success()
+        elif isinstance(put_elements_response, CacheSortedSetPutElements.Error):
+            return CacheSortedSetPutElement.Error(put_elements_response.inner_exception)
+        else:
+            return CacheSortedSetPutElement.Error(
+                UnknownException(f"Unknown put elements response: {put_elements_response}")
+            )
+
+    async def sorted_set_put_elements(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        elements: TSortedSetElements,
+        *,
+        ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
+    ) -> CacheSortedSetPutElementsResponse:
+        """Puts elements into a sorted set.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): The name of the sorted set to add to.
+            elements (TSortedSetElements): The elements to add.
+            ttl: (CollectionTtl, optional): How to treat the sorted set's TTL.
+                Defaults to `CollectionTtl.from_cache_ttl()`
+
+        Returns:
+            CacheSortedSetPutElementsResponse
+        """
+        return await self._data_client.sorted_set_put_elements(cache_name, sorted_set_name, elements, ttl)
+
+    async def sorted_set_fetch_by_score(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        min_score: Optional[float] = None,
+        max_score: Optional[float] = None,
+        sort_order: SortOrder = SortOrder.ASCENDING,
+        offset: Optional[int] = None,
+        count: Optional[int] = None,
+    ) -> CacheSortedSetFetchResponse:
+        """Fetches a sorted set by score range.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): The name of the sorted set to fetch.
+            min_score (Optional[float]): The minimum score of the range to fetch from the sorted set.
+                                         If None, fetches from the lowest score. Defaults to None.
+            max_score (Optional[float]): The maximum score of the range to fetch from the sorted set.
+                                         If None, fetches until the highest score. Defaults to None.
+            sort_order (SortOrder): The sort order to use when fetching the sorted set.
+                                    Defaults to SortOrder.ASCENDING.
+            offset (Optional[int]): The number of elements to skip before starting to return elements.
+                                    If None, starts from the first element within the specified range. Defaults to None.
+            count (Optional[int]): The maximum number of elements to return.
+                                   If None, returns all elements within the specified range. Defaults to None.
+
+        Returns:
+            CacheSortedSetFetchResponse: The fetched sorted set data with associated metadata.
+        """
+        return await self._data_client.sorted_set_fetch_by_score(
+            cache_name, sorted_set_name, min_score, max_score, sort_order, offset, count
+        )
+
+    async def sorted_set_fetch_by_rank(
+        self,
+        cache_name: str,
+        sorted_set_name: str,
+        start_rank: Optional[int] = None,
+        end_rank: Optional[int] = None,
+        sort_order: SortOrder = SortOrder.ASCENDING,
+    ) -> CacheSortedSetFetchResponse:
+        """Fetches a sorted set by rank range.
+
+        Args:
+            cache_name (str): Name of the cache containing the sorted set.
+            sorted_set_name (str): The name of the sorted set to fetch.
+            start_rank (Optional[int]): The start rank of the range to fetch from the sorted set.
+                                        If None, fetches from the beginning of the set. Defaults to None.
+            end_rank (Optional[int]): The end rank of the range to fetch from the sorted set.
+                                      If None, fetches until the end of the set. Defaults to None.
+            sort_order (SortOrder): The sort order to use when fetching the sorted set.
+                                              Defaults to SortOrder.ASCENDING.
+
+        Returns:
+            CacheSortedSetFetchResponse: The fetched sorted set data with associated metadata.
+        """
+        return await self._data_client.sorted_set_fetch_by_rank(
+            cache_name, sorted_set_name, start_rank, end_rank, sort_order
+        )
 
     @property
     def _data_client(self) -> _ScsDataClient:
