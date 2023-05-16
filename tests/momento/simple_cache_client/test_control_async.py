@@ -166,6 +166,16 @@ async def test_flush_cache_succeeds(
     assert isinstance(rsp, CacheGet.Miss)
 
 
+async def test_flush_cache_on_non_existent_cache(
+    client_async: CacheClientAsync
+) -> None:
+    cache_name = uuid_str()
+
+    # flush it
+    flush_response = await client_async.flush_cache(cache_name)
+    assert isinstance(flush_response, CacheFlush.Error)
+    assert flush_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+
 # List caches
 async def test_list_caches_succeeds(client_async: CacheClientAsync, cache_name: str) -> None:
     cache_name = uuid_str()
