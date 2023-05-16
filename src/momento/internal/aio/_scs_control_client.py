@@ -87,7 +87,7 @@ class _ScsControlClient:
         except Exception as e:
             return ListCaches.Error(convert_error(e))
 
-    async def flush(self, cache_name: str):
+    async def flush(self, cache_name: str) -> CacheFlushResponse:
         try:
             _validate_cache_name(cache_name)
             request = _FlushCacheRequest()

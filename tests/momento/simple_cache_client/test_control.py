@@ -158,8 +158,17 @@ def test_flush_cache_succeeds(client: CacheClient, unique_cache_name: TUniqueCac
     assert isinstance(flush_response, CacheFlush.Success)
 
     # make sure key is gone
-    rsp = client.get(cache_name, "test-key")
-    assert isinstance(rsp, CacheGet.Miss)
+    get_rsp = client.get(cache_name, "test-key")
+    assert isinstance(get_rsp, CacheGet.Miss)
+
+
+def test_flush_cache_on_non_existent_cache(client: CacheClient) -> None:
+    cache_name = uuid_str()
+
+    # flush it
+    flush_response = client.flush_cache(cache_name)
+    assert isinstance(flush_response, CacheFlush.Error)
+    assert flush_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
 
 
 # List caches
