@@ -78,6 +78,7 @@ from momento.responses import (
     CacheDictionarySetFieldResponse,
     CacheDictionarySetFields,
     CacheDictionarySetFieldsResponse,
+    CacheFlushResponse,
     CacheGetResponse,
     CacheIncrementResponse,
     CacheListConcatenateBackResponse,
@@ -203,7 +204,7 @@ class CacheClientAsync:
             cache_name (str): Name of the cache to be created.
 
         Returns:
-            CreateCacheResponse:
+            CreateCacheResponse: The result of a Cache Create operation.
         """
         return await self._control_client.create_cache(cache_name)
 
@@ -214,15 +215,26 @@ class CacheClientAsync:
             cache_name (str): Name of the cache to be deleted.
 
         Returns:
-            DeleteCacheResponse:
+            DeleteCacheResponse: The result of a Delete operation.
         """
         return await self._control_client.delete_cache(cache_name)
+
+    async def flush_cache(self, cache_name: str) -> CacheFlushResponse:
+        """Flushes a cache and empties it of all its items.
+
+        Args:
+            cache_name (str): Name of the cache to be flushed.
+
+        Returns:
+            CacheFlushResponse: The result of a flush operation.
+        """
+        return await self._control_client.flush(cache_name)
 
     async def list_caches(self) -> ListCachesResponse:
         """Lists all caches.
 
         Returns:
-            ListCachesResponse:
+            ListCachesResponse: The result of a list cache operation.
         """
         return await self._control_client.list_caches()
 
@@ -233,7 +245,7 @@ class CacheClientAsync:
             ttl (timedelta): The key's time-to-live represented as a timedelta
 
         Returns:
-            CreateSigningKeyResponse
+            CreateSigningKeyResponse: The result of a Create Signing key operation.
         """
         return await self._control_client.create_signing_key(ttl, self._cache_endpoint)
 
@@ -244,7 +256,7 @@ class CacheClientAsync:
             key_id (str): The id of the Momento signing key to revoke
 
         Returns:
-            RevokeSigningKeyResponse
+            RevokeSigningKeyResponse: The result of a Revoke Signing Key operation.
         """
         return await self._control_client.revoke_signing_key(key_id)
 
@@ -252,7 +264,7 @@ class CacheClientAsync:
         """Lists all Momento signing keys for the provided auth token.
 
         Returns:
-            ListSigningKeysResponse
+            ListSigningKeysResponse: The result of a List Signing keys operation.
         """
         return await self._control_client.list_signing_keys(self._cache_endpoint)
 

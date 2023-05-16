@@ -6,6 +6,7 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import (
+    CacheFlush,
     CacheGet,
     CacheSet,
     CreateCache,
@@ -141,6 +142,28 @@ async def test_delete_cache_throws_authentication_exception_for_bad_token(
         response = await client_async.delete_cache(uuid_str())
         assert isinstance(response, DeleteCache.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
+
+
+# Flush Cache
+async def test_flush_cache_succeeds(
+    client_async: CacheClientAsync, unique_cache_name_async: TUniqueCacheNameAsync
+) -> None:
+    cache_name = unique_cache_name_async(client_async)
+
+    create_cache_rsp = await client_async.create_cache(cache_name)
+    assert isinstance(create_cache_rsp, CreateCache.Success)
+
+    # set test key
+    rsp = await client_async.set(cache_name, "test-key", "test-value")
+    assert isinstance(rsp, CacheSet.Success)
+
+    # flush it
+    flush_response = await client_async.flush_cache(cache_name)
+    assert isinstance(flush_response, CacheFlush.Success)
+
+    # make sure key is gone
+    rsp = await client_async.get(cache_name, "test-key")
+    assert isinstance(rsp, CacheGet.Miss)
 
 
 # List caches

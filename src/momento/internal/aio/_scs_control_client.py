@@ -5,6 +5,7 @@ from momento_wire_types.controlclient_pb2 import (
     _CreateCacheRequest,
     _CreateSigningKeyRequest,
     _DeleteCacheRequest,
+    _FlushCacheRequest,
     _ListCachesRequest,
     _ListSigningKeysRequest,
     _RevokeSigningKeyRequest,
@@ -18,6 +19,8 @@ from momento.errors import convert_error
 from momento.internal._utilities import _validate_cache_name, _validate_ttl
 from momento.internal.aio._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
+    CacheFlush,
+    CacheFlushResponse,
     CreateCache,
     CreateCacheResponse,
     CreateSigningKey,
@@ -83,6 +86,16 @@ class _ScsControlClient:
             return ListCaches.Success.from_grpc_response(response)
         except Exception as e:
             return ListCaches.Error(convert_error(e))
+
+    async def flush(self, cache_name: str):
+        try:
+            _validate_cache_name(cache_name)
+            request = _FlushCacheRequest()
+            request.cache_name = cache_name
+            await self._build_stub().FlushCache(request, timeout=_DEADLINE_SECONDS)
+            return CacheFlush.Success()
+        except Exception as e:
+            return CacheFlush.Error(convert_error(e))
 
     async def create_signing_key(self, ttl: timedelta, endpoint: str) -> CreateSigningKeyResponse:
         try:
