@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import grpc
-import momento_wire_types.cacheclient_pb2_grpc as cache_client
-import momento_wire_types.controlclient_pb2_grpc as control_client
 import pkg_resources
+from momento_wire_types import cacheclient_pb2_grpc as cache_client
+from momento_wire_types import controlclient_pb2_grpc as control_client
 
 from momento.auth import CredentialProvider
 from momento.config import Configuration
