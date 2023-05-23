@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Optional
+from typing import Any, Optional
 
 from momento_wire_types.cacheclient_pb2 import (
     Hit,
@@ -405,8 +405,7 @@ class _ScsDataClient:
                 dictionary_name=_as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG),
                 field=_as_bytes(field, self.__UNSUPPORTED_DICTIONARY_FIELD_TYPE_MSG),
                 amount=amount,
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             response = self._build_stub().DictionaryIncrement(
@@ -469,8 +468,7 @@ class _ScsDataClient:
                         items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG
                     )
                 ],
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             self._build_stub().DictionarySet(
@@ -501,9 +499,8 @@ class _ScsDataClient:
             request = _ListConcatenateBackRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 values=_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG),
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
                 truncate_front_to_size=self.value_or_default_of_0(truncate_front_to_size),
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             response = self._build_stub().ListConcatenateBack(
@@ -533,9 +530,8 @@ class _ScsDataClient:
             request = _ListConcatenateFrontRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 values=_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG),
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
                 truncate_back_to_size=self.value_or_default_of_0(truncate_back_to_size),
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             response = self._build_stub().ListConcatenateFront(
@@ -661,9 +657,8 @@ class _ScsDataClient:
             request = _ListPushBackRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 value=_as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG),
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
                 truncate_front_to_size=self.value_or_default_of_0(truncate_front_to_size),
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             response = self._build_stub().ListPushBack(
@@ -693,9 +688,8 @@ class _ScsDataClient:
             request = _ListPushFrontRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 value=_as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG),
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
                 truncate_back_to_size=self.value_or_default_of_0(truncate_back_to_size),
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             response = self._build_stub().ListPushFront(
@@ -752,8 +746,7 @@ class _ScsDataClient:
             request = _SetUnionRequest(
                 set_name=_as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG),
                 elements=_gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG),
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             self._build_stub().SetUnion(
@@ -838,8 +831,7 @@ class _ScsDataClient:
 
             request = _SortedSetPutRequest(
                 set_name=_as_bytes(sorted_set_name, self.__UNSUPPORTED_SORTED_SET_NAME_TYPE_MSG),
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
+                **self._prepare_collection_ttl_for_request(ttl),
             )
             for value, score in _gen_sorted_set_elements_as_bytes(
                 elements, self.__UNSUPPORTED_SORTED_SET_ELEMENTS_TYPE_MSG
@@ -1101,8 +1093,7 @@ class _ScsDataClient:
                 set_name=_as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: "),
                 value=_as_bytes(value),
                 amount=score,
-                ttl_milliseconds=self._collection_ttl_or_default_milliseconds(ttl),
-                refresh_ttl=ttl.refresh_ttl,
+                **self._prepare_collection_ttl_for_request(ttl),
             )
 
             response = self._build_stub().SortedSetIncrement(
@@ -1126,8 +1117,22 @@ class _ScsDataClient:
     def _log_request_error(self, request_type: str, e: Exception) -> None:
         self._logger.warning(f"{request_type} failed with exception: {e}")
 
-    def _collection_ttl_or_default_milliseconds(self, collection_ttl: CollectionTtl) -> int:
-        return self._ttl_or_default_milliseconds(collection_ttl.ttl)
+    def _prepare_collection_ttl_for_request(self, collection_ttl: CollectionTtl) -> dict[str, Any]:  # type: ignore
+        """Converts a CollectionTtl object into a dictionary that can be used as kwargs for a request.
+
+        The TTL is converted to milliseconds, with a default of the client default TTL.
+        The refresh TTL is left as is.
+
+        Args:
+            collection_ttl (CollectionTtl): The CollectionTtl object to convert.
+
+        Returns:
+            dict[str, Any]: The dictionary that can be used as kwargs for a request.
+        """
+        return {
+            "ttl_milliseconds": self._ttl_or_default_milliseconds(collection_ttl.ttl),
+            "refresh_ttl": collection_ttl.refresh_ttl,
+        }
 
     def _ttl_or_default_milliseconds(self, ttl: Optional[timedelta]) -> int:
         which_ttl = self._default_ttl
