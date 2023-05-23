@@ -889,7 +889,6 @@ class _ScsDataClient:
             else:
                 request.by_score.count = -1
 
-            # ascending = 0, descending = 1
             if sort_order == SortOrder.ASCENDING:
                 request.order = _SortedSetFetchRequest.ASCENDING
             else:
@@ -942,7 +941,6 @@ class _ScsDataClient:
             else:
                 request.by_index.unbounded_end.CopyFrom(_Unbounded())
 
-            # ascending = 0, descending = 1
             if sort_order == SortOrder.ASCENDING:
                 request.order = _SortedSetFetchRequest.ASCENDING
             else:
@@ -1022,7 +1020,6 @@ class _ScsDataClient:
                 value=_as_bytes(value, self.__UNSUPPORTED_SORTED_SET_VALUE_TYPE_MSG),
             )
 
-            # ascending = 0, descending = 1
             if sort_order == SortOrder.ASCENDING:
                 request.order = _SortedSetGetRankRequest.ASCENDING
             else:
