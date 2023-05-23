@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Optional
+from typing import Any, Optional
 
 from momento_wire_types.cacheclient_pb2 import (
     Hit,
@@ -204,13 +204,13 @@ class _ScsDataClient:
         try:
             self._log_issuing_request("Increment", {"key": str(key), "amount": str(amount)})
             _validate_cache_name(cache_name)
-            item_ttl = self._default_ttl if ttl is None else ttl
-            _validate_ttl(item_ttl)
+            _validate_ttl(ttl)
 
-            request = _IncrementRequest()
-            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            request.amount = amount
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            request = _IncrementRequest(
+                cache_key=_as_bytes(key, "Unsupported type for key: "),
+                amount=amount,
+                ttl_milliseconds=self._ttl_or_default_milliseconds(ttl),
+            )
 
             response = self._build_stub().Increment(
                 request,
@@ -233,12 +233,12 @@ class _ScsDataClient:
         try:
             self._log_issuing_request("Set", {"key": str(key)})
             _validate_cache_name(cache_name)
-            item_ttl = self._default_ttl if ttl is None else ttl
-            _validate_ttl(item_ttl)
-            request = _SetRequest()
-            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            request.cache_body = _as_bytes(value, "Unsupported type for value: ")
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            _validate_ttl(ttl)
+            request = _SetRequest(
+                cache_key=_as_bytes(key, "Unsupported type for key: "),
+                cache_body=_as_bytes(value, "Unsupported type for value: "),
+                ttl_milliseconds=self._ttl_or_default_milliseconds(ttl),
+            )
 
             self._build_stub().Set(request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds)
 
@@ -255,12 +255,12 @@ class _ScsDataClient:
             self._log_issuing_request("SetIfNotExists", {"key": str(key)})
 
             _validate_cache_name(cache_name)
-            item_ttl = self._default_ttl if ttl is None else ttl
-            _validate_ttl(item_ttl)
-            request = _SetIfNotExistsRequest()
-            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
-            request.cache_body = _as_bytes(value, "Unsupported type for value: ")
-            request.ttl_milliseconds = int(item_ttl.total_seconds() * 1000)
+            _validate_ttl(ttl)
+            request = _SetIfNotExistsRequest(
+                cache_key=_as_bytes(key, "Unsupported type for key: "),
+                cache_body=_as_bytes(value, "Unsupported type for value: "),
+                ttl_milliseconds=self._ttl_or_default_milliseconds(ttl),
+            )
 
             response = self._build_stub().SetIfNotExists(
                 request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
@@ -284,8 +284,7 @@ class _ScsDataClient:
             self._log_issuing_request("Get", {"key": str(key)})
 
             _validate_cache_name(cache_name)
-            request = _GetRequest()
-            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+            request = _GetRequest(cache_key=_as_bytes(key, "Unsupported type for key: "))
 
             response = self._build_stub().Get(
                 request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
@@ -307,8 +306,7 @@ class _ScsDataClient:
         try:
             self._log_issuing_request("Delete", {"key": str(key)})
             _validate_cache_name(cache_name)
-            request = _DeleteRequest()
-            request.cache_key = _as_bytes(key, "Unsupported type for key: ")
+            request = _DeleteRequest(cache_key=_as_bytes(key, "Unsupported type for key: "))
 
             self._build_stub().Delete(
                 request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
@@ -332,11 +330,11 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_dictionary_name(dictionary_name)
 
-            request = _DictionaryGetRequest()
-            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
             bytes_fields = list(_gen_dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG))
-
-            request.fields.extend(bytes_fields)
+            request = _DictionaryGetRequest(
+                dictionary_name=_as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG),
+                fields=bytes_fields,
+            )
 
             response = self._build_stub().DictionaryGet(
                 request,
@@ -369,8 +367,9 @@ class _ScsDataClient:
             self._log_issuing_request("DictionaryFetch", {"dictionary_name": dictionary_name})
             _validate_cache_name(cache_name)
             _validate_dictionary_name(dictionary_name)
-            request = _DictionaryFetchRequest()
-            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
+            request = _DictionaryFetchRequest(
+                dictionary_name=_as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
+            )
             response = self._build_stub().DictionaryFetch(
                 request,
                 metadata=make_metadata(cache_name),
@@ -402,12 +401,12 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_dictionary_name(dictionary_name)
 
-            request = _DictionaryIncrementRequest()
-            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            request.field = _as_bytes(field, self.__UNSUPPORTED_DICTIONARY_FIELD_TYPE_MSG)
-            request.amount = amount
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
+            request = _DictionaryIncrementRequest(
+                dictionary_name=_as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG),
+                field=_as_bytes(field, self.__UNSUPPORTED_DICTIONARY_FIELD_TYPE_MSG),
+                amount=amount,
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             response = self._build_stub().DictionaryIncrement(
                 request,
@@ -431,10 +430,11 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_dictionary_name(dictionary_name)
 
-            request = _DictionaryDeleteRequest()
-            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            request.some.fields.extend(
-                _gen_dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
+            request = _DictionaryDeleteRequest(
+                dictionary_name=_as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG),
+                some=_DictionaryDeleteRequest.Some(
+                    fields=_gen_dictionary_fields_as_bytes(fields, self.__UNSUPPORTED_DICTIONARY_FIELDS_TYPE_MSG)
+                ),
             )
 
             self._build_stub().DictionaryDelete(
@@ -460,15 +460,16 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_dictionary_name(dictionary_name)
 
-            request = _DictionarySetRequest()
-            request.dictionary_name = _as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG)
-            for field, value in _gen_dictionary_items_as_bytes(items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG):
-                field_value_pair = _DictionaryFieldValuePair()
-                field_value_pair.field = field
-                field_value_pair.value = value
-                request.items.append(field_value_pair)
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
+            request = _DictionarySetRequest(
+                dictionary_name=_as_bytes(dictionary_name, self.__UNSUPPORTED_DICTIONARY_NAME_TYPE_MSG),
+                items=[
+                    _DictionaryFieldValuePair(field=field, value=value)
+                    for field, value in _gen_dictionary_items_as_bytes(
+                        items, self.__UNSUPPORTED_DICTIONARY_ITEMS_TYPE_MSG
+                    )
+                ],
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             self._build_stub().DictionarySet(
                 request,
@@ -495,13 +496,12 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            request = _ListConcatenateBackRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.values.extend(_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
-            if truncate_front_to_size is not None:
-                request.truncate_front_to_size = truncate_front_to_size
+            request = _ListConcatenateBackRequest(
+                list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
+                values=_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG),
+                truncate_front_to_size=truncate_front_to_size,
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             response = self._build_stub().ListConcatenateBack(
                 request,
@@ -527,13 +527,12 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            request = _ListConcatenateFrontRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.values.extend(_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG))
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
-            if truncate_back_to_size is not None:
-                request.truncate_back_to_size = truncate_back_to_size
+            request = _ListConcatenateFrontRequest(
+                list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
+                values=_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG),
+                truncate_back_to_size=truncate_back_to_size,
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             response = self._build_stub().ListConcatenateFront(
                 request,
@@ -551,8 +550,7 @@ class _ScsDataClient:
             self._log_issuing_request("ListFetch", {"list_name": str(list_name)})
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
-            request = _ListFetchRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request = _ListFetchRequest(list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG))
             response = self._build_stub().ListFetch(
                 request,
                 metadata=make_metadata(cache_name),
@@ -576,8 +574,7 @@ class _ScsDataClient:
             self._log_issuing_request("ListLength", {"list_name": str(list_name)})
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
-            request = _ListLengthRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request = _ListLengthRequest(list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG))
             response = self._build_stub().ListLength(
                 request,
                 metadata=make_metadata(cache_name),
@@ -601,8 +598,7 @@ class _ScsDataClient:
             self._log_issuing_request("ListPopBack", {"list_name": str(list_name)})
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
-            request = _ListPopBackRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request = _ListPopBackRequest(list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG))
             response = self._build_stub().ListPopBack(
                 request,
                 metadata=make_metadata(cache_name),
@@ -626,8 +622,7 @@ class _ScsDataClient:
             self._log_issuing_request("ListPopFront", {"list_name": str(list_name)})
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
-            request = _ListPopFrontRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
+            request = _ListPopFrontRequest(list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG))
             response = self._build_stub().ListPopFront(
                 request,
                 metadata=make_metadata(cache_name),
@@ -659,13 +654,12 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            request = _ListPushBackRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
-            if truncate_front_to_size is not None:
-                request.truncate_front_to_size = truncate_front_to_size
+            request = _ListPushBackRequest(
+                list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
+                value=_as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG),
+                truncate_front_to_size=truncate_front_to_size,
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             response = self._build_stub().ListPushBack(
                 request,
@@ -691,13 +685,12 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            request = _ListPushFrontRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
-            if truncate_back_to_size is not None:
-                request.truncate_back_to_size = truncate_back_to_size
+            request = _ListPushFrontRequest(
+                list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
+                value=_as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG),
+                truncate_back_to_size=truncate_back_to_size,
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             response = self._build_stub().ListPushFront(
                 request,
@@ -721,9 +714,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_list_name(list_name)
 
-            request = _ListRemoveRequest()
-            request.list_name = _as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG)
-            request.all_elements_with_value = _as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG)
+            request = _ListRemoveRequest(
+                list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
+                all_elements_with_value=_as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG),
+            )
 
             self._build_stub().ListRemove(
                 request,
@@ -749,11 +743,11 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_set_name(set_name)
 
-            request = _SetUnionRequest()
-            request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
-            request.elements.extend(_gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG))
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
+            request = _SetUnionRequest(
+                set_name=_as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG),
+                elements=_gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG),
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             self._build_stub().SetUnion(
                 request,
@@ -776,8 +770,7 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_set_name(set_name)
 
-            request = _SetFetchRequest()
-            request.set_name = _as_bytes(set_name, "Unsupported type for set_name: ")
+            request = _SetFetchRequest(set_name=_as_bytes(set_name, "Unsupported type for set_name: "))
             response = self._build_stub().SetFetch(
                 request,
                 metadata=make_metadata(cache_name),
@@ -804,10 +797,13 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_set_name(set_name)
 
-            request = _SetDifferenceRequest()
-            request.set_name = _as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG)
-            request.subtrahend.set.elements.extend(
-                _gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG)
+            request = _SetDifferenceRequest(
+                set_name=_as_bytes(set_name, self.__UNSUPPORTED_SET_NAME_TYPE_MSG),
+                subtrahend=_SetDifferenceRequest._Subtrahend(
+                    set=_SetDifferenceRequest._Subtrahend._Set(
+                        elements=_gen_set_input_as_bytes(elements, self.__UNSUPPORTED_SET_ELEMENTS_TYPE_MSG)
+                    )
+                ),
             )
 
             self._build_stub().SetDifference(
@@ -833,18 +829,15 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_sorted_set_name(sorted_set_name)
 
-            request = _SortedSetPutRequest()
-            request.set_name = _as_bytes(sorted_set_name, self.__UNSUPPORTED_SORTED_SET_NAME_TYPE_MSG)
+            request = _SortedSetPutRequest(
+                set_name=_as_bytes(sorted_set_name, self.__UNSUPPORTED_SORTED_SET_NAME_TYPE_MSG),
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
             for value, score in _gen_sorted_set_elements_as_bytes(
                 elements, self.__UNSUPPORTED_SORTED_SET_ELEMENTS_TYPE_MSG
             ):
                 _validate_sorted_set_score(score)
-                element = _SortedSetElement()
-                element.value = value
-                element.score = score
-                request.elements.append(element)
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
+                request.elements.append(_SortedSetElement(value=value, score=score))
 
             self._build_stub().SortedSetPut(
                 request,
@@ -872,17 +865,17 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_sorted_set_name(sorted_set_name)
 
-            request = _SortedSetFetchRequest()
-            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for set_name: ")
-            request.with_scores = True
+            request = _SortedSetFetchRequest(
+                set_name=_as_bytes(sorted_set_name, "Unsupported type for set_name: "), with_scores=True
+            )
 
             if min_score is not None:
-                request.by_score.min_score = min_score
+                request.by_score.min_score = _SortedSetFetchRequest._ByScore._Score(score=min_score)
             else:
                 request.by_score.unbounded_min.CopyFrom(_Unbounded())
 
             if max_score is not None:
-                request.by_score.max_score = max_score
+                request.by_score.max_score = _SortedSetFetchRequest._ByScore._Score(score=max_score)
             else:
                 request.by_score.unbounded_max.CopyFrom(_Unbounded())
 
@@ -896,11 +889,10 @@ class _ScsDataClient:
             else:
                 request.by_score.count = -1
 
-            # ascending = 0, descending = 1
             if sort_order == SortOrder.ASCENDING:
-                request.order = 0
+                request.order = _SortedSetFetchRequest.ASCENDING
             else:
-                request.order = 1
+                request.order = _SortedSetFetchRequest.DESCENDING
 
             response = self._build_stub().SortedSetFetch(
                 request,
@@ -935,9 +927,9 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_sorted_set_name(sorted_set_name)
 
-            request = _SortedSetFetchRequest()
-            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for set_name: ")
-            request.with_scores = True
+            request = _SortedSetFetchRequest(
+                set_name=_as_bytes(sorted_set_name, "Unsupported type for set_name: "), with_scores=True
+            )
 
             if start_rank is not None:
                 request.by_index.inclusive_start_index = start_rank
@@ -949,11 +941,10 @@ class _ScsDataClient:
             else:
                 request.by_index.unbounded_end.CopyFrom(_Unbounded())
 
-            # ascending = 0, descending = 1
             if sort_order == SortOrder.ASCENDING:
-                request.order = 0
+                request.order = _SortedSetFetchRequest.ASCENDING
             else:
-                request.order = 1
+                request.order = _SortedSetFetchRequest.DESCENDING
 
             response = self._build_stub().SortedSetFetch(
                 request,
@@ -983,11 +974,10 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_sorted_set_name(sorted_set_name)
 
-            request = _SortedSetGetScoreRequest()
-            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
-
             bytes_values = list(_gen_sorted_set_values_as_bytes(values, self.__UNSUPPORTED_SORTED_SET_VALUES_TYPE_MSG))
-            request.values.extend(bytes_values)
+            request = _SortedSetGetScoreRequest(
+                set_name=_as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: "), values=bytes_values
+            )
 
             response = self._build_stub().SortedSetGetScore(
                 request,
@@ -1025,15 +1015,15 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_sorted_set_name(sorted_set_name)
 
-            request = _SortedSetGetRankRequest()
-            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
-            request.value = _as_bytes(value, self.__UNSUPPORTED_SORTED_SET_VALUE_TYPE_MSG)
+            request = _SortedSetGetRankRequest(
+                set_name=_as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: "),
+                value=_as_bytes(value, self.__UNSUPPORTED_SORTED_SET_VALUE_TYPE_MSG),
+            )
 
-            # ascending = 0, descending = 1
             if sort_order == SortOrder.ASCENDING:
-                request.order = 0
+                request.order = _SortedSetGetRankRequest.ASCENDING
             else:
-                request.order = 1
+                request.order = _SortedSetGetRankRequest.DESCENDING
 
             response = self._build_stub().SortedSetGetRank(
                 request,
@@ -1063,10 +1053,11 @@ class _ScsDataClient:
             _validate_cache_name(cache_name)
             _validate_sorted_set_name(sorted_set_name)
 
-            request = _SortedSetRemoveRequest()
-            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
-            request.some.values.extend(
-                _gen_sorted_set_values_as_bytes(values, self.__UNSUPPORTED_SORTED_SET_VALUES_TYPE_MSG)
+            request = _SortedSetRemoveRequest(
+                set_name=_as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: "),
+                some=_SortedSetRemoveRequest._Some(
+                    values=_gen_sorted_set_values_as_bytes(values, self.__UNSUPPORTED_SORTED_SET_VALUES_TYPE_MSG)
+                ),
             )
 
             self._build_stub().SortedSetRemove(
@@ -1095,12 +1086,12 @@ class _ScsDataClient:
             _validate_sorted_set_name(sorted_set_name)
             _validate_sorted_set_score(score)
 
-            request = _SortedSetIncrementRequest()
-            request.set_name = _as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: ")
-            request.value = _as_bytes(value)
-            request.amount = score
-            request.ttl_milliseconds = self._collection_ttl_or_default_milliseconds(ttl)
-            request.refresh_ttl = ttl.refresh_ttl
+            request = _SortedSetIncrementRequest(
+                set_name=_as_bytes(sorted_set_name, "Unsupported type for sorted_set_name: "),
+                value=_as_bytes(value),
+                amount=score,
+                **self._prepare_collection_ttl_for_request(ttl),
+            )
 
             response = self._build_stub().SortedSetIncrement(
                 request,
@@ -1123,8 +1114,22 @@ class _ScsDataClient:
     def _log_request_error(self, request_type: str, e: Exception) -> None:
         self._logger.warning(f"{request_type} failed with exception: {e}")
 
-    def _collection_ttl_or_default_milliseconds(self, collection_ttl: CollectionTtl) -> int:
-        return self._ttl_or_default_milliseconds(collection_ttl.ttl)
+    def _prepare_collection_ttl_for_request(self, collection_ttl: CollectionTtl) -> dict[str, Any]:  # type: ignore
+        """Converts a CollectionTtl object into a dictionary that can be used as kwargs for a request.
+
+        The TTL is converted to milliseconds, with a default of the client default TTL.
+        The refresh TTL is left as is.
+
+        Args:
+            collection_ttl (CollectionTtl): The CollectionTtl object to convert.
+
+        Returns:
+            dict[str, Any]: The dictionary that can be used as kwargs for a request.
+        """
+        return {
+            "ttl_milliseconds": self._ttl_or_default_milliseconds(collection_ttl.ttl),
+            "refresh_ttl": collection_ttl.refresh_ttl,
+        }
 
     def _ttl_or_default_milliseconds(self, ttl: Optional[timedelta]) -> int:
         which_ttl = self._default_ttl
