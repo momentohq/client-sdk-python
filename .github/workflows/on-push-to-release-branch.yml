@@ -60,6 +60,7 @@ jobs:
         run: poetry install
 
       - name: Install Old Protobuf
+        # Exercises the wire types generated against the old protobuf library
         if: matrix.new-python-protobuf == 'false'
         run: poetry add "protobuf<3.20"
 
