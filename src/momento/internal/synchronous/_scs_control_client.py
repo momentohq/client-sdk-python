@@ -56,8 +56,7 @@ class _ScsControlClient:
         try:
             self._logger.info(f"Creating cache with name: {cache_name}")
             _validate_cache_name(cache_name)
-            request = _CreateCacheRequest()
-            request.cache_name = cache_name
+            request = _CreateCacheRequest(cache_name=cache_name)
             self._build_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
@@ -70,8 +69,7 @@ class _ScsControlClient:
         try:
             self._logger.info(f"Deleting cache with name: {cache_name}")
             _validate_cache_name(cache_name)
-            request = _DeleteCacheRequest()
-            request.cache_name = cache_name
+            request = _DeleteCacheRequest(cache_name=cache_name)
             self._build_stub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
@@ -80,8 +78,7 @@ class _ScsControlClient:
 
     def list_caches(self) -> ListCachesResponse:
         try:
-            list_caches_request = _ListCachesRequest()
-            list_caches_request.next_token = ""
+            list_caches_request = _ListCachesRequest(next_token="")
             response = self._build_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             return ListCaches.Success.from_grpc_response(response)
         except Exception as e:
@@ -90,8 +87,7 @@ class _ScsControlClient:
     def flush(self, cache_name: str) -> CacheFlushResponse:
         try:
             _validate_cache_name(cache_name)
-            request = _FlushCacheRequest()
-            request.cache_name = cache_name
+            request = _FlushCacheRequest(cache_name=cache_name)
             self._build_stub().FlushCache(request, timeout=_DEADLINE_SECONDS)
             return CacheFlush.Success()
         except Exception as e:
@@ -103,8 +99,7 @@ class _ScsControlClient:
             _validate_ttl(ttl)
             ttl_minutes = round(ttl.total_seconds() / 60)
             self._logger.info(f"Creating signing key with ttl (in minutes): {ttl_minutes}")
-            create_signing_key_request = _CreateSigningKeyRequest()
-            create_signing_key_request.ttl_minutes = ttl_minutes
+            create_signing_key_request = _CreateSigningKeyRequest(ttl_minutes=ttl_minutes)
             response = self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS)
             return CreateSigningKey.Success.from_grpc_response(response, endpoint)
         except Exception as e:
@@ -114,8 +109,7 @@ class _ScsControlClient:
     def revoke_signing_key(self, key_id: str) -> RevokeSigningKeyResponse:
         try:
             self._logger.info(f"Revoking signing key with key_id {key_id}")
-            request = _RevokeSigningKeyRequest()
-            request.key_id = key_id
+            request = _RevokeSigningKeyRequest(key_id=key_id)
             self._build_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
             return RevokeSigningKey.Success()
         except Exception as e:
@@ -125,8 +119,7 @@ class _ScsControlClient:
     def list_signing_keys(self, endpoint: str) -> ListSigningKeysResponse:
         try:
             self._logger.info("List signing keys")
-            list_signing_keys_request = _ListSigningKeysRequest()
-            list_signing_keys_request.next_token = ""
+            list_signing_keys_request = _ListSigningKeysRequest(next_token="")
             response = self._build_stub().ListSigningKeys(list_signing_keys_request, timeout=_DEADLINE_SECONDS)
             return ListSigningKeys.Success.from_grpc_response(
                 response,

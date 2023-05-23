@@ -203,7 +203,7 @@ class CacheClient:
             cache_name (str): Name of the cache to be created.
 
         Returns:
-            CreateCacheResponse: The result of a Cache Create operation.
+            CreateCacheResponse: The result of a Create Cache operation.
         """
         return self._control_client.create_cache(cache_name)
 
@@ -214,7 +214,7 @@ class CacheClient:
             cache_name (str): Name of the cache to be deleted.
 
         Returns:
-            DeleteCacheResponse: The result of a Delete operation.
+            DeleteCacheResponse: The result of a Delete Cache operation.
         """
         return self._control_client.delete_cache(cache_name)
 
@@ -225,7 +225,7 @@ class CacheClient:
             cache_name (str): Name of the cache to be flushed.
 
         Returns:
-            CacheFlushResponse: The result of a flush operation.
+            CacheFlushResponse: The result of a Flush Cache operation.
         """
         return self._control_client.flush(cache_name)
 

@@ -27,7 +27,7 @@ class _ControlGrpcManager:
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
         )
-        self._stub = control_client.ScsControlStub(intercept_channel)
+        self._stub = control_client.ScsControlStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
         self._secure_channel.close()
@@ -49,7 +49,7 @@ class _DataGrpcManager:
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
         )
-        self._stub = cache_client.ScsStub(intercept_channel)
+        self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
         self._secure_channel.close()

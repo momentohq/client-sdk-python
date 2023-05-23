@@ -60,7 +60,7 @@ class ListCaches(ABC):
         """The list of caches available to the user."""
 
         @staticmethod
-        def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> ListCaches.Success:  # type: ignore[misc] # noqa: E501
+        def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> ListCaches.Success:
             """Initializes ListCacheResponse to handle list cache response.
 
             Args:
