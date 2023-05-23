@@ -499,7 +499,7 @@ class _ScsDataClient:
             request = _ListConcatenateBackRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 values=_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG),
-                truncate_front_to_size=self.value_or_default_of_0(truncate_front_to_size),
+                truncate_front_to_size=truncate_front_to_size,
                 **self._prepare_collection_ttl_for_request(ttl),
             )
 
@@ -530,7 +530,7 @@ class _ScsDataClient:
             request = _ListConcatenateFrontRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 values=_gen_list_as_bytes(values, self.__UNSUPPORTED_LIST_VALUES_TYPE_MSG),
-                truncate_back_to_size=self.value_or_default_of_0(truncate_back_to_size),
+                truncate_back_to_size=truncate_back_to_size,
                 **self._prepare_collection_ttl_for_request(ttl),
             )
 
@@ -657,7 +657,7 @@ class _ScsDataClient:
             request = _ListPushBackRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 value=_as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG),
-                truncate_front_to_size=self.value_or_default_of_0(truncate_front_to_size),
+                truncate_front_to_size=truncate_front_to_size,
                 **self._prepare_collection_ttl_for_request(ttl),
             )
 
@@ -688,7 +688,7 @@ class _ScsDataClient:
             request = _ListPushFrontRequest(
                 list_name=_as_bytes(list_name, self.__UNSUPPORTED_LIST_NAME_TYPE_MSG),
                 value=_as_bytes(value, self.__UNSUPPORTED_LIST_VALUE_TYPE_MSG),
-                truncate_back_to_size=self.value_or_default_of_0(truncate_back_to_size),
+                truncate_back_to_size=truncate_back_to_size,
                 **self._prepare_collection_ttl_for_request(ttl),
             )
 
@@ -1137,12 +1137,6 @@ class _ScsDataClient:
             which_ttl = ttl
 
         return int(which_ttl.total_seconds() * 1000)
-
-    @staticmethod
-    def value_or_default_of_0(value: Optional[int]) -> int:
-        if value is None:
-            return 0
-        return value
 
     def _build_stub(self) -> ScsStub:
         return self._grpc_manager.stub()
