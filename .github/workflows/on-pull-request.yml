@@ -42,7 +42,7 @@ jobs:
         run: poetry install
 
       - name: Install Old Protobuf
-        if: matrix.new-python-protobuf == 'false'
+        if: ${{ matrix.new-python-protobuf == 'false' }}
         run: poetry add "protobuf<3.20"
 
       - name: Run mypy
