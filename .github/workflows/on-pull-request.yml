@@ -10,6 +10,10 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        new-python-protobuf: [true]
+        include:
+          - python-version: "3.7"
+            new-python-protobuf: false
     env:
       TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ github.sha }}
@@ -36,6 +40,10 @@ jobs:
 
       - name: Install dependencies
         run: poetry install
+
+      - name: Install Old Protobuf
+        if: matrix.new-python-protobuf == 'false'
+        run: poetry add "protobuf<3.20"
 
       - name: Run mypy
         # mypy has inconsistencies between 3.7 and the rest; default to lowest common denominator
@@ -126,7 +134,7 @@ jobs:
         continue-on-error: true
         working-directory: ./examples
         run: poetry run isort ${{ matrix.package }} --check --diff
-      
+
       - name: Run samples for python ${{ matrix.python-version }}
         id: validation
         continue-on-error: true
