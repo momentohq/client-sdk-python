@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import grpc
-import momento_wire_types.cacheclient_pb2_grpc as cache_client
-import momento_wire_types.controlclient_pb2_grpc as control_client
 import pkg_resources
+from momento_wire_types import cacheclient_pb2_grpc as cache_client
+from momento_wire_types import controlclient_pb2_grpc as control_client
 
 from momento.auth import CredentialProvider
 from momento.config import Configuration
@@ -29,7 +29,7 @@ class _ControlGrpcManager:
         await self._secure_channel.close()
 
     def async_stub(self) -> control_client.ScsControlStub:
-        return control_client.ScsControlStub(self._secure_channel)
+        return control_client.ScsControlStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 
 class _DataGrpcManager:
@@ -62,7 +62,7 @@ class _DataGrpcManager:
         await self._secure_channel.close()
 
     def async_stub(self) -> cache_client.ScsStub:
-        return cache_client.ScsStub(self._secure_channel)
+        return cache_client.ScsStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 
 def _interceptors(auth_token: str, retry_strategy: RetryStrategy) -> list[grpc.aio.ClientInterceptor]:

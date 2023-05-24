@@ -4,7 +4,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import List
 
-from momento_wire_types.controlclient_pb2 import _ListCachesResponse
+from momento_wire_types import controlclient_pb2 as ctrl_pb
 
 from momento.responses.response import ControlResponse
 
@@ -60,7 +60,7 @@ class ListCaches(ABC):
         """The list of caches available to the user."""
 
         @staticmethod
-        def from_grpc_response(grpc_list_cache_response: _ListCachesResponse) -> ListCaches.Success:  # type: ignore[misc] # noqa: E501
+        def from_grpc_response(grpc_list_cache_response: ctrl_pb._ListCachesResponse) -> ListCaches.Success:
             """Initializes ListCacheResponse to handle list cache response.
 
             Args:

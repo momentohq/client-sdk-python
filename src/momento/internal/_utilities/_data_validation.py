@@ -115,7 +115,7 @@ def _gen_sorted_set_values_as_bytes(
     yield from _gen_iterable_as_bytes(fields, error_message)
 
 
-def _validate_timedelta_ttl(ttl: Optional[timedelta], field_name: str) -> None:
+def _validate_timedelta_ttl(ttl: timedelta, field_name: str) -> None:
     if not isinstance(ttl, timedelta):
         raise InvalidArgumentException(f"{field_name} must be a timedelta.")
     if ttl.total_seconds() <= 0:
@@ -123,6 +123,8 @@ def _validate_timedelta_ttl(ttl: Optional[timedelta], field_name: str) -> None:
 
 
 def _validate_ttl(ttl: Optional[timedelta]) -> None:
+    if ttl is None:
+        return
     _validate_timedelta_ttl(ttl=ttl, field_name="TTL")
 
 
