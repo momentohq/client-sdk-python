@@ -225,18 +225,18 @@ files = [
 
 [[package]]
 name = "momento"
-version = "1.3.1"
+version = "1.4.0"
 description = "SDK for Momento"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento-1.3.1-py3-none-any.whl", hash = "sha256:ad0dc35dd8b28ab5060ed5ea8688702868c1b84650b019118dc0dff4f2a1f1ef"},
-    {file = "momento-1.3.1.tar.gz", hash = "sha256:6f917228b069a3624ed43fc80cdb3ccd8508e9b27224810c1b3ee49ea7ec6e1a"},
+    {file = "momento-1.4.0-py3-none-any.whl", hash = "sha256:17532f71c77e89d34914a15e7355911f14a9e159ba3b813cca5572d8a5484095"},
+    {file = "momento-1.4.0.tar.gz", hash = "sha256:2ef2d50531376744b7a159646490cc08c2d0efee4eaaaecb852fd754f1a3304b"},
 ]
 
 [package.dependencies]
-grpcio = ">=1.50.0,<2.0.0"
+grpcio = ">=1.46.0,<2.0.0"
 momento-wire-types = ">=0.60,<0.61"
 pyjwt = ">=2.4.0,<3.0.0"
 
@@ -497,4 +497,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.12"
-content-hash = "a53654199141dbf0e9ff28ebd211672e05b9d5138ad0221fbfb0fbbe98b1d9fb"
+content-hash = "ab5a396f507ef1688736feebabbe0b16083248a3ff3fa68dd6e9528d15f9bad5"
