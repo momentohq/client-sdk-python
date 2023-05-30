@@ -145,8 +145,16 @@ jobs:
           poetry run python -m ${{ matrix.package }}.example
           poetry run python -m ${{ matrix.package }}.example_async
 
+      - name: Run docs samples for python >= 3.10
+        id: docs-ex-validation
+        continue-on-error: true
+        working-directory: ./examples
+        if: ${{ matrix.package }} == 'py310'
+        run: |
+          poetry run python -m ${{ matrix.package }}.doc-examples-python-apis
+
       - name: Send CI failure mail
-        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' }}
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' || steps.docs-ex-validation.outcome == 'failure' }}
         uses: momentohq/standards-and-practices/github-actions/error-email-action@gh-actions-v1
         with:
           username: ${{secrets.MOMENTO_ROBOT_GMAIL_USERNAME}}
