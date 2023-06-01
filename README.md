@@ -1,37 +1,27 @@
+<head>
+  <meta name="Momento Python Client Library Documentation" content="Python client software development kit for Momento Cache">
+</head>
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
-[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-stable.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md) 
+[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-stable.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 
 # Momento Python Client Library
 
+Momento Cache is a fast, simple, pay-as-you-go caching solution without any of the operational overhead
+required by traditional caching solutions.  This repo contains the source code for the Momento Python client library.
 
-Python client SDK for Momento Serverless Cache: a fast, simple, pay-as-you-go caching solution without
-any of the operational overhead required by traditional caching solutions!
+* Website: [https://www.gomomento.com/](https://www.gomomento.com/)
+* Momento Documentation: [https://docs.momentohq.com/](https://docs.momentohq.com/)
+* Getting Started: [https://docs.momentohq.com/getting-started](https://docs.momentohq.com/getting-started)
+* Python SDK Documentation: [https://docs.momentohq.com/develop/sdks/python](https://docs.momentohq.com/develop/sdks/python)
+* Discuss: [Momento Discord](https://discord.gg/3HkAKjUZGq)
 
+## Packages
 
+The Momento Python SDK package is available on pypi: [momento](https://pypi.org/project/momento/).
 
-## Getting Started :running:
-
-### Requirements
-
-- [Python 3.7](https://www.python.org/downloads/) or above is required
-- A Momento Auth Token is required, you can generate one using the [Momento CLI](https://github.com/momentohq/momento-cli)
-
-### Examples
-
-Ready to dive right in? Just check out the [examples](https://github.com/momentohq/client-sdk-python/tree/main/examples) directory for complete, working examples of
-how to use the SDK.
-
-### Installation
-
-The [Momento SDK is available on PyPi](https://pypi.org/project/momento/). To install via pip:
-
-```bash
-pip install momento
-```
-
-### Usage
+## Usage
 
 The examples below require an environment variable named MOMENTO_AUTH_TOKEN which must
 be set to a valid [Momento authentication token](https://docs.momentohq.com/docs/getting-started#obtain-an-auth-token).
@@ -43,38 +33,22 @@ If you are running python 3.10 or greater, here is a quickstart you can use in y
 from datetime import timedelta
 
 from momento import CacheClient, Configurations, CredentialProvider
-from momento.responses import CacheGet, CacheSet, CreateCache
+from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
-if __name__ == "__main__":
-    cache_name = "default-cache"
-    with CacheClient(
-        configuration=Configurations.Laptop.v1(),
-        credential_provider=CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
-        default_ttl=timedelta(seconds=60),
-    ) as cache_client:
-        create_cache_response = cache_client.create_cache(cache_name)
-        match create_cache_response:
-            case CreateCache.CacheAlreadyExists():
-                print(f"Cache with name: {cache_name} already exists.")
-            case CreateCache.Error() as error:
-                raise error.inner_exception
+cache_client = CacheClient(
+    Configurations.Laptop.v1(),
+    CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
+    timedelta(seconds=60)
+)
 
-        print("Setting Key: foo to Value: FOO")
-        set_response = cache_client.set(cache_name, "foo", "FOO")
-        match set_response:
-            case CacheSet.Error() as error:
-                raise error.inner_exception
-
-        print("Getting Key: foo")
-        get_response = cache_client.get(cache_name, "foo")
-        match get_response:
-            case CacheGet.Hit() as hit:
-                print(f"Look up resulted in a hit: {hit}")
-                print(f"Looked up Value: {hit.value_string!r}")
-            case CacheGet.Miss():
-                print("Look up resulted in a: miss. This is unexpected.")
-            case CacheGet.Error() as error:
-                raise error.inner_exception
+create_cache_response = cache_client.create_cache("cache")
+set_response = cache_client.set("cache", "my-key", "my-value")
+get_response = cache_client.get(_CACHE_NAME, _KEY)
+match get_response:
+    case CacheGet.Hit() as hit:
+        print(f"Got value: {hit.value_string}")
+    case _:
+        print(f"Response was not a hit: {get_response}")
 
 ```
 
@@ -83,57 +57,38 @@ Using a Python version less than 3.10? No problem. Here is the same example comp
 
 ```python
 from datetime import timedelta
+
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache
 
-if __name__ == "__main__":
-    cache_name = 'default-cache'
-    with CacheClient(configuration=Configurations.Laptop.v1(),
-                     credential_provider=CredentialProvider.from_environment_variable('MOMENTO_AUTH_TOKEN'),
-                     default_ttl=timedelta(seconds=60)
-                     ) as cache_client:
-        create_cache_response = cache_client.create_cache(cache_name)
-        if isinstance(create_cache_response, CreateCache.CacheAlreadyExists):
-            print(f"Cache with name: {cache_name} already exists.")
-        elif isinstance(create_cache_response, CreateCache.Error):
-            raise create_cache_response.inner_exception
+cache_client = CacheClient(
+    configuration=Configurations.Laptop.v1(),
+    credential_provider=CredentialProvider.from_environment_variable('MOMENTO_AUTH_TOKEN'),
+    default_ttl=timedelta(seconds=60)
+)
+cache_client.create_cache("cache")
+cache_client.set("cache", "myKey", "myValue")
+get_response = cache_client.get("cache", "myKey")
+if isinstance(get_response, CacheGet.Hit):
+    print(f"Got value: {get_response.value_string}")
 
-        print("Setting Key: foo to Value: FOO")
-        set_response = cache_client.set(cache_name, 'foo', 'FOO')
-        if isinstance(set_response, CacheSet.Error):
-            raise set_response.inner_exception
-
-        print("Getting Key: foo")
-        get_response = cache_client.get(cache_name, 'foo')
-        if isinstance(get_response, CacheGet.Hit):
-            print(f"Look up resulted in a hit: {get_response.value_string}")
-            print(f"Looked up Value: {get_response.value_string}")
-        elif isinstance(get_response, CacheGet.Miss):
-            print("Look up resulted in a: miss. This is unexpected.")
-        elif isinstance(get_response, CacheGet.Error):
-            raise get_response.inner_exception
 ```
 
-### Logging
+## Getting Started and Documentation
 
-To avoid cluttering DEBUG logging with per-method logs the Momento SDK adds a TRACE logging level. This will only happen
-if the TRACE level does not already exist.
+Documentation is available on the [Momento Docs website](https://docs.momentohq.com).
 
-To enable TRACE level logging you can call logging.basicConfig() before making any log statements:
+## Examples
 
-```python
-import logging
+Working example projects, with all required build configuration files, are available for both Python 3.10 and up
+and Python versions before 3.10:
 
-logging.basicConfig(level='TRACE')
-```
+* [Python 3.10+ examples](./examples/py310)
+* [Pre-3.10 Python examples](./examples/prepy310)
 
-### Error Handling
+## Developing
 
-Coming Soon!
-
-### Tuning
-
-Coming Soon!
+If you are interested in contributing to the SDK, please see the [CONTRIBUTING](./CONTRIBUTING.md) docs.
 
 ----------------------------------------------------------------------------------------
 For more info, visit our website at [https://gomomento.com](https://gomomento.com)!
