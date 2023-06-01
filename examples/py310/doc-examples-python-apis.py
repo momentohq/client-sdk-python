@@ -14,6 +14,7 @@ from momento.responses import (
 
 def example_API_CredentialProviderFromEnvVar():
     CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+# end example
 
 
 def example_API_InstantiateCacheClient():
@@ -22,6 +23,7 @@ def example_API_InstantiateCacheClient():
         CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
         timedelta(seconds=60)
     )
+# end example
 
 
 async def example_API_CreateCache(cache_client: CacheClientAsync):
@@ -33,6 +35,7 @@ async def example_API_CreateCache(cache_client: CacheClientAsync):
             print("Cache 'test-cache' already exists.")
         case CreateCache.Error() as error:
             print(f"An error occurred while attempting to create cache 'test-cache': {error.message}")
+# end example
 
 
 async def example_API_DeleteCache(cache_client: CacheClientAsync):
@@ -42,6 +45,7 @@ async def example_API_DeleteCache(cache_client: CacheClientAsync):
             print("Cache 'test-cache' deleted")
         case DeleteCache.Error() as error:
             raise Exception(f"An error occurred while attempting to delete 'test-cache': {error.message}")
+# end example
 
 
 async def example_API_ListCaches(cache_client: CacheClientAsync):
@@ -53,6 +57,7 @@ async def example_API_ListCaches(cache_client: CacheClientAsync):
                 print(f"- {cache_info.name!r}")
         case ListCaches.Error() as error:
             raise Exception(f"An error occurred while attempting to list caches: {error.message}")
+# end example
 
 
 async def example_API_Set(cache_client: CacheClientAsync):
@@ -64,6 +69,7 @@ async def example_API_Set(cache_client: CacheClientAsync):
             raise Exception(
                 f"An error occurred while attempting to store key 'test-key' in cache 'test-cache': {error.message}"
             )
+# end example
 
 
 async def example_API_Get(cache_client: CacheClientAsync):
@@ -77,6 +83,7 @@ async def example_API_Get(cache_client: CacheClientAsync):
             raise Exception(
                 f"An error occurred while attempting to get key 'test-key' from cache 'test-cache': {error.message}"
             )
+# end example
 
 
 async def example_API_Delete(cache_client: CacheClientAsync):
@@ -86,6 +93,7 @@ async def example_API_Delete(cache_client: CacheClientAsync):
             print("Key 'test-key' deleted successfully")
         case CacheDelete.Error() as error:
             raise Exception(f"An error occurred while attempting to delete key 'test-key' from cache 'test-cache': {error.message}")
+# end example
 
 
 async def main():

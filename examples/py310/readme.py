@@ -1,7 +1,4 @@
-import logging
 from datetime import timedelta
-
-from example_utils.example_logging import initialize_logging
 
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches

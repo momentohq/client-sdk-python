@@ -92,14 +92,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Verify README generation
-        uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v1
+        uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v2
         if: ${{ matrix.python-version }} == '3.10'
         with:
           project_status: official
           project_stability: stable
           project_type: sdk
           sdk_language: Python
-          usage_example_path: ./examples/${{ matrix.package }}/quickstart.py
+          dev_docs_slug: python
+          template_file: ./README.template.md
+          output_file: ./README.md
 
       - name: Bootstrap poetry
         run: |
