@@ -2,7 +2,7 @@
 
 ## Packages
 
-The Momento Python SDK package is [available on PyPi](https://pypi.org/project/momento/).
+The Momento Python SDK package is available on pypi: [momento](https://pypi.org/project/momento/).
 
 ## Usage
 
