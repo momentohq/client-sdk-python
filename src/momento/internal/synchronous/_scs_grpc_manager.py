@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import grpc
-import pkg_resources
+import importlib_metadata
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
 from momento_wire_types import controlclient_pb2_grpc as control_client
 
@@ -18,7 +18,7 @@ from momento.retry import RetryStrategy
 class _ControlGrpcManager:
     """Internal gRPC control mananger."""
 
-    version = pkg_resources.get_distribution("momento").version
+    version = importlib_metadata.Distribution.from_name("momento").version  # type: ignore[no-untyped-call]
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
@@ -39,7 +39,7 @@ class _ControlGrpcManager:
 class _DataGrpcManager:
     """Internal gRPC data mananger."""
 
-    version = pkg_resources.get_distribution("momento").version
+    version = importlib_metadata.Distribution.from_name("momento").version  # type: ignore[no-untyped-call]
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
