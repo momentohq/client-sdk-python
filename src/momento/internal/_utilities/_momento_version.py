@@ -1,3 +1,9 @@
+"""Detect the version of momento installed.
+
+This module is used to detect the version of momento installed. It is used
+internally to add the version to the gRPC headers.
+"""
+
 momento_version = ""
 
 try:
