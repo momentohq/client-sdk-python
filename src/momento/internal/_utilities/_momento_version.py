@@ -10,5 +10,3 @@ except ImportError:
     from importlib.metadata import version  # type: ignore[import]
 
     momento_version = version("momento")
-
-assert momento_version != ""
