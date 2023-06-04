@@ -12,3 +12,4 @@ from ._data_validation import (
     _validate_timedelta_ttl,
     _validate_ttl,
 )
+from ._momento_version import momento_version
