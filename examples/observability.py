@@ -53,7 +53,7 @@ def main() -> None:
         _create_cache(cache_client)
         _set_cache(cache_client)
         _get_cache(cache_client)
-        
+
 
 main()
 print('Success! Zipkin at http://localhost:9411 should contain traces for the cache creation, get, and set.')
