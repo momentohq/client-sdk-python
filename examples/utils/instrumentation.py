@@ -1,9 +1,9 @@
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.exporter.zipkin.json import ZipkinExporter
 from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
 
 def example_observability_setup_tracing():

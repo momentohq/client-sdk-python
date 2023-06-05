@@ -2,9 +2,10 @@ from utils.instrumentation import example_observability_setup_tracing
 
 example_observability_setup_tracing()
 
-from momento import CacheClient, Configurations, CredentialProvider
-from momento.responses import CreateCache, CacheSet, CacheGet
 from datetime import timedelta
+
+from momento import CacheClient, Configurations, CredentialProvider
+from momento.responses import CacheGet, CacheSet, CreateCache
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
 _ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
