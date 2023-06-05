@@ -5,15 +5,12 @@ example_observability_setup_tracing()
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CreateCache, CacheSet, CacheGet
 from datetime import timedelta
-import logging
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
 _ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
 _CACHE_NAME = "test-cache"
 _KEY = "test-key"
 _VALUE = "test-value"
-_logger = logging.getLogger("momento-example")
-
 
 def _create_cache(cache_client: CacheClient) -> None:
     create_cache_response = cache_client.create_cache(_CACHE_NAME)
@@ -56,7 +53,7 @@ def main() -> None:
         _create_cache(cache_client)
         _set_cache(cache_client)
         _get_cache(cache_client)
-
+        
 
 main()
 print('Success! Zipkin at http://localhost:9411 should contain traces for the cache creation, get, and set.')
