@@ -177,7 +177,7 @@ pbr = ">=1.4"
 name = "importlib-metadata"
 version = "4.2.0"
 description = "Read metadata from Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -225,18 +225,19 @@ files = [
 
 [[package]]
 name = "momento"
-version = "1.5.0"
+version = "1.5.2"
 description = "SDK for Momento"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento-1.5.0-py3-none-any.whl", hash = "sha256:7f633fb26ddf1bfcaf99a7add37b085f0e23c96f85972b655eaaf2de1c61d7f1"},
-    {file = "momento-1.5.0.tar.gz", hash = "sha256:68ca5d24b4cb08c5c0bd22d4edd3b8b0fcf087a85d30673cb2c55b11971c76ec"},
+    {file = "momento-1.5.2-py3-none-any.whl", hash = "sha256:9d4098ecbb06767191a7b018ae0abedfe7a11d2c852f95dcad293746cb43184a"},
+    {file = "momento-1.5.2.tar.gz", hash = "sha256:afad751ae57fd6c3b42b1b4a16ca215f0c0f68565f85a9b9ca1e042685d07f08"},
 ]
 
 [package.dependencies]
 grpcio = ">=1.46.0,<2.0.0"
+importlib-metadata = {version = ">=4", markers = "python_version < \"3.8\""}
 momento-wire-types = ">=0.64,<0.65"
 pyjwt = ">=2.4.0,<3.0.0"
 
@@ -470,7 +471,7 @@ files = [
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -482,7 +483,7 @@ files = [
 name = "zipp"
 version = "3.15.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -497,4 +498,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.12"
-content-hash = "254ec3d964c58570deb140fe51d1fb4645661d1a15e1448b287e7927a12b05b1"
+content-hash = "d987936681a0be69d0b7d54c890d0edc9654bec171f43aa134a061dc5e2698a3"
