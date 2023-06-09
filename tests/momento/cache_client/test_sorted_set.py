@@ -818,14 +818,14 @@ def describe_sorted_set_get_rank() -> None:
 @behaves_like(a_connection_validator)
 @behaves_like(a_sorted_set_name_validator)
 @behaves_like(a_sorted_set_setter)
-def describe_sorted_set_increment() -> None:
+def describe_sorted_set_increment_score() -> None:
     @fixture
     def cache_name_validator(
         client: CacheClient,
         sorted_set_name: TSortedSetName,
         sorted_set_value_str: str,
     ) -> TCacheNameValidator:
-        return partial(client.sorted_set_increment, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
+        return partial(client.sorted_set_increment_score, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
 
     @fixture
     def connection_validator(
@@ -834,7 +834,9 @@ def describe_sorted_set_increment() -> None:
         sorted_set_value_str: str,
     ) -> TConnectionValidator:
         def _connection_validator(client: CacheClient) -> CacheResponse:
-            return client.sorted_set_increment(cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str)
+            return client.sorted_set_increment_score(
+                cache_name, sorted_set_name=sorted_set_name, value=sorted_set_value_str
+            )
 
         return _connection_validator
 
@@ -844,7 +846,7 @@ def describe_sorted_set_increment() -> None:
         cache_name: TCacheName,
         sorted_set_value_str: str,
     ) -> TSortedSetNameValidator:
-        return partial(client.sorted_set_increment, cache_name=cache_name, value=sorted_set_value_str)
+        return partial(client.sorted_set_increment_score, cache_name=cache_name, value=sorted_set_value_str)
 
     @fixture
     def sorted_set_setter() -> TSortedSetSetter:
@@ -858,7 +860,7 @@ def describe_sorted_set_increment() -> None:
         ) -> CacheResponse:
             response = None
             for (value, score) in elements.items():
-                response = client.sorted_set_increment(
+                response = client.sorted_set_increment_score(
                     cache_name=cache_name,
                     sorted_set_name=sorted_set_name,
                     value=value,

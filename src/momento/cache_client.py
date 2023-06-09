@@ -19,7 +19,9 @@ from momento.responses.data.sorted_set.get_scores import (
     CacheSortedSetGetScores,
     CacheSortedSetGetScoresResponse,
 )
-from momento.responses.data.sorted_set.increment import CacheSortedSetIncrementResponse
+from momento.responses.data.sorted_set.increment import (
+    CacheSortedSetIncrementScoreResponse,
+)
 from momento.responses.data.sorted_set.put_element import (
     CacheSortedSetPutElement,
     CacheSortedSetPutElementResponse,
@@ -1018,7 +1020,7 @@ class CacheClient:
         """
         return self._data_client.sorted_set_remove_elements(cache_name, sorted_set_name, values)
 
-    def sorted_set_increment(
+    def sorted_set_increment_score(
         self,
         cache_name: str,
         sorted_set_name: str,
@@ -1026,7 +1028,7 @@ class CacheClient:
         score: float = 1.0,
         *,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
-    ) -> CacheSortedSetIncrementResponse:
+    ) -> CacheSortedSetIncrementScoreResponse:
         """Increments the score for the given sorted set and value.
 
         If the value doesn't exist in the sorted set, it will be added and its score set to the given score.
@@ -1040,7 +1042,7 @@ class CacheClient:
                 Defaults to `CollectionTtl.from_cache_ttl()`
 
         Returns:
-            CacheSortedSetIncrementResponse: the status and associated score for each value.
+            CacheSortedSetIncrementScoreResponse: the status and associated score for each value.
         """
         return self._data_client.sorted_set_increment(cache_name, sorted_set_name, value, score, ttl)
 

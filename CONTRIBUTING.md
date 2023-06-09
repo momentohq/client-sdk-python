@@ -194,8 +194,8 @@ arch -x86_64 TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache name> poetry ru
 ### Developing new test cases?
 
 Because we have both an asyncio and a synchronous client, we develop tests for both.
-Fear not! This is not twice the work. Since the synchronous client delegates behavior
-to the asynchronous one, we can re-use the async test cases.
+Fear not! This is not twice the work. Since the synchronous client code and tests are
+generated from the asynchronous ones, we can re-use the async test cases.
 
 When developing new test cases, only write tests for the async client in the appropriate
 `test_*_async.py` file. Then run `make gen-sync` to generate the synchronous client
