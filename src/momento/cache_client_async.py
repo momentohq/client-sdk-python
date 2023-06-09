@@ -1051,7 +1051,7 @@ class CacheClientAsync:
         Returns:
             CacheSortedSetIncrementScoreResponse: the status and associated score for each value.
         """
-        return await self._data_client.sorted_set_increment(cache_name, sorted_set_name, value, score, ttl)
+        return await self._data_client.sorted_set_increment_score(cache_name, sorted_set_name, value, score, ttl)
 
     @property
     def _data_client(self) -> _ScsDataClient:
