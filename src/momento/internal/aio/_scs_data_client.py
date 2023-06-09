@@ -95,9 +95,9 @@ from momento.responses.data.sorted_set.get_scores import (
     CacheSortedSetGetScores,
     CacheSortedSetGetScoresResponse,
 )
-from momento.responses.data.sorted_set.increment import (
-    CacheSortedSetIncrement,
-    CacheSortedSetIncrementResponse,
+from momento.responses.data.sorted_set.increment_score import (
+    CacheSortedSetIncrementScore,
+    CacheSortedSetIncrementScoreResponse,
 )
 from momento.responses.data.sorted_set.put_elements import (
     CacheSortedSetPutElements,
@@ -1044,14 +1044,14 @@ class _ScsDataClient:
             self._log_request_error("sorted_set_remove_elements", e)
             return CacheSortedSetRemoveElements.Error(convert_error(e))
 
-    async def sorted_set_increment(
+    async def sorted_set_increment_score(
         self,
         cache_name: TCacheName,
         sorted_set_name: TSortedSetName,
         value: TSortedSetValue,
         score: TSortedSetScore,
         ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
-    ) -> CacheSortedSetIncrementResponse:
+    ) -> CacheSortedSetIncrementScoreResponse:
         try:
             self._log_issuing_request("SortedSetIncrement", {"sorted_set_name": str(sorted_set_name)})
             _validate_cache_name(cache_name)
@@ -1072,10 +1072,10 @@ class _ScsDataClient:
             )
             self._log_received_response("SortedSetIncrement", {"sorted_set_name": str(request.set_name)})
 
-            return CacheSortedSetIncrement.Success(response.score)
+            return CacheSortedSetIncrementScore.Success(response.score)
         except Exception as e:
-            self._log_request_error("sorted_set_increment", e)
-            return CacheSortedSetIncrement.Error(convert_error(e))
+            self._log_request_error("sorted_set_increment_score", e)
+            return CacheSortedSetIncrementScore.Error(convert_error(e))
 
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")

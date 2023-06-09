@@ -5,28 +5,28 @@ from ...mixins import ErrorResponseMixin
 from ...response import CacheResponse
 
 
-class CacheSortedSetIncrementResponse(CacheResponse):
-    """Parent response type for a cache `sorted_set_increment` request.
+class CacheSortedSetIncrementScoreResponse(CacheResponse):
+    """Parent response type for a cache `sorted_set_increment_score` request.
 
     Its subtypes are:
-    - `CacheSortedSetIncrement.Success`
-    - `CacheSortedSetIncrement.Error`
+    - `CacheSortedSetIncrementScore.Success`
+    - `CacheSortedSetIncrementScore.Error`
 
     See `CacheClient` for how to work with responses.
     """
 
 
-class CacheSortedSetIncrement(ABC):
-    """Groups all `CacheSortedSetIncrementResponse` derived types under a common namespace."""
+class CacheSortedSetIncrementScore(ABC):
+    """Groups all `CacheSortedSetIncrementScoreResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(CacheSortedSetIncrementResponse):
+    class Success(CacheSortedSetIncrementScoreResponse):
         """Indicates the request was successful."""
 
         score: float
         """The score of the element post-increment."""
 
-    class Error(CacheSortedSetIncrementResponse, ErrorResponseMixin):
+    class Error(CacheSortedSetIncrementScoreResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
 
         This includes:
