@@ -9,8 +9,8 @@ class CacheSortedSetIncrementScoreResponse(CacheResponse):
     """Parent response type for a cache `sorted_set_increment_score` request.
 
     Its subtypes are:
-    - `CacheSortedSetIncrement.Success`
-    - `CacheSortedSetIncrement.Error`
+    - `CacheSortedSetIncrementScore.Success`
+    - `CacheSortedSetIncrementScore.Error`
 
     See `CacheClient` for how to work with responses.
     """

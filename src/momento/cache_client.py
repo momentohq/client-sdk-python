@@ -19,7 +19,7 @@ from momento.responses.data.sorted_set.get_scores import (
     CacheSortedSetGetScores,
     CacheSortedSetGetScoresResponse,
 )
-from momento.responses.data.sorted_set.increment import (
+from momento.responses.data.sorted_set.increment_score import (
     CacheSortedSetIncrementScoreResponse,
 )
 from momento.responses.data.sorted_set.put_element import (

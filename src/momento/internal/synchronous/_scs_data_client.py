@@ -95,8 +95,8 @@ from momento.responses.data.sorted_set.get_scores import (
     CacheSortedSetGetScores,
     CacheSortedSetGetScoresResponse,
 )
-from momento.responses.data.sorted_set.increment import (
-    CacheSortedSetIncrement,
+from momento.responses.data.sorted_set.increment_score import (
+    CacheSortedSetIncrementScore,
     CacheSortedSetIncrementScoreResponse,
 )
 from momento.responses.data.sorted_set.put_elements import (
@@ -1070,10 +1070,10 @@ class _ScsDataClient:
             )
             self._log_received_response("SortedSetIncrement", {"sorted_set_name": str(request.set_name)})
 
-            return CacheSortedSetIncrement.Success(response.score)
+            return CacheSortedSetIncrementScore.Success(response.score)
         except Exception as e:
             self._log_request_error("sorted_set_increment_score", e)
-            return CacheSortedSetIncrement.Error(convert_error(e))
+            return CacheSortedSetIncrementScore.Error(convert_error(e))
 
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")
