@@ -151,7 +151,7 @@ jobs:
         id: docs-ex-validation
         continue-on-error: true
         working-directory: ./examples
-        if: ${{ matrix.package }} == 'py310'
+        if: ${{ matrix.package == 'py310' }}
         run: poetry run python ${{ matrix.package }}/doc-examples-python-apis.py
 
       - name: Send CI failure mail
