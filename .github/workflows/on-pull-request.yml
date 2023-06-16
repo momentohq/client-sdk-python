@@ -151,9 +151,8 @@ jobs:
         id: docs-ex-validation
         continue-on-error: true
         working-directory: ./examples
-        if: ${{ matrix.package }} == 'py310'
-        run: |
-          poetry run python -m ${{ matrix.package }}.doc-examples-python-apis
+        if: ${{ matrix.package == 'py310' }}
+        run: poetry run python ${{ matrix.package }}/doc-examples-python-apis.py
 
       - name: Send CI failure mail
         if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' || steps.docs-ex-validation.outcome == 'failure' }}
@@ -163,7 +162,7 @@ jobs:
           password: ${{secrets.MOMENTO_ROBOT_GMAIL_PASSWORD}}
 
       - name: Flag Job Failure
-        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' }}
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' || steps.docs-ex-validation.outcome == 'failure' }}
         run: |
           echo "Job statuses"
           echo "============"
@@ -172,4 +171,5 @@ jobs:
           echo "flake8: ${{ steps.outputs.flake8 }}"
           echo "black: ${{ steps.outputs.black }}"
           echo "isort: ${{ steps.outputs.isort }}"
+          echo "doc examples: ${{ steps.outputs.docs-ex-validation }}"
           exit 1
