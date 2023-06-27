@@ -267,7 +267,7 @@ class _ScsDataClient:
             else:
                 raise UnknownException("Get responded with an unknown result")
         except Exception as e:
-            self._log_request_error("set_if_not_exists", e)
+            self._log_request_error("get", e)
             return CacheGet.Error(convert_error(e))
 
     async def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
@@ -283,7 +283,7 @@ class _ScsDataClient:
             self._log_received_response("Delete", {"key": str(key)})
             return CacheDelete.Success()
         except Exception as e:
-            self._log_request_error("set", e)
+            self._log_request_error("delete", e)
             return CacheDelete.Error(convert_error(e))
 
     # DICTIONARY COLLECTION METHODS
@@ -729,7 +729,7 @@ class _ScsDataClient:
             self._log_received_response("SetAddElements", {"set_name": str(request.set_name)})
             return CacheSetAddElements.Success()
         except Exception as e:
-            self._log_request_error("set_remove_elements", e)
+            self._log_request_error("set_add_elements", e)
             return CacheSetAddElements.Error(convert_error(e))
 
     async def set_fetch(
@@ -883,7 +883,7 @@ class _ScsDataClient:
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:
-            self._log_request_error("sorted_set_fetch", e)
+            self._log_request_error("sorted_set_fetch_by_score", e)
             return CacheSortedSetFetch.Error(convert_error(e))
 
     async def sorted_set_fetch_by_rank(
@@ -935,7 +935,7 @@ class _ScsDataClient:
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:
-            self._log_request_error("sorted_set_fetch", e)
+            self._log_request_error("sorted_set_fetch_by_rank", e)
             return CacheSortedSetFetch.Error(convert_error(e))
 
     async def sorted_set_get_scores(
