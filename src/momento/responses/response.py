@@ -126,3 +126,7 @@ class CacheResponse(Response):
 
 class ControlResponse(Response):
     ...
+
+
+class PubsubResponse(Response):
+    ...

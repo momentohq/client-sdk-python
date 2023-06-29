@@ -107,7 +107,15 @@ from .data.sorted_set.put_elements import (
     CacheSortedSetPutElements,
     CacheSortedSetPutElementsResponse,
 )
-from .response import CacheResponse, ControlResponse
+from .pubsub.publish import (
+    TopicPublish,
+    TopicPublishResponse,
+)
+from .pubsub.subscribe import (
+    TopicSubscribe,
+    TopicSubscribeResponse,
+)
+from .response import CacheResponse, ControlResponse, PubsubResponse
 
 __all__ = [
     "CreateCache",
@@ -191,6 +199,11 @@ __all__ = [
     "CacheSortedSetPutElementsResponse",
     "CacheSortedSetFetch",
     "CacheSortedSetFetchResponse",
+    "TopicPublish",
+    "TopicPublishResponse",
+    "TopicSubscribe",
+    "TopicSubscribeResponse",
     "CacheResponse",
     "ControlResponse",
+    "PubsubResponse"
 ]

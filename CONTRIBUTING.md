@@ -51,7 +51,7 @@ pyenv install 3.10.4
 NB: These are examples. You will need one of each (3.7, 3.8, 3.9, 3.10)
 but the patch version ("13" in "3.7.13") can be the latest one.
 
-<be/>
+<br/>
 
 ### Configure poetry to use your particular python version
 
