@@ -11,8 +11,7 @@ from momento.config import TopicConfiguration
 from momento.errors import convert_error
 
 from momento.internal.aio._scs_grpc_manager import _PubsubGrpcManager, _PubsubGrpcStreamManager
-from momento.internal.aio._utilities import make_metadata
-from momento.internal._utilities import _validate_cache_name
+from momento.internal._utilities import _validate_cache_name, _validate_topic_name
 from momento.responses import (
     TopicPublish, TopicPublishResponse, TopicSubscribe, TopicSubscribeResponse
 )
@@ -49,7 +48,8 @@ class _ScsPubsubClient:
     async def publish(self, cache_name: str, topic_name: str, value: str | bytes) -> TopicPublishResponse:
         try:
             _validate_cache_name(cache_name)
-            # TODO: validate topic name
+            _validate_topic_name(topic_name)
+
             if isinstance(value, str):
                 topic_value = pubsub_pb._TopicValue(text=value)
             else:
@@ -72,7 +72,8 @@ class _ScsPubsubClient:
     async def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
         try:
             _validate_cache_name(cache_name)
-            # TODO: validate topic name
+            _validate_topic_name(topic_name)
+
             request = pubsub_pb._SubscriptionRequest(
                 cache_name=cache_name,
                 topic=topic_name,
