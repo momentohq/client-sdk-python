@@ -66,8 +66,7 @@ class _ScsPubsubClient:
             )
             return TopicPublish.Success()
         except Exception as e:
-            # TODO: add this logging
-            # self._log_request_error("increment", e)
+            self._log_request_error("publish", e)
             return TopicPublish.Error(convert_error(e))
 
     async def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
@@ -90,13 +89,18 @@ class _ScsPubsubClient:
                 # The first message to a new subscription is always a heartbeat.
                 pass
             else:
-                # TODO: improve this
+                err = Exception(f"expected a heartbeat message but got '{msg_type}'")
+                self._log_request_error("subscribe", err)
                 return TopicSubscribe.Error(
-                    convert_error(Exception(f"expected a heartbeat message but got '{msg_type}'"))
+                    convert_error(err)
                 )
             return TopicSubscribe.Subscription(cache_name, topic_name, client_stream=stream)
         except Exception as e:
-            raise e
+            self._log_request_error("subscribe", e)
+            return TopicSubscribe.Error(convert_error(e))
+
+    def _log_request_error(self, request_type: str, e: Exception) -> None:
+        self._logger.warning(f"{request_type} failed with exception: {e}")
 
     def _build_stub(self) -> pubsub_grpc.PubsubStub:
         return self._grpc_manager.async_stub()

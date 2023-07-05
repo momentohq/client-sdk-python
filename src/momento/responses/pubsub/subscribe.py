@@ -4,6 +4,8 @@ from typing import Any
 from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
 from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
+from ... import logs
+
 
 class TopicSubscribeResponse(PubsubResponse):
     """Parent response type for a topic `publish` request.
@@ -19,6 +21,7 @@ class TopicSubscribe(ABC):
     class Subscription(TopicSubscribeResponse):
         """Indicates the request was successful"""
         def __init__(self, cache_name: str, topic_name: str, client_stream: Any):
+            self._logger = logs.logger
             self._cache_name = cache_name
             self._topic_name = topic_name
             self._client_stream = client_stream
@@ -26,10 +29,11 @@ class TopicSubscribe(ABC):
 
         async def item(self) -> TopicSubscriptionItemResponse:
             while True:
-                # TODO: assuming that an exception means we need to reconnect
+                # TODO: assuming that an exception means we need to reconnect?
                 try:
                     result = await self._client_stream.read()
                 except Exception as e:
+                    self._logger.debug("Error reading from client stream: %s", e)
                     # TODO: attempt reconnect
                     continue
                 msg_type = result.WhichOneof("kind")
@@ -42,13 +46,13 @@ class TopicSubscribe(ABC):
                     elif value_type == "bytes":
                         return TopicSubscriptionItem.Success(value.bytes)
                 elif msg_type == "heartbeat":
-                    # TODO: add logging for heartbeat
+                    self._logger.debug("client stream received heartbeat")
                     continue
                 elif type == "discontinuity":
-                    # TODO: add logging for discontinuity
+                    self._logger.debug("client stream received discontinuity")
                     continue
                 else:
-                    # TODO: add logging for unknown response
+                    self._logger.debug(f"client stream received unknown type: {msg_type}")
                     continue
 
     class Error(TopicSubscribeResponse, ErrorResponseMixin):
