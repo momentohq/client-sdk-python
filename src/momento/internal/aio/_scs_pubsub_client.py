@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import time
+import math
 
 from momento_wire_types import cachepubsub_pb2 as pubsub_pb
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_grpc
@@ -21,15 +21,26 @@ from momento.responses import (
 class _ScsPubsubClient:
     """Internal pubsub client."""
 
+    stream_topic_manager_count = 0
+
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         endpoint = credential_provider.cache_endpoint
         self._logger = logs.logger
         self._logger.debug("Simple cache data client instantiated with endpoint: %s", endpoint)
         self._endpoint = endpoint
 
+        num_subscriptions = configuration.get_max_subscriptions()
+        # Default to a single channel and scale up if necessary. Each channel can support
+        # 100 subscriptions.
+        num_channels = 1
+        if num_subscriptions > 0:
+            num_channels = math.ceil(num_subscriptions / 100.0)
+
         self._grpc_manager = _PubsubGrpcManager(configuration, credential_provider)
-        # TODO: this should be a pool whose size is determined bu max_subscriptions
-        self._stream_manager = _PubsubGrpcStreamManager(configuration, credential_provider)
+        self._stream_managers = [
+            _PubsubGrpcStreamManager(configuration, credential_provider)
+            for i in range(0, num_channels)
+        ]
 
     @property
     def endpoint(self) -> str:
@@ -93,9 +104,12 @@ class _ScsPubsubClient:
     def _build_stub(self) -> pubsub_grpc.PubsubStub:
         return self._grpc_manager.async_stub()
 
-    # TODO: pretty sure `async_stub` isn't what we want for the stream
     def _build_stream_stub(self) -> pubsub_grpc.PubsubStub:
-        return self._stream_manager.async_stub()
+        stub = self._stream_managers[self.stream_topic_manager_count % len(self._stream_managers)].async_stub()
+        self.stream_topic_manager_count += 1
+        return stub
 
     async def close(self) -> None:
         await self._grpc_manager.close()
+        for stream_client in self._stream_managers:
+            await stream_client.close()
