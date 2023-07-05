@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Any
 
+from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
 from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
 
@@ -21,8 +22,9 @@ class TopicSubscribe(ABC):
             self._cache_name = cache_name
             self._topic_name = topic_name
             self._client_stream = client_stream
+            self._last_known_sequence_number = None
 
-        async def item(self):
+        async def item(self) -> TopicSubscriptionItemResponse:
             while True:
                 # TODO: assuming that an exception means we need to reconnect
                 try:
@@ -32,18 +34,13 @@ class TopicSubscribe(ABC):
                     continue
                 msg_type = result.WhichOneof("kind")
                 if msg_type == "item":
-                    # TODO: handle text vs binary
-                    value_type = result.item.value.WhichOneof("kind")
-                    # print(f"value type is {value_type}")
+                    self._last_known_sequence_number = result.item.topic_sequence_number
                     value = result.item.value
-                    # print(f"got value {value} with dir {dir(value)}")
-                    # print("returning ", value.bytes)
-                    # TODO: does the return type need to expose methods to retrieve both text and bytes here?
-                    #  i.e., should this be wrapped in a type with value_string and value_bytes methods?
+                    value_type = value.WhichOneof("kind")
                     if value_type == "text":
-                        return value.text
+                        return TopicSubscriptionItem.Success(bytes(value.text, 'utf-8'))
                     elif value_type == "bytes":
-                        return value.bytes
+                        return TopicSubscriptionItem.Success(value.bytes)
                 elif msg_type == "heartbeat":
                     # TODO: add logging for heartbeat
                     continue

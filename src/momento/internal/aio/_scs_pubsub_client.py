@@ -56,7 +56,6 @@ class _ScsPubsubClient:
                 topic_value = pubsub_pb._TopicValue(binary=value)
 
             request = pubsub_pb._PublishRequest(
-                # TODO: so, uh, this is part of the request now?
                 cache_name=cache_name,
                 topic=topic_name,
                 value=topic_value,
@@ -64,8 +63,6 @@ class _ScsPubsubClient:
 
             await self._build_stub().Publish(
                 request,
-                # TODO: so, uh, we just don't use this here?
-                metadata=make_metadata(cache_name)
             )
             return TopicPublish.Success()
         except Exception as e:

@@ -115,6 +115,10 @@ from .pubsub.subscribe import (
     TopicSubscribe,
     TopicSubscribeResponse,
 )
+from .pubsub.subscription_item import (
+    TopicSubscriptionItem,
+    TopicSubscriptionItemResponse,
+)
 from .response import CacheResponse, ControlResponse, PubsubResponse
 
 __all__ = [
@@ -203,6 +207,8 @@ __all__ = [
     "TopicPublishResponse",
     "TopicSubscribe",
     "TopicSubscribeResponse",
+    "TopicSubscriptionItem",
+    "TopicSubscriptionItemResponse",
     "CacheResponse",
     "ControlResponse",
     "PubsubResponse"
