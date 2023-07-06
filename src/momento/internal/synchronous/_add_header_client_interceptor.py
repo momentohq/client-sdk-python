@@ -26,6 +26,40 @@ class _ClientCallDetails(
     pass
 
 
+class AddHeaderStreamingClientInterceptor(grpc.UnaryStreamClientInterceptor):
+    are_only_once_headers_sent = False
+
+    def __init__(self, headers: list[Header]):
+        self._headers_to_add_once: list[Header] = list(
+            filter(lambda header: header.name in header.once_only_headers, headers)
+        )
+        self.headers_to_add_every_time = list(
+            filter(lambda header: header.name not in header.once_only_headers, headers)
+        )
+
+    def intercept_unary_stream(
+            self,
+            continuation: Callable[
+                [grpc.ClientCallDetails, RequestType],
+                grpc.Call,
+            ],
+            client_call_details: grpc.ClientCallDetails,
+            request: RequestType,
+    ) -> grpc.Call | ResponseType:
+
+        new_client_call_details = sanitize_client_call_details(client_call_details)
+
+        for header in self.headers_to_add_every_time:
+            new_client_call_details.metadata.append((header.name, header.value))
+
+        if not AddHeaderStreamingClientInterceptor.are_only_once_headers_sent:
+            for header in self._headers_to_add_once:
+                new_client_call_details.metadata.append((header.name, header.value))
+                AddHeaderStreamingClientInterceptor.are_only_once_headers_sent = True
+
+        return continuation(new_client_call_details, request)
+
+
 class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
     are_only_once_headers_sent = False
 

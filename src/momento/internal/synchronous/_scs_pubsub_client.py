@@ -10,7 +10,7 @@ from momento.auth import CredentialProvider
 from momento.config import TopicConfiguration
 from momento.errors import convert_error
 
-from momento.internal.aio._scs_grpc_manager import _PubsubGrpcManager, _PubsubGrpcStreamManager
+from momento.internal.synchronous._scs_grpc_manager import _PubsubGrpcManager, _PubsubGrpcStreamManager
 from momento.internal._utilities import _validate_cache_name, _validate_topic_name
 from momento.responses import (
     TopicPublish, TopicPublishResponse, TopicSubscribe, TopicSubscribeResponse
@@ -45,7 +45,7 @@ class _ScsPubsubClient:
     def endpoint(self) -> str:
         return self._endpoint
 
-    async def publish(self, cache_name: str, topic_name: str, value: str | bytes) -> TopicPublishResponse:
+    def publish(self, cache_name: str, topic_name: str, value: str | bytes) -> TopicPublishResponse:
         try:
             _validate_cache_name(cache_name)
             _validate_topic_name(topic_name)
@@ -61,7 +61,7 @@ class _ScsPubsubClient:
                 value=topic_value,
             )
 
-            await self._build_stub().Publish(
+            self._build_stub().Publish(
                 request,
             )
             return TopicPublish.Success()
@@ -69,7 +69,7 @@ class _ScsPubsubClient:
             self._log_request_error("publish", e)
             return TopicPublish.Error(convert_error(e))
 
-    async def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
+    def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
         try:
             _validate_cache_name(cache_name)
             _validate_topic_name(topic_name)
@@ -84,7 +84,7 @@ class _ScsPubsubClient:
             )
 
             # Ping the stream to provide a nice error message if the cache does not exist.
-            msg = await stream.read()
+            msg = stream.next()
             msg_type = msg.WhichOneof("kind")
             if msg_type == "heartbeat":
                 # The first message to a new subscription is always a heartbeat.
@@ -104,14 +104,14 @@ class _ScsPubsubClient:
         self._logger.warning(f"{request_type} failed with exception: {e}")
 
     def _build_stub(self) -> pubsub_grpc.PubsubStub:
-        return self._grpc_manager.async_stub()
+        return self._grpc_manager.stub()
 
     def _build_stream_stub(self) -> pubsub_grpc.PubsubStub:
-        stub = self._stream_managers[self.stream_topic_manager_count % len(self._stream_managers)].async_stub()
+        stub = self._stream_managers[self.stream_topic_manager_count % len(self._stream_managers)].stub()
         self.stream_topic_manager_count += 1
         return stub
 
-    async def close(self) -> None:
-        await self._grpc_manager.close()
+    def close(self) -> None:
+        self._grpc_manager.close()
         for stream_client in self._stream_managers:
-            await stream_client.close()
+            stream_client.close()

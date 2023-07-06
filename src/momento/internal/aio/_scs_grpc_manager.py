@@ -14,43 +14,6 @@ from ._add_header_client_interceptor import AddHeaderClientInterceptor, AddHeade
 from ._retry_interceptor import RetryInterceptor
 
 
-class _PubsubGrpcManager:
-    """Internal gRPC pubsub manager."""
-
-    version = momento_version
-
-    def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.aio.secure_channel(
-            target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
-            interceptors=_interceptors(credential_provider.auth_token, None),
-        )
-
-    async def close(self) -> None:
-        await self._secure_channel.close()
-
-    def async_stub(self) -> pubsub_client.PubsubStub:
-        return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
-
-class _PubsubGrpcStreamManager:
-    """Internal gRPC pubsub stream manager."""
-
-    version = momento_version
-
-    def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.aio.secure_channel(
-            target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
-            interceptors=_stream_interceptors(credential_provider.auth_token),
-        )
-
-    async def close(self) -> None:
-        await self._secure_channel.close()
-
-    def async_stub(self) -> pubsub_client.PubsubStub:
-        return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
-
-
 class _ControlGrpcManager:
     """Internal gRPC control manager."""
 
@@ -101,6 +64,44 @@ class _DataGrpcManager:
 
     def async_stub(self) -> cache_client.ScsStub:
         return cache_client.ScsStub(self._secure_channel)  # type: ignore[no-untyped-call]
+
+
+class _PubsubGrpcManager:
+    """Internal gRPC pubsub manager."""
+
+    version = momento_version
+
+    def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
+        self._secure_channel = grpc.aio.secure_channel(
+            target=credential_provider.cache_endpoint,
+            credentials=grpc.ssl_channel_credentials(),
+            interceptors=_interceptors(credential_provider.auth_token, None),
+        )
+
+    async def close(self) -> None:
+        await self._secure_channel.close()
+
+    def async_stub(self) -> pubsub_client.PubsubStub:
+        return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
+
+
+class _PubsubGrpcStreamManager:
+    """Internal gRPC pubsub stream manager."""
+
+    version = momento_version
+
+    def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
+        self._secure_channel = grpc.aio.secure_channel(
+            target=credential_provider.cache_endpoint,
+            credentials=grpc.ssl_channel_credentials(),
+            interceptors=_stream_interceptors(credential_provider.auth_token),
+        )
+
+    async def close(self) -> None:
+        await self._secure_channel.close()
+
+    def async_stub(self) -> pubsub_client.PubsubStub:
+        return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 
 def _interceptors(auth_token: str, retry_strategy: RetryStrategy = None) -> list[grpc.aio.ClientInterceptor]:
