@@ -20,7 +20,7 @@ class TopicSubscribe(ABC):
     """Groups all `TopicSubscribeResponse` derived types under a common namespace."""
 
     class Subscription(TopicSubscribeResponse):
-        """Indicates the request was successful"""
+        """Indicates the request was successful."""
         def __init__(self, cache_name: str, topic_name: str, client_stream: Any, pubsub_client: Any):
             self._logger = logs.logger
             self._cache_name = cache_name

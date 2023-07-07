@@ -1,6 +1,5 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import Any
 
 from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import PubsubResponse
@@ -20,6 +19,7 @@ class TopicSubscriptionItem(ABC):
 
     @dataclass
     class Success(TopicSubscriptionItemResponse, ValueStringMixin):
+        """Indicates the request was successful."""
 
         value_bytes: bytes
         """The item returned from the subscription for the specified topic. Use the

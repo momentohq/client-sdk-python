@@ -10,7 +10,7 @@ class TopicConfigurationBase(ABC):
         pass
 
     @abstractmethod
-    def with_max_subscriptions(self, max_subscriptions: int):
+    def with_max_subscriptions(self, max_subscriptions: int) -> TopicConfiguration:
         pass
 
 

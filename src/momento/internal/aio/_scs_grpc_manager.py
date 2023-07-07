@@ -116,6 +116,7 @@ def _interceptors(auth_token: str, retry_strategy: RetryStrategy = None) -> list
         ])
     )
 
+
 def _stream_interceptors(auth_token: str) -> list[grpc.aio.UnaryStreamClientInterceptor]:
     headers = [
         Header("authorization", auth_token),

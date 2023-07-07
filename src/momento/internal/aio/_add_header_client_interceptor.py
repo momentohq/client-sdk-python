@@ -83,6 +83,7 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
 
         return await continuation(new_client_call_details, request)
 
+
 def sanitize_client_call_details(client_call_details: grpc.aio.ClientCallDetails) -> grpc.aio.ClientCallDetails:
     """Defensive function meant to handle inbound gRPC client request objects.
 
