@@ -107,7 +107,8 @@ def _interceptors(auth_token: str, retry_strategy: RetryStrategy = None) -> list
     headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
     return list(
         filter(None, [
-            AddHeaderClientInterceptor(headers), RetryInterceptor(retry_strategy)
+            AddHeaderClientInterceptor(headers),
+            RetryInterceptor(retry_strategy) if retry_strategy else None
         ])
     )
 
