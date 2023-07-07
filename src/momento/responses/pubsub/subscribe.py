@@ -1,11 +1,11 @@
 from abc import ABC
 from typing import Any
 
-from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
-from ..mixins import ErrorResponseMixin
-from ..response import PubsubResponse
 from ... import logs
 from ...errors import SdkException
+from ..mixins import ErrorResponseMixin
+from ..response import PubsubResponse
+from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
 
 
 class TopicSubscribeResponse(PubsubResponse):
@@ -16,11 +16,13 @@ class TopicSubscribeResponse(PubsubResponse):
     - `TopicSubscribe.Error`
     """
 
+
 class TopicSubscribe(ABC):
     """Groups all `TopicSubscribeResponse` derived types under a common namespace."""
 
     class Subscription(TopicSubscribeResponse):
         """Indicates the request was successful."""
+
         def __init__(self, cache_name: str, topic_name: str, client_stream: Any, pubsub_client: Any):
             self._logger = logs.logger
             self._cache_name = cache_name
@@ -29,13 +31,14 @@ class TopicSubscribe(ABC):
             self._pubsub_client = pubsub_client
 
             self._last_known_sequence_number = None
+
+            # print(dir(self._pubsub_client))
+
             # TODO: surely there's a better way to do this (if we even want to). First decide whether or not
             #  we are going to support async subscriptions in the first place.
             if str(type(pubsub_client)).find("aio") >= 0:
-                print("async")
                 self.item = self._item_async
             elif str(type(pubsub_client)).find("synchronous") >= 0:
-                print("synchronous")
                 self.item = self._item
             else:
                 raise SdkException("Unknown Pubsub client type: ", type(pubsub_client))
@@ -55,7 +58,7 @@ class TopicSubscribe(ABC):
                     value = result.item.value
                     value_type = value.WhichOneof("kind")
                     if value_type == "text":
-                        return TopicSubscriptionItem.Success(bytes(value.text, 'utf-8'))
+                        return TopicSubscriptionItem.Success(bytes(value.text, "utf-8"))
                     elif value_type == "bytes":
                         return TopicSubscriptionItem.Success(value.bytes)
                 elif msg_type == "heartbeat":
@@ -83,7 +86,7 @@ class TopicSubscribe(ABC):
                     value = result.item.value
                     value_type = value.WhichOneof("kind")
                     if value_type == "text":
-                        return TopicSubscriptionItem.Success(bytes(value.text, 'utf-8'))
+                        return TopicSubscriptionItem.Success(bytes(value.text, "utf-8"))
                     elif value_type == "bytes":
                         return TopicSubscriptionItem.Success(value.bytes)
                 elif msg_type == "heartbeat":

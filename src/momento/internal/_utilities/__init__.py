@@ -9,8 +9,8 @@ from ._data_validation import (
     _validate_list_name,
     _validate_request_timeout,
     _validate_set_name,
-    _validate_topic_name,
     _validate_timedelta_ttl,
+    _validate_topic_name,
     _validate_ttl,
 )
 from ._momento_version import momento_version

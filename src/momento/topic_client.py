@@ -6,15 +6,11 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import TopicConfiguration
-
 from momento.internal.synchronous._scs_pubsub_client import _ScsPubsubClient
-from momento.responses import (
-    TopicPublishResponse, TopicSubscribeResponse
-)
+from momento.responses import TopicPublishResponse, TopicSubscribeResponse
 
 
 class TopicClient:
-
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         self._logger = logs.logger
         self._cache_endpoint = credential_provider.cache_endpoint

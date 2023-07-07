@@ -12,10 +12,9 @@ from momento import logs
 from .auth import CredentialProvider
 from .cache_client import CacheClient
 from .cache_client_async import CacheClientAsync
+from .config import Configurations, TopicConfigurations
 from .topic_client import TopicClient
 from .topic_client_async import TopicClientAsync
-from .config import Configurations
-from .config import TopicConfigurations
 
 logging.getLogger("momentosdk").addHandler(logging.NullHandler())
 logs.initialize_momento_logging()

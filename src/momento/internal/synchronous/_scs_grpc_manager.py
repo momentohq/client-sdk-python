@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import grpc
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
-from momento_wire_types import controlclient_pb2_grpc as control_client
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_client
+from momento_wire_types import controlclient_pb2_grpc as control_client
 
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.internal._utilities import momento_version
 from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
-    Header, AddHeaderStreamingClientInterceptor,
+    AddHeaderStreamingClientInterceptor,
+    Header,
 )
 from momento.internal.synchronous._retry_interceptor import RetryInterceptor
 from momento.retry import RetryStrategy
@@ -106,10 +107,9 @@ class _PubsubGrpcStreamManager:
 def _interceptors(auth_token: str, retry_strategy: RetryStrategy = None) -> list[grpc.UnaryUnaryClientInterceptor]:
     headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
     return list(
-        filter(None, [
-            AddHeaderClientInterceptor(headers),
-            RetryInterceptor(retry_strategy) if retry_strategy else None
-        ])
+        filter(
+            None, [AddHeaderClientInterceptor(headers), RetryInterceptor(retry_strategy) if retry_strategy else None]
+        )
     )
 
 
@@ -118,8 +118,4 @@ def _stream_interceptors(auth_token: str) -> list[grpc.UnaryStreamClientIntercep
         Header("authorization", auth_token),
         Header("agent", f"python:{_PubsubGrpcStreamManager.version}"),
     ]
-    return list(
-        filter(None, [
-            AddHeaderStreamingClientInterceptor(headers),
-        ])
-    )
+    return [AddHeaderStreamingClientInterceptor(headers)]

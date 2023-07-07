@@ -4,7 +4,6 @@ from .topic_configuration import TopicConfiguration
 
 
 class TopicConfigurations:
-
     class Default(TopicConfiguration):
         """Provides the recommended default configuration for topic clients."""
 
@@ -14,6 +13,4 @@ class TopicConfigurations:
 
         @staticmethod
         def v1() -> TopicConfigurations.Default:
-            return TopicConfigurations.Default(
-                max_subscriptions=0
-            )
+            return TopicConfigurations.Default(max_subscriptions=0)

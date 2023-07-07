@@ -28,13 +28,13 @@ class AddHeaderStreamingClientInterceptor(grpc.aio.UnaryStreamClientInterceptor)
         )
 
     async def intercept_unary_stream(
-            self,
-            continuation: Callable[
-                [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
-                grpc.aio._call.UnaryStreamCall,
-            ],
-            client_call_details: grpc.aio._interceptor.ClientCallDetails,
-            request: grpc.aio._typing.RequestType,
+        self,
+        continuation: Callable[
+            [grpc.aio._interceptor.ClientCallDetails, grpc.aio._typing.RequestType],
+            grpc.aio._call.UnaryStreamCall,
+        ],
+        client_call_details: grpc.aio._interceptor.ClientCallDetails,
+        request: grpc.aio._typing.RequestType,
     ) -> grpc.aio._call.UnaryStreamCall | grpc.aio._typing.ResponseType:
 
         new_client_call_details = sanitize_client_call_details(client_call_details)

@@ -9,11 +9,16 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import TopicConfiguration
 from momento.errors import convert_error
-
-from momento.internal.aio._scs_grpc_manager import _PubsubGrpcManager, _PubsubGrpcStreamManager
 from momento.internal._utilities import _validate_cache_name, _validate_topic_name
+from momento.internal.aio._scs_grpc_manager import (
+    _PubsubGrpcManager,
+    _PubsubGrpcStreamManager,
+)
 from momento.responses import (
-    TopicPublish, TopicPublishResponse, TopicSubscribe, TopicSubscribeResponse
+    TopicPublish,
+    TopicPublishResponse,
+    TopicSubscribe,
+    TopicSubscribeResponse,
 )
 
 
@@ -30,15 +35,16 @@ class _ScsPubsubClient:
 
         num_subscriptions = configuration.get_max_subscriptions()
         # Default to a single channel and scale up if necessary. Each channel can support
-        # 100 subscriptions.
+        # 100 subscriptions. Issuing more subscribe requests than you have channels to handle
+        # will cause the last request to hang indefinitely, so it's important to get this right.
         num_channels = 1
         if num_subscriptions > 0:
             num_channels = math.ceil(num_subscriptions / 100.0)
+            self._logger.debug(f"creating {num_channels} subscription channels")
 
         self._grpc_manager = _PubsubGrpcManager(configuration, credential_provider)
         self._stream_managers = [
-            _PubsubGrpcStreamManager(configuration, credential_provider)
-            for i in range(0, num_channels)
+            _PubsubGrpcStreamManager(configuration, credential_provider) for i in range(0, num_channels)
         ]
 
     @property
@@ -92,9 +98,7 @@ class _ScsPubsubClient:
             else:
                 err = Exception(f"expected a heartbeat message but got '{msg_type}'")
                 self._log_request_error("subscribe", err)
-                return TopicSubscribe.Error(
-                    convert_error(err)
-                )
+                return TopicSubscribe.Error(convert_error(err))
             return TopicSubscribe.Subscription(cache_name, topic_name, client_stream=stream, pubsub_client=self)
         except Exception as e:
             self._log_request_error("subscribe", e)

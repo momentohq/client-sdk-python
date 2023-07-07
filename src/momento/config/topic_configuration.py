@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 
 
 class TopicConfigurationBase(ABC):
-
     @abstractmethod
     def get_max_subscriptions(self) -> int:
         pass
@@ -15,7 +14,6 @@ class TopicConfigurationBase(ABC):
 
 
 class TopicConfiguration(TopicConfigurationBase):
-
     def __init__(self, max_subscriptions: int = 0):
         self._max_subscriptions = max_subscriptions
 
