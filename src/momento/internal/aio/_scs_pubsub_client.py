@@ -67,7 +67,7 @@ class _ScsPubsubClient:
                 value=topic_value,
             )
 
-            await self._build_stub().Publish(  # type: ignore[misc]
+            await self._get_stub().Publish(  # type: ignore[misc]
                 request,
             )
             return TopicPublish.Success()
@@ -85,7 +85,7 @@ class _ScsPubsubClient:
                 topic=topic_name,
                 # TODO: resume_at_topic_sequence_number
             )
-            stream = self._build_stream_stub().Subscribe(  # type: ignore[misc]
+            stream = self._get_stream_stub().Subscribe(  # type: ignore[misc]
                 request,
             )
 
@@ -107,10 +107,10 @@ class _ScsPubsubClient:
     def _log_request_error(self, request_type: str, e: Exception) -> None:
         self._logger.warning(f"{request_type} failed with exception: {e}")
 
-    def _build_stub(self) -> pubsub_grpc.PubsubStub:
+    def _get_stub(self) -> pubsub_grpc.PubsubStub:
         return self._grpc_manager.async_stub()
 
-    def _build_stream_stub(self) -> pubsub_grpc.PubsubStub:
+    def _get_stream_stub(self) -> pubsub_grpc.PubsubStub:
         stub = self._stream_managers[self.stream_topic_manager_count % len(self._stream_managers)].async_stub()
         self.stream_topic_manager_count += 1
         return stub
