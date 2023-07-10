@@ -1,14 +1,14 @@
 from abc import ABC
-from grpc.aio._interceptor import InterceptedUnaryStreamCall
-from grpc._channel import _MultiThreadedRendezvous
 from typing import Optional
+
+from grpc._channel import _MultiThreadedRendezvous
+from grpc.aio._interceptor import InterceptedUnaryStreamCall
+from momento_wire_types import cachepubsub_pb2
 
 from ... import logs
 from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
 from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
-
-from momento_wire_types import cachepubsub_pb2
 
 
 class TopicSubscribeResponse(PubsubResponse):
@@ -27,12 +27,8 @@ class TopicSubscribe(ABC):
     class SubscriptionBase(TopicSubscribeResponse):
         """Base class for common logic shared between async and synchronous subscriptions."""
 
-        def __init__(self, cache_name: str, topic_name: str, client_stream: InterceptedUnaryStreamCall):
-            self._logger = logs.logger
-            self._cache_name = cache_name
-            self._topic_name = topic_name
-            self._client_stream = client_stream  # type: ignore[misc]
-            self._last_known_sequence_number: Optional[int] = None
+        _logger = logs.logger
+        _last_known_sequence_number: Optional[int] = None
 
         def _process_result(self, result: cachepubsub_pb2._SubscriptionItem) -> Optional[TopicSubscriptionItemResponse]:
             msg_type: str = result.WhichOneof("kind")
@@ -54,9 +50,15 @@ class TopicSubscribe(ABC):
             return None
 
     class SubscriptionAsync(SubscriptionBase):
-        """Indicates the request was successful."""
+        """Provides the async version of a topic subscription."""
+
+        def __init__(self, cache_name: str, topic_name: str, client_stream: InterceptedUnaryStreamCall):
+            self._cache_name = cache_name
+            self._topic_name = topic_name
+            self._client_stream = client_stream  # type: ignore[misc]
 
         async def item(self) -> TopicSubscriptionItemResponse:
+            """Returns the next published item from the subscription."""
             while True:
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = await self._client_stream.read()  # type: ignore[misc]
@@ -70,7 +72,15 @@ class TopicSubscribe(ABC):
                     return item
 
     class Subscription(SubscriptionBase):
+        """Provides the synchronous version of a topic subscription."""
+
+        def __init__(self, cache_name: str, topic_name: str, client_stream: _MultiThreadedRendezvous):
+            self._cache_name = cache_name
+            self._topic_name = topic_name
+            self._client_stream = client_stream  # type: ignore[misc]
+
         def item(self) -> TopicSubscriptionItemResponse:
+            """Returns the next published item from the subscription."""
             while True:
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = self._client_stream.next()  # type: ignore[misc]

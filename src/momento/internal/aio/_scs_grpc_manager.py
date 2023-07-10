@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import grpc
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_client
@@ -108,7 +110,7 @@ class _PubsubGrpcStreamManager:
         return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 
-def _interceptors(auth_token: str, retry_strategy: RetryStrategy = None) -> list[grpc.aio.ClientInterceptor]:
+def _interceptors(auth_token: str, retry_strategy: Optional[RetryStrategy] = None) -> list[grpc.aio.ClientInterceptor]:
     headers = [
         Header("authorization", auth_token),
         Header("agent", f"python:{_ControlGrpcManager.version}"),

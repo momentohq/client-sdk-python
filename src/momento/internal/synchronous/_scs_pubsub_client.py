@@ -85,13 +85,13 @@ class _ScsPubsubClient:
                 topic=topic_name,
                 # TODO: resume_at_topic_sequence_number
             )
-            stream = self._build_stream_stub().Subscribe(
+            stream = self._build_stream_stub().Subscribe(  # type: ignore[misc]
                 request,
             )
 
             # Ping the stream to provide a nice error message if the cache does not exist.
-            msg = stream.next()
-            msg_type = msg.WhichOneof("kind")
+            msg: pubsub_pb._SubscriptionItem = stream.next()  # type: ignore[misc]
+            msg_type: str = msg.WhichOneof("kind")
             if msg_type == "heartbeat":
                 # The first message to a new subscription is always a heartbeat.
                 pass
@@ -99,7 +99,7 @@ class _ScsPubsubClient:
                 err = Exception(f"expected a heartbeat message but got '{msg_type}'")
                 self._log_request_error("subscribe", err)
                 return TopicSubscribe.Error(convert_error(err))
-            return TopicSubscribe.Subscription(cache_name, topic_name, client_stream=stream)
+            return TopicSubscribe.Subscription(cache_name, topic_name, client_stream=stream)  # type: ignore[misc]
         except Exception as e:
             self._log_request_error("subscribe", e)
             return TopicSubscribe.Error(convert_error(e))

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import grpc
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_client
@@ -73,7 +75,7 @@ class _PubsubGrpcManager:
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, None)
         )
-        self._stub = pubsub_client.PubsubStub(intercept_channel)
+        self._stub = pubsub_client.PubsubStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
         self._secure_channel.close()
@@ -95,7 +97,7 @@ class _PubsubGrpcStreamManager:
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_stream_interceptors(credential_provider.auth_token)
         )
-        self._stub = pubsub_client.PubsubStub(intercept_channel)
+        self._stub = pubsub_client.PubsubStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
         self._secure_channel.close()
@@ -104,7 +106,9 @@ class _PubsubGrpcStreamManager:
         return self._stub
 
 
-def _interceptors(auth_token: str, retry_strategy: RetryStrategy = None) -> list[grpc.UnaryUnaryClientInterceptor]:
+def _interceptors(
+    auth_token: str, retry_strategy: Optional[RetryStrategy] = None
+) -> list[grpc.UnaryUnaryClientInterceptor]:
     headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
     return list(
         filter(
