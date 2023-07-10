@@ -99,7 +99,7 @@ class _ScsPubsubClient:
                 err = Exception(f"expected a heartbeat message but got '{msg_type}'")
                 self._log_request_error("subscribe", err)
                 return TopicSubscribe.Error(convert_error(err))
-            return TopicSubscribe.Subscription(cache_name, topic_name, client_stream=stream, pubsub_client=self)
+            return TopicSubscribe.SubscriptionAsync(cache_name, topic_name, client_stream=stream)
         except Exception as e:
             self._log_request_error("subscribe", e)
             return TopicSubscribe.Error(convert_error(e))
