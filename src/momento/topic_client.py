@@ -32,3 +32,6 @@ class TopicClient:
 
     def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
         return self._pubsub_client.subscribe(cache_name, topic_name)
+
+    def close(self):
+        self._pubsub_client.close()

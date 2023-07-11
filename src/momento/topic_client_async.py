@@ -32,3 +32,6 @@ class TopicClientAsync:
 
     async def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
         return await self._pubsub_client.subscribe(cache_name, topic_name)
+
+    async def close(self):
+        await self._pubsub_client.close()

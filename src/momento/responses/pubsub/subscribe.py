@@ -1,4 +1,5 @@
 from abc import ABC
+from concurrent.futures._base import CancelledError
 from typing import Optional
 
 from grpc._channel import _MultiThreadedRendezvous
@@ -6,6 +7,7 @@ from grpc.aio._interceptor import InterceptedUnaryStreamCall
 from momento_wire_types import cachepubsub_pb2
 
 from ... import logs
+from ...errors import convert_error
 from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
 from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
@@ -62,8 +64,11 @@ class TopicSubscribe(ABC):
             while True:
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = await self._client_stream.read()  # type: ignore[misc]
+                except (CancelledError, StopAsyncIteration) as e:
+                    self._logger.debug(f"Client stream read has been cancelled: {type(e)}")
+                    return TopicSubscriptionItem.Error(convert_error(e))
                 except Exception as e:
-                    self._logger.debug("Error reading from client stream: %s", e)
+                    self._logger.debug(f"Error reading from client stream: {type(e)}")
                     # TODO: attempt reconnect
                     continue
                 item = self._process_result(result)
