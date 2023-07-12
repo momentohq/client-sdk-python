@@ -9,10 +9,19 @@ from typing import AsyncIterator, Callable, Iterator, List, Optional, Union, cas
 import pytest
 import pytest_asyncio
 
-from momento import CacheClient, CacheClientAsync, Configurations, CredentialProvider
-from momento.config import Configuration
+from momento import (
+    CacheClient,
+    CacheClientAsync,
+    Configurations,
+    CredentialProvider,
+    TopicClient,
+    TopicClientAsync,
+    TopicConfigurations,
+)
+from momento.config import Configuration, TopicConfiguration
 from momento.typing import (
     TCacheName,
+    TTopicName,
     TDictionaryField,
     TDictionaryFields,
     TDictionaryItems,
@@ -36,12 +45,15 @@ from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 #######################
 
 TEST_CONFIGURATION = Configurations.Laptop.latest()
+TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest()
 
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
 
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
 if not TEST_CACHE_NAME:
     raise RuntimeError("Integration tests require TEST_CACHE_NAME env var; see README for more details.")
+
+TEST_TOPIC_NAME: Optional[str] = "my-topic"
 
 DEFAULT_TTL_SECONDS: timedelta = timedelta(seconds=60)
 BAD_AUTH_TOKEN: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"  # noqa: E501
@@ -69,8 +81,18 @@ def configuration() -> Configuration:
 
 
 @pytest.fixture(scope="session")
+def topic_configuration() -> TopicConfiguration:
+    return TEST_TOPIC_CONFIGURATION
+
+
+@pytest.fixture(scope="session")
 def cache_name() -> TCacheName:
     return cast(str, TEST_CACHE_NAME)
+
+
+@pytest.fixture(scope="session")
+def topic_name() -> TTopicName:
+    return cast(str, TEST_TOPIC_NAME)
 
 
 @pytest.fixture
@@ -256,6 +278,18 @@ async def client_async() -> AsyncIterator[CacheClientAsync]:
             yield _client
         finally:
             await _client.delete_cache(cast(str, TEST_CACHE_NAME))
+
+
+@pytest.fixture(scope="session")
+def topic_client() -> Iterator[TopicClient]:
+    with TopicClient(TEST_TOPIC_CONFIGURATION, TEST_AUTH_PROVIDER) as _client:
+        yield _client
+
+
+@pytest.fixture(scope="session")
+async def topic_client_async() -> AsyncIterator[TopicClientAsync]:
+    async with TopicClientAsync(TEST_TOPIC_CONFIGURATION, TEST_AUTH_PROVIDER) as _topic_client:
+        yield _topic_client
 
 
 TUniqueCacheName = Callable[[CacheClient], str]
