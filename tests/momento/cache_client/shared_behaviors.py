@@ -81,7 +81,7 @@ def a_topic_validator() -> None:
 
 
 class TConnectionValidator(Protocol):
-    def __call__(self, client: CacheClient) -> PubsubResponse:
+    def __call__(self, client: CacheClient) -> CacheResponse:
         ...
 
 
