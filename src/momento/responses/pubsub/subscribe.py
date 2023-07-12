@@ -7,7 +7,7 @@ from grpc.aio._interceptor import InterceptedUnaryStreamCall
 from momento_wire_types import cachepubsub_pb2
 
 from ... import logs
-from ...errors import convert_error
+from ...errors import MomentoErrorCode, SdkException
 from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
 from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
@@ -65,8 +65,13 @@ class TopicSubscribe(ABC):
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = await self._client_stream.read()  # type: ignore[misc]
                 except (CancelledError, StopAsyncIteration) as e:
+                    err = SdkException(
+                        f"Client subscription has been cancelled by {type(e)}",
+                        MomentoErrorCode.CANCELLED_ERROR,
+                        message_wrapper="Error reading item from topic subscription",
+                    )
                     self._logger.debug(f"Client stream read has been cancelled: {type(e)}")
-                    return TopicSubscriptionItem.Error(convert_error(e))
+                    return TopicSubscriptionItem.Error(err)
                 except Exception as e:
                     self._logger.debug(f"Error reading from client stream: {type(e)}")
                     # TODO: attempt reconnect
