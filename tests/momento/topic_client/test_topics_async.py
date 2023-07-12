@@ -8,7 +8,7 @@ from momento.errors import MomentoErrorCode
 from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from tests.utils import uuid_str
 
-from ..cache_client.shared_behaviors_async import (
+from .shared_behaviors_async import (
     TCacheNameValidator,
     TTopicValidator,
     a_cache_name_validator,
@@ -39,7 +39,7 @@ def describe_publish() -> None:
         resp = await topic_client_async.publish(cache_name, topic_name=topic, value=value)
         assert isinstance(resp, TopicPublish.Success)
 
-    async def with_empty_topic_name(topic_client_async: TopicClientAsync, cache_name: str):
+    async def with_empty_topic_name(topic_client_async: TopicClientAsync, cache_name: str) -> None:
         topic = ""
         value = uuid_str()
 
@@ -78,7 +78,7 @@ def describe_subscribe() -> None:
         assert isinstance(item_response, TopicSubscriptionItem.Success)
         assert item_response.value_string == value
 
-    async def errors_with_empty_topic_name(topic_client_async: TopicClientAsync, cache_name: str):
+    async def errors_with_empty_topic_name(topic_client_async: TopicClientAsync, cache_name: str) -> None:
         topic = ""
 
         resp = await topic_client_async.subscribe(cache_name, topic)
