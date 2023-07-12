@@ -4,7 +4,6 @@ from pytest import fixture
 from pytest_describe import behaves_like
 
 from momento import CacheClientAsync, TopicClientAsync
-from momento.errors import MomentoErrorCode
 from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from tests.utils import uuid_str
 
@@ -39,15 +38,6 @@ def describe_publish() -> None:
         resp = await topic_client_async.publish(cache_name, topic_name=topic, value=value)
         assert isinstance(resp, TopicPublish.Success)
 
-    async def with_empty_topic_name(topic_client_async: TopicClientAsync, cache_name: str) -> None:
-        topic = ""
-        value = uuid_str()
-
-        resp = await topic_client_async.publish(cache_name, topic, value)
-        assert isinstance(resp, TopicPublish.Error)
-        if isinstance(resp, TopicPublish.Error):
-            assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-
 
 @behaves_like(a_cache_name_validator, a_topic_validator)
 def describe_subscribe() -> None:
@@ -77,14 +67,6 @@ def describe_subscribe() -> None:
         item_response = await item_task
         assert isinstance(item_response, TopicSubscriptionItem.Success)
         assert item_response.value_string == value
-
-    async def errors_with_empty_topic_name(topic_client_async: TopicClientAsync, cache_name: str) -> None:
-        topic = ""
-
-        resp = await topic_client_async.subscribe(cache_name, topic)
-        assert isinstance(resp, TopicSubscribe.Error)
-        if isinstance(resp, TopicSubscribe.Error):
-            assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
     async def succeeds_with_nonexistent_topic(
         client: CacheClientAsync, topic_client_async: TopicClientAsync, cache_name: str

@@ -4,7 +4,6 @@ from pytest import fixture
 from pytest_describe import behaves_like
 
 from momento import CacheClient, TopicClient
-from momento.errors import MomentoErrorCode
 from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from tests.utils import uuid_str
 
@@ -37,15 +36,6 @@ def describe_publish() -> None:
         resp = topic_client.publish(cache_name, topic_name=topic, value=value)
         assert isinstance(resp, TopicPublish.Success)
 
-    def with_empty_topic_name(topic_client: TopicClient, cache_name: str) -> None:
-        topic = ""
-        value = uuid_str()
-
-        resp = topic_client.publish(cache_name, topic, value)
-        assert isinstance(resp, TopicPublish.Error)
-        if isinstance(resp, TopicPublish.Error):
-            assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-
 
 @behaves_like(a_cache_name_validator, a_topic_validator)
 def describe_subscribe() -> None:
@@ -71,14 +61,6 @@ def describe_subscribe() -> None:
         item_response = subscribe_response.item()
         assert isinstance(item_response, TopicSubscriptionItem.Success)
         assert item_response.value_string == value
-
-    def errors_with_empty_topic_name(topic_client: TopicClient, cache_name: str) -> None:
-        topic = ""
-
-        resp = topic_client.subscribe(cache_name, topic)
-        assert isinstance(resp, TopicSubscribe.Error)
-        if isinstance(resp, TopicSubscribe.Error):
-            assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
     def succeeds_with_nonexistent_topic(client: CacheClient, topic_client: TopicClient, cache_name: str) -> None:
         topic = uuid_str()
