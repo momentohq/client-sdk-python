@@ -4,12 +4,12 @@ from datetime import timedelta
 
 from typing_extensions import Protocol
 
-from momento import CacheClient
+from momento import CacheClient, TopicClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
-from momento.responses import CacheResponse
-from momento.typing import TCacheName, TScalarKey
+from momento.responses import CacheResponse, PubsubResponse
+from momento.typing import TCacheName, TScalarKey, TTopicName
 from tests.asserts import assert_response_is_error
 from tests.utils import uuid_str
 
@@ -69,8 +69,19 @@ def a_key_validator() -> None:
         )
 
 
+class TTopicValidator(Protocol):
+    def __call__(self, topic_name: TTopicName) -> PubsubResponse:
+        ...
+
+
+def a_topic_validator() -> None:
+    def with_null_topic_throws_exception(cache_name: str, topic_validator: TTopicValidator) -> None:
+        response = topic_validator(topic_name=None)  # type: ignore
+        assert_response_is_error(response, error_code=MomentoErrorCode.INVALID_ARGUMENT_ERROR)
+
+
 class TConnectionValidator(Protocol):
-    def __call__(self, client: CacheClient) -> CacheResponse:
+    def __call__(self, client: CacheClient) -> PubsubResponse:
         ...
 
 

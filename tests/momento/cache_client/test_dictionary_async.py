@@ -762,7 +762,13 @@ def describe_dictionary_remove_field() -> None:
             assert fetch_response.value_dictionary_string_string == {extra_field: extra_value}
 
 
-@behaves_like(a_dictionary_remover, a_dictionary_name_validator, a_dictionary_fields_validator, a_cache_name_validator, a_connection_validator)
+@behaves_like(
+    a_dictionary_remover,
+    a_dictionary_name_validator,
+    a_dictionary_fields_validator,
+    a_cache_name_validator,
+    a_connection_validator,
+)
 def describe_dictionary_remove_fields() -> None:
     @fixture
     def cache_name_validator(
@@ -839,7 +845,7 @@ def describe_dictionary_remove_fields() -> None:
     a_connection_validator,
     a_dictionary_setter,
     a_dictionary_name_validator,
-    a_dictionary_value_validator
+    a_dictionary_value_validator,
 )
 def describe_dictionary_set_field() -> None:
     @fixture
@@ -925,7 +931,7 @@ def describe_dictionary_set_field() -> None:
     a_connection_validator,
     a_dictionary_setter,
     a_dictionary_name_validator,
-    a_dictionary_items_validator
+    a_dictionary_items_validator,
 )
 def describe_dictionary_set_fields() -> None:
     @fixture

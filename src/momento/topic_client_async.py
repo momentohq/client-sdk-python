@@ -37,6 +37,7 @@ class TopicClientAsync:
         else:
             raise Exception("This should never happen")
     """
+
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         """Instantiate a client.
 

@@ -76,7 +76,6 @@ class TTopicValidator(Protocol):
 
 
 def a_topic_validator() -> None:
-
     async def with_null_topic_throws_exception(cache_name: str, topic_validator: TTopicValidator) -> None:
         response = await topic_validator(topic_name=None)  # type: ignore
         assert_response_is_error(response, error_code=MomentoErrorCode.INVALID_ARGUMENT_ERROR)

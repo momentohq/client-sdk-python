@@ -21,7 +21,6 @@ from momento import (
 from momento.config import Configuration, TopicConfiguration
 from momento.typing import (
     TCacheName,
-    TTopicName,
     TDictionaryField,
     TDictionaryFields,
     TDictionaryItems,
@@ -37,6 +36,7 @@ from momento.typing import (
     TSortedSetName,
     TSortedSetScore,
     TSortedSetValues,
+    TTopicName,
 )
 from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
