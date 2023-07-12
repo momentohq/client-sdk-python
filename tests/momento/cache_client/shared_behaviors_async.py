@@ -5,7 +5,7 @@ from typing import Awaitable
 
 from typing_extensions import Protocol
 
-from momento import CacheClientAsync, TopicClientAsync
+from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -82,7 +82,7 @@ def a_topic_validator() -> None:
 
 
 class TConnectionValidator(Protocol):
-    def __call__(self, client_async: CacheClientAsync) -> Awaitable[PubsubResponse]:
+    def __call__(self, client_async: CacheClientAsync) -> Awaitable[CacheResponse]:
         ...
 
 

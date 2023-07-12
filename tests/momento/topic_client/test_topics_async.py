@@ -5,21 +5,13 @@ from pytest_describe import behaves_like
 
 from momento import CacheClientAsync, TopicClientAsync
 from momento.errors import MomentoErrorCode
-from momento.responses import (
-    PubsubResponse,
-    TopicPublish,
-    TopicSubscribe,
-    TopicSubscriptionItem,
-)
+from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from tests.utils import uuid_str
 
 from ..cache_client.shared_behaviors_async import (
-    TCacheName,
     TCacheNameValidator,
-    TConnectionValidator,
     TTopicValidator,
     a_cache_name_validator,
-    a_connection_validator,
     a_topic_validator,
 )
 

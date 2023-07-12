@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from typing_extensions import Protocol
 
-from momento import CacheClient, TopicClientAsync
+from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode

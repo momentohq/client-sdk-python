@@ -93,5 +93,5 @@ class TopicClientAsync:
         """
         return await self._pubsub_client.subscribe(cache_name, topic_name)
 
-    async def close(self):
+    async def close(self) -> None:
         await self._pubsub_client.close()

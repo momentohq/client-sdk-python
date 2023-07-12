@@ -93,5 +93,5 @@ class TopicClient:
         """
         return self._pubsub_client.subscribe(cache_name, topic_name)
 
-    def close(self):
+    def close(self) -> None:
         self._pubsub_client.close()
