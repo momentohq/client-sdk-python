@@ -18,7 +18,7 @@ class TopicClient:
     sub-types. See the documentation for each response type for details.
 
     Pattern matching can be used to operate on the appropriate subtype.
-    For example, in python 3.10+ if you're deleting a key::
+    For example, in python 3.10+ if you're subscribing to a topic::
 
         response = client.subscribe(cache_name, topic_name)
         match response:
