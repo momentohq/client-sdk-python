@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC
 from concurrent.futures._base import CancelledError
 from typing import Optional
@@ -20,6 +22,9 @@ class TopicSubscribeResponse(PubsubResponse):
     - `TopicSubscribe.Subscription`
     - `TopicSubscribe.SubscriptionAsync`
     - `TopicSubscribe.Error`
+
+    Both the ``Subscription` and the `SubscriptionAsync` response subtypes are
+    iterators that yield subscription items.
     """
 
 
@@ -59,7 +64,10 @@ class TopicSubscribe(ABC):
             self._topic_name = topic_name
             self._client_stream = client_stream  # type: ignore[misc]
 
-        async def item(self) -> TopicSubscriptionItemResponse:
+        def __aiter__(self) -> TopicSubscribe.SubscriptionAsync:
+            return self
+
+        async def __anext__(self) -> TopicSubscriptionItemResponse:
             """Retrieves the next published item from the subscription.
 
             The item method returns a response object that is resolved to a type-safe object
@@ -71,24 +79,28 @@ class TopicSubscribe(ABC):
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+ if you're receiving a subscription item::
 
-                response = subscribe_response.item()
-                match response:
-                    case TopicSubscriptionItem.Success():
-                        return response.value_string # value_bytes is also available
-                    case TopicSubscriptionItem.Error():
-                        ...there was an error retrieving the item...
+                async for response in subscription:
+                    match response:
+                        case TopicSubscriptionItem.Success():
+                            return response.value_string # value_bytes is also available
+                        case TopicSubscriptionItem.Error():
+                            ...there was an error retrieving the item...
 
             or equivalently in earlier versions of python::
 
-                response = subscribe_response.item()
-                if isinstance(response, TopicSubscriptionItem.Success):
-                    return response.value_string # value_bytes is also available
-                elif isinstance(response, TopicSubscriptionItem.Error):
-                    ...there was an error retrieving the item...
+                async for response in subscription:
+                    if isinstance(response, TopicSubscriptionItem.Success):
+                        return response.value_string # value_bytes is also available
+                    elif isinstance(response, TopicSubscriptionItem.Error):
+                        ...there was an error retrieving the item...
             """
             while True:
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = await self._client_stream.read()  # type: ignore[misc]
+                    item = self._process_result(result)
+                    # if item is null, we've received a heartbeat or discontinuity and should continue
+                    if item is not None:
+                        return item
                 except (CancelledError, StopAsyncIteration) as e:
                     err = SdkException(
                         f"Client subscription has been cancelled by {type(e)}",
@@ -101,10 +113,6 @@ class TopicSubscribe(ABC):
                     self._logger.debug(f"Error reading from client stream: {type(e)}")
                     # TODO: attempt reconnect
                     continue
-                item = self._process_result(result)
-                # if item is null, we've received a heartbeat or discontinuity and should continue
-                if item is not None:
-                    return item
 
     class Subscription(SubscriptionBase):
         """Provides the synchronous version of a topic subscription."""
@@ -114,7 +122,10 @@ class TopicSubscribe(ABC):
             self._topic_name = topic_name
             self._client_stream = client_stream  # type: ignore[misc]
 
-        def item(self) -> TopicSubscriptionItemResponse:
+        def __iter__(self) -> TopicSubscribe.Subscription:
+            return self
+
+        def __next__(self) -> TopicSubscriptionItemResponse:
             """Retrieves the next published item from the subscription.
 
             The item method returns a response object that is resolved to a type-safe object
@@ -126,32 +137,32 @@ class TopicSubscribe(ABC):
             Pattern matching can be used to operate on the appropriate subtype.
             For example, in python 3.10+ if you're receiving a subscription item::
 
-                response = subscribe_response.item()
-                match response:
-                    case TopicSubscriptionItem.Success():
-                        return response.value_string # value_bytes is also available
-                    case TopicSubscriptionItem.Error():
-                        ...there was an error retrieving the item...
+                for response in subscription:
+                    match response:
+                        case TopicSubscriptionItem.Success():
+                            return response.value_string # value_bytes is also available
+                        case TopicSubscriptionItem.Error():
+                            ...there was an error retrieving the item...
 
             or equivalently in earlier versions of python::
 
-                response = subscribe_response.item()
-                if isinstance(response, TopicSubscriptionItem.Success):
-                    return response.value_string # value_bytes is also available
-                elif isinstance(response, TopicSubscriptionItem.Error):
-                    ...there was an error retrieving the item...
+                for response in subscription:
+                    if isinstance(response, TopicSubscriptionItem.Success):
+                        return response.value_string # value_bytes is also available
+                    elif isinstance(response, TopicSubscriptionItem.Error):
+                        ...there was an error retrieving the item...
             """
             while True:
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = self._client_stream.next()  # type: ignore[misc]
+                    item = self._process_result(result)
+                    # if item is null, we've received a heartbeat or discontinuity and should continue
+                    if item is not None:
+                        return item
                 except Exception as e:
                     self._logger.debug("Error reading from client stream: %s", e)
                     # TODO: attempt reconnect
                     continue
-                item = self._process_result(result)
-                # if item is null, we've received a heartbeat or discontinuity and should continue
-                if item is not None:
-                    return item
 
     class Error(TopicSubscribeResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
