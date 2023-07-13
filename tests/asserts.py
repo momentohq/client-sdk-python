@@ -2,12 +2,12 @@ from typing import Optional
 
 from momento.errors.error_details import MomentoErrorCode
 from momento.responses.mixins import ErrorResponseMixin
-from momento.responses.response import CacheResponse
+from momento.responses.response import Response
 
 
 # Custom assertions
 def assert_response_is_error(
-    response: CacheResponse,
+    response: Response,
     *,
     error_code: Optional[MomentoErrorCode] = None,
     inner_exception_message: Optional[str] = None,

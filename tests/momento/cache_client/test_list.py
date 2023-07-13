@@ -292,11 +292,13 @@ def a_list_pusher() -> None:
         assert resp.message == "Invalid argument passed to Momento client: Unsupported type for value: <class 'int'>"
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_adder)
-@behaves_like(a_list_name_validator)
-@behaves_like(a_list_concatenator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_adder,
+    a_list_name_validator,
+    a_list_concatenator,
+)
 def describe_list_concatenate_back() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -368,11 +370,13 @@ def describe_list_concatenate_back() -> None:
             assert False
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_adder)
-@behaves_like(a_list_name_validator)
-@behaves_like(a_list_concatenator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_adder,
+    a_list_name_validator,
+    a_list_concatenator,
+)
 def describe_list_concatenate_front() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -445,9 +449,11 @@ def describe_list_concatenate_front() -> None:
             assert False
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_name_validator,
+)
 def describe_list_fetch() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -470,9 +476,11 @@ def describe_list_fetch() -> None:
         assert isinstance(resp, CacheListFetch.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_name_validator,
+)
 def describe_list_length() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -506,9 +514,11 @@ def describe_list_length() -> None:
         assert isinstance(resp, CacheListLength.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_name_validator,
+)
 def describe_list_pop_back() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -542,9 +552,11 @@ def describe_list_pop_back() -> None:
         assert isinstance(resp, CacheListPopBack.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_name_validator,
+)
 def describe_list_pop_front() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -578,11 +590,13 @@ def describe_list_pop_front() -> None:
         assert isinstance(resp, CacheListPopFront.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_adder)
-@behaves_like(a_list_name_validator)
-@behaves_like(a_list_pusher)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_adder,
+    a_list_name_validator,
+    a_list_pusher,
+)
 def describe_list_push_back() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -641,11 +655,13 @@ def describe_list_push_back() -> None:
             assert False
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_adder)
-@behaves_like(a_list_name_validator)
-@behaves_like(a_list_pusher)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_adder,
+    a_list_name_validator,
+    a_list_pusher,
+)
 def describe_list_push_front() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
@@ -705,9 +721,11 @@ def describe_list_push_front() -> None:
             assert False
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_list_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_list_name_validator,
+)
 def describe_list_remove_value() -> None:
     @fixture
     def cache_name_validator(client: CacheClient) -> TCacheNameValidator:
