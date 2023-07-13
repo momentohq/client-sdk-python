@@ -60,7 +60,32 @@ class TopicSubscribe(ABC):
             self._client_stream = client_stream  # type: ignore[misc]
 
         async def item(self) -> TopicSubscriptionItemResponse:
-            """Returns the next published item from the subscription."""
+            """Retrieves the next published item from the subscription.
+
+            The item method returns a response object that is resolved to a type-safe object
+            of one of the following:
+
+            - TopicSubscriptionItem.Success
+            - TopicSubscriptionItem.Error
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+ if you're receiving a subscription item::
+
+                response = subscribe_response.item()
+                match response:
+                    case TopicSubscriptionItem.Success():
+                        return response.value_string # value_bytes is also available
+                    case TopicSubscriptionItem.Error():
+                        ...there was an error retrieving the item...
+
+            or equivalently in earlier versions of python::
+
+                response = subscribe_response.item()
+                if isinstance(response, TopicSubscriptionItem.Success):
+                    return response.value_string # value_bytes is also available
+                elif isinstance(response, TopicSubscriptionItem.Error):
+                    ...there was an error retrieving the item...
+            """
             while True:
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = await self._client_stream.read()  # type: ignore[misc]
@@ -90,7 +115,32 @@ class TopicSubscribe(ABC):
             self._client_stream = client_stream  # type: ignore[misc]
 
         def item(self) -> TopicSubscriptionItemResponse:
-            """Returns the next published item from the subscription."""
+            """Retrieves the next published item from the subscription.
+
+            The item method returns a response object that is resolved to a type-safe object
+            of one of the following:
+
+            - TopicSubscriptionItem.Success
+            - TopicSubscriptionItem.Error
+
+            Pattern matching can be used to operate on the appropriate subtype.
+            For example, in python 3.10+ if you're receiving a subscription item::
+
+                response = subscribe_response.item()
+                match response:
+                    case TopicSubscriptionItem.Success():
+                        return response.value_string # value_bytes is also available
+                    case TopicSubscriptionItem.Error():
+                        ...there was an error retrieving the item...
+
+            or equivalently in earlier versions of python::
+
+                response = subscribe_response.item()
+                if isinstance(response, TopicSubscriptionItem.Success):
+                    return response.value_string # value_bytes is also available
+                elif isinstance(response, TopicSubscriptionItem.Error):
+                    ...there was an error retrieving the item...
+            """
             while True:
                 try:
                     result: cachepubsub_pb2._SubscriptionItem = self._client_stream.next()  # type: ignore[misc]
