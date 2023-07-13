@@ -43,9 +43,9 @@ cache_client = CacheClient(
     timedelta(seconds=60)
 )
 
-create_cache_response = cache_client.create_cache("cache")
-set_response = cache_client.set("cache", "my-key", "my-value")
-get_response = cache_client.get(_CACHE_NAME, _KEY)
+cache_client.create_cache("cache")
+cache_client.set("cache", "my-key", "my-value")
+get_response = cache_client.get("cache", "my-key")
 match get_response:
     case CacheGet.Hit() as hit:
         print(f"Got value: {hit.value_string}")
