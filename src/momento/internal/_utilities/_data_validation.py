@@ -50,6 +50,10 @@ def _validate_sorted_set_name(sorted_set_name: str) -> None:
     _validate_name(sorted_set_name, "Sorted set name")
 
 
+def _validate_topic_name(topic_name: str) -> None:
+    _validate_name(topic_name, "Topic name")
+
+
 def _validate_sorted_set_score(score: float) -> float:
     if isinstance(score, float):
         return score

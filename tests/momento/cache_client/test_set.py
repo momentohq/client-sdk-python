@@ -165,11 +165,13 @@ def a_set_name_validator() -> None:
         assert response.inner_exception.message == "Set name must be a string"
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_set_adder)
-@behaves_like(a_set_name_validator)
-@behaves_like(a_set_which_takes_an_element)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_set_adder,
+    a_set_name_validator,
+    a_set_which_takes_an_element,
+)
 def describe_set_add_element() -> None:
     @fixture
     def cache_name_validator(client: CacheClient, set_name: TSetName, element: TSetElement) -> TCacheNameValidator:
@@ -252,11 +254,13 @@ def describe_set_add_element() -> None:
         assert fetch_resp.value_set_bytes == {element1, element2}
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_set_adder)
-@behaves_like(a_set_name_validator)
-@behaves_like(a_set_which_takes_an_element)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_set_adder,
+    a_set_name_validator,
+    a_set_which_takes_an_element,
+)
 def describe_set_add_elements() -> None:
     @fixture
     def cache_name_validator(
@@ -346,9 +350,11 @@ def describe_set_add_elements() -> None:
         assert fetch_resp.value_set_bytes == elements_bytes
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_set_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_set_name_validator,
+)
 def describe_set_fetch() -> None:
     @fixture
     def cache_name_validator(client: CacheClient, set_name: TSetName) -> TCacheNameValidator:
@@ -380,10 +386,12 @@ def describe_set_fetch() -> None:
         assert isinstance(resp, CacheSetFetch.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_set_name_validator)
-@behaves_like(a_set_which_takes_an_element)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_set_name_validator,
+    a_set_which_takes_an_element,
+)
 def describe_set_remove_element() -> None:
     @fixture
     def cache_name_validator(client: CacheClient, set_name: TSetName, element: TSetElement) -> TCacheNameValidator:
@@ -462,10 +470,12 @@ def describe_set_remove_element() -> None:
         assert fetch_resp.value_set_bytes == new_elements
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_set_name_validator)
-@behaves_like(a_set_which_takes_an_element)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_set_name_validator,
+    a_set_which_takes_an_element,
+)
 def describe_set_remove_elements() -> None:
     @fixture
     def cache_name_validator(

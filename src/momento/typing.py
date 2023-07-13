@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, List, Mapping, Set, Union
 
 TCacheName = str
+TTopicName = str
 
 TMomentoValue = Union[str, bytes]
 

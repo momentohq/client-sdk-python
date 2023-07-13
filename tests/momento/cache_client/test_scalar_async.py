@@ -133,9 +133,7 @@ def describe_set_and_get() -> None:
         assert get_resp.value_bytes == value
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_key_validator)
-@behaves_like(a_connection_validator)
+@behaves_like(a_cache_name_validator, a_key_validator, a_connection_validator)
 def describe_get() -> None:
     @fixture
     def cache_name_validator(client_async: CacheClientAsync) -> TCacheNameValidator:

@@ -375,11 +375,13 @@ def a_dictionary_value_validator() -> None:
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_getter)
-@behaves_like(a_dictionary_name_validator)
-@behaves_like(a_dictionary_field_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_dictionary_getter,
+    a_dictionary_name_validator,
+    a_dictionary_field_validator,
+)
 def describe_dictionary_get_field() -> None:
     @fixture
     def cache_name_validator(
@@ -426,11 +428,13 @@ def describe_dictionary_get_field() -> None:
         assert isinstance(get_response, CacheDictionaryGetField.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_getter)
-@behaves_like(a_dictionary_name_validator)
-@behaves_like(a_dictionary_fields_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_dictionary_getter,
+    a_dictionary_name_validator,
+    a_dictionary_fields_validator,
+)
 def describe_dictionary_get_fields() -> None:
     @fixture
     def cache_name_validator(
@@ -531,9 +535,7 @@ def describe_dictionary_get_fields() -> None:
         assert missing_key not in get_response.value_dictionary_string_string
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_name_validator)
+@behaves_like(a_cache_name_validator, a_connection_validator, a_dictionary_name_validator)
 def describe_dictionary_fetch() -> None:
     @fixture
     def cache_name_validator(client: CacheClient, dictionary_name: TDictionaryName) -> TCacheNameValidator:
@@ -557,10 +559,12 @@ def describe_dictionary_fetch() -> None:
         assert isinstance(fetch_response, CacheDictionaryFetch.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_name_validator)
-@behaves_like(a_dictionary_field_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_dictionary_name_validator,
+    a_dictionary_field_validator,
+)
 def describe_dictionary_increment() -> None:
     @fixture
     def cache_name_validator(
@@ -676,11 +680,13 @@ def describe_dictionary_increment() -> None:
         assert increment_response.error_code == MomentoErrorCode.FAILED_PRECONDITION_ERROR
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_remover)
-@behaves_like(a_dictionary_name_validator)
-@behaves_like(a_dictionary_field_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_dictionary_remover,
+    a_dictionary_name_validator,
+    a_dictionary_field_validator,
+)
 def describe_dictionary_remove_field() -> None:
     @fixture
     def cache_name_validator(
@@ -744,12 +750,13 @@ def describe_dictionary_remove_field() -> None:
             assert fetch_response.value_dictionary_string_string == {extra_field: extra_value}
 
 
-# TODO these don't work for this case?
-# @behaves_like(a_cache_name_validator)
-# @behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_remover)
-@behaves_like(a_dictionary_name_validator)
-@behaves_like(a_dictionary_fields_validator)
+@behaves_like(
+    a_dictionary_remover,
+    a_dictionary_name_validator,
+    a_dictionary_fields_validator,
+    a_cache_name_validator,
+    a_connection_validator,
+)
 def describe_dictionary_remove_fields() -> None:
     @fixture
     def cache_name_validator(
@@ -819,11 +826,13 @@ def describe_dictionary_remove_fields() -> None:
         assert fetch_response.value_dictionary_string_string == {extra_field: extra_value}
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_setter)
-@behaves_like(a_dictionary_name_validator)
-@behaves_like(a_dictionary_value_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_dictionary_setter,
+    a_dictionary_name_validator,
+    a_dictionary_value_validator,
+)
 def describe_dictionary_set_field() -> None:
     @fixture
     def cache_name_validator(
@@ -903,11 +912,13 @@ def describe_dictionary_set_field() -> None:
         )
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_dictionary_setter)
-@behaves_like(a_dictionary_name_validator)
-@behaves_like(a_dictionary_items_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_dictionary_setter,
+    a_dictionary_name_validator,
+    a_dictionary_items_validator,
+)
 def describe_dictionary_set_fields() -> None:
     @fixture
     def cache_name_validator(

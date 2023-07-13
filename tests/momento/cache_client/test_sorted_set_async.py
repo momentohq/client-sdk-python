@@ -488,10 +488,12 @@ def a_sorted_set_remover() -> None:
         assert isinstance(fetch_response, CacheSortedSetFetch.Miss)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_setter)
-@behaves_like(a_sorted_set_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_setter,
+    a_sorted_set_name_validator,
+)
 def describe_sorted_set_put_field() -> None:
     @fixture
     def cache_name_validator(
@@ -563,10 +565,12 @@ def describe_sorted_set_put_field() -> None:
         return _sorted_set_setter
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_setter)
-@behaves_like(a_sorted_set_name_validator)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_setter,
+    a_sorted_set_name_validator,
+)
 def describe_sorted_set_put_fields() -> None:
     @fixture
     def cache_name_validator(
@@ -625,10 +629,12 @@ def describe_sorted_set_put_fields() -> None:
         return _sorted_set_setter
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_fetcher)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_fetcher,
+)
 def describe_sorted_set_fetch_by_rank() -> None:
     @fixture
     def cache_name_validator(
@@ -660,10 +666,12 @@ def describe_sorted_set_fetch_by_rank() -> None:
         return partial(client_async.sorted_set_fetch_by_rank, cache_name=cache_name, sorted_set_name=sorted_set_name)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_fetcher)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_fetcher,
+)
 def describe_sorted_set_fetch_by_score() -> None:
     @fixture
     def cache_name_validator(
@@ -693,10 +701,12 @@ def describe_sorted_set_fetch_by_score() -> None:
         return partial(client_async.sorted_set_fetch_by_score, cache_name=cache_name, sorted_set_name=sorted_set_name)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_score_getter)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_score_getter,
+)
 def describe_sorted_set_get_score() -> None:
     @fixture
     def cache_name_validator(
@@ -732,10 +742,12 @@ def describe_sorted_set_get_score() -> None:
         return partial(client_async.sorted_set_get_score)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_score_getter)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_score_getter,
+)
 def describe_sorted_set_get_scores() -> None:
     @fixture
     def cache_name_validator(
@@ -783,10 +795,12 @@ def describe_sorted_set_get_scores() -> None:
         return _sorted_set_score_getter
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_rank_getter)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_rank_getter,
+)
 def describe_sorted_set_get_rank() -> None:
     @fixture
     def cache_name_validator(
@@ -822,10 +836,12 @@ def describe_sorted_set_get_rank() -> None:
         return partial(client_async.sorted_set_get_rank)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_setter)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_setter,
+)
 def describe_sorted_set_increment_score() -> None:
     @fixture
     def cache_name_validator(
@@ -883,10 +899,12 @@ def describe_sorted_set_increment_score() -> None:
         return _sorted_set_setter
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_remover)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_remover,
+)
 def describe_sorted_set_remove_element() -> None:
     @fixture
     def cache_name_validator(
@@ -924,10 +942,12 @@ def describe_sorted_set_remove_element() -> None:
         return partial(client_async.sorted_set_remove_element)
 
 
-@behaves_like(a_cache_name_validator)
-@behaves_like(a_connection_validator)
-@behaves_like(a_sorted_set_name_validator)
-@behaves_like(a_sorted_set_remover)
+@behaves_like(
+    a_cache_name_validator,
+    a_connection_validator,
+    a_sorted_set_name_validator,
+    a_sorted_set_remover,
+)
 def describe_sorted_set_remove_elements() -> None:
     @fixture
     def cache_name_validator(
