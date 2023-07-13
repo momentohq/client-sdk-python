@@ -60,7 +60,7 @@ def describe_subscribe() -> None:
         subscribe_response = await topic_client_async.subscribe(cache_name, topic_name=topic)
         assert isinstance(subscribe_response, TopicSubscribe.SubscriptionAsync)
 
-        item_task = subscribe_response.item()
+        item_task = subscribe_response.__anext__()
         publish_response = await topic_client_async.publish(cache_name, topic_name=topic, value=value)
 
         print(publish_response)

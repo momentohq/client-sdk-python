@@ -58,7 +58,7 @@ def describe_subscribe() -> None:
 
         _ = topic_client.publish(cache_name, topic_name=topic, value=value)
 
-        item_response = subscribe_response.item()
+        item_response = subscribe_response.__next__()
         assert isinstance(item_response, TopicSubscriptionItem.Success)
         assert item_response.value_string == value
 
