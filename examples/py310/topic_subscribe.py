@@ -40,8 +40,10 @@ def main() -> None:
                     match item:
                         case TopicSubscriptionItem.Success():
                             print(f"got item: {item.value_string} ({item.value_bytes})")
+                            return
                         case TopicSubscriptionItem.Error():
                             print(f"got item error: {item.message}")
+                            return
 
 
 if __name__ == "__main__":
