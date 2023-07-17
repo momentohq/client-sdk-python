@@ -64,7 +64,7 @@ async def poll_subscription(subscription: TopicSubscribe.SubscriptionAsync):
             case TopicSubscriptionItem.Error():
                 print("stream closed")
                 print(item.inner_exception.message)
-
+                return
 
 if __name__ == "__main__":
     asyncio.run(main())
