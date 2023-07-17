@@ -146,10 +146,6 @@ jobs:
           poetry run python -m ${{ matrix.package }}.quickstart
           poetry run python -m ${{ matrix.package }}.example
           poetry run python -m ${{ matrix.package }}.example_async
-          poetry run python -m ${{ matrix.package }}.topic_publish
-          poetry run python -m ${{ matrix.package }}.topic_publish_async
-          poetry run python -m ${{ matrix.package }}.topic_subscribe
-          poetry run python -m ${{ matrix.package }}.topic_subscribe_async
 
       - name: Run docs samples for python >= 3.10
         id: docs-ex-validation

@@ -61,11 +61,9 @@ async def poll_subscription(subscription: TopicSubscribe.SubscriptionAsync):
         match item:
             case TopicSubscriptionItem.Success():
                 print(f"got item: {item.value_string} ({item.value_bytes})")
-                return
             case TopicSubscriptionItem.Error():
                 print("stream closed")
                 print(item.inner_exception.message)
-                return
 
 
 if __name__ == "__main__":
