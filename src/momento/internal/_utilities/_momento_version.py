@@ -8,7 +8,7 @@ momento_version = ""
 
 try:
     # For python < 3.8
-    import importlib_metadata # type: ignore[import]
+    import importlib_metadata  # type: ignore[import]
 
     momento_version = importlib_metadata.Distribution.from_name("momento").version  # type: ignore[misc]
 except ImportError:
