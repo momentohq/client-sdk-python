@@ -5,16 +5,13 @@ from momento import CacheClientAsync, Configurations
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
-from momento.responses import (
+from momento.responses import (  # CreateSigningKey,; ListSigningKeys,; RevokeSigningKey,
     CacheFlush,
     CacheGet,
     CacheSet,
     CreateCache,
-    CreateSigningKey,
     DeleteCache,
     ListCaches,
-    ListSigningKeys,
-    RevokeSigningKey,
 )
 from tests.conftest import TUniqueCacheNameAsync
 from tests.utils import uuid_str
