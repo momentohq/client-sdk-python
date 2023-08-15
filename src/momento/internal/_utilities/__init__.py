@@ -14,3 +14,4 @@ from ._data_validation import (
     _validate_ttl,
 )
 from ._momento_version import momento_version
+from ._vector_index_validation import _validate_index_name, _validate_num_dimensions

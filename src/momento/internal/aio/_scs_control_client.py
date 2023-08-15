@@ -8,7 +8,12 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import convert_error
-from momento.internal._utilities import _validate_cache_name, _validate_ttl
+from momento.internal._utilities import (
+    _validate_cache_name,
+    _validate_index_name,
+    _validate_num_dimensions,
+    _validate_ttl,
+)
 from momento.internal.aio._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
     CacheFlush,
@@ -66,6 +71,8 @@ class _ScsControlClient:
     async def create_index(self, index_name: str, num_dimensions: int) -> CreateIndexResponse:
         try:
             self._logger.info(f"Creating index with name: {index_name}")
+            _validate_index_name(index_name)
+            _validate_num_dimensions(num_dimensions)
             request = ctrl_pb._CreateIndexRequest(index_name=index_name, num_dimensions=num_dimensions)
             await self._build_stub().CreateIndex(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
@@ -89,6 +96,7 @@ class _ScsControlClient:
     async def delete_index(self, index_name: str) -> DeleteIndexResponse:
         try:
             self._logger.info(f"Deleting index with name: {index_name}")
+            _validate_index_name(index_name)
             request = ctrl_pb._DeleteIndexRequest(index_name=index_name)
             await self._build_stub().DeleteIndex(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
