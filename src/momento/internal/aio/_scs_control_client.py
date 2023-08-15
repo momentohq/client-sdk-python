@@ -15,12 +15,18 @@ from momento.responses import (
     CacheFlushResponse,
     CreateCache,
     CreateCacheResponse,
+    CreateIndex,
+    CreateIndexResponse,
     CreateSigningKey,
     CreateSigningKeyResponse,
     DeleteCache,
     DeleteCacheResponse,
+    DeleteIndex,
+    DeleteIndexResponse,
     ListCaches,
     ListCachesResponse,
+    ListIndexes,
+    ListIndexesResponse,
     ListSigningKeys,
     ListSigningKeysResponse,
     RevokeSigningKey,
@@ -57,6 +63,18 @@ class _ScsControlClient:
             return CreateCache.Error(convert_error(e))
         return CreateCache.Success()
 
+    async def create_index(self, index_name: str, num_dimensions: int) -> CreateIndexResponse:
+        try:
+            self._logger.info(f"Creating index with name: {index_name}")
+            request = ctrl_pb._CreateIndexRequest(index_name=index_name, num_dimensions=num_dimensions)
+            await self._build_stub().CreateIndex(request, timeout=_DEADLINE_SECONDS)
+        except Exception as e:
+            self._logger.debug("Failed to create index: %s with exception: %s", index_name, e)
+            if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
+                return CreateIndex.IndexAlreadyExists()
+            return CreateIndex.Error(convert_error(e))
+        return CreateIndex.Success()
+
     async def delete_cache(self, cache_name: str) -> DeleteCacheResponse:
         try:
             self._logger.info(f"Deleting cache with name: {cache_name}")
@@ -68,6 +86,16 @@ class _ScsControlClient:
             return DeleteCache.Error(convert_error(e))
         return DeleteCache.Success()
 
+    async def delete_index(self, index_name: str) -> DeleteIndexResponse:
+        try:
+            self._logger.info(f"Deleting index with name: {index_name}")
+            request = ctrl_pb._DeleteIndexRequest(index_name=index_name)
+            await self._build_stub().DeleteIndex(request, timeout=_DEADLINE_SECONDS)
+        except Exception as e:
+            self._logger.debug("Failed to delete index: %s with exception: %s", index_name, e)
+            return DeleteIndex.Error(convert_error(e))
+        return DeleteIndex.Success()
+
     async def list_caches(self) -> ListCachesResponse:
         try:
             list_caches_request = ctrl_pb._ListCachesRequest(next_token="")
@@ -75,6 +103,14 @@ class _ScsControlClient:
             return ListCaches.Success.from_grpc_response(response)
         except Exception as e:
             return ListCaches.Error(convert_error(e))
+
+    async def list_indexes(self) -> ListIndexesResponse:
+        try:
+            list_indexes_request = ctrl_pb._ListIndexesRequest(next_token="")
+            response = await self._build_stub().ListIndexes(list_indexes_request, timeout=_DEADLINE_SECONDS)
+            return ListIndexes.Success.from_grpc_response(response)
+        except Exception as e:
+            return ListIndexes.Error(convert_error(e))
 
     async def flush(self, cache_name: str) -> CacheFlushResponse:
         try:

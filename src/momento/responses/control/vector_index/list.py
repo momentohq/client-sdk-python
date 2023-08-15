@@ -1,0 +1,78 @@
+from __future__ import annotations
+
+from abc import ABC
+from dataclasses import dataclass
+from typing import List
+
+from momento_wire_types import controlclient_pb2 as ctrl_pb
+
+from momento.responses.response import ControlResponse
+
+from ...mixins import ErrorResponseMixin
+
+
+class ListIndexesResponse(ControlResponse):
+    """Parent response type for a list indexes request.
+
+    The response object is resolved to a type-safe object of one of
+    the following subtypes:
+    - `ListIndexes.Success`
+    - `ListIndexes.Error`
+
+    Pattern matching can be used to operate on the appropriate subtype.
+    For example, in python 3.10+::
+
+        match response:
+            case ListIndexes.Success():
+                ...
+            case ListIndexes.Error():
+                ...
+            case _:
+                # Shouldn't happen
+
+    or equivalently in earlier versions of python::
+
+        if isinstance(response, ListIndexes.Success):
+            ...
+        elif isinstance(response, ListIndexes.Error):
+            ...
+        else:
+            # Shouldn't happen
+    """
+
+
+@dataclass
+class IndexInfo:
+    """Contains a Momento index's name."""
+
+    name: str
+    """Holds the name of the index."""
+
+
+class ListIndexes(ABC):
+    """Groups all `ListIndexesResponse` derived types under a common namespace."""
+
+    @dataclass
+    class Success(ListIndexesResponse):
+        """Indicates the request was successful."""
+
+        indexes: List[IndexInfo]
+        """The list of indexes available to the user."""
+
+        @staticmethod
+        def from_grpc_response(grpc_list_index_response: ctrl_pb._ListIndexesResponse) -> ListIndexes.Success:
+            """Initializes ListIndexResponse to handle list index response.
+
+            Args:
+                grpc_list_index_response: Protobuf based response returned by Scs.
+            """
+            indexes = [IndexInfo(index.index_name) for index in grpc_list_index_response.index]  # type: ignore[misc]
+            return ListIndexes.Success(indexes=indexes)
+
+    class Error(ListIndexesResponse, ErrorResponseMixin):
+        """Contains information about an error returned from a request.
+
+        This includes:
+        - `error_code`: `MomentoErrorCode` value for the error.
+        - `messsage`: a detailed error message.
+        """

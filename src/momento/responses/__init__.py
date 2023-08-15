@@ -23,6 +23,9 @@ from .control.signing_key.list import (
     SigningKey,
 )
 from .control.signing_key.revoke import RevokeSigningKey, RevokeSigningKeyResponse
+from .control.vector_index.create import CreateIndex, CreateIndexResponse
+from .control.vector_index.delete import DeleteIndex, DeleteIndexResponse
+from .control.vector_index.list import ListIndexes, ListIndexesResponse
 from .data.dictionary.fetch import CacheDictionaryFetch, CacheDictionaryFetchResponse
 from .data.dictionary.get_field import (
     CacheDictionaryGetField,
@@ -118,10 +121,16 @@ from .response import CacheResponse, ControlResponse, PubsubResponse
 __all__ = [
     "CreateCache",
     "CreateCacheResponse",
+    "CreateIndex",
+    "CreateIndexResponse",
     "DeleteCache",
     "DeleteCacheResponse",
+    "DeleteIndex",
+    "DeleteIndexResponse",
     "ListCaches",
     "ListCachesResponse",
+    "ListIndexes",
+    "ListIndexesResponse",
     "CacheFlush",
     "CacheFlushResponse",
     "CreateSigningKey",
