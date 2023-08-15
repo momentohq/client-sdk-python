@@ -70,7 +70,6 @@ class VectorIndexClientAsync:
             raise Exception("This should never happen")
     """
 
-    # TODO: VectorIndexConfiguration
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         """Instantiate a client.
 

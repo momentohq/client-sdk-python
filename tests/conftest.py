@@ -17,8 +17,12 @@ from momento import (
     TopicClient,
     TopicClientAsync,
     TopicConfigurations,
+    VectorIndexClient,
+    VectorIndexClientAsync,
+    VectorIndexConfigurations,
 )
 from momento.config import Configuration, TopicConfiguration
+from momento.config.vector_index_configurations import VectorIndexConfigurations
 from momento.typing import (
     TCacheName,
     TDictionaryField,
@@ -38,7 +42,12 @@ from momento.typing import (
     TSortedSetValues,
     TTopicName,
 )
-from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
+from tests.utils import (
+    unique_test_cache_name,
+    unique_test_vector_index_name,
+    uuid_bytes,
+    uuid_str,
+)
 
 #######################
 # Integration test data
@@ -46,14 +55,21 @@ from tests.utils import unique_test_cache_name, uuid_bytes, uuid_str
 
 TEST_CONFIGURATION = Configurations.Laptop.latest()
 TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest()
+TEST_VECTOR_CONFIGURATION = VectorIndexConfigurations.Default.latest()
 
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
+TEST_VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
+TEST_VECTOR_AUTH_PROVIDER.control_endpoint = "localhost:50051"
+TEST_VECTOR_AUTH_PROVIDER.cache_endpoint = "localhost:50052"
+
 
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
 if not TEST_CACHE_NAME:
     raise RuntimeError("Integration tests require TEST_CACHE_NAME env var; see README for more details.")
 
 TEST_TOPIC_NAME: Optional[str] = "my-topic"
+TEST_VECTOR_INDEX_NAME: str = os.getenv("TEST_VECTOR_INDEX_NAME", "myvectorindex")
+TEST_VECTOR_DIMS = 2
 
 DEFAULT_TTL_SECONDS: timedelta = timedelta(seconds=60)
 BAD_AUTH_TOKEN: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"  # noqa: E501
@@ -93,6 +109,16 @@ def cache_name() -> TCacheName:
 @pytest.fixture(scope="session")
 def topic_name() -> TTopicName:
     return cast(str, TEST_TOPIC_NAME)
+
+
+@pytest.fixture(scope="session")
+def vector_index_name() -> str:
+    return TEST_VECTOR_INDEX_NAME
+
+
+@pytest.fixture(scope="session")
+def vector_index_dimensions() -> int:
+    return TEST_VECTOR_DIMS
 
 
 @pytest.fixture
@@ -292,6 +318,26 @@ async def topic_client_async() -> AsyncIterator[TopicClientAsync]:
         yield _topic_client
 
 
+@pytest.fixture(scope="session")
+def vector_index_client() -> Iterator[VectorIndexClient]:
+    with VectorIndexClient(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
+        _client.create_index(TEST_VECTOR_INDEX_NAME, TEST_VECTOR_DIMS)
+        try:
+            yield _client
+        finally:
+            _client.delete_index(TEST_VECTOR_INDEX_NAME)
+
+
+@pytest.fixture(scope="session")
+async def vector_index_client_async() -> AsyncIterator[VectorIndexClientAsync]:
+    async with VectorIndexClientAsync(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
+        await _client.create_index(TEST_VECTOR_INDEX_NAME, TEST_VECTOR_DIMS)
+        try:
+            yield _client
+        finally:
+            await _client.delete_index(TEST_VECTOR_INDEX_NAME)
+
+
 TUniqueCacheName = Callable[[CacheClient], str]
 
 
@@ -343,3 +389,56 @@ async def unique_cache_name_async(
     finally:
         for cache_name in cache_names:
             await client_async.delete_cache(cache_name)
+
+
+TUniqueVectorIndexName = Callable[[VectorIndexClient], str]
+
+
+@pytest.fixture
+def unique_vector_index_name(vector_index_client: VectorIndexClient) -> Iterator[Callable[[VectorIndexClient], str]]:
+    """Synchronous version of unique_vector_index_name_async."""
+    index_names = []
+
+    def _unique_vector_index_name(vector_index_client: VectorIndexClient) -> str:
+        index_name = unique_test_vector_index_name()
+        index_names.append(index_name)
+        return index_name
+
+    try:
+        yield _unique_vector_index_name
+    finally:
+        for index_name in index_names:
+            vector_index_client.delete_index(index_name)
+
+
+TUniqueVectorIndexNameAsync = Callable[[VectorIndexClientAsync], str]
+
+
+@pytest_asyncio.fixture
+async def unique_vector_index_name_async(
+    vector_index_client_async: VectorIndexClientAsync,
+) -> AsyncIterator[Callable[[VectorIndexClientAsync], str]]:
+    """Returns unique vector index name for testing.
+
+    Also ensures the index is deleted after the test, even if the test fails.
+
+    It does not create the index for you.
+
+    Args:
+        vector_index_client_async (VectorIndexClientAsync): The client to use to delete the index.
+
+    Returns:
+        str: the unique index name
+    """
+    index_names = []
+
+    def _unique_vector_index_name_async(vector_index_client_async: VectorIndexClientAsync) -> str:
+        index_name = unique_test_vector_index_name()
+        index_names.append(index_name)
+        return index_name
+
+    try:
+        yield _unique_vector_index_name_async
+    finally:
+        for index_name in index_names:
+            await vector_index_client_async.delete_index(index_name)

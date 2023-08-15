@@ -18,7 +18,6 @@ from momento.internal.synchronous._add_header_client_interceptor import (
 from momento.internal.synchronous._retry_interceptor import RetryInterceptor
 from momento.retry import RetryStrategy
 
-
 # TODO: delete as this is for local testing only
 credentials = grpc.ssl_channel_credentials()
 try:
@@ -36,9 +35,7 @@ class _ControlGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.secure_channel(
-            target=credential_provider.control_endpoint, credentials=credentials
-        )
+        self._secure_channel = grpc.secure_channel(target=credential_provider.control_endpoint, credentials=credentials)
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
         )

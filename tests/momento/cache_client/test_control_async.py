@@ -42,7 +42,7 @@ async def test_create_cache_get_set_values_and_delete_cache(
     assert isinstance(get_for_key_in_some_other_cache, CacheGet.Miss)
 
 
-async def test_create_cache__already_exists_when_creating_existing_cache(
+async def test_create_cache_already_exists_when_creating_existing_cache(
     client_async: CacheClientAsync, cache_name: str
 ) -> None:
     response = await client_async.create_cache(cache_name)
