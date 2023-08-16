@@ -160,12 +160,19 @@ class PreviewVectorIndexClient:
     ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
+        Ranks the vectors in the index by maximum inner product to the query vector.
+
+        If the index and query vectors are unit normalized, this is equivalent to
+        ranking by cosine similarity. Hence to perform a cosine similarity search,
+        the index vectors should be unit normalized prior to indexing, and the query
+        vector should be unit normalized prior to searching.
+
         Args:
             index_name (str): Name of the index to search in.
             query_vector (list[float]): The vector to search for.
             top_k (int): The number of results to return. Defaults to 10.
             metadata_fields (Optional[list[str]]): A list of metadata fields to return with each result.
-                If absent, no metadata is returned. Defaults to None.
+                If not provided, no metadata is returned. Defaults to None.
 
         Returns:
             SearchResponse: The result of a search operation.
