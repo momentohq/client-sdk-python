@@ -62,6 +62,36 @@ def test_create_index_upsert_multiple_items_search_happy_path(
     ]
 
 
+def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 2.0]),
+            Item(id="test_item_2", vector=[3.0, 4.0]),
+            Item(id="test_item_3", vector=[5.0, 6.0]),
+        ],
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    sleep(2)
+
+    search_response = vector_index_client.search(index_name, query_vector=[1.0, 2.0], top_k=2)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 2
+
+    assert search_response.hits == [
+        SearchHit(id="test_item_3", distance=17.0),
+        SearchHit(id="test_item_2", distance=11.0),
+    ]
+
+
 def test_upsert_and_search_with_metadata_happy_path(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
