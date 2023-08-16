@@ -15,10 +15,10 @@ from momento.internal.aio._scs_grpc_manager import _VectorIndexDataGrpcManager
 from momento.internal.aio._utilities import make_metadata
 from momento.requests.vector_index.item import Item
 from momento.responses.vector_index import (
-    VectorIndexSearch,
-    VectorIndexSearchResponse,
-    VectorIndexUpsertItemBatch,
-    VectorIndexUpsertItemBatchResponse,
+    Search,
+    SearchResponse,
+    UpsertItemBatch,
+    UpsertItemBatchResponse,
 )
 from momento.responses.vector_index.data.search import SearchHit
 
@@ -45,7 +45,7 @@ class _VectorIndexClient:
         self,
         index_name: str,
         items: list[Item],
-    ) -> VectorIndexUpsertItemBatchResponse:
+    ) -> UpsertItemBatchResponse:
         try:
             self._log_issuing_request("UpsertItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
@@ -57,14 +57,14 @@ class _VectorIndexClient:
             await self._build_stub().UpsertItemBatch(request, timeout=self._default_deadline_seconds)  # type: ignore
 
             self._log_received_response("UpsertItemBatch", {"index_name": index_name})
-            return VectorIndexUpsertItemBatch.Success()
+            return UpsertItemBatch.Success()
         except Exception as e:
             self._log_request_error("set", e)
-            return VectorIndexUpsertItemBatch.Error(convert_error(e))
+            return UpsertItemBatch.Error(convert_error(e))
 
     async def search(
         self, index_name: str, query_vector: list[float], top_k: int, metadata_fields: Optional[list[str]] = None
-    ) -> VectorIndexSearchResponse:
+    ) -> SearchResponse:
         try:
             self._log_issuing_request("Search", {"index_name": index_name})
             _validate_index_name(index_name)
@@ -83,10 +83,10 @@ class _VectorIndexClient:
 
             hits = [SearchHit.from_proto(hit) for hit in response.hits]  # type: ignore
             self._log_received_response("Search", {"index_name": index_name})
-            return VectorIndexSearch.Success(hits=hits)
+            return Search.Success(hits=hits)
         except Exception as e:
             self._log_request_error("search", e)
-            return VectorIndexSearch.Error(convert_error(e))
+            return Search.Error(convert_error(e))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:

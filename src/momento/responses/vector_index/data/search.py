@@ -10,12 +10,12 @@ from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
 
 
-class VectorIndexSearchResponse(VectorIndexResponse):
+class SearchResponse(VectorIndexResponse):
     """Parent response type for a vector index `search` request.
 
     Its subtypes are:
-    - `VectorIndexSearch.Success`
-    - `VectorIndexSearch.Error`
+    - `Search.Success`
+    - `Search.Error`
 
     See `VectorIndexClient` for how to work with responses.
     """
@@ -39,16 +39,16 @@ class SearchHit:
         return SearchHit(id=hit.id, distance=hit.distance, metadata=metadata)  # type: ignore
 
 
-class VectorIndexSearch(ABC):
-    """Groups all `VectorIndexSearchResponse` derived types under a common namespace."""
+class Search(ABC):
+    """Groups all `SearchResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(VectorIndexSearchResponse):
+    class Success(SearchResponse):
         """Indicates the request was successful."""
 
         hits: list[SearchHit]
 
-    class Error(VectorIndexSearchResponse, ErrorResponseMixin):
+    class Error(SearchResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
 
         This includes:

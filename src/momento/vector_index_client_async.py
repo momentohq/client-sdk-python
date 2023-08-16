@@ -37,8 +37,8 @@ from momento.responses.vector_index import (
     CreateIndexResponse,
     DeleteIndexResponse,
     ListIndexesResponse,
-    VectorIndexSearchResponse,
-    VectorIndexUpsertItemBatchResponse,
+    SearchResponse,
+    UpsertItemBatchResponse,
 )
 
 
@@ -141,7 +141,7 @@ class VectorIndexClientAsync:
         """
         return await self._control_client.list_indexes()
 
-    async def upsert_item_batch(self, index_name: str, items: list[Item]) -> VectorIndexUpsertItemBatchResponse:
+    async def upsert_item_batch(self, index_name: str, items: list[Item]) -> UpsertItemBatchResponse:
         """Upserts a batch of items into a vector index.
 
         Inserts an item if the ID does not exist. If the ID does exist, the item is replaced
@@ -158,14 +158,15 @@ class VectorIndexClientAsync:
 
     async def search(
         self, index_name: str, query_vector: list[float], top_k: int = 10, metadata_fields: Optional[list[str]] = None
-    ) -> VectorIndexSearchResponse:
+    ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
         Args:
             index_name (str): Name of the index to search in.
             query_vector (list[float]): The vector to search for.
-            top_k (int): The number of results to return.
+            top_k (int): The number of results to return. Defaults to 10.
             metadata_fields (Optional[list[str]]): A list of metadata fields to return with each result.
+                If absent, no metadata is returned. Defaults to None.
 
         Returns:
             SearchResponse: The result of a search operation.

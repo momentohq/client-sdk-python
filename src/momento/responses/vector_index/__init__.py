@@ -1,11 +1,8 @@
 from .control.create import CreateIndex, CreateIndexResponse
 from .control.delete import DeleteIndex, DeleteIndexResponse
 from .control.list import ListIndexes, ListIndexesResponse
-from .data.search import SearchHit, VectorIndexSearch, VectorIndexSearchResponse
-from .data.upsert_item_batch import (
-    VectorIndexUpsertItemBatch,
-    VectorIndexUpsertItemBatchResponse,
-)
+from .data.search import Search, SearchHit, SearchResponse
+from .data.upsert_item_batch import UpsertItemBatch, UpsertItemBatchResponse
 from .response import VectorIndexResponse
 
 __all__ = [
@@ -16,9 +13,9 @@ __all__ = [
     "ListIndexes",
     "ListIndexesResponse",
     "SearchHit",
-    "VectorIndexSearch",
-    "VectorIndexSearchResponse",
-    "VectorIndexUpsertItemBatch",
-    "VectorIndexUpsertItemBatchResponse",
+    "Search",
+    "SearchResponse",
+    "UpsertItemBatch",
+    "UpsertItemBatchResponse",
     "VectorIndexResponse",
 ]
