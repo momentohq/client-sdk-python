@@ -6,6 +6,7 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
+from momento.responses.vector_index.search import VectorIndexSearchResponse
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -37,6 +38,7 @@ from momento.responses import (
     CreateIndexResponse,
     DeleteIndexResponse,
     ListIndexesResponse,
+    VectorIndexSearchResponse,
     VectorIndexUpsertItemBatchResponse,
 )
 
@@ -154,5 +156,21 @@ class VectorIndexClient:
             UpsertItemBatchResponse: The result of an upsert item batch operation.
         """
         return self._data_client.upsert_item_batch(index_name, items)
+
+    def search(
+        self, index_name: str, query_vector: list[float], top_k: int = 10, metadata_fields: Optional[list[str]] = None
+    ) -> VectorIndexSearchResponse:
+        """Searches for the most similar vectors to the query vector in the index.
+
+        Args:
+            index_name (str): Name of the index to search in.
+            query_vector (list[float]): The vector to search for.
+            top_k (int): The number of results to return.
+            metadata_fields (Optional[list[str]]): A list of metadata fields to return with each result.
+
+        Returns:
+            SearchResponse: The result of a search operation.
+        """
+        return self._data_client.search(index_name, query_vector, top_k, metadata_fields)
 
     # TODO: repr

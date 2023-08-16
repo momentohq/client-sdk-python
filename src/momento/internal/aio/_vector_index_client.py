@@ -10,14 +10,17 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import convert_error
-from momento.internal._utilities import _validate_index_name
+from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.aio._scs_grpc_manager import _VectorIndexDataGrpcManager
 from momento.internal.aio._utilities import make_metadata
 from momento.requests.item import Item
-from momento.responses.vector_index.upsert_item_batch import (
+from momento.responses import (
+    VectorIndexSearch,
+    VectorIndexSearchResponse,
     VectorIndexUpsertItemBatch,
     VectorIndexUpsertItemBatchResponse,
 )
+from momento.responses.vector_index.search import SearchHit
 
 
 class _VectorIndexClient:
@@ -58,6 +61,32 @@ class _VectorIndexClient:
         except Exception as e:
             self._log_request_error("set", e)
             return VectorIndexUpsertItemBatch.Error(convert_error(e))
+
+    async def search(
+        self, index_name: str, query_vector: list[float], top_k: int, metadata_fields: Optional[list[str]] = None
+    ) -> VectorIndexSearchResponse:
+        try:
+            self._log_issuing_request("Search", {"index_name": index_name})
+            _validate_index_name(index_name)
+            _validate_top_k(top_k)
+
+            query_vector_pb = vectorindex_pb.Vector(elements=query_vector)
+            metadata_fields_pb = vectorindex_pb.MetadataRequest(
+                some=vectorindex_pb.MetadataRequest.Some(fields=metadata_fields if metadata_fields is not None else [])
+            )
+
+            request = vectorindex_pb.SearchRequest(
+                index_name=index_name, query_vector=query_vector_pb, top_k=top_k, metadata_fields=metadata_fields_pb
+            )
+
+            response: vectorindex_pb.SearchResponse = await self._build_stub().Search(request, timeout=self._default_deadline_seconds)  # type: ignore
+
+            hits = [SearchHit.from_proto(hit) for hit in response.hits]  # type: ignore
+            self._log_received_response("Search", {"index_name": index_name})
+            return VectorIndexSearch.Success(hits=hits)
+        except Exception as e:
+            self._log_request_error("search", e)
+            return VectorIndexSearch.Error(convert_error(e))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:

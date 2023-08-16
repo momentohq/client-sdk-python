@@ -27,5 +27,9 @@ class Item:
 
     def to_proto(self) -> pb.Item:
         vector = pb.Vector(elements=self.vector)
-        metadata = [pb.Metadata(field=k, string_value=v) for k, v in self.metadata.items()] if self.metadata is not None else []
+        metadata = (
+            [pb.Metadata(field=k, string_value=v) for k, v in self.metadata.items()]
+            if self.metadata is not None
+            else []
+        )
         return pb.Item(id=self.id, vector=vector, metadata=metadata)

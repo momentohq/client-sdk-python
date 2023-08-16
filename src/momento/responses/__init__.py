@@ -134,6 +134,7 @@ from .response import (
     PubsubResponse,
     VectorIndexResponse,
 )
+from .vector_index.search import VectorIndexSearch, VectorIndexSearchResponse
 from .vector_index.upsert_item_batch import (
     VectorIndexUpsertItemBatch,
     VectorIndexUpsertItemBatchResponse,
@@ -241,6 +242,8 @@ __all__ = [
     "TopicSubscriptionItemResponse",
     "VectorIndexUpsertItemBatch",
     "VectorIndexUpsertItemBatchResponse",
+    "VectorIndexSearch",
+    "VectorIndexSearchResponse",
     "CacheResponse",
     "ControlResponse",
     "PubsubResponse",

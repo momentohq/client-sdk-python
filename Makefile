@@ -40,6 +40,7 @@ do-gen-sync:
 	@poetry run python src/momento/internal/codegen.py tests/momento/cache_client/test_set_async.py tests/momento/cache_client/test_set.py
 	@poetry run python src/momento/internal/codegen.py tests/momento/cache_client/test_sorted_set_async.py tests/momento/cache_client/test_sorted_set.py
 	@poetry run python src/momento/internal/codegen.py tests/momento/vector_index_client/test_control_async.py tests/momento/vector_index_client/test_control.py
+	@poetry run python src/momento/internal/codegen.py tests/momento/vector_index_client/test_data_async.py tests/momento/vector_index_client/test_data.py
 
 .PHONY: gen-sync
 ## Generate synchronous code and tests from asynchronous code.
