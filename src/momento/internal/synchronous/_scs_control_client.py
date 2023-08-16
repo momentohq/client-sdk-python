@@ -20,22 +20,24 @@ from momento.responses import (
     CacheFlushResponse,
     CreateCache,
     CreateCacheResponse,
-    CreateIndex,
-    CreateIndexResponse,
     CreateSigningKey,
     CreateSigningKeyResponse,
     DeleteCache,
     DeleteCacheResponse,
-    DeleteIndex,
-    DeleteIndexResponse,
     ListCaches,
     ListCachesResponse,
-    ListIndexes,
-    ListIndexesResponse,
     ListSigningKeys,
     ListSigningKeysResponse,
     RevokeSigningKey,
     RevokeSigningKeyResponse,
+)
+from momento.responses.vector_index import (
+    CreateIndex,
+    CreateIndexResponse,
+    DeleteIndex,
+    DeleteIndexResponse,
+    ListIndexes,
+    ListIndexesResponse,
 )
 
 _DEADLINE_SECONDS = 60.0  # 1 minute

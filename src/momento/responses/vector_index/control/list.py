@@ -6,9 +6,8 @@ from typing import List
 
 from momento_wire_types import controlclient_pb2 as ctrl_pb
 
-from momento.responses.response import ControlResponse
-
 from ...mixins import ErrorResponseMixin
+from ...response import ControlResponse
 
 
 class ListIndexesResponse(ControlResponse):

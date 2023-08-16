@@ -23,9 +23,6 @@ from .control.signing_key.list import (
     SigningKey,
 )
 from .control.signing_key.revoke import RevokeSigningKey, RevokeSigningKeyResponse
-from .control.vector_index.create import CreateIndex, CreateIndexResponse
-from .control.vector_index.delete import DeleteIndex, DeleteIndexResponse
-from .control.vector_index.list import ListIndexes, ListIndexesResponse
 from .data.dictionary.fetch import CacheDictionaryFetch, CacheDictionaryFetchResponse
 from .data.dictionary.get_field import (
     CacheDictionaryGetField,
@@ -128,31 +125,15 @@ from .pubsub.subscription_item import (
     TopicSubscriptionItem,
     TopicSubscriptionItemResponse,
 )
-from .response import (
-    CacheResponse,
-    ControlResponse,
-    PubsubResponse,
-    VectorIndexResponse,
-)
-from .vector_index.search import VectorIndexSearch, VectorIndexSearchResponse
-from .vector_index.upsert_item_batch import (
-    VectorIndexUpsertItemBatch,
-    VectorIndexUpsertItemBatchResponse,
-)
+from .response import CacheResponse, ControlResponse, PubsubResponse
 
 __all__ = [
     "CreateCache",
     "CreateCacheResponse",
-    "CreateIndex",
-    "CreateIndexResponse",
     "DeleteCache",
     "DeleteCacheResponse",
-    "DeleteIndex",
-    "DeleteIndexResponse",
     "ListCaches",
     "ListCachesResponse",
-    "ListIndexes",
-    "ListIndexesResponse",
     "CacheFlush",
     "CacheFlushResponse",
     "CreateSigningKey",
@@ -240,12 +221,7 @@ __all__ = [
     "TopicSubscribeResponse",
     "TopicSubscriptionItem",
     "TopicSubscriptionItemResponse",
-    "VectorIndexUpsertItemBatch",
-    "VectorIndexUpsertItemBatchResponse",
-    "VectorIndexSearch",
-    "VectorIndexSearchResponse",
     "CacheResponse",
     "ControlResponse",
     "PubsubResponse",
-    "VectorIndexResponse",
 ]

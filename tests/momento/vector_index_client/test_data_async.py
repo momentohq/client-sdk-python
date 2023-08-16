@@ -1,8 +1,12 @@
 from momento import VectorIndexClientAsync
 from momento.errors import MomentoErrorCode
-from momento.requests.item import Item
-from momento.responses import CreateIndex, VectorIndexSearch, VectorIndexUpsertItemBatch
-from momento.responses.vector_index.search import SearchHit
+from momento.requests.vector_index import Item
+from momento.responses.vector_index import (
+    CreateIndex,
+    SearchHit,
+    VectorIndexSearch,
+    VectorIndexUpsertItemBatch,
+)
 from tests.conftest import TUniqueVectorIndexNameAsync
 from tests.utils import sleep_async
 

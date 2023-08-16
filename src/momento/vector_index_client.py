@@ -6,7 +6,6 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
-from momento.responses.vector_index.search import VectorIndexSearchResponse
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -33,8 +32,8 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from momento.requests import Item
-from momento.responses import (
+from momento.requests.vector_index import Item
+from momento.responses.vector_index import (
     CreateIndexResponse,
     DeleteIndexResponse,
     ListIndexesResponse,

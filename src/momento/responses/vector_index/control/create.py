@@ -1,8 +1,7 @@
 from abc import ABC
 
-from momento.responses.response import ControlResponse
-
 from ...mixins import ErrorResponseMixin
+from ...response import ControlResponse
 
 
 class CreateIndexResponse(ControlResponse):

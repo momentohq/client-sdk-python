@@ -13,14 +13,14 @@ from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.synchronous._scs_grpc_manager import _VectorIndexDataGrpcManager
 from momento.internal.synchronous._utilities import make_metadata
-from momento.requests.item import Item
-from momento.responses import (
+from momento.requests.vector_index.item import Item
+from momento.responses.vector_index import (
     VectorIndexSearch,
     VectorIndexSearchResponse,
     VectorIndexUpsertItemBatch,
     VectorIndexUpsertItemBatchResponse,
 )
-from momento.responses.vector_index.search import SearchHit
+from momento.responses.vector_index.data.search import SearchHit
 
 
 class _VectorIndexClient:

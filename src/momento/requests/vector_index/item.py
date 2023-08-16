@@ -6,11 +6,10 @@ from typing import Optional
 from momento_wire_types import vectorindex_pb2 as pb
 
 
-# TODO: move this to a separate namespace
 # TODO: support other datatypes for the vector (np.array, pd.Series, etc.)
 @dataclass
 class Item:
-    """A dataclass to represent an item in the vector index."""
+    """Represents an entry in the vector index."""
 
     id: str
     """The id of the item."""

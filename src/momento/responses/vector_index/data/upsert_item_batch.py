@@ -1,6 +1,6 @@
 from abc import ABC
 
-from ..mixins import ErrorResponseMixin
+from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
 
 

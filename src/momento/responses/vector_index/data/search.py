@@ -6,7 +6,7 @@ from typing import Optional
 
 from momento_wire_types import vectorindex_pb2 as vectorindex_pb
 
-from ..mixins import ErrorResponseMixin
+from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
 
 

@@ -130,7 +130,3 @@ class ControlResponse(Response):
 
 class PubsubResponse(Response):
     ...
-
-
-class VectorIndexResponse(Response):
-    ...

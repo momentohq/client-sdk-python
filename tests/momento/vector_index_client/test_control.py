@@ -1,6 +1,6 @@
 from momento import VectorIndexClient
 from momento.errors import MomentoErrorCode
-from momento.responses import CreateIndex, DeleteIndex, ListIndexes
+from momento.responses.vector_index import CreateIndex, DeleteIndex, ListIndexes
 from tests.conftest import TUniqueVectorIndexName
 from tests.utils import unique_test_vector_index_name
 
