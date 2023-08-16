@@ -50,7 +50,7 @@ def test_create_index_returns_error_for_bad_num_dimensions(
         )
         assert isinstance(response, CreateIndex.Error)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
-        assert response.inner_exception.message == f"Number of dimensions must be a positive integer."
+        assert response.inner_exception.message == "Number of dimensions must be a positive integer."
 
 
 # TODO: Add test for bad token when creating index

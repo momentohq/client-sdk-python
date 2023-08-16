@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-import collections.abc
-from datetime import timedelta
-from typing import Iterable, Optional, Tuple
-
 from momento.errors import InvalidArgumentException
 
 from ._data_validation import _validate_name
@@ -15,9 +11,9 @@ def _validate_index_name(cache_name: str) -> None:
 
 def _validate_num_dimensions(num_dimensions: int) -> None:
     if num_dimensions < 1 or type(num_dimensions) != int:
-        raise InvalidArgumentException(f"Number of dimensions must be a positive integer.")
+        raise InvalidArgumentException("Number of dimensions must be a positive integer.")
 
 
 def _validate_top_k(top_k: int) -> None:
     if top_k < 1 or type(top_k) != int:
-        raise InvalidArgumentException(f"Top k must be a positive integer.")
+        raise InvalidArgumentException("Top k must be a positive integer.")

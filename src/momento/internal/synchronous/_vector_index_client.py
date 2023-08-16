@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any, Optional
+from typing import Optional
 
 from momento_wire_types import vectorindex_pb2 as vectorindex_pb
 from momento_wire_types import vectorindex_pb2_grpc as vectorindex_grpc
@@ -12,7 +12,6 @@ from momento.config import Configuration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.synchronous._scs_grpc_manager import _VectorIndexDataGrpcManager
-from momento.internal.synchronous._utilities import make_metadata
 from momento.requests.vector_index.item import Item
 from momento.responses.vector_index import (
     Search,
@@ -79,7 +78,9 @@ class _VectorIndexClient:
                 index_name=index_name, query_vector=query_vector_pb, top_k=top_k, metadata_fields=metadata_fields_pb
             )
 
-            response: vectorindex_pb.SearchResponse = self._build_stub().Search(request, timeout=self._default_deadline_seconds)  # type: ignore
+            response: vectorindex_pb.SearchResponse = self._build_stub().Search(
+                request, timeout=self._default_deadline_seconds
+            )  # type: ignore
 
             hits = [SearchHit.from_proto(hit) for hit in response.hits]  # type: ignore
             self._log_received_response("Search", {"index_name": index_name})

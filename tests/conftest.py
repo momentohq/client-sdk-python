@@ -21,8 +21,7 @@ from momento import (
     TopicConfigurations,
     VectorIndexConfigurations,
 )
-from momento.config import Configuration, TopicConfiguration, transport
-from momento.config.vector_index_configurations import VectorIndexConfigurations
+from momento.config import Configuration, TopicConfiguration
 from momento.typing import (
     TCacheName,
     TDictionaryField,
