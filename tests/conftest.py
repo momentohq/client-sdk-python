@@ -21,7 +21,7 @@ from momento import (
     TopicConfigurations,
     VectorIndexConfigurations,
 )
-from momento.config import Configuration, TopicConfiguration
+from momento.config import Configuration, TopicConfiguration, transport
 from momento.config.vector_index_configurations import VectorIndexConfigurations
 from momento.typing import (
     TCacheName,
@@ -55,7 +55,27 @@ from tests.utils import (
 
 TEST_CONFIGURATION = Configurations.Laptop.latest()
 TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest()
-TEST_VECTOR_CONFIGURATION = VectorIndexConfigurations.Default.latest()
+TEST_VECTOR_CONFIGURATION: Configuration = VectorIndexConfigurations.Default.latest()
+
+
+def try_adding_root_certificates(
+    configuration: Configuration, root_certificates_path: str = "./certs/server_cert.pem"
+) -> Configuration:
+    try:
+        with open(root_certificates_path, "rb") as f:
+            cert = f.read()
+        transport_strategy = configuration.get_transport_strategy()
+        grpc_config = transport_strategy.get_grpc_configuration().with_root_certificates(cert)
+        transport_strategy = transport_strategy.with_grpc_configuration(grpc_config)
+        configuration = configuration.with_transport_strategy(transport_strategy)
+    except FileNotFoundError:
+        print("Could not find secure_cert.pem, using default credentials")
+        pass
+    return configuration
+
+
+TEST_VECTOR_CONFIGURATION = try_adding_root_certificates(TEST_VECTOR_CONFIGURATION)
+
 
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
 TEST_VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import timedelta
+from typing import Optional
 
 from momento.internal._utilities import _validate_request_timeout
 
@@ -46,15 +47,25 @@ class TransportStrategy(ABC):
 
 
 class StaticGrpcConfiguration(GrpcConfiguration):
-    def __init__(self, deadline: timedelta):
+    _deadline: timedelta
+    _root_certificates: Optional[bytes]
+
+    def __init__(self, deadline: timedelta, root_certificates: Optional[bytes] = None):
         self._deadline = deadline
+        self._root_certificates = root_certificates
 
     def get_deadline(self) -> timedelta:
         return self._deadline
 
     def with_deadline(self, deadline: timedelta) -> GrpcConfiguration:
         _validate_request_timeout(deadline)
-        return StaticGrpcConfiguration(deadline)
+        return StaticGrpcConfiguration(deadline, self._root_certificates)
+
+    def get_root_certificates(self) -> Optional[bytes]:
+        return self._root_certificates
+
+    def with_root_certificates(self, root_certificate: Optional[bytes]) -> GrpcConfiguration:
+        return StaticGrpcConfiguration(self._deadline, root_certificate)
 
 
 class StaticTransportStrategy(TransportStrategy):

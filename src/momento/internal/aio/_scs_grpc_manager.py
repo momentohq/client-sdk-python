@@ -20,15 +20,6 @@ from ._add_header_client_interceptor import (
 )
 from ._retry_interceptor import RetryInterceptor
 
-# TODO: delete as this is for local testing only
-credentials = grpc.ssl_channel_credentials()
-try:
-    with open("./certs/server_cert.pem", "rb") as f:
-        cert = f.read()
-    credentials = grpc.ssl_channel_credentials(root_certificates=cert)
-except FileNotFoundError:
-    pass
-
 
 class _ControlGrpcManager:
     """Internal gRPC control manager."""
@@ -38,7 +29,12 @@ class _ControlGrpcManager:
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
-            credentials=credentials,
+            credentials=grpc.ssl_channel_credentials(
+                # This was added to support local testing with a self-signed certificate.
+                root_certificates=configuration.get_transport_strategy()
+                .get_grpc_configuration()
+                .get_root_certificates()
+            ),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
         )
 
@@ -128,7 +124,12 @@ class _VectorIndexDataGrpcManager:
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
-            credentials=credentials,
+            credentials=grpc.ssl_channel_credentials(
+                # This was added to support local testing with a self-signed certificate.
+                root_certificates=configuration.get_transport_strategy()
+                .get_grpc_configuration()
+                .get_root_certificates()
+            ),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
         )
 
