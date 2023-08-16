@@ -128,7 +128,16 @@ from .pubsub.subscription_item import (
     TopicSubscriptionItem,
     TopicSubscriptionItemResponse,
 )
-from .response import CacheResponse, ControlResponse, PubsubResponse
+from .response import (
+    CacheResponse,
+    ControlResponse,
+    PubsubResponse,
+    VectorIndexResponse,
+)
+from .vector_index.upsert_item_batch import (
+    VectorIndexUpsertItemBatch,
+    VectorIndexUpsertItemBatchResponse,
+)
 
 __all__ = [
     "CreateCache",
@@ -230,7 +239,10 @@ __all__ = [
     "TopicSubscribeResponse",
     "TopicSubscriptionItem",
     "TopicSubscriptionItemResponse",
+    "VectorIndexUpsertItemBatch",
+    "VectorIndexUpsertItemBatchResponse",
     "CacheResponse",
     "ControlResponse",
     "PubsubResponse",
+    "VectorIndexResponse",
 ]

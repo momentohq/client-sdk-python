@@ -10,6 +10,7 @@ from momento.config import Configuration
 try:
     from momento.internal._utilities import _validate_request_timeout
     from momento.internal.aio._scs_control_client import _ScsControlClient
+    from momento.internal.aio._vector_index_client import _VectorIndexClient
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -31,10 +32,12 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
+from momento.requests import Item
 from momento.responses import (
     CreateIndexResponse,
     DeleteIndexResponse,
     ListIndexesResponse,
+    VectorIndexUpsertItemBatchResponse,
 )
 
 
@@ -92,8 +95,7 @@ class VectorIndexClientAsync:
         self._logger = logs.logger
         self._next_client_index = 0
         self._control_client = _ScsControlClient(configuration, credential_provider)
-        # TODO: data client
-        # self._cache_endpoint = credential_provider.cache_endpoint
+        self._data_client = _VectorIndexClient(configuration, credential_provider)
 
     async def __aenter__(self) -> VectorIndexClientAsync:
         return self
@@ -105,7 +107,7 @@ class VectorIndexClientAsync:
         traceback: Optional[TracebackType],
     ) -> None:
         await self._control_client.close()
-        # TODO close data client
+        await self._data_client.close()
 
     async def create_index(self, index_name: str, num_dimensions: int) -> CreateIndexResponse:
         """Creates a vector index if it doesn't exist.
@@ -137,5 +139,20 @@ class VectorIndexClientAsync:
             ListIndexesResponse: The result of a list indexes operation.
         """
         return await self._control_client.list_indexes()
+
+    async def upsert_item_batch(self, index_name: str, items: list[Item]) -> VectorIndexUpsertItemBatchResponse:
+        """Upserts a batch of items into a vector index.
+
+        Inserts an item if the ID does not exist. If the ID does exist, the item is replaced
+        with the new item.
+
+        Args:
+            index_name (str): Name of the index to upsert the items into.
+            items (list[Item]): The items to be upserted into the index.
+
+        Returns:
+            UpsertItemBatchResponse: The result of an upsert item batch operation.
+        """
+        return await self._data_client.upsert_item_batch(index_name, items)
 
     # TODO: repr
