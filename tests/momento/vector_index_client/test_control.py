@@ -46,7 +46,8 @@ def test_create_index_returns_error_for_bad_num_dimensions(
 ) -> None:
     for bad_num_dimensions in [0, 1.1]:
         response = vector_index_client.create_index(
-            unique_vector_index_name(vector_index_client), num_dimensions=bad_num_dimensions  # type: ignore[arg-type]
+            unique_vector_index_name(vector_index_client),
+            num_dimensions=bad_num_dimensions,  # type: ignore[arg-type]
         )
         assert isinstance(response, CreateIndex.Error)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR

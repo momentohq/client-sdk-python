@@ -50,10 +50,10 @@ class _VectorIndexClient:
             _validate_index_name(index_name)
             request = vectorindex_pb.UpsertItemBatchRequest(
                 index_name=index_name,
-                items=[item.to_proto() for item in items],  # type: ignore
+                items=[item.to_proto() for item in items],
             )
 
-            await self._build_stub().UpsertItemBatch(request, timeout=self._default_deadline_seconds)  # type: ignore
+            await self._build_stub().UpsertItemBatch(request, timeout=self._default_deadline_seconds)
 
             self._log_received_response("UpsertItemBatch", {"index_name": index_name})
             return UpsertItemBatch.Success()
@@ -80,9 +80,9 @@ class _VectorIndexClient:
 
             response: vectorindex_pb.SearchResponse = await self._build_stub().Search(
                 request, timeout=self._default_deadline_seconds
-            )  # type: ignore
+            )
 
-            hits = [SearchHit.from_proto(hit) for hit in response.hits]  # type: ignore
+            hits = [SearchHit.from_proto(hit) for hit in response.hits]
             self._log_received_response("Search", {"index_name": index_name})
             return Search.Success(hits=hits)
         except Exception as e:
