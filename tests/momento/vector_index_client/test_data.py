@@ -1,4 +1,4 @@
-from momento import VectorIndexClient
+from momento import PreviewVectorIndexClient
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import Item
 from momento.responses.vector_index import (
@@ -12,7 +12,8 @@ from tests.utils import sleep
 
 
 def test_create_index_upsert_item_search_happy_path(
-    vector_index_client: VectorIndexClient, unique_vector_index_name: TUniqueVectorIndexName
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
     create_response = vector_index_client.create_index(index_name, num_dimensions=2)
@@ -31,7 +32,8 @@ def test_create_index_upsert_item_search_happy_path(
 
 
 def test_create_index_upsert_multiple_items_search_happy_path(
-    vector_index_client: VectorIndexClient, unique_vector_index_name: TUniqueVectorIndexName
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
     create_response = vector_index_client.create_index(index_name, num_dimensions=2)
@@ -61,7 +63,8 @@ def test_create_index_upsert_multiple_items_search_happy_path(
 
 
 def test_upsert_and_search_with_metadata_happy_path(
-    vector_index_client: VectorIndexClient, unique_vector_index_name: TUniqueVectorIndexName
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
     create_response = vector_index_client.create_index(index_name, num_dimensions=2)
@@ -115,19 +118,19 @@ def test_upsert_and_search_with_metadata_happy_path(
 # TODO: test upserting data of different dimension than the index
 
 
-def test_upsert_validates_index_name(vector_index_client: VectorIndexClient) -> None:
+def test_upsert_validates_index_name(vector_index_client: PreviewVectorIndexClient) -> None:
     response = vector_index_client.upsert_item_batch(index_name="", items=[Item(id="test_item", vector=[1.0, 2.0])])
     assert isinstance(response, UpsertItemBatch.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-def test_search_validates_index_name(vector_index_client: VectorIndexClient) -> None:
+def test_search_validates_index_name(vector_index_client: PreviewVectorIndexClient) -> None:
     response = vector_index_client.search(index_name="", query_vector=[1.0, 2.0])
     assert isinstance(response, Search.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-def test_search_validates_top_k(vector_index_client: VectorIndexClient) -> None:
+def test_search_validates_top_k(vector_index_client: PreviewVectorIndexClient) -> None:
     response = vector_index_client.search(index_name="test_index", query_vector=[1.0, 2.0], top_k=0)
     assert isinstance(response, Search.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR

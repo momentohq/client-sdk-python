@@ -14,11 +14,11 @@ from momento import (
     CacheClientAsync,
     Configurations,
     CredentialProvider,
+    PreviewVectorIndexClient,
+    PreviewVectorIndexClientAsync,
     TopicClient,
     TopicClientAsync,
     TopicConfigurations,
-    VectorIndexClient,
-    VectorIndexClientAsync,
     VectorIndexConfigurations,
 )
 from momento.config import Configuration, TopicConfiguration
@@ -319,8 +319,8 @@ async def topic_client_async() -> AsyncIterator[TopicClientAsync]:
 
 
 @pytest.fixture(scope="session")
-def vector_index_client() -> Iterator[VectorIndexClient]:
-    with VectorIndexClient(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
+def vector_index_client() -> Iterator[PreviewVectorIndexClient]:
+    with PreviewVectorIndexClient(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
         _client.create_index(TEST_VECTOR_INDEX_NAME, TEST_VECTOR_DIMS)
         try:
             yield _client
@@ -329,8 +329,8 @@ def vector_index_client() -> Iterator[VectorIndexClient]:
 
 
 @pytest.fixture(scope="session")
-async def vector_index_client_async() -> AsyncIterator[VectorIndexClientAsync]:
-    async with VectorIndexClientAsync(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
+async def vector_index_client_async() -> AsyncIterator[PreviewVectorIndexClientAsync]:
+    async with PreviewVectorIndexClientAsync(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
         await _client.create_index(TEST_VECTOR_INDEX_NAME, TEST_VECTOR_DIMS)
         try:
             yield _client
@@ -391,15 +391,15 @@ async def unique_cache_name_async(
             await client_async.delete_cache(cache_name)
 
 
-TUniqueVectorIndexName = Callable[[VectorIndexClient], str]
+TUniqueVectorIndexName = Callable[[PreviewVectorIndexClient], str]
 
 
 @pytest.fixture
-def unique_vector_index_name(vector_index_client: VectorIndexClient) -> Iterator[Callable[[VectorIndexClient], str]]:
+def unique_vector_index_name(vector_index_client: PreviewVectorIndexClient) -> Iterator[Callable[[PreviewVectorIndexClient], str]]:
     """Synchronous version of unique_vector_index_name_async."""
     index_names = []
 
-    def _unique_vector_index_name(vector_index_client: VectorIndexClient) -> str:
+    def _unique_vector_index_name(vector_index_client: PreviewVectorIndexClient) -> str:
         index_name = unique_test_vector_index_name()
         index_names.append(index_name)
         return index_name
@@ -411,13 +411,13 @@ def unique_vector_index_name(vector_index_client: VectorIndexClient) -> Iterator
             vector_index_client.delete_index(index_name)
 
 
-TUniqueVectorIndexNameAsync = Callable[[VectorIndexClientAsync], str]
+TUniqueVectorIndexNameAsync = Callable[[PreviewVectorIndexClientAsync], str]
 
 
 @pytest_asyncio.fixture
 async def unique_vector_index_name_async(
-    vector_index_client_async: VectorIndexClientAsync,
-) -> AsyncIterator[Callable[[VectorIndexClientAsync], str]]:
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+) -> AsyncIterator[Callable[[PreviewVectorIndexClientAsync], str]]:
     """Returns unique vector index name for testing.
 
     Also ensures the index is deleted after the test, even if the test fails.
@@ -432,7 +432,7 @@ async def unique_vector_index_name_async(
     """
     index_names = []
 
-    def _unique_vector_index_name_async(vector_index_client_async: VectorIndexClientAsync) -> str:
+    def _unique_vector_index_name_async(vector_index_client_async: PreviewVectorIndexClientAsync) -> str:
         index_name = unique_test_vector_index_name()
         index_names.append(index_name)
         return index_name

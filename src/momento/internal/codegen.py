@@ -122,7 +122,7 @@ name_replacements = NameReplacement(
         ("^async_(.*)", "\\1"),
         ("(.*?)_async_(.*)", "\\1_\\2"),
         ("(.*?)_async$", "\\1"),
-        ("^((?:Cache|VectorIndex)Client)Async$", "\\1"),
+        ("^((?:Cache|(?:Preview)?VectorIndex)Client)Async$", "\\1"),
         ("^(TUnique(?:Cache|VectorIndex)Name)Async$", "\\1"),
         ("__aenter__", "__enter__"),
         ("__aexit__", "__exit__"),

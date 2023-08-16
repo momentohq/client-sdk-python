@@ -15,8 +15,8 @@ from .cache_client_async import CacheClientAsync
 from .config import Configurations, TopicConfigurations, VectorIndexConfigurations
 from .topic_client import TopicClient
 from .topic_client_async import TopicClientAsync
-from .vector_index_client import VectorIndexClient
-from .vector_index_client_async import VectorIndexClientAsync
+from .vector_index_client import PreviewVectorIndexClient
+from .vector_index_client_async import PreviewVectorIndexClientAsync
 
 logging.getLogger("momentosdk").addHandler(logging.NullHandler())
 logs.initialize_momento_logging()
@@ -30,6 +30,6 @@ __all__ = [
     "CacheClientAsync",
     "TopicClient",
     "TopicClientAsync",
-    "VectorIndexClient",
-    "VectorIndexClientAsync",
+    "PreviewVectorIndexClient",
+    "PreviewVectorIndexClientAsync",
 ]

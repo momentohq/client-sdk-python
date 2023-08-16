@@ -1,4 +1,4 @@
-from momento import VectorIndexClientAsync
+from momento import PreviewVectorIndexClientAsync
 from momento.errors import MomentoErrorCode
 from momento.responses.vector_index import CreateIndex, DeleteIndex, ListIndexes
 from tests.conftest import TUniqueVectorIndexNameAsync
@@ -6,7 +6,7 @@ from tests.utils import unique_test_vector_index_name
 
 
 async def test_create_index_list_indexes_and_delete_index(
-    vector_index_client_async: VectorIndexClientAsync,
+    vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
     vector_index_dimensions: int,
 ) -> None:
@@ -26,13 +26,15 @@ async def test_create_index_list_indexes_and_delete_index(
 
 
 async def test_create_index_already_exists_when_creating_existing_index(
-    vector_index_client_async: VectorIndexClientAsync, vector_index_name: str, vector_index_dimensions: int
+    vector_index_client_async: PreviewVectorIndexClientAsync, vector_index_name: str, vector_index_dimensions: int
 ) -> None:
     response = await vector_index_client_async.create_index(vector_index_name, num_dimensions=vector_index_dimensions)
     assert isinstance(response, CreateIndex.IndexAlreadyExists)
 
 
-async def test_create_index_returns_error_for_bad_name(vector_index_client_async: VectorIndexClientAsync) -> None:
+async def test_create_index_returns_error_for_bad_name(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+) -> None:
     for bad_name, reason in [("", "not be empty"), (None, "be a string"), (1, "be a string")]:
         response = await vector_index_client_async.create_index(bad_name, num_dimensions=1)  # type: ignore[arg-type]
         assert isinstance(response, CreateIndex.Error)
@@ -41,7 +43,8 @@ async def test_create_index_returns_error_for_bad_name(vector_index_client_async
 
 
 async def test_create_index_returns_error_for_bad_num_dimensions(
-    vector_index_client_async: VectorIndexClientAsync, unique_vector_index_name_async: TUniqueVectorIndexNameAsync
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
     for bad_num_dimensions in [0, 1.1]:
         response = await vector_index_client_async.create_index(
@@ -68,7 +71,7 @@ async def test_create_index_returns_error_for_bad_num_dimensions(
 
 # Delete index
 async def test_delete_cache_succeeds(
-    vector_index_client_async: VectorIndexClientAsync, vector_index_dimensions: int
+    vector_index_client_async: PreviewVectorIndexClientAsync, vector_index_dimensions: int
 ) -> None:
     index_name = unique_test_vector_index_name()
 
@@ -84,7 +87,7 @@ async def test_delete_cache_succeeds(
 
 
 async def test_delete_index_returns_not_found_error_when_deleting_unknown_index(
-    vector_index_client_async: VectorIndexClientAsync,
+    vector_index_client_async: PreviewVectorIndexClientAsync,
 ) -> None:
     index_name = unique_test_vector_index_name()
     response = await vector_index_client_async.delete_index(index_name)
@@ -92,7 +95,9 @@ async def test_delete_index_returns_not_found_error_when_deleting_unknown_index(
     assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
 
 
-async def test_delete_index_returns_error_for_bad_name(vector_index_client_async: VectorIndexClientAsync) -> None:
+async def test_delete_index_returns_error_for_bad_name(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+) -> None:
     for bad_name, reason in [("", "not be empty"), (None, "be a string"), (1, "be a string")]:
         response = await vector_index_client_async.delete_index(bad_name)  # type: ignore[arg-type]
         assert isinstance(response, DeleteIndex.Error)
@@ -111,7 +116,7 @@ async def test_delete_index_returns_error_for_bad_name(vector_index_client_async
 
 
 # List indexes
-async def test_list_indexes_succeeds(vector_index_client_async: VectorIndexClientAsync) -> None:
+async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
     index_name = unique_test_vector_index_name()
 
     initial_response = await vector_index_client_async.list_indexes()

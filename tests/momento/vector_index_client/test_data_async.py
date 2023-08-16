@@ -1,4 +1,4 @@
-from momento import VectorIndexClientAsync
+from momento import PreviewVectorIndexClientAsync
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import Item
 from momento.responses.vector_index import (
@@ -12,7 +12,8 @@ from tests.utils import sleep_async
 
 
 async def test_create_index_upsert_item_search_happy_path(
-    vector_index_client_async: VectorIndexClientAsync, unique_vector_index_name_async: TUniqueVectorIndexNameAsync
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
@@ -33,7 +34,8 @@ async def test_create_index_upsert_item_search_happy_path(
 
 
 async def test_create_index_upsert_multiple_items_search_happy_path(
-    vector_index_client_async: VectorIndexClientAsync, unique_vector_index_name_async: TUniqueVectorIndexNameAsync
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
@@ -63,7 +65,8 @@ async def test_create_index_upsert_multiple_items_search_happy_path(
 
 
 async def test_upsert_and_search_with_metadata_happy_path(
-    vector_index_client_async: VectorIndexClientAsync, unique_vector_index_name_async: TUniqueVectorIndexNameAsync
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
@@ -119,7 +122,7 @@ async def test_upsert_and_search_with_metadata_happy_path(
 # TODO: test upserting data of different dimension than the index
 
 
-async def test_upsert_validates_index_name(vector_index_client_async: VectorIndexClientAsync) -> None:
+async def test_upsert_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
     response = await vector_index_client_async.upsert_item_batch(
         index_name="", items=[Item(id="test_item", vector=[1.0, 2.0])]
     )
@@ -127,13 +130,13 @@ async def test_upsert_validates_index_name(vector_index_client_async: VectorInde
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-async def test_search_validates_index_name(vector_index_client_async: VectorIndexClientAsync) -> None:
+async def test_search_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
     response = await vector_index_client_async.search(index_name="", query_vector=[1.0, 2.0])
     assert isinstance(response, Search.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-async def test_search_validates_top_k(vector_index_client_async: VectorIndexClientAsync) -> None:
+async def test_search_validates_top_k(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
     response = await vector_index_client_async.search(index_name="test_index", query_vector=[1.0, 2.0], top_k=0)
     assert isinstance(response, Search.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR

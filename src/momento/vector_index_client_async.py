@@ -42,7 +42,7 @@ from momento.responses.vector_index import (
 )
 
 
-class VectorIndexClientAsync:
+class PreviewVectorIndexClientAsync:
     """Async Vector Index Client.
 
     Vector and control methods return a response object unique to each request.
@@ -98,7 +98,7 @@ class VectorIndexClientAsync:
         self._control_client = _ScsControlClient(configuration, credential_provider)
         self._data_client = _VectorIndexClient(configuration, credential_provider)
 
-    async def __aenter__(self) -> VectorIndexClientAsync:
+    async def __aenter__(self) -> PreviewVectorIndexClientAsync:
         return self
 
     async def __aexit__(
