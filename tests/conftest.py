@@ -395,7 +395,9 @@ TUniqueVectorIndexName = Callable[[PreviewVectorIndexClient], str]
 
 
 @pytest.fixture
-def unique_vector_index_name(vector_index_client: PreviewVectorIndexClient) -> Iterator[Callable[[PreviewVectorIndexClient], str]]:
+def unique_vector_index_name(
+    vector_index_client: PreviewVectorIndexClient,
+) -> Iterator[Callable[[PreviewVectorIndexClient], str]]:
     """Synchronous version of unique_vector_index_name_async."""
     index_names = []
 
