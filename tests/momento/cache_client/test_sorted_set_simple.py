@@ -23,9 +23,7 @@ def _populate_scores(client: CacheClient, cache_name: str, sorted_set_name: str)
     return scores
 
 
-def test_sorted_set_fetch_by_score_fetch_all(
-    client: CacheClient, cache_name: str, sorted_set_name: str
-) -> None:
+def test_sorted_set_fetch_by_score_fetch_all(client: CacheClient, cache_name: str, sorted_set_name: str) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
     resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name)
     if isinstance(resp, CacheSortedSetFetch.Hit):
@@ -43,9 +41,7 @@ def test_sorted_set_fetch_by_score_fetch_all_descending(
         assert resp.value_list_string == expected
 
 
-def test_sorted_set_fetch_by_score_with_minmax(
-    client: CacheClient, cache_name: str, sorted_set_name: str
-) -> None:
+def test_sorted_set_fetch_by_score_with_minmax(client: CacheClient, cache_name: str, sorted_set_name: str) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
     resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name, min_score=10, max_score=99)
     assert isinstance(resp, CacheSortedSetFetch.Hit)
@@ -81,9 +77,7 @@ def test_sorted_set_fetch_by_score_fetch_all_with_offset_descending(
     client: CacheClient, cache_name: str, sorted_set_name: str
 ) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
-    resp = client.sorted_set_fetch_by_score(
-        cache_name, sorted_set_name, offset=2, sort_order=SortOrder.DESCENDING
-    )
+    resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name, offset=2, sort_order=SortOrder.DESCENDING)
     assert isinstance(resp, CacheSortedSetFetch.Hit)
     if isinstance(resp, CacheSortedSetFetch.Hit):
         expected = [(k, v) for k, v in scores.items()][:2]
@@ -105,9 +99,7 @@ def test_sorted_set_fetch_by_score_fetch_all_with_count_descending(
     client: CacheClient, cache_name: str, sorted_set_name: str
 ) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
-    resp = client.sorted_set_fetch_by_score(
-        cache_name, sorted_set_name, count=2, sort_order=SortOrder.DESCENDING
-    )
+    resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name, count=2, sort_order=SortOrder.DESCENDING)
     assert isinstance(resp, CacheSortedSetFetch.Hit)
     if isinstance(resp, CacheSortedSetFetch.Hit):
         expected = [(k, v) for k, v in scores.items()][2:]
