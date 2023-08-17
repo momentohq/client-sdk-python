@@ -842,12 +842,12 @@ class _ScsDataClient:
             )
 
             if min_score is not None:
-                request.by_score.min_score = cache_pb._SortedSetFetchRequest._ByScore._Score(score=min_score)
+                request.by_score.min_score.score = min_score
             else:
                 request.by_score.unbounded_min.CopyFrom(cache_pb._Unbounded())
 
             if max_score is not None:
-                request.by_score.max_score = cache_pb._SortedSetFetchRequest._ByScore._Score(score=max_score)
+                request.by_score.max_score.score = max_score
             else:
                 request.by_score.unbounded_max.CopyFrom(cache_pb._Unbounded())
 
