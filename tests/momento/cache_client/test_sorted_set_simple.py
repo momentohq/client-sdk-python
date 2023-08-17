@@ -1,4 +1,5 @@
-"""
+"""Simple Sorted Set Tests.
+
 The tests here were developed to quickly verify some code fixes in a straightforward manner.
 The rspec type test setup was making it essentially impossible for me to understand how to
 actually test fetching sorted sets by score in a way that actually triggered the code branch
@@ -9,9 +10,10 @@ style setup, or we can continue to add simplified supplemental tests like this f
 the test harness is obtuse and burdensome.
 """
 from typing import Dict
+
 from momento import CacheClient
-from momento.responses import CacheSortedSetPutElements, CacheSortedSetFetch
 from momento.requests import SortOrder
+from momento.responses import CacheSortedSetFetch, CacheSortedSetPutElements
 
 
 def _populate_scores(client: CacheClient, cache_name: str, sorted_set_name: str) -> Dict[str, float]:
@@ -21,9 +23,7 @@ def _populate_scores(client: CacheClient, cache_name: str, sorted_set_name: str)
     return scores
 
 
-def test_sorted_set_fetch_by_score_fetch_all(
-    client: CacheClient, cache_name: str, sorted_set_name: str
-) -> None:
+def test_sorted_set_fetch_by_score_fetch_all(client: CacheClient, cache_name: str, sorted_set_name: str) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
     resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name)
     if isinstance(resp, CacheSortedSetFetch.Hit):
@@ -41,9 +41,7 @@ def test_sorted_set_fetch_by_score_fetch_all_descending(
         assert resp.value_list_string == expected
 
 
-def test_sorted_set_fetch_by_score_with_minmax(
-    client: CacheClient, cache_name: str, sorted_set_name: str
-) -> None:
+def test_sorted_set_fetch_by_score_with_minmax(client: CacheClient, cache_name: str, sorted_set_name: str) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
     resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name, min_score=10, max_score=99)
     assert isinstance(resp, CacheSortedSetFetch.Hit)
@@ -79,9 +77,7 @@ def test_sorted_set_fetch_by_score_fetch_all_with_offset_descending(
     client: CacheClient, cache_name: str, sorted_set_name: str
 ) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
-    resp = client.sorted_set_fetch_by_score(
-        cache_name, sorted_set_name, offset=2, sort_order=SortOrder.DESCENDING
-    )
+    resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name, offset=2, sort_order=SortOrder.DESCENDING)
     assert isinstance(resp, CacheSortedSetFetch.Hit)
     if isinstance(resp, CacheSortedSetFetch.Hit):
         expected = [(k, v) for k, v in scores.items()][2:]
@@ -103,9 +99,7 @@ def test_sorted_set_fetch_by_score_fetch_all_with_count_descending(
     client: CacheClient, cache_name: str, sorted_set_name: str
 ) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
-    resp = client.sorted_set_fetch_by_score(
-        cache_name, sorted_set_name, count=2, sort_order=SortOrder.DESCENDING
-    )
+    resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name, count=2, sort_order=SortOrder.DESCENDING)
     assert isinstance(resp, CacheSortedSetFetch.Hit)
     if isinstance(resp, CacheSortedSetFetch.Hit):
         expected = [(k, v) for k, v in scores.items()][:2]
@@ -127,7 +121,9 @@ def test_sorted_set_fetch_by_score_fetch_all_with_offset_and_count_descending(
     client: CacheClient, cache_name: str, sorted_set_name: str
 ) -> None:
     scores = _populate_scores(client, cache_name, sorted_set_name)
-    resp = client.sorted_set_fetch_by_score(cache_name, sorted_set_name, offset=1, count=2, sort_order=SortOrder.DESCENDING)
+    resp = client.sorted_set_fetch_by_score(
+        cache_name, sorted_set_name, offset=1, count=2, sort_order=SortOrder.DESCENDING
+    )
     assert isinstance(resp, CacheSortedSetFetch.Hit)
     if isinstance(resp, CacheSortedSetFetch.Hit):
         expected = [(k, v) for k, v in scores.items()][1:3]
