@@ -40,14 +40,6 @@ class ListIndexesResponse(ControlResponse):
     """
 
 
-@dataclass
-class IndexInfo:
-    """Contains a Momento index's name."""
-
-    name: str
-    """Holds the name of the index."""
-
-
 class ListIndexes(ABC):
     """Groups all `ListIndexesResponse` derived types under a common namespace."""
 
@@ -55,7 +47,7 @@ class ListIndexes(ABC):
     class Success(ListIndexesResponse):
         """Indicates the request was successful."""
 
-        indexes: List[IndexInfo]
+        indexes: list[str]
         """The list of indexes available to the user."""
 
         @staticmethod
@@ -65,7 +57,7 @@ class ListIndexes(ABC):
             Args:
                 grpc_list_index_response: Protobuf based response returned by Scs.
             """
-            indexes = [IndexInfo(index.index_name) for index in grpc_list_index_response.indexes]  # type: ignore[misc]
+            indexes: list[str] = [index.index_name for index in grpc_list_index_response.indexes]  # type: ignore[misc]
             return ListIndexes.Success(indexes=indexes)
 
     class Error(ListIndexesResponse, ErrorResponseMixin):
