@@ -21,7 +21,7 @@ from momento import (
     TopicConfigurations,
     VectorIndexConfigurations,
 )
-from momento.config import Configuration, TopicConfiguration
+from momento.config import Configuration, TopicConfiguration, VectorIndexConfiguration
 from momento.typing import (
     TCacheName,
     TDictionaryField,
@@ -54,12 +54,12 @@ from tests.utils import (
 
 TEST_CONFIGURATION = Configurations.Laptop.latest()
 TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest()
-TEST_VECTOR_CONFIGURATION: Configuration = VectorIndexConfigurations.Default.latest()
+TEST_VECTOR_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
 
 
 def try_adding_root_certificates(
-    configuration: Configuration, root_certificates_path: str = "./certs/server_cert.pem"
-) -> Configuration:
+    configuration: VectorIndexConfiguration, root_certificates_path: str = "./certs/server_cert.pem"
+) -> VectorIndexConfiguration:
     try:
         with open(root_certificates_path, "rb") as f:
             cert = f.read()

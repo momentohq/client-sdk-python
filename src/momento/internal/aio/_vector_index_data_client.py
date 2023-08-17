@@ -8,7 +8,7 @@ from momento_wire_types import vectorindex_pb2_grpc as vectorindex_grpc
 
 from momento import logs
 from momento.auth import CredentialProvider
-from momento.config import Configuration
+from momento.config import VectorIndexConfiguration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.aio._vector_index_grpc_manager import _VectorIndexDataGrpcManager
@@ -25,7 +25,7 @@ from momento.responses.vector_index.data.search import SearchHit
 class _VectorIndexDataClient:
     """Internal vector index data client."""
 
-    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
+    def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         endpoint = credential_provider.cache_endpoint
         self._logger = logs.logger
         self._logger.debug("Vector index data client instantiated with endpoint: %s", endpoint)

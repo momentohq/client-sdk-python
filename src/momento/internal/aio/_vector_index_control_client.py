@@ -4,7 +4,7 @@ from momento_wire_types import controlclient_pb2_grpc as ctrl_grpc
 
 from momento import logs
 from momento.auth import CredentialProvider
-from momento.config import Configuration
+from momento.config import VectorIndexConfiguration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_num_dimensions
 from momento.internal.aio._vector_index_grpc_manager import (
@@ -25,7 +25,7 @@ _DEADLINE_SECONDS = 60.0  # 1 minute
 class _VectorIndexControlClient:
     """Momento Internal."""
 
-    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
+    def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         endpoint = credential_provider.control_endpoint
         self._logger = logs.logger
         self._logger.debug("Vector index control client instantiated with endpoint: %s", endpoint)

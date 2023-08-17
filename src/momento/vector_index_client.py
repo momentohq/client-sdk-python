@@ -5,7 +5,7 @@ from typing import Optional, Type
 
 from momento import logs
 from momento.auth import CredentialProvider
-from momento.config import Configuration
+from momento.config import VectorIndexConfiguration
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -78,11 +78,12 @@ class PreviewVectorIndexClient:
             raise Exception("This should never happen")
     """
 
-    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
+    def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         """Instantiate a client.
 
         Args:
-            configuration (Configuration): An object holding configuration settings for communication with the server.
+            configuration (VectorIndexConfiguration): An object holding configuration settings for communication
+                with the server.
             credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
 
         Raises:

@@ -2,19 +2,17 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from momento.retry import FixedCountRetryStrategy
-
-from .configuration import Configuration
 from .transport.transport_strategy import (
     StaticGrpcConfiguration,
     StaticTransportStrategy,
 )
+from .vector_index_configuration import VectorIndexConfiguration
 
 
 class VectorIndexConfigurations:
     """Container class for pre-built configurations."""
 
-    class Default(Configuration):
+    class Default(VectorIndexConfiguration):
         """Laptop config provides defaults suitable for a medium-to-high-latency dev environment.
 
         Permissive timeouts, retries, and relaxed latency and throughput targets.
@@ -28,6 +26,5 @@ class VectorIndexConfigurations:
             """
             return VectorIndexConfigurations.Default(
                 # This is high to account for time-intensive upserts.
-                StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=120))),
-                FixedCountRetryStrategy(max_attempts=3),
+                StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=120)))
             )

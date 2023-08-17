@@ -28,7 +28,8 @@ lint:
 do-gen-sync:
 	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_scs_control_client.py src/momento/internal/synchronous/_scs_control_client.py
 	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_scs_data_client.py src/momento/internal/synchronous/_scs_data_client.py
-	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_vector_index_client.py src/momento/internal/synchronous/_vector_index_client.py
+	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_vector_index_control_client.py src/momento/internal/synchronous/_vector_index_control_client.py
+	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_vector_index_data_client.py src/momento/internal/synchronous/_vector_index_data_client.py
 	@poetry run python src/momento/internal/codegen.py src/momento/cache_client_async.py src/momento/cache_client.py
 	@poetry run python src/momento/internal/codegen.py src/momento/vector_index_client_async.py src/momento/vector_index_client.py
 	@poetry run python src/momento/internal/codegen.py tests/momento/cache_client/shared_behaviors_async.py tests/momento/cache_client/shared_behaviors.py
