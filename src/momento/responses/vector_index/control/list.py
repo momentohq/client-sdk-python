@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import List
 
 from momento_wire_types import controlclient_pb2 as ctrl_pb
 
