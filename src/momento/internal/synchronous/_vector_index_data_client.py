@@ -22,7 +22,7 @@ from momento.responses.vector_index import (
 from momento.responses.vector_index.data.search import SearchHit
 
 
-class _VectorIndexClient:
+class _VectorIndexDataClient:
     """Internal vector index data client."""
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):

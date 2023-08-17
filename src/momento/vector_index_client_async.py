@@ -10,7 +10,7 @@ from momento.config import Configuration
 try:
     from momento.internal._utilities import _validate_request_timeout
     from momento.internal.aio._scs_control_client import _ScsControlClient
-    from momento.internal.aio._vector_index_client import _VectorIndexClient
+    from momento.internal.aio._vector_index_data_client import _VectorIndexDataClient
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -95,7 +95,7 @@ class PreviewVectorIndexClientAsync:
         self._logger = logs.logger
         self._next_client_index = 0
         self._control_client = _ScsControlClient(configuration, credential_provider)
-        self._data_client = _VectorIndexClient(configuration, credential_provider)
+        self._data_client = _VectorIndexDataClient(configuration, credential_provider)
 
     async def __aenter__(self) -> PreviewVectorIndexClientAsync:
         return self
