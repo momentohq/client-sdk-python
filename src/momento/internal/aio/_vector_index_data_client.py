@@ -11,7 +11,7 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
-from momento.internal.aio._scs_grpc_manager import _VectorIndexDataGrpcManager
+from momento.internal.aio._vector_index_grpc_manager import _VectorIndexDataGrpcManager
 from momento.requests.vector_index.item import Item
 from momento.responses.vector_index import (
     Search,

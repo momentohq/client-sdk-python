@@ -9,8 +9,12 @@ from momento.config import Configuration
 
 try:
     from momento.internal._utilities import _validate_request_timeout
-    from momento.internal.synchronous._scs_control_client import _ScsControlClient
-    from momento.internal.synchronous._vector_index_data_client import _VectorIndexDataClient
+    from momento.internal.synchronous._vector_index_control_client import (
+        _VectorIndexControlClient,
+    )
+    from momento.internal.synchronous._vector_index_data_client import (
+        _VectorIndexDataClient,
+    )
 except ImportError as e:
     if e.name == "cygrpc":
         import sys
@@ -94,7 +98,7 @@ class PreviewVectorIndexClient:
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
         self._next_client_index = 0
-        self._control_client = _ScsControlClient(configuration, credential_provider)
+        self._control_client = _VectorIndexControlClient(configuration, credential_provider)
         self._data_client = _VectorIndexDataClient(configuration, credential_provider)
 
     def __enter__(self) -> PreviewVectorIndexClient:

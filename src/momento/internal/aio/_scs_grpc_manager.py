@@ -6,7 +6,6 @@ import grpc
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_client
 from momento_wire_types import controlclient_pb2_grpc as control_client
-from momento_wire_types import vectorindex_pb2_grpc as vector_index_client
 
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
@@ -29,12 +28,7 @@ class _ControlGrpcManager:
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
-            credentials=grpc.ssl_channel_credentials(
-                # This was added to support local testing with a self-signed certificate.
-                root_certificates=configuration.get_transport_strategy()
-                .get_grpc_configuration()
-                .get_root_certificates()
-            ),
+            credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
         )
 
@@ -114,30 +108,6 @@ class _PubsubGrpcStreamManager:
 
     def async_stub(self) -> pubsub_client.PubsubStub:
         return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
-
-
-class _VectorIndexDataGrpcManager:
-    """Internal gRPC vector index data manager."""
-
-    version = momento_version
-
-    def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.aio.secure_channel(
-            target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(
-                # This was added to support local testing with a self-signed certificate.
-                root_certificates=configuration.get_transport_strategy()
-                .get_grpc_configuration()
-                .get_root_certificates()
-            ),
-            interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
-        )
-
-    async def close(self) -> None:
-        await self._secure_channel.close()
-
-    def async_stub(self) -> vector_index_client.VectorIndexStub:
-        return vector_index_client.VectorIndexStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 
 def _interceptors(auth_token: str, retry_strategy: Optional[RetryStrategy] = None) -> list[grpc.aio.ClientInterceptor]:
