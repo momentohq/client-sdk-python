@@ -155,7 +155,7 @@ class _ScsDataClient:
         default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
         self._default_deadline_seconds = int(default_deadline.total_seconds())
 
-        self._grpc_manager = _DataGrpcManager(configuration, credential_provider)
+        self._grpc_manager = _DataGrpcManager(configuration, credential_provider, self._logger)
 
         _validate_ttl(default_ttl)
         self._default_ttl = default_ttl
@@ -206,7 +206,9 @@ class _ScsDataClient:
                 ttl_milliseconds=self._ttl_or_default_milliseconds(ttl),
             )
 
-            self._build_stub().Set(request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds)
+            self._build_stub().Set(
+                request, metadata=make_metadata(cache_name), timeout=self._default_deadline_seconds
+            )
 
             self._log_received_response("Set", {"key": str(key)})
             return CacheSet.Success()
