@@ -86,7 +86,7 @@ async def test_sorted_set_fetch_by_score_fetch_all_with_offset_descending(
     )
     assert isinstance(resp, CacheSortedSetFetch.Hit)
     if isinstance(resp, CacheSortedSetFetch.Hit):
-        expected = [(k, v) for k, v in scores.items()][2:]
+        expected = [(k, v) for k, v in scores.items()][:2]
         expected.reverse()
         assert resp.value_list_string == expected
 
@@ -110,7 +110,7 @@ async def test_sorted_set_fetch_by_score_fetch_all_with_count_descending(
     )
     assert isinstance(resp, CacheSortedSetFetch.Hit)
     if isinstance(resp, CacheSortedSetFetch.Hit):
-        expected = [(k, v) for k, v in scores.items()][:2]
+        expected = [(k, v) for k, v in scores.items()][2:]
         expected.reverse()
         assert resp.value_list_string == expected
 
