@@ -50,7 +50,7 @@ class _VectorIndexDataClient:
         try:
             self._log_issuing_request("UpsertItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
-            request = vectorindex_pb.UpsertItemBatchRequest(
+            request = vectorindex_pb._UpsertItemBatchRequest(
                 index_name=index_name,
                 items=[item.to_proto() for item in items],
             )
@@ -71,16 +71,16 @@ class _VectorIndexDataClient:
             _validate_index_name(index_name)
             _validate_top_k(top_k)
 
-            query_vector_pb = vectorindex_pb.Vector(elements=query_vector)
-            metadata_fields_pb = vectorindex_pb.MetadataRequest(
-                some=vectorindex_pb.MetadataRequest.Some(fields=metadata_fields if metadata_fields is not None else [])
+            query_vector_pb = vectorindex_pb._Vector(elements=query_vector)
+            metadata_fields_pb = vectorindex_pb._MetadataRequest(
+                some=vectorindex_pb._MetadataRequest.Some(fields=metadata_fields if metadata_fields is not None else [])
             )
 
-            request = vectorindex_pb.SearchRequest(
+            request = vectorindex_pb._SearchRequest(
                 index_name=index_name, query_vector=query_vector_pb, top_k=top_k, metadata_fields=metadata_fields_pb
             )
 
-            response: vectorindex_pb.SearchResponse = self._build_stub().Search(
+            response: vectorindex_pb._SearchResponse = self._build_stub().Search(
                 request, timeout=self._default_deadline_seconds
             )
 

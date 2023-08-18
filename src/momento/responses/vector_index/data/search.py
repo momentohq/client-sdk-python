@@ -31,7 +31,7 @@ class SearchHit:
         self.metadata = self.metadata or {}
 
     @staticmethod
-    def from_proto(hit: vectorindex_pb.SearchHit) -> SearchHit:
+    def from_proto(hit: vectorindex_pb._SearchHit) -> SearchHit:
         metadata = {  # type: ignore
             item.field: item.string_value  # type: ignore
             for item in hit.metadata  # type: ignore

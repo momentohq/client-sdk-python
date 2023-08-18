@@ -46,7 +46,7 @@ class ListIndexes(ABC):
     class Success(ListIndexesResponse):
         """Indicates the request was successful."""
 
-        indexes: list[str]
+        index_names: list[str]
         """The list of indexes available to the user."""
 
         @staticmethod
@@ -56,8 +56,7 @@ class ListIndexes(ABC):
             Args:
                 grpc_list_index_response: Protobuf based response returned by Scs.
             """
-            indexes: list[str] = [index.index_name for index in grpc_list_index_response.indexes]  # type: ignore[misc]
-            return ListIndexes.Success(indexes=indexes)
+            return ListIndexes.Success(index_names=[index_name for index_name in grpc_list_index_response.index_names])  # type: ignore[misc]
 
     class Error(ListIndexesResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.

@@ -63,7 +63,7 @@ class _VectorIndexControlClient:
 
     def list_indexes(self) -> ListIndexesResponse:
         try:
-            list_indexes_request = ctrl_pb._ListIndexesRequest(next_token="")
+            list_indexes_request = ctrl_pb._ListIndexesRequest()
             response = self._build_stub().ListIndexes(list_indexes_request, timeout=_DEADLINE_SECONDS)
             return ListIndexes.Success.from_grpc_response(response)
         except Exception as e:
