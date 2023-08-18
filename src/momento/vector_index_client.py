@@ -6,7 +6,6 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
-from momento.responses.vector_index.data import delete_item_batch
 
 try:
     from momento.internal._utilities import _validate_request_timeout

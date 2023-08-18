@@ -56,7 +56,9 @@ class ListIndexes(ABC):
             Args:
                 grpc_list_index_response: Protobuf based response returned by Scs.
             """
-            return ListIndexes.Success(index_names=[index_name for index_name in grpc_list_index_response.index_names])  # type: ignore[misc]
+            return ListIndexes.Success(
+                index_names=[index_name for index_name in grpc_list_index_response.index_names]
+            )  # type: ignore[misc]
 
     class Error(ListIndexesResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
