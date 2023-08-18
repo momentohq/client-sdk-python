@@ -6,6 +6,7 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
+from momento.responses.vector_index.data import delete_item_batch
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -39,6 +40,7 @@ from momento.responses.vector_index import (
     AddItemBatchResponse,
     CreateIndexResponse,
     DeleteIndexResponse,
+    DeleteItemBatchResponse,
     ListIndexesResponse,
     SearchResponse,
 )
@@ -161,6 +163,20 @@ class PreviewVectorIndexClientAsync:
             AddItemBatchResponse: The result of an add item batch operation.
         """
         return await self._data_client.add_item_batch(index_name, items)
+
+    async def delete_item_batch(self, index_name: str, ids: list[str]) -> DeleteItemBatchResponse:
+        """Deletes a batch of items from a vector index.
+
+        Deletes any and all items with the given IDs from the index.
+
+        Args:
+            index_name (str): Name of the index to delete the items from.
+            ids (list[str]): The IDs of the items to be deleted from the index.
+
+        Returns:
+            DeleteItemBatchResponse: The result of a delete item batch operation.
+        """
+        return await self._data_client.delete_item_batch(index_name, ids)
 
     async def search(
         self, index_name: str, query_vector: list[float], top_k: int = 10, metadata_fields: Optional[list[str]] = None

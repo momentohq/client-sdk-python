@@ -18,6 +18,8 @@ from momento.requests.vector_index.item import Item
 from momento.responses.vector_index import (
     AddItemBatch,
     AddItemBatchResponse,
+    DeleteItemBatch,
+    DeleteItemBatchResponse,
     Search,
     SearchResponse,
 )
@@ -62,6 +64,31 @@ class _VectorIndexDataClient:
         except Exception as e:
             self._log_request_error("set", e)
             return AddItemBatch.Error(convert_error(e))
+
+    def delete_item_batch(
+        self,
+        index_name: str,
+        ids: list[str],
+    ) -> DeleteItemBatchResponse:
+        try:
+            self._log_issuing_request("DeleteItemBatch", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            if len(ids) == 0:
+                return DeleteItemBatch.Success()
+
+            request = vectorindex_pb._DeleteItemBatchRequest(
+                index_name=index_name,
+                ids=ids,
+            )
+
+            self._build_stub().DeleteItemBatch(request, timeout=self._default_deadline_seconds)
+
+            self._log_received_response("DeleteItemBatch", {"index_name": index_name})
+            return DeleteItemBatch.Success()
+        except Exception as e:
+            self._log_request_error("delete", e)
+            return DeleteItemBatch.Error(convert_error(e))
 
     def search(
         self, index_name: str, query_vector: list[float], top_k: int, metadata_fields: Optional[list[str]] = None

@@ -1,7 +1,13 @@
 from momento import PreviewVectorIndexClientAsync
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import Item
-from momento.responses.vector_index import AddItemBatch, CreateIndex, Search, SearchHit
+from momento.responses.vector_index import (
+    AddItemBatch,
+    CreateIndex,
+    DeleteItemBatch,
+    Search,
+    SearchHit,
+)
 from tests.conftest import TUniqueVectorIndexNameAsync
 from tests.utils import sleep_async
 
@@ -166,3 +172,54 @@ async def test_search_validates_top_k(vector_index_client_async: PreviewVectorIn
     assert isinstance(response, Search.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert response.inner_exception.message == "Top k must be a positive integer."
+
+
+async def test_delete_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
+    response = await vector_index_client_async.delete_item_batch(index_name="", ids=[])
+    assert isinstance(response, DeleteItemBatch.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+
+
+async def test_delete_deletes_ids(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+    create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    add_response = await vector_index_client_async.add_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 2.0]),
+            Item(id="test_item_2", vector=[3.0, 4.0]),
+            Item(id="test_item_3", vector=[5.0, 6.0]),
+            Item(id="test_item_3", vector=[7.0, 8.0]),
+        ],
+    )
+    assert isinstance(add_response, AddItemBatch.Success)
+
+    await sleep_async(2)
+
+    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=10)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 3
+
+    assert search_response.hits == [
+        SearchHit(id="test_item_3", distance=23.0),
+        SearchHit(id="test_item_2", distance=11.0),
+        SearchHit(id="test_item_1", distance=5.0),
+    ]
+
+    delete_response = await vector_index_client_async.delete_item_batch(index_name, ids=["test_item_1", "test_item_3"])
+    assert isinstance(delete_response, DeleteItemBatch.Success)
+
+    await sleep_async(2)
+
+    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=10)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 1
+
+    assert search_response.hits == [
+        SearchHit(id="test_item_2", distance=11.0),
+    ]
