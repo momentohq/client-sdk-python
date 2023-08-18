@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Optional
 
 import grpc
@@ -12,6 +13,7 @@ from momento.config import Configuration, TopicConfiguration
 from momento.internal._utilities import momento_version
 from momento.retry import RetryStrategy
 
+from ... import logs
 from ._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     AddHeaderStreamingClientInterceptor,
@@ -45,6 +47,7 @@ class _DataGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
+        self._logger = logs.logger
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
@@ -64,8 +67,23 @@ class _DataGrpcManager:
                 # (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
             ],
         )
+        self._eager_connect_task = asyncio.get_running_loop().create_task(self._eagerly_connect())
+
+    async def _eagerly_connect(self) -> None:
+        self._logger.debug("Attempting to create an eager connection with Momento's server")
+        """
+            Unlike the synchronous client, the async client has it's flavor of `channel_ready` that essentially
+            waits until the connection transitions to READY. We are scheduling this in our event loop as a best effort
+            to try and connect eagerly.
+        """
+        try:
+            await self._secure_channel.channel_ready()
+        except Exception as err:
+            self._logger.debug(f"Eager connection task was canceled before completion. {err}")
 
     async def close(self) -> None:
+        if self._eager_connect_task and not self._eager_connect_task.done():
+            self._eager_connect_task.cancel()
         await self._secure_channel.close()
 
     def async_stub(self) -> cache_client.ScsStub:

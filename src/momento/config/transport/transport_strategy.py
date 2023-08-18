@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import timedelta
+from typing import Optional
 
 from momento.internal._utilities import _validate_request_timeout
 
@@ -44,17 +45,39 @@ class TransportStrategy(ABC):
         """
         pass
 
+    @abstractmethod
+    def with_eager_connection_timeout(self, eager_connection_timeout: timedelta) -> TransportStrategy:
+        """Copies the TransportStrategy and updates the copy's eager_connection_timeout.
+
+        Args:
+            eager_connection_timeout (timedelta): the new eager connection timeout.
+
+        Returns:
+            TransportStrategy: the new TransportStrategy.
+        """
+        pass
+
 
 class StaticGrpcConfiguration(GrpcConfiguration):
-    def __init__(self, deadline: timedelta):
+    DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS = 30
+
+    def __init__(self, deadline: timedelta, eager_connection_timeout: Optional[timedelta] = None):
         self._deadline = deadline
+        self._eager_connection_timeout = eager_connection_timeout
 
     def get_deadline(self) -> timedelta:
         return self._deadline
 
     def with_deadline(self, deadline: timedelta) -> GrpcConfiguration:
         _validate_request_timeout(deadline)
-        return StaticGrpcConfiguration(deadline)
+        return StaticGrpcConfiguration(deadline, self._eager_connection_timeout)
+
+    def get_eager_connection_timeout(self) -> timedelta:
+        return self._eager_connection_timeout or timedelta(seconds=self.DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS)
+
+    def with_eager_connection_timeout(self, timeout: timedelta) -> GrpcConfiguration:
+        _validate_request_timeout(timeout)
+        return StaticGrpcConfiguration(self._deadline, timeout)
 
 
 class StaticTransportStrategy(TransportStrategy):
@@ -69,3 +92,6 @@ class StaticTransportStrategy(TransportStrategy):
 
     def with_client_timeout(self, client_timeout: timedelta) -> TransportStrategy:
         return StaticTransportStrategy(self._grpc_configuration.with_deadline(client_timeout))
+
+    def with_eager_connection_timeout(self, eager_connection_timeout: timedelta) -> TransportStrategy:
+        return StaticTransportStrategy(self._grpc_configuration.with_eager_connection_timeout(eager_connection_timeout))

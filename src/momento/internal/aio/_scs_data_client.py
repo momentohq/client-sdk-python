@@ -156,7 +156,6 @@ class _ScsDataClient:
         self._default_deadline_seconds = int(default_deadline.total_seconds())
 
         self._grpc_manager = _DataGrpcManager(configuration, credential_provider)
-
         _validate_ttl(default_ttl)
         self._default_ttl = default_ttl
 

@@ -31,6 +31,10 @@ class ConfigurationBase(ABC):
     def with_client_timeout(self, client_timeout: timedelta) -> Configuration:
         pass
 
+    @abstractmethod
+    def with_eager_connection_timeout(self, eager_connection_timeout: timedelta) -> Configuration:
+        pass
+
 
 class Configuration(ConfigurationBase):
     """Configuration options for Momento Simple Cache Client."""
@@ -94,3 +98,16 @@ class Configuration(ConfigurationBase):
             Configuration: the new Configuration.
         """
         return Configuration(self._transport_strategy.with_client_timeout(client_timeout), self._retry_strategy)
+
+    def with_eager_connection_timeout(self, eager_connection_timeout: timedelta) -> Configuration:
+        """Copies the Configuration and sets the new eager connection timeout in the copy's TransportStrategy.
+
+        Args:
+            eager_connection_timeout (timedelta): the new eager-connection timeout.
+
+        Return:
+            Configuration: the new Configuration.
+        """
+        return Configuration(
+            self._transport_strategy.with_eager_connection_timeout(eager_connection_timeout), self._retry_strategy
+        )
