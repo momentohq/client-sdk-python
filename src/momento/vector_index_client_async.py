@@ -149,7 +149,6 @@ class PreviewVectorIndexClientAsync:
 
         Adds an item into the index regardless if the ID already exists.
         On duplicate ID, a separate entry is created with the same ID.
-        This is useful for adding multiple vectors for the same ID.
 
         To deduplicate, first call `delete_item_batch` to remove all items
         with the same ID, then call `add_item_batch` to add the new items.
