@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import Optional
 
 import grpc
@@ -7,9 +8,11 @@ from momento_wire_types import cacheclient_pb2_grpc as cache_client
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_client
 from momento_wire_types import controlclient_pb2_grpc as control_client
 
+from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.internal._utilities import momento_version
+from momento.internal._utilities._eager_connection import _eagerly_connect
 from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     AddHeaderStreamingClientInterceptor,
@@ -46,14 +49,18 @@ class _DataGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
+        self._logger = logs.logger
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
         )
+
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
         )
         self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
+
+        _eagerly_connect(configuration)
 
     def close(self) -> None:
         self._secure_channel.close()

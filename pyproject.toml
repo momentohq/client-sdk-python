@@ -59,6 +59,10 @@ libcst = "^0.4.9"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+log_level = "INFO"
+log_cli = true
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S.%f"
 
 [tool.mypy]
 python_version = "3.7"

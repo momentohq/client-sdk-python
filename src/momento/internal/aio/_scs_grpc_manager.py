@@ -18,6 +18,7 @@ from ._add_header_client_interceptor import (
     Header,
 )
 from ._retry_interceptor import RetryInterceptor
+from .._utilities._eager_connection import _eagerly_connect
 
 
 class _ControlGrpcManager:
@@ -64,6 +65,7 @@ class _DataGrpcManager:
                 # (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
             ],
         )
+        _eagerly_connect(configuration)
 
     async def close(self) -> None:
         await self._secure_channel.close()
