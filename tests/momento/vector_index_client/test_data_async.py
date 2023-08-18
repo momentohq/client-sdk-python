@@ -1,17 +1,12 @@
 from momento import PreviewVectorIndexClientAsync
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import Item
-from momento.responses.vector_index import (
-    CreateIndex,
-    Search,
-    SearchHit,
-    UpsertItemBatch,
-)
+from momento.responses.vector_index import AddItemBatch, CreateIndex, Search, SearchHit
 from tests.conftest import TUniqueVectorIndexNameAsync
 from tests.utils import sleep_async
 
 
-async def test_create_index_upsert_item_search_happy_path(
+async def test_create_index_add_item_search_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
@@ -19,10 +14,10 @@ async def test_create_index_upsert_item_search_happy_path(
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
     assert isinstance(create_response, CreateIndex.Success)
 
-    upsert_response = await vector_index_client_async.upsert_item_batch(
+    add_response = await vector_index_client_async.add_item_batch(
         index_name, items=[Item(id="test_item", vector=[1.0, 2.0])]
     )
-    assert isinstance(upsert_response, UpsertItemBatch.Success)
+    assert isinstance(add_response, AddItemBatch.Success)
 
     await sleep_async(2)
 
@@ -33,7 +28,7 @@ async def test_create_index_upsert_item_search_happy_path(
     assert search_response.hits[0].distance == 5.0
 
 
-async def test_create_index_upsert_multiple_items_search_happy_path(
+async def test_create_index_add_multiple_items_search_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
@@ -41,7 +36,7 @@ async def test_create_index_upsert_multiple_items_search_happy_path(
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
     assert isinstance(create_response, CreateIndex.Success)
 
-    upsert_response = await vector_index_client_async.upsert_item_batch(
+    add_response = await vector_index_client_async.add_item_batch(
         index_name,
         items=[
             Item(id="test_item_1", vector=[1.0, 2.0]),
@@ -49,7 +44,7 @@ async def test_create_index_upsert_multiple_items_search_happy_path(
             Item(id="test_item_3", vector=[5.0, 6.0]),
         ],
     )
-    assert isinstance(upsert_response, UpsertItemBatch.Success)
+    assert isinstance(add_response, AddItemBatch.Success)
 
     await sleep_async(2)
 
@@ -64,7 +59,7 @@ async def test_create_index_upsert_multiple_items_search_happy_path(
     ]
 
 
-async def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
+async def test_create_index_add_multiple_items_search_with_top_k_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
@@ -72,7 +67,7 @@ async def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
     assert isinstance(create_response, CreateIndex.Success)
 
-    upsert_response = await vector_index_client_async.upsert_item_batch(
+    add_response = await vector_index_client_async.add_item_batch(
         index_name,
         items=[
             Item(id="test_item_1", vector=[1.0, 2.0]),
@@ -80,7 +75,7 @@ async def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
             Item(id="test_item_3", vector=[5.0, 6.0]),
         ],
     )
-    assert isinstance(upsert_response, UpsertItemBatch.Success)
+    assert isinstance(add_response, AddItemBatch.Success)
 
     await sleep_async(2)
 
@@ -94,7 +89,7 @@ async def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
     ]
 
 
-async def test_upsert_and_search_with_metadata_happy_path(
+async def test_add_and_search_with_metadata_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
@@ -102,7 +97,7 @@ async def test_upsert_and_search_with_metadata_happy_path(
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
     assert isinstance(create_response, CreateIndex.Success)
 
-    upsert_response = await vector_index_client_async.upsert_item_batch(
+    add_response = await vector_index_client_async.add_item_batch(
         index_name,
         items=[
             Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
@@ -110,7 +105,7 @@ async def test_upsert_and_search_with_metadata_happy_path(
             Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key1": "value3", "key3": "value3"}),
         ],
     )
-    assert isinstance(upsert_response, UpsertItemBatch.Success)
+    assert isinstance(add_response, AddItemBatch.Success)
 
     await sleep_async(2)
 
@@ -149,14 +144,14 @@ async def test_upsert_and_search_with_metadata_happy_path(
     ]
 
 
-# TODO: test upserting data of different dimension than the index
+# TODO: test adding data of different dimension than the index
 
 
-async def test_upsert_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
-    response = await vector_index_client_async.upsert_item_batch(
+async def test_add_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
+    response = await vector_index_client_async.add_item_batch(
         index_name="", items=[Item(id="test_item", vector=[1.0, 2.0])]
     )
-    assert isinstance(response, UpsertItemBatch.Error)
+    assert isinstance(response, AddItemBatch.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 

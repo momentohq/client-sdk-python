@@ -14,10 +14,10 @@ from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.aio._vector_index_grpc_manager import _VectorIndexDataGrpcManager
 from momento.requests.vector_index.item import Item
 from momento.responses.vector_index import (
+    AddItemBatch,
+    AddItemBatchResponse,
     Search,
     SearchResponse,
-    UpsertItemBatch,
-    UpsertItemBatchResponse,
 )
 from momento.responses.vector_index.data.search import SearchHit
 
@@ -40,26 +40,26 @@ class _VectorIndexDataClient:
     def endpoint(self) -> str:
         return self._endpoint
 
-    async def upsert_item_batch(
+    async def add_item_batch(
         self,
         index_name: str,
         items: list[Item],
-    ) -> UpsertItemBatchResponse:
+    ) -> AddItemBatchResponse:
         try:
-            self._log_issuing_request("UpsertItemBatch", {"index_name": index_name})
+            self._log_issuing_request("AddItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
-            request = vectorindex_pb._UpsertItemBatchRequest(
+            request = vectorindex_pb._AddItemBatchRequest(
                 index_name=index_name,
                 items=[item.to_proto() for item in items],
             )
 
-            await self._build_stub().UpsertItemBatch(request, timeout=self._default_deadline_seconds)
+            await self._build_stub().AddItemBatch(request, timeout=self._default_deadline_seconds)
 
-            self._log_received_response("UpsertItemBatch", {"index_name": index_name})
-            return UpsertItemBatch.Success()
+            self._log_received_response("AddItemBatch", {"index_name": index_name})
+            return AddItemBatch.Success()
         except Exception as e:
             self._log_request_error("set", e)
-            return UpsertItemBatch.Error(convert_error(e))
+            return AddItemBatch.Error(convert_error(e))
 
     async def search(
         self, index_name: str, query_vector: list[float], top_k: int, metadata_fields: Optional[list[str]] = None

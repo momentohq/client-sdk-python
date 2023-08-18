@@ -4,24 +4,24 @@ from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
 
 
-class UpsertItemBatchResponse(VectorIndexResponse):
-    """Parent response type for a vector index `upsert_item_batch` request.
+class AddItemBatchResponse(VectorIndexResponse):
+    """Parent response type for a vector index `add_item_batch` request.
 
     Its subtypes are:
-    - `UpsertItemBatch.Success`
-    - `UpsertItemBatch.Error`
+    - `AddItemBatch.Success`
+    - `AddItemBatch.Error`
 
     See `VectorIndexClient` for how to work with responses.
     """
 
 
-class UpsertItemBatch(ABC):
-    """Groups all `UpsertItemBatchResponse` derived types under a common namespace."""
+class AddItemBatch(ABC):
+    """Groups all `AddItemBatchResponse` derived types under a common namespace."""
 
-    class Success(UpsertItemBatchResponse):
+    class Success(AddItemBatchResponse):
         """Indicates the request was successful."""
 
-    class Error(UpsertItemBatchResponse, ErrorResponseMixin):
+    class Error(AddItemBatchResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
 
         This includes:

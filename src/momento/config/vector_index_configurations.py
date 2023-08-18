@@ -25,6 +25,6 @@ class VectorIndexConfigurations:
             This configuration will be updated every time there is a new version of the laptop configuration.
             """
             return VectorIndexConfigurations.Default(
-                # This is high to account for time-intensive upserts.
+                # This is high to account for time-intensive adds.
                 StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=120)))
             )

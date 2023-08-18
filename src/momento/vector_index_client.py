@@ -38,11 +38,11 @@ except ImportError as e:
 
 from momento.requests.vector_index import Item
 from momento.responses.vector_index import (
+    AddItemBatchResponse,
     CreateIndexResponse,
     DeleteIndexResponse,
     ListIndexesResponse,
     SearchResponse,
-    UpsertItemBatchResponse,
 )
 
 
@@ -145,20 +145,24 @@ class PreviewVectorIndexClient:
         """
         return self._control_client.list_indexes()
 
-    def upsert_item_batch(self, index_name: str, items: list[Item]) -> UpsertItemBatchResponse:
-        """Upserts a batch of items into a vector index.
+    def add_item_batch(self, index_name: str, items: list[Item]) -> AddItemBatchResponse:
+        """Adds a batch of items into a vector index.
 
-        Inserts an item if the ID does not exist. If the ID does exist, the item is replaced
-        with the new item.
+        Adds an item into the index regardless if the ID already exists.
+        On duplicate ID, a separate entry is created with the same ID.
+        This is useful for adding multiple vectors for the same ID.
+
+        To deduplicate, first call `delete_item_batch` to remove all items
+        with the same ID, then call `add_item_batch` to add the new items.
 
         Args:
-            index_name (str): Name of the index to upsert the items into.
-            items (list[Item]): The items to be upserted into the index.
+            index_name (str): Name of the index to add the items into.
+            items (list[Item]): The items to be added into the index.
 
         Returns:
-            UpsertItemBatchResponse: The result of an upsert item batch operation.
+            AddItemBatchResponse: The result of an add item batch operation.
         """
-        return self._data_client.upsert_item_batch(index_name, items)
+        return self._data_client.add_item_batch(index_name, items)
 
     def search(
         self, index_name: str, query_vector: list[float], top_k: int = 10, metadata_fields: Optional[list[str]] = None
