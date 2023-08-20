@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
 
 from momento_wire_types import vectorindex_pb2 as pb
 
@@ -17,12 +16,8 @@ class Item:
     vector: list[float]
     """The vector of the item."""
 
-    metadata: Optional[dict[str, str]] = None
+    metadata: dict[str, str] = field(default_factory=dict)
     """The metadata of the item."""
-
-    def __post_init__(self) -> None:
-        if self.metadata is None:
-            self.metadata = {}
 
     def to_proto(self) -> pb._Item:
         vector = pb._Vector(elements=self.vector)

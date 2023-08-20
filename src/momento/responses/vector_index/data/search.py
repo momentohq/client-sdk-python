@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
 
 from momento_wire_types import vectorindex_pb2 as vectorindex_pb
 
@@ -25,10 +24,7 @@ class SearchResponse(VectorIndexResponse):
 class SearchHit:
     id: str
     distance: float
-    metadata: Optional[dict[str, str]] = None
-
-    def __post_init__(self) -> None:
-        self.metadata = self.metadata or {}
+    metadata: dict[str, str] = field(default_factory=dict)
 
     @staticmethod
     def from_proto(hit: vectorindex_pb._SearchHit) -> SearchHit:
