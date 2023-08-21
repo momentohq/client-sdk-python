@@ -18,8 +18,10 @@ def _eagerly_connect(self: Any, configuration: Configuration) -> None:  # type: 
     )
 
     def on_timeout() -> None:
-        self._logger.debug("We could not establish an eager connection within %d seconds",  # type: ignore
-                           eager_connection_timeout.seconds)
+        self._logger.debug(  # type: ignore
+            "We could not establish an eager connection within %d seconds",
+            eager_connection_timeout.seconds,
+        )
         # the subscription is no longer needed; it was only meant to watch if we could connect eagerly
         self._secure_channel.unsubscribe(on_state_change)  # type: ignore
 
@@ -45,8 +47,7 @@ def _eagerly_connect(self: Any, configuration: Configuration) -> None:  # type: 
         elif state == connecting:  # type: ignore
             self._logger.debug("State transitioned to CONNECTING; waiting to get READY")  # type: ignore
         else:
-            self._logger.debug(f"Unexpected connection state: {state}. "  # type: ignore
-                               f"Please contact Momento if this persists.")
+            self._logger.debug(f"Unexpected connection state: {state}.")  # type: ignore
             # we could not connect within the timeout and we no longer need this subscription
             timer.cancel()
             self._secure_channel.unsubscribe(on_state_change)  # type: ignore
