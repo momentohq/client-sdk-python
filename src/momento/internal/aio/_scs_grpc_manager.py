@@ -69,7 +69,7 @@ class _DataGrpcManager:
         )
         self._eager_connect_task = asyncio.get_running_loop().create_task(self._eagerly_connect())
 
-    async def _eagerly_connect(self):
+    async def _eagerly_connect(self) -> None:
         self._logger.debug("Attempting to create an eager connection with Momento's server")
         """
             Unlike the synchronous client, the async client has it's flavor of `channel_ready` that essentially
