@@ -19,7 +19,7 @@ The primary use is to provide a base for testing Momento in an AWS lambda enviro
 - Node version 14 or higher is required (for deploying the Cloudformation stack containing the Lambda)
 - To get started with Momento you will need a Momento Auth Token. You can get one from the [Momento Console](https://console.gomomento.com). Check out the [getting started](https://docs.momentohq.com/getting-started) guide for more information on obtaining an auth token.
 
-## Deploying the Simple Get Lambda
+## Deploying the Momento Python Lambda
 
 The source code for the CDK application lives in the `infrastructure` directory.
 To build and deploy it you will first need to install the dependencies:
@@ -42,4 +42,4 @@ npm run cdk deploy
 
 The lambda does not set up a way to access itself externally, so to run it, you will have to go to `MomentoDockerLambda` in AWS Lambda and run a test.
 
-The lambda is set up to make set and get calls for the key 'key' in the cache 'cache'.
+The lambda is set up to make set and get calls for the key 'key' in the cache 'cache'. You can play around with the code by changing the `docker/lambda/index.py` file. Remember to update `docker/lambda/aws_requirements.txt` file if you add additional Python dependencies.

@@ -40,9 +40,7 @@ class Configurations:
             )
 
     class Lambda(Configuration):
-        """Lambda config provides defaults suitable for an AWS Lambda environment.
-
-        """
+        """Lambda config provides defaults suitable for an AWS Lambda environment."""
 
         @staticmethod
         def latest() -> Configurations.Laptop:

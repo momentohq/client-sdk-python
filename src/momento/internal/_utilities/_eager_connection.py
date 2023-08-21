@@ -1,56 +1,60 @@
-import datetime
+import threading
+from datetime import timedelta
+from typing import Any
 
 import grpc
-import threading
 
-EAGER_CONNECTION_TIMEOUT = datetime.timedelta(seconds=30)
+from momento.config import Configuration
 
-'''
-    This method tries to connect to Momento's server eagerly in async fashion until 
-    EAGER_CONNECTION_TIMEOUT elapses. 
-'''
-def _eagerly_connect(self, configuration) -> None:
-    eager_connection_timeout = configuration.get_transport_strategy() \
-        .get_grpc_configuration().get_eager_connection_timeout()
-    if eager_connection_timeout is None:
-        eager_connection_timeout = EAGER_CONNECTION_TIMEOUT
+"""
+    This method tries to connect to Momento's server eagerly in async fashion until
+    EAGER_CONNECTION_TIMEOUT elapses.
+"""
 
-    def on_timeout():
-        self._logger.debug("We could not establish an eager connection within %d seconds",
-                           eager_connection_timeout)
+
+def _eagerly_connect(self: Any, configuration: Configuration) -> None:  # type: ignore
+    eager_connection_timeout: timedelta = (
+        configuration.get_transport_strategy().get_grpc_configuration().get_eager_connection_timeout()
+    )
+
+    def on_timeout() -> None:
+        self._logger.debug("We could not establish an eager connection within %d seconds",  # type: ignore
+                           eager_connection_timeout.seconds)
         # the subscription is no longer needed; it was only meant to watch if we could connect eagerly
-        self._secure_channel.unsubscribe(on_state_change)
+        self._secure_channel.unsubscribe(on_state_change)  # type: ignore
 
-    '''
-        A callback that is triggered whenever a connection's state changes. We explicitly subscribe to
-        to the channel to notify us of state transitions. This method essentially handles unsubscribing 
-        as soon as we reach the desired state (or an unexpected one). In theory this callback isn't needed
-        to eagerly connect, but we still need it to not have a lurking subscription.
-    '''
+    """
+    A callback that is triggered whenever a connection's state changes. We explicitly subscribe to
+    to the channel to notify us of state transitions. This method essentially handles unsubscribing
+    as soon as we reach the desired state (or an unexpected one). In theory this callback isn't needed
+    to eagerly connect, but we still need it to not have a lurking subscription.
+    """
+
     def on_state_change(state: grpc.ChannelConnectivity) -> None:
-        ready = grpc.ChannelConnectivity.READY
-        connecting = grpc.ChannelConnectivity.CONNECTING
-        idle = grpc.ChannelConnectivity.IDLE
+        ready: grpc.ChannelConnectivity = grpc.ChannelConnectivity.READY  # type: ignore
+        connecting: grpc.ChannelConnectivity = grpc.ChannelConnectivity.CONNECTING  # type: ignore
+        idle: grpc.ChannelConnectivity = grpc.ChannelConnectivity.IDLE  # type: ignore
 
-        if state == ready:
-            self._logger.debug("Connected to Momento's server!")
+        if state == ready:  # type: ignore
+            self._logger.debug("Connected to Momento's server!")  # type: ignore
             # we successfully connected within the timeout and we no longer need this subscription
             timer.cancel()
-            self._secure_channel.unsubscribe(on_state_change)
-        elif state == idle:
-            self._logger.debug("State is idle; waiting to transition to CONNECTING")
-        elif state == connecting:
-            self._logger.debug("State transitioned to CONNECTING; waiting to get READY")
+            self._secure_channel.unsubscribe(on_state_change)  # type: ignore
+        elif state == idle:  # type: ignore
+            self._logger.debug("State is idle; waiting to transition to CONNECTING")  # type: ignore
+        elif state == connecting:  # type: ignore
+            self._logger.debug("State transitioned to CONNECTING; waiting to get READY")  # type: ignore
         else:
-            self._logger.debug(f"Unexpected connection state: {state}. Please contact Momento if this persists.")
+            self._logger.debug(f"Unexpected connection state: {state}. "  # type: ignore
+                               f"Please contact Momento if this persists.")
             # we could not connect within the timeout and we no longer need this subscription
             timer.cancel()
-            self._secure_channel.unsubscribe(on_state_change)
+            self._secure_channel.unsubscribe(on_state_change)  # type: ignore
 
     # on_timeout is automatically called once eager_connection_timeout has passed
-    timer = threading.Timer(eager_connection_timeout, on_timeout)
+    timer = threading.Timer(eager_connection_timeout.seconds, on_timeout)
     timer.start()
 
     # we subscribe to the channel that notifies us of state transitions, and the timer above will take care
     # of unsubscribing from the channel incase the timeout has elapsed.
-    self._secure_channel.subscribe(on_state_change, try_to_connect=True)
+    self._secure_channel.subscribe(on_state_change, try_to_connect=True)  # type: ignore

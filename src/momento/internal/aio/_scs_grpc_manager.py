@@ -12,13 +12,14 @@ from momento.config import Configuration, TopicConfiguration
 from momento.internal._utilities import momento_version
 from momento.retry import RetryStrategy
 
+from ... import logs
+from .._utilities._eager_connection import _eagerly_connect
 from ._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     AddHeaderStreamingClientInterceptor,
     Header,
 )
 from ._retry_interceptor import RetryInterceptor
-from .._utilities._eager_connection import _eagerly_connect
 
 
 class _ControlGrpcManager:
@@ -46,6 +47,7 @@ class _DataGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
+        self._logger = logs.logger
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
@@ -65,7 +67,7 @@ class _DataGrpcManager:
                 # (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
             ],
         )
-        _eagerly_connect(configuration)
+        _eagerly_connect(self, configuration)
 
     async def close(self) -> None:
         await self._secure_channel.close()

@@ -3,6 +3,7 @@ from datetime import timedelta
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache
 
+
 def handler(event, lambda_context):
     cache_name = "default-cache"
     with CacheClient(

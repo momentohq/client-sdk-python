@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 from typing import Optional
 
 import grpc
@@ -60,7 +59,7 @@ class _DataGrpcManager:
         )
         self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
 
-        _eagerly_connect(configuration)
+        _eagerly_connect(self, configuration)
 
     def close(self) -> None:
         self._secure_channel.close()

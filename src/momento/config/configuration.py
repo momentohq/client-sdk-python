@@ -108,5 +108,6 @@ class Configuration(ConfigurationBase):
         Return:
             Configuration: the new Configuration.
         """
-        return Configuration(self._transport_strategy.with_eager_connection_timeout(eager_connection_timeout),
-                             self._retry_strategy)
+        return Configuration(
+            self._transport_strategy.with_eager_connection_timeout(eager_connection_timeout), self._retry_strategy
+        )
