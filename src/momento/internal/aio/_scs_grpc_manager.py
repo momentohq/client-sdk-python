@@ -71,11 +71,11 @@ class _DataGrpcManager:
 
     async def _eagerly_connect(self):
         self._logger.debug("Attempting to create an eager connection with Momento's server")
-        '''
+        """
             Unlike the synchronous client, the async client has it's flavor of `channel_ready` that essentially
             waits until the connection transitions to READY. We are scheduling this in our event loop as a best effort
             to try and connect eagerly.
-        '''
+        """
         try:
             await self._secure_channel.channel_ready()
         except asyncio.CancelledError:

@@ -74,6 +74,7 @@ class _DataGrpcManager:
 
         # An event to track whether we were able to establish an eager connection
         connection_event = threading.Event()
+
         def on_timeout() -> None:
             self._logger.debug(
                 "We could not establish an eager connection within %d seconds",
@@ -108,7 +109,6 @@ class _DataGrpcManager:
                 self._logger.debug(f"Unexpected connection state: {state}.")
                 # we could not connect within the timeout and we no longer need this subscription
                 self._secure_channel.unsubscribe(on_state_change)
-
 
         # we subscribe to the channel that notifies us of state transitions, and the timer above will take care
         # of unsubscribing from the channel incase the timeout has elapsed.
