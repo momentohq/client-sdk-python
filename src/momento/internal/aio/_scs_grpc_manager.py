@@ -67,7 +67,11 @@ class _DataGrpcManager:
                 # (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
             ],
         )
-        self._eager_connect_task = asyncio.get_running_loop().create_task(self._eagerly_connect())
+        # we submit the eager connection task in our current running event loop
+        try:
+            self._eager_connect_task = asyncio.get_running_loop().create_task(self._eagerly_connect())
+        except Exception as err:
+            self._logger.debug(f"Error fetching the running event loop. {err}")
 
     async def _eagerly_connect(self) -> None:
         self._logger.debug("Attempting to create an eager connection with Momento's server")
@@ -79,7 +83,7 @@ class _DataGrpcManager:
         try:
             await self._secure_channel.channel_ready()
         except Exception as err:
-            self._logger.debug(f"Eager connection task was canceled before completion. {err}")
+            self._logger.debug(f"Eager connection task errored out before completion. {err}")
 
     async def close(self) -> None:
         if self._eager_connect_task and not self._eager_connect_task.done():

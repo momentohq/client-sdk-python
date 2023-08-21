@@ -43,12 +43,15 @@ class Configurations:
         """Lambda config provides defaults suitable for an AWS Lambda environment."""
 
         @staticmethod
-        def latest() -> Configurations.Laptop:
+        def latest() -> Configurations.Lambda:
             """Provides the latest recommended configuration for an AWS Lambda development environment.
 
             This configuration will be updated every time there is a new version of the Lambda configuration.
             """
-            return Configurations.Laptop.v1()
+            return Configurations.Lambda(
+                StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=1100))),
+                FixedCountRetryStrategy(max_attempts=3),
+            )
 
     class InRegion:
         """Default for application running in the same region as the Momento service.
