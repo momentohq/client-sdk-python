@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import timedelta
-from typing import Optional
 
 from momento.internal._utilities import _validate_request_timeout
 
@@ -47,18 +46,15 @@ class TransportStrategy(ABC):
 
 
 class StaticGrpcConfiguration(GrpcConfiguration):
-    DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS = 30
-
-    def __init__(self, deadline: timedelta, eager_connection_timeout: Optional[timedelta] = None):
+    def __init__(self, deadline: timedelta):
         self._deadline = deadline
-        self._eager_connection_timeout = eager_connection_timeout
 
     def get_deadline(self) -> timedelta:
         return self._deadline
 
     def with_deadline(self, deadline: timedelta) -> GrpcConfiguration:
         _validate_request_timeout(deadline)
-        return StaticGrpcConfiguration(deadline, self._eager_connection_timeout)
+        return StaticGrpcConfiguration(deadline)
 
 
 class StaticTransportStrategy(TransportStrategy):

@@ -46,7 +46,7 @@ class _ScsControlClient:
 
     async def create_cache(self, cache_name: str) -> CreateCacheResponse:
         try:
-            self._logger.info(f"Creating async cache with name: {cache_name}")
+            self._logger.info(f"Creating cache with name: {cache_name}")
             _validate_cache_name(cache_name)
             request = ctrl_pb._CreateCacheRequest(cache_name=cache_name)
             await self._build_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)

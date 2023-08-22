@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import threading
+from threading import Event
 from typing import Optional
 
 import grpc
@@ -72,7 +72,7 @@ class _DataGrpcManager:
         # An event to track whether we were able to establish an eager connection
         # This is required as we create a subscription to eagerly connect and observe the state changes
         # We do NOT want the subscription to lurk around after it's job is done.
-        connection_event = threading.Event()
+        connection_event = Event()
 
         def on_timeout() -> None:
             self._logger.debug(
