@@ -18,7 +18,7 @@ def handler(event, lambda_context):
         elif isinstance(create_cache_response, CreateCache.Error):
             raise create_cache_response.inner_exception
 
-        print("Setting Key: foo to Value: FOO")
+        print("Setting Key: key to Value: value")
         set_response = cache_client.set(cache_name, "key", "value")
 
         if isinstance(set_response, CacheSet.Error):

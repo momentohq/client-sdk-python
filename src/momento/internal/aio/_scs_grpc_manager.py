@@ -67,27 +67,42 @@ class _DataGrpcManager:
                 # (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
             ],
         )
-        # we submit the eager connection task in our current running event loop
-        try:
-            self._eager_connect_task = asyncio.get_running_loop().create_task(self._eagerly_connect())
-        except Exception as err:
-            self._logger.debug(f"Error fetching the running event loop. {err}")
 
-    async def _eagerly_connect(self) -> None:
-        self._logger.debug("Attempting to create an eager connection with Momento's server")
-        """
-            Unlike the synchronous client, the async client has it's flavor of `channel_ready` that essentially
-            waits until the connection transitions to READY. We are scheduling this in our event loop as a best effort
-            to try and connect eagerly.
-        """
+    async def eagerly_connect(self, timeout_seconds: int) -> None:
+        self._logger.debug(
+            f"Attempting to create an eager connection with Momento's server within {timeout_seconds} seconds"
+        )
         try:
-            await self._secure_channel.channel_ready()
-        except Exception as err:
-            self._logger.debug(f"Eager connection task errored out before completion. {err}")
+            await asyncio.wait_for(self.wait_for_ready(), timeout_seconds)
+        except TimeoutError:
+            self._logger.debug("Failed to connect to the server within the given timeout.")
+
+    async def wait_for_ready(self) -> None:
+        latest_state = self._secure_channel.get_state(True)  # try_to_connect
+        ready: grpc.ChannelConnectivity = grpc.ChannelConnectivity.READY
+        connecting: grpc.ChannelConnectivity = grpc.ChannelConnectivity.CONNECTING
+        idle: grpc.ChannelConnectivity = grpc.ChannelConnectivity.IDLE
+
+        while latest_state != ready:
+
+            if latest_state == idle:
+                self._logger.debug("State is idle; waiting to transition to CONNECTING")
+            elif latest_state == connecting:
+                self._logger.debug("State transitioned to CONNECTING; waiting to get READY")
+            else:
+                self._logger.warn(f"Unexpected connection state: {latest_state}. while trying to eagerly connect")
+                break
+
+            # This is a gRPC callback helper that prevents us from repeatedly polling on the state
+            # which is highly inefficient.
+            await self._secure_channel.wait_for_state_change(latest_state)
+            latest_state = self._secure_channel.get_state(False)  # no need to reconnect
+
+        if latest_state == ready:
+            self._logger.debug("Connected to Momento's server! Happy Caching!")
 
     async def close(self) -> None:
-        if self._eager_connect_task and not self._eager_connect_task.done():
-            self._eager_connect_task.cancel()
+        self._logger.debug("Closing and tearing down gRPC channel")
         await self._secure_channel.close()
 
     def async_stub(self) -> cache_client.ScsStub:

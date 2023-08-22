@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import threading
-from datetime import timedelta
 from typing import Optional
 
 import grpc
@@ -60,25 +59,25 @@ class _DataGrpcManager:
         )
         self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
 
-        self._eagerly_connect(configuration)
-
     """
         This method tries to connect to Momento's server eagerly in async fashion until
         EAGER_CONNECTION_TIMEOUT elapses.
     """
 
-    def _eagerly_connect(self, configuration: Configuration) -> None:
-        eager_connection_timeout: timedelta = (
-            configuration.get_transport_strategy().get_grpc_configuration().get_eager_connection_timeout()
+    def eagerly_connect(self, timeout_seconds: int) -> None:
+        self._logger.debug(
+            "Attempting to create an eager connection with Momento's server within " f"{timeout_seconds} seconds"
         )
 
         # An event to track whether we were able to establish an eager connection
+        # This is required as we create a subscription to eagerly connect and observe the state changes
+        # We do NOT want the subscription to lurk around after it's job is done.
         connection_event = threading.Event()
 
         def on_timeout() -> None:
             self._logger.debug(
                 "We could not establish an eager connection within %d seconds",
-                eager_connection_timeout.seconds,
+                timeout_seconds,
             )
             # the subscription is no longer needed; it was only meant to watch if we could connect eagerly
             self._secure_channel.unsubscribe(on_state_change)
@@ -95,7 +94,7 @@ class _DataGrpcManager:
             connecting: grpc.ChannelConnectivity = grpc.ChannelConnectivity.CONNECTING
             idle: grpc.ChannelConnectivity = grpc.ChannelConnectivity.IDLE
             if state == ready:
-                self._logger.debug("Connected to Momento's server!")
+                self._logger.debug("Connected to Momento's server! Happy Caching!")
                 # we successfully connected within the timeout and we no longer need this subscription
                 self._secure_channel.unsubscribe(on_state_change)
                 # this indicates to the connection event that we were successful in establishing an eager connection
@@ -106,19 +105,21 @@ class _DataGrpcManager:
             elif state == connecting:
                 self._logger.debug("State transitioned to CONNECTING; waiting to get READY")
             else:
-                self._logger.debug(f"Unexpected connection state: {state}.")
+                self._logger.warn(f"Unexpected connection state: {state}. while trying to eagerly connect")
                 # we could not connect within the timeout and we no longer need this subscription
                 self._secure_channel.unsubscribe(on_state_change)
+                connection_event.set()
 
         # we subscribe to the channel that notifies us of state transitions, and the timer above will take care
         # of unsubscribing from the channel incase the timeout has elapsed.
         self._secure_channel.subscribe(on_state_change, try_to_connect=True)
 
-        connection_established = connection_event.wait(eager_connection_timeout.seconds)
+        connection_established = connection_event.wait(timeout_seconds)
         if not connection_established:
             on_timeout()
 
     def close(self) -> None:
+        self._logger.debug("Closing and tearing down gRPC channel")
         self._secure_channel.close()
 
     def stub(self) -> cache_client.ScsStub:

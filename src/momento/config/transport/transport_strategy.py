@@ -45,18 +45,6 @@ class TransportStrategy(ABC):
         """
         pass
 
-    @abstractmethod
-    def with_eager_connection_timeout(self, eager_connection_timeout: timedelta) -> TransportStrategy:
-        """Copies the TransportStrategy and updates the copy's eager_connection_timeout.
-
-        Args:
-            eager_connection_timeout (timedelta): the new eager connection timeout.
-
-        Returns:
-            TransportStrategy: the new TransportStrategy.
-        """
-        pass
-
 
 class StaticGrpcConfiguration(GrpcConfiguration):
     DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS = 30
@@ -72,13 +60,6 @@ class StaticGrpcConfiguration(GrpcConfiguration):
         _validate_request_timeout(deadline)
         return StaticGrpcConfiguration(deadline, self._eager_connection_timeout)
 
-    def get_eager_connection_timeout(self) -> timedelta:
-        return self._eager_connection_timeout or timedelta(seconds=self.DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS)
-
-    def with_eager_connection_timeout(self, timeout: timedelta) -> GrpcConfiguration:
-        _validate_request_timeout(timeout)
-        return StaticGrpcConfiguration(self._deadline, timeout)
-
 
 class StaticTransportStrategy(TransportStrategy):
     def __init__(self, grpc_configuration: GrpcConfiguration):
@@ -92,6 +73,3 @@ class StaticTransportStrategy(TransportStrategy):
 
     def with_client_timeout(self, client_timeout: timedelta) -> TransportStrategy:
         return StaticTransportStrategy(self._grpc_configuration.with_deadline(client_timeout))
-
-    def with_eager_connection_timeout(self, eager_connection_timeout: timedelta) -> TransportStrategy:
-        return StaticTransportStrategy(self._grpc_configuration.with_eager_connection_timeout(eager_connection_timeout))

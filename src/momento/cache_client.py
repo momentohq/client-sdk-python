@@ -38,6 +38,7 @@ from momento.responses.data.sorted_set.remove_elements import (
     CacheSortedSetRemoveElements,
     CacheSortedSetRemoveElementsResponse,
 )
+from momento.utilities.shared_constants import DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -197,6 +198,41 @@ class CacheClient:
         self._control_client.close()
         for data_client in self._data_clients:
             data_client.close()
+
+    @staticmethod
+    def create(
+        configuration: Configuration,
+        credential_provider: CredentialProvider,
+        default_ttl: timedelta,
+        eager_connection_timeout: timedelta = timedelta(seconds=DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS),
+    ) -> CacheClient:
+        """Instantiate a client.
+
+        Args:
+            configuration (Configuration): An object holding configuration settings for communication with the server.
+            credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
+            default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
+                It is possible to override this setting when calling the set method.
+            eager_connection_timeout (timedelta): An optional timeout value to eagerly connect to Momento's server.
+               This helps with your client-side latencies for the initial requests.
+
+        Raises:
+            IllegalArgumentException: If method arguments fail validations.
+        Example::
+
+            from datetime import timedelta
+            from momento import Configurations, CredentialProvider, CacheClient
+
+            configuration = Configurations.Laptop.latest()
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            ttl_seconds = timedelta(seconds=60)
+            eager_connection_timeout = timedelta(seconds=10)
+            client = CacheClient.create(configuration, credential_provider, ttl_seconds, eager_connection_timeout)
+        """
+        client = CacheClient(configuration, credential_provider, default_ttl)
+        for data_client in client._data_clients:
+            data_client.connect(eager_connection_timeout)
+        return client
 
     def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a cache if it doesn't exist.

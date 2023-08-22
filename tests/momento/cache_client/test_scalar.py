@@ -96,6 +96,33 @@ def a_setter() -> None:
             assert False
 
 
+def describe_set_and_get_eager_connection_client() -> None:
+    def with_hit(client_eager_connection: CacheClient, cache_name: str) -> None:
+        key = uuid_str()
+        value = uuid_str()
+
+        set_resp = client_eager_connection.set(cache_name, key, value)
+        assert isinstance(set_resp, CacheSet.Success)
+
+        get_resp = client_eager_connection.get(cache_name, key)
+        if isinstance(get_resp, CacheGet.Hit):
+            assert get_resp.value_string == value
+            assert get_resp.value_bytes == str_to_bytes(value)
+        else:
+            assert False
+
+    def with_byte_key_values(client_eager_connection: CacheClient, cache_name: str) -> None:
+        key = uuid_bytes()
+        value = uuid_bytes()
+
+        set_resp = client_eager_connection.set(cache_name, key, value)
+        assert isinstance(set_resp, CacheSet.Success)
+
+        get_resp = client_eager_connection.get(cache_name, key)
+        assert isinstance(get_resp, CacheGet.Hit)
+        assert get_resp.value_bytes == value
+
+
 def describe_set_and_get() -> None:
     def with_hit(client: CacheClient, cache_name: str) -> None:
         key = uuid_str()
