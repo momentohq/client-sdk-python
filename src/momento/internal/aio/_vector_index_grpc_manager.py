@@ -19,12 +19,7 @@ class _VectorIndexControlGrpcManager:
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
-            credentials=grpc.ssl_channel_credentials(
-                # This was added to support local testing with a self-signed certificate.
-                root_certificates=configuration.get_transport_strategy()
-                .get_grpc_configuration()
-                .get_root_certificates()
-            ),
+            credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token),
         )
 
@@ -43,12 +38,7 @@ class _VectorIndexDataGrpcManager:
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(
-                # This was added to support local testing with a self-signed certificate.
-                root_certificates=configuration.get_transport_strategy()
-                .get_grpc_configuration()
-                .get_root_certificates()
-            ),
+            credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token),
         )
 

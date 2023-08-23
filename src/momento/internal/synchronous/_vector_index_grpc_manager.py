@@ -21,12 +21,7 @@ class _VectorIndexControlGrpcManager:
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.control_endpoint,
-            credentials=grpc.ssl_channel_credentials(
-                # This was added to support local testing with a self-signed certificate.
-                root_certificates=configuration.get_transport_strategy()
-                .get_grpc_configuration()
-                .get_root_certificates()
-            ),
+            credentials=grpc.ssl_channel_credentials(),
         )
         intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(credential_provider.auth_token))
         self._stub = control_client.ScsControlStub(intercept_channel)  # type: ignore[no-untyped-call]
@@ -46,12 +41,7 @@ class _VectorIndexDataGrpcManager:
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(
-                # This was added to support local testing with a self-signed certificate.
-                root_certificates=configuration.get_transport_strategy()
-                .get_grpc_configuration()
-                .get_root_certificates()
-            ),
+            credentials=grpc.ssl_channel_credentials(),
         )
         intercept_channel = grpc.intercept_channel(self._secure_channel, *_interceptors(credential_provider.auth_token))
         self._stub = vector_index_client.VectorIndexStub(intercept_channel)  # type: ignore[no-untyped-call]

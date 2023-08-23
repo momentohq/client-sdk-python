@@ -57,29 +57,8 @@ TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest()
 TEST_VECTOR_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
 
 
-def try_adding_root_certificates(
-    configuration: VectorIndexConfiguration, root_certificates_path: str = "./certs/server_cert.pem"
-) -> VectorIndexConfiguration:
-    try:
-        with open(root_certificates_path, "rb") as f:
-            cert = f.read()
-        transport_strategy = configuration.get_transport_strategy()
-        grpc_config = transport_strategy.get_grpc_configuration().with_root_certificates(cert)
-        transport_strategy = transport_strategy.with_grpc_configuration(grpc_config)
-        configuration = configuration.with_transport_strategy(transport_strategy)
-    except FileNotFoundError:
-        print("Could not find secure_cert.pem, using default credentials")
-        pass
-    return configuration
-
-
-TEST_VECTOR_CONFIGURATION = try_adding_root_certificates(TEST_VECTOR_CONFIGURATION)
-
-
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
 TEST_VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
-TEST_VECTOR_AUTH_PROVIDER.control_endpoint = "localhost:50051"
-TEST_VECTOR_AUTH_PROVIDER.cache_endpoint = "localhost:50052"
 
 
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
@@ -87,7 +66,9 @@ if not TEST_CACHE_NAME:
     raise RuntimeError("Integration tests require TEST_CACHE_NAME env var; see README for more details.")
 
 TEST_TOPIC_NAME: Optional[str] = "my-topic"
-TEST_VECTOR_INDEX_NAME: str = os.getenv("TEST_VECTOR_INDEX_NAME", "myvectorindex")
+TEST_VECTOR_INDEX_NAME: Optional[str] = os.getenv("TEST_VECTOR_INDEX_NAME")
+if not TEST_VECTOR_INDEX_NAME:
+    raise RuntimeError("Integration tests require TEST_VECTOR_INDEX_NAME env var; see README for more details.")
 TEST_VECTOR_DIMS = 2
 
 DEFAULT_TTL_SECONDS: timedelta = timedelta(seconds=60)
@@ -132,7 +113,7 @@ def topic_name() -> TTopicName:
 
 @pytest.fixture(scope="session")
 def vector_index_name() -> str:
-    return TEST_VECTOR_INDEX_NAME
+    return cast(str, TEST_VECTOR_INDEX_NAME)
 
 
 @pytest.fixture(scope="session")
@@ -340,21 +321,21 @@ async def topic_client_async() -> AsyncIterator[TopicClientAsync]:
 @pytest.fixture(scope="session")
 def vector_index_client() -> Iterator[PreviewVectorIndexClient]:
     with PreviewVectorIndexClient(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
-        _client.create_index(TEST_VECTOR_INDEX_NAME, TEST_VECTOR_DIMS)
+        _client.create_index(cast(str, TEST_VECTOR_INDEX_NAME), TEST_VECTOR_DIMS)
         try:
             yield _client
         finally:
-            _client.delete_index(TEST_VECTOR_INDEX_NAME)
+            _client.delete_index(cast(str, TEST_VECTOR_INDEX_NAME))
 
 
 @pytest.fixture(scope="session")
 async def vector_index_client_async() -> AsyncIterator[PreviewVectorIndexClientAsync]:
     async with PreviewVectorIndexClientAsync(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
-        await _client.create_index(TEST_VECTOR_INDEX_NAME, TEST_VECTOR_DIMS)
+        await _client.create_index(cast(str, TEST_VECTOR_INDEX_NAME), TEST_VECTOR_DIMS)
         try:
             yield _client
         finally:
-            await _client.delete_index(TEST_VECTOR_INDEX_NAME)
+            await _client.delete_index(cast(str, TEST_VECTOR_INDEX_NAME))
 
 
 TUniqueCacheName = Callable[[CacheClient], str]

@@ -61,12 +61,6 @@ class StaticGrpcConfiguration(GrpcConfiguration):
         _validate_request_timeout(deadline)
         return StaticGrpcConfiguration(deadline, self._root_certificates)
 
-    def get_root_certificates(self) -> Optional[bytes]:
-        return self._root_certificates
-
-    def with_root_certificates(self, root_certificate: Optional[bytes]) -> GrpcConfiguration:
-        return StaticGrpcConfiguration(self._deadline, root_certificate)
-
 
 class StaticTransportStrategy(TransportStrategy):
     def __init__(self, grpc_configuration: GrpcConfiguration):

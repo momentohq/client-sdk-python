@@ -13,11 +13,3 @@ class GrpcConfiguration(ABC):
     @abstractmethod
     def with_deadline(self, deadline: timedelta) -> GrpcConfiguration:
         pass
-
-    @abstractmethod
-    def get_root_certificates(self) -> Optional[bytes]:
-        pass
-
-    @abstractmethod
-    def with_root_certificates(self, certificate: bytes) -> GrpcConfiguration:
-        pass
