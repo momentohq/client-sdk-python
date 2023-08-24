@@ -150,7 +150,52 @@ async def test_add_and_search_with_metadata_happy_path(
     ]
 
 
-# TODO: test adding data of different dimension than the index
+async def test_create_index_add_item_dimensions_different_than_num_dimensions_error(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+    create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    # adding 3 dimensions
+    add_response = await vector_index_client_async.add_item_batch(
+        index_name, items=[Item(id="test_item", vector=[1.0, 2.0, 3.0])]
+    )
+    assert isinstance(add_response, AddItemBatch.Error)
+
+    expected_inner_ex_message = "invalid parameter: vector, vector dimension has to match the index's dimension"
+    expected_message = f"Invalid argument passed to Momento client: {expected_inner_ex_message}"
+    assert add_response.message == expected_message
+    assert add_response.inner_exception.message == expected_inner_ex_message
+
+
+async def test_create_index_add_multiple_items_search_with_top_k_query_vector_dimensions_incorrect(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+    create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    add_response = await vector_index_client_async.add_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 2.0]),
+            Item(id="test_item_2", vector=[3.0, 4.0]),
+            Item(id="test_item_3", vector=[5.0, 6.0]),
+        ],
+    )
+    assert isinstance(add_response, AddItemBatch.Success)
+
+    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0, 3.0], top_k=2)
+    assert isinstance(search_response, Search.Error)
+
+    expected_inner_ex_message = "invalid parameter: query_vector, query vector dimension must match the index dimension"
+    expected_resp_message = f"Invalid argument passed to Momento client: {expected_inner_ex_message}"
+
+    assert search_response.inner_exception.message == expected_inner_ex_message
+    assert search_response.message == expected_resp_message
 
 
 async def test_add_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:

@@ -102,6 +102,11 @@ def topic_configuration() -> TopicConfiguration:
 
 
 @pytest.fixture(scope="session")
+def vector_index_configuration() -> VectorIndexConfiguration:
+    return TEST_VECTOR_CONFIGURATION
+
+
+@pytest.fixture(scope="session")
 def cache_name() -> TCacheName:
     return cast(str, TEST_CACHE_NAME)
 

@@ -1,4 +1,5 @@
-from momento import PreviewVectorIndexClientAsync
+from momento import CredentialProvider, PreviewVectorIndexClientAsync
+from momento.config import VectorIndexConfiguration
 from momento.errors import MomentoErrorCode
 from momento.responses.vector_index import CreateIndex, DeleteIndex, ListIndexes
 from tests.conftest import TUniqueVectorIndexNameAsync
@@ -40,6 +41,7 @@ async def test_create_index_returns_error_for_bad_name(
         assert isinstance(response, CreateIndex.Error)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == f"Vector index name must {reason}"
+        assert response.message == f"Invalid argument passed to Momento client: {response.inner_exception.message}"
 
 
 async def test_create_index_returns_error_for_bad_num_dimensions(
@@ -54,20 +56,7 @@ async def test_create_index_returns_error_for_bad_num_dimensions(
         assert isinstance(response, CreateIndex.Error)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == "Number of dimensions must be a positive integer."
-
-
-# TODO: Add test for bad token when creating index
-# async def test_create_cache_throws_authentication_exception_for_bad_token(
-#     bad_token_credential_provider: CredentialProvider,
-#     configuration: Configuration,
-#     default_ttl_seconds: timedelta,
-#     unique_cache_name_async: TUniqueCacheNameAsync,
-# ) -> None:
-#     async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
-#         new_cache_name = unique_cache_name_async(client_async)
-#         response = await client_async.create_cache(new_cache_name)
-#         assert isinstance(response, CreateCache.Error)
-#         assert response.error_code == errors.MomentoErrorCode.AUTHENTICATION_ERROR
+        assert response.message == f"Invalid argument passed to Momento client: {response.inner_exception.message}"
 
 
 # Delete index
@@ -94,6 +83,12 @@ async def test_delete_index_returns_not_found_error_when_deleting_unknown_index(
     response = await vector_index_client_async.delete_index(index_name)
     assert isinstance(response, DeleteIndex.Error)
     assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+    assert response.inner_exception.message == f'Index with name "{index_name}" does not exist'
+    expected_resp_message = (
+        f"A cache with the specified name does not exist. To resolve this error, make sure you "
+        f"have created the cache before attempting to use it: {response.inner_exception.message}"
+    )
+    assert response.message == expected_resp_message
 
 
 async def test_delete_index_returns_error_for_bad_name(
@@ -104,16 +99,26 @@ async def test_delete_index_returns_error_for_bad_name(
         assert isinstance(response, DeleteIndex.Error)
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == f"Vector index name must {reason}"
+        assert response.message == f"Invalid argument passed to Momento client: {response.inner_exception.message}"
 
 
-# TODO: Add test for bad token when creating index
-# async def test_delete_cache_throws_authentication_exception_for_bad_token(
-#     bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
-# ) -> None:
-#     async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
-#         response = await client_async.delete_cache(uuid_str())
-#         assert isinstance(response, DeleteCache.Error)
-#         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
+async def test_create_index_throws_authentication_exception_for_bad_token(
+    bad_token_credential_provider: CredentialProvider,
+    vector_index_configuration: VectorIndexConfiguration,
+    vector_index_dimensions: int,
+) -> None:
+    index_name = unique_test_vector_index_name()
+
+    async with PreviewVectorIndexClientAsync(
+        vector_index_configuration, bad_token_credential_provider
+    ) as vector_index_client:
+        response = await vector_index_client.create_index(index_name, num_dimensions=2)
+        assert isinstance(response, CreateIndex.Error)
+        assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
+        assert response.inner_exception.message == "Invalid signature"
+        # TODO: currently the error message says "cache" in the name. Uncomment
+        # this line once https://github.com/momentohq/control-plane-service/issues/348 is resolved
+        # assert response.message == "Invalid authentication credentials to connect to index service: Invalid signature"
 
 
 # List indexes
@@ -138,13 +143,3 @@ async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorInd
     finally:
         delete_response = await vector_index_client_async.delete_index(index_name)
         assert isinstance(delete_response, DeleteIndex.Success)
-
-
-# TODO: Add test for bad token when creating index
-# async def test_list_caches_throws_authentication_exception_for_bad_token(
-#     bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
-# ) -> None:
-#     async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
-#         response = await client_async.list_caches()
-#         assert isinstance(response, ListCaches.Error)
-#         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
