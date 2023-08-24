@@ -4,6 +4,7 @@ from momento.requests.vector_index import Item
 from momento.responses.vector_index import (
     AddItemBatch,
     CreateIndex,
+    DeleteIndex,
     DeleteItemBatch,
     Search,
     SearchHit,
@@ -32,6 +33,9 @@ async def test_create_index_add_item_search_happy_path(
     assert len(search_response.hits) == 1
     assert search_response.hits[0].id == "test_item"
     assert search_response.hits[0].distance == 5.0
+
+    del_response = await vector_index_client_async.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 async def test_create_index_add_multiple_items_search_happy_path(
@@ -64,6 +68,9 @@ async def test_create_index_add_multiple_items_search_happy_path(
         SearchHit(id="test_item_1", distance=5.0),
     ]
 
+    del_response = await vector_index_client_async.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
+
 
 async def test_create_index_add_multiple_items_search_with_top_k_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
@@ -93,6 +100,9 @@ async def test_create_index_add_multiple_items_search_with_top_k_happy_path(
         SearchHit(id="test_item_3", distance=17.0),
         SearchHit(id="test_item_2", distance=11.0),
     ]
+
+    del_response = await vector_index_client_async.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 async def test_add_and_search_with_metadata_happy_path(
@@ -149,6 +159,9 @@ async def test_add_and_search_with_metadata_happy_path(
         SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
     ]
 
+    del_response = await vector_index_client_async.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
+
 
 async def test_create_index_add_item_dimensions_different_than_num_dimensions_error(
     vector_index_client_async: PreviewVectorIndexClientAsync,
@@ -168,6 +181,9 @@ async def test_create_index_add_item_dimensions_different_than_num_dimensions_er
     expected_message = f"Invalid argument passed to Momento client: {expected_inner_ex_message}"
     assert add_response.message == expected_message
     assert add_response.inner_exception.message == expected_inner_ex_message
+
+    del_response = await vector_index_client_async.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 async def test_create_index_add_multiple_items_search_with_top_k_query_vector_dimensions_incorrect(
@@ -196,6 +212,9 @@ async def test_create_index_add_multiple_items_search_with_top_k_query_vector_di
 
     assert search_response.inner_exception.message == expected_inner_ex_message
     assert search_response.message == expected_resp_message
+
+    del_response = await vector_index_client_async.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 async def test_add_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
@@ -268,3 +287,6 @@ async def test_delete_deletes_ids(
     assert search_response.hits == [
         SearchHit(id="test_item_2", distance=11.0),
     ]
+
+    del_response = await vector_index_client_async.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)

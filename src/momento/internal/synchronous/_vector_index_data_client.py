@@ -11,6 +11,7 @@ from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
+from momento.internal.services import Service
 from momento.internal.synchronous._vector_index_grpc_manager import (
     _VectorIndexDataGrpcManager,
 )
@@ -63,7 +64,7 @@ class _VectorIndexDataClient:
             return AddItemBatch.Success()
         except Exception as e:
             self._log_request_error("set", e)
-            return AddItemBatch.Error(convert_error(e))
+            return AddItemBatch.Error(convert_error(e, Service.INDEX))
 
     def delete_item_batch(
         self,
@@ -88,7 +89,7 @@ class _VectorIndexDataClient:
             return DeleteItemBatch.Success()
         except Exception as e:
             self._log_request_error("delete", e)
-            return DeleteItemBatch.Error(convert_error(e))
+            return DeleteItemBatch.Error(convert_error(e, Service.INDEX))
 
     def search(
         self, index_name: str, query_vector: list[float], top_k: int, metadata_fields: Optional[list[str]] = None
@@ -116,7 +117,7 @@ class _VectorIndexDataClient:
             return Search.Success(hits=hits)
         except Exception as e:
             self._log_request_error("search", e)
-            return Search.Error(convert_error(e))
+            return Search.Error(convert_error(e, Service.INDEX))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:

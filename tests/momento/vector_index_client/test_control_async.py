@@ -27,10 +27,20 @@ async def test_create_index_list_indexes_and_delete_index(
 
 
 async def test_create_index_already_exists_when_creating_existing_index(
-    vector_index_client_async: PreviewVectorIndexClientAsync, vector_index_name: str, vector_index_dimensions: int
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name: TUniqueVectorIndexNameAsync,
+    vector_index_dimensions: int,
 ) -> None:
-    response = await vector_index_client_async.create_index(vector_index_name, num_dimensions=vector_index_dimensions)
+    new_index_name = unique_vector_index_name(vector_index_client_async)
+
+    response = await vector_index_client_async.create_index(new_index_name, num_dimensions=vector_index_dimensions)
+    assert isinstance(response, CreateIndex.Success)
+
+    response = await vector_index_client_async.create_index(new_index_name, num_dimensions=vector_index_dimensions)
     assert isinstance(response, CreateIndex.IndexAlreadyExists)
+
+    del_response = await vector_index_client_async.delete_index(new_index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 async def test_create_index_returns_error_for_bad_name(
@@ -60,7 +70,7 @@ async def test_create_index_returns_error_for_bad_num_dimensions(
 
 
 # Delete index
-async def test_delete_cache_succeeds(
+async def test_delete_index_succeeds(
     vector_index_client_async: PreviewVectorIndexClientAsync, vector_index_dimensions: int
 ) -> None:
     index_name = unique_test_vector_index_name()
@@ -84,9 +94,10 @@ async def test_delete_index_returns_not_found_error_when_deleting_unknown_index(
     assert isinstance(response, DeleteIndex.Error)
     assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
     assert response.inner_exception.message == f'Index with name "{index_name}" does not exist'
+    print(response.message)
     expected_resp_message = (
-        f"A cache with the specified name does not exist. To resolve this error, make sure you "
-        f"have created the cache before attempting to use it: {response.inner_exception.message}"
+        f"A index with the specified name does not exist. To resolve this error, make sure you "
+        f"have created the index before attempting to use it: {response.inner_exception.message}"
     )
     assert response.message == expected_resp_message
 
@@ -116,9 +127,7 @@ async def test_create_index_throws_authentication_exception_for_bad_token(
         assert isinstance(response, CreateIndex.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
         assert response.inner_exception.message == "Invalid signature"
-        # TODO: currently the error message says "cache" in the name. Uncomment
-        # this line once https://github.com/momentohq/control-plane-service/issues/348 is resolved
-        # assert response.message == "Invalid authentication credentials to connect to index service: Invalid signature"
+        assert response.message == "Invalid authentication credentials to connect to index service: Invalid signature"
 
 
 # List indexes

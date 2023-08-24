@@ -5,6 +5,7 @@ from datetime import timedelta
 from typing import Iterable, Optional, Tuple
 
 from momento.errors import InvalidArgumentException
+from momento.internal.services import Service
 from momento.typing import (
     TDictionaryFields,
     TDictionaryItems,
@@ -23,41 +24,41 @@ DEFAULT_SET_CONVERSION_ERROR = "The given type is not set[str | bytes]: "
 DEFAULT_SORTED_SET_CONVERSION_ERROR = "The given type is not valid for sorted set elements: "
 
 
-def _validate_name(name: str, field_name: str) -> None:
+def _validate_name(name: str, field_name: str, service: Service) -> None:
     if not isinstance(name, str):
-        raise InvalidArgumentException(f"{field_name} must be a string")
+        raise InvalidArgumentException(f"{field_name} must be a string", service)
     if name == "":
-        raise InvalidArgumentException(f"{field_name} must not be empty")
+        raise InvalidArgumentException(f"{field_name} must not be empty", service)
 
 
 def _validate_cache_name(cache_name: str) -> None:
-    _validate_name(cache_name, "Cache name")
+    _validate_name(cache_name, "Cache name", Service.CACHE)
 
 
 def _validate_list_name(list_name: str) -> None:
-    _validate_name(list_name, "List name")
+    _validate_name(list_name, "List name", Service.CACHE)
 
 
 def _validate_dictionary_name(dictionary_name: str) -> None:
-    _validate_name(dictionary_name, "Dictionary name")
+    _validate_name(dictionary_name, "Dictionary name", Service.CACHE)
 
 
 def _validate_set_name(set_name: str) -> None:
-    _validate_name(set_name, "Set name")
+    _validate_name(set_name, "Set name", Service.CACHE)
 
 
 def _validate_sorted_set_name(sorted_set_name: str) -> None:
-    _validate_name(sorted_set_name, "Sorted set name")
+    _validate_name(sorted_set_name, "Sorted set name", Service.CACHE)
 
 
 def _validate_topic_name(topic_name: str) -> None:
-    _validate_name(topic_name, "Topic name")
+    _validate_name(topic_name, "Topic name", Service.TOPICS)
 
 
 def _validate_sorted_set_score(score: float) -> float:
     if isinstance(score, float):
         return score
-    raise InvalidArgumentException(f"score must be a float. Given type: {type(score)}")
+    raise InvalidArgumentException(f"score must be a float. Given type: {type(score)}", Service.CACHE)
 
 
 def _as_bytes(
@@ -68,12 +69,12 @@ def _as_bytes(
         return data.encode("utf-8")
     if isinstance(data, bytes):
         return data
-    raise InvalidArgumentException(f"{error_message}{type(data)}")
+    raise InvalidArgumentException(f"{error_message}{type(data)}", Service.CACHE)
 
 
 def _gen_iterable_as_bytes(values: Iterable[str | bytes], error_message: str) -> Iterable[bytes]:
     if not isinstance(values, collections.abc.Iterable):
-        raise InvalidArgumentException(f"{error_message}{type(values)}")
+        raise InvalidArgumentException(f"{error_message}{type(values)}", Service.CACHE)
     for value in values:
         yield _as_bytes(value)
 
@@ -86,7 +87,7 @@ def _gen_dictionary_items_as_bytes(
     items: TDictionaryItems, error_message: str = DEFAULT_DICTIONARY_CONVERSION_ERROR
 ) -> Iterable[Tuple[bytes, bytes]]:
     if not isinstance(items, collections.abc.Mapping):
-        raise InvalidArgumentException(f"{error_message}{type(items)}")
+        raise InvalidArgumentException(f"{error_message}{type(items)}", Service.CACHE)
     for key, value in items.items():
         yield (_as_bytes(key), _as_bytes(value))
 
@@ -108,7 +109,7 @@ def _gen_sorted_set_elements_as_bytes(
     elements: TSortedSetElements, error_message: str = DEFAULT_SORTED_SET_CONVERSION_ERROR
 ) -> Iterable[Tuple[bytes, float]]:
     if not isinstance(elements, collections.abc.Mapping):
-        raise InvalidArgumentException(f"{error_message}{type(elements)}")
+        raise InvalidArgumentException(f"{error_message}{type(elements)}", Service.CACHE)
     for value, score in elements.items():
         yield _as_bytes(value), score
 
@@ -121,9 +122,9 @@ def _gen_sorted_set_values_as_bytes(
 
 def _validate_timedelta_ttl(ttl: timedelta, field_name: str) -> None:
     if not isinstance(ttl, timedelta):
-        raise InvalidArgumentException(f"{field_name} must be a timedelta.")
+        raise InvalidArgumentException(f"{field_name} must be a timedelta.", Service.CACHE)
     if ttl.total_seconds() <= 0:
-        raise InvalidArgumentException(f"{field_name} must be a positive amount of time.")
+        raise InvalidArgumentException(f"{field_name} must be a positive amount of time.", Service.CACHE)
 
 
 def _validate_ttl(ttl: Optional[timedelta]) -> None:

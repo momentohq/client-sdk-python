@@ -7,6 +7,7 @@ from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_num_dimensions
+from momento.internal.services import Service
 from momento.internal.synchronous._vector_index_grpc_manager import (
     _VectorIndexControlGrpcManager,
 )
@@ -47,7 +48,7 @@ class _VectorIndexControlClient:
             self._logger.debug("Failed to create index: %s with exception: %s", index_name, e)
             if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
                 return CreateIndex.IndexAlreadyExists()
-            return CreateIndex.Error(convert_error(e))
+            return CreateIndex.Error(convert_error(e, Service.INDEX))
         return CreateIndex.Success()
 
     def delete_index(self, index_name: str) -> DeleteIndexResponse:
@@ -58,7 +59,7 @@ class _VectorIndexControlClient:
             self._build_stub().DeleteIndex(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to delete index: %s with exception: %s", index_name, e)
-            return DeleteIndex.Error(convert_error(e))
+            return DeleteIndex.Error(convert_error(e, Service.INDEX))
         return DeleteIndex.Success()
 
     def list_indexes(self) -> ListIndexesResponse:
@@ -67,7 +68,7 @@ class _VectorIndexControlClient:
             response = self._build_stub().ListIndexes(list_indexes_request, timeout=_DEADLINE_SECONDS)
             return ListIndexes.Success.from_grpc_response(response)
         except Exception as e:
-            return ListIndexes.Error(convert_error(e))
+            return ListIndexes.Error(convert_error(e, Service.INDEX))
 
     def _build_stub(self) -> ctrl_grpc.ScsControlStub:
         return self._grpc_manager.stub()

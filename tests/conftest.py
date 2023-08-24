@@ -326,11 +326,7 @@ async def topic_client_async() -> AsyncIterator[TopicClientAsync]:
 @pytest.fixture(scope="session")
 def vector_index_client() -> Iterator[PreviewVectorIndexClient]:
     with PreviewVectorIndexClient(TEST_VECTOR_CONFIGURATION, TEST_VECTOR_AUTH_PROVIDER) as _client:
-        _client.create_index(cast(str, TEST_VECTOR_INDEX_NAME), TEST_VECTOR_DIMS)
-        try:
-            yield _client
-        finally:
-            _client.delete_index(cast(str, TEST_VECTOR_INDEX_NAME))
+        yield _client
 
 
 @pytest.fixture(scope="session")

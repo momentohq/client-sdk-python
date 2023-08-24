@@ -10,6 +10,7 @@ from momento_wire_types import cachepubsub_pb2
 
 from ... import logs
 from ...errors import MomentoErrorCode, SdkException
+from ...internal.services import Service
 from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
 from .subscription_item import TopicSubscriptionItem, TopicSubscriptionItemResponse
@@ -105,6 +106,7 @@ class TopicSubscribe(ABC):
                     err = SdkException(
                         f"Client subscription has been cancelled by {type(e)}",
                         MomentoErrorCode.CANCELLED_ERROR,
+                        Service.TOPICS,
                         message_wrapper="Error reading item from topic subscription",
                     )
                     self._logger.debug(f"Client stream read has been cancelled: {type(e)}")

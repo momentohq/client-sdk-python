@@ -28,6 +28,7 @@ from momento.internal._utilities._data_validation import (
     _validate_sorted_set_name,
     _validate_sorted_set_score,
 )
+from momento.internal.services import Service
 from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
 from momento.internal.synchronous._utilities import make_metadata
 from momento.requests import CollectionTtl, SortOrder
@@ -187,7 +188,7 @@ class _ScsDataClient:
             return CacheIncrement.Success(response.value)
         except Exception as e:
             self._log_request_error("increment", e)
-            return CacheIncrement.Error(convert_error(e))
+            return CacheIncrement.Error(convert_error(e, Service.CACHE))
 
     def set(
         self,
@@ -212,7 +213,7 @@ class _ScsDataClient:
             return CacheSet.Success()
         except Exception as e:
             self._log_request_error("set", e)
-            return CacheSet.Error(convert_error(e))
+            return CacheSet.Error(convert_error(e, Service.CACHE))
 
     def set_if_not_exists(
         self, cache_name: TCacheName, key: TScalarKey, value: TScalarValue, ttl: Optional[timedelta]
@@ -243,7 +244,7 @@ class _ScsDataClient:
                 raise UnknownException("SetIfNotExists responded with an unknown result")
         except Exception as e:
             self._log_request_error("set_if_not_exists", e)
-            return CacheSetIfNotExists.Error(convert_error(e))
+            return CacheSetIfNotExists.Error(convert_error(e, Service.CACHE))
 
     def get(self, cache_name: str, key: TScalarKey) -> CacheGetResponse:
         try:
@@ -266,7 +267,7 @@ class _ScsDataClient:
                 raise UnknownException("Get responded with an unknown result")
         except Exception as e:
             self._log_request_error("get", e)
-            return CacheGet.Error(convert_error(e))
+            return CacheGet.Error(convert_error(e, Service.CACHE))
 
     def delete(self, cache_name: str, key: TScalarKey) -> CacheDeleteResponse:
         try:
@@ -282,7 +283,7 @@ class _ScsDataClient:
             return CacheDelete.Success()
         except Exception as e:
             self._log_request_error("delete", e)
-            return CacheDelete.Error(convert_error(e))
+            return CacheDelete.Error(convert_error(e, Service.CACHE))
 
     # DICTIONARY COLLECTION METHODS
     def dictionary_get_fields(
@@ -324,7 +325,7 @@ class _ScsDataClient:
                 raise UnknownException("Unknown dictionary field")
         except Exception as e:
             self._log_request_error("dictionary_get_fields", e)
-            return CacheDictionaryGetFields.Error(convert_error(e))
+            return CacheDictionaryGetFields.Error(convert_error(e, Service.CACHE))
 
     def dictionary_fetch(
         self, cache_name: TCacheName, dictionary_name: TDictionaryName
@@ -352,7 +353,7 @@ class _ScsDataClient:
                 raise UnknownException("Unknown dictionary field")
         except Exception as e:
             self._log_request_error("dictionary_fetch", e)
-            return CacheDictionaryFetch.Error(convert_error(e))
+            return CacheDictionaryFetch.Error(convert_error(e, Service.CACHE))
 
     def dictionary_increment(
         self,
@@ -383,7 +384,7 @@ class _ScsDataClient:
             return CacheDictionaryIncrement.Success(response.value)
         except Exception as e:
             self._log_request_error("dictionary_increment", e)
-            return CacheDictionaryIncrement.Error(convert_error(e))
+            return CacheDictionaryIncrement.Error(convert_error(e, Service.CACHE))
 
     def dictionary_remove_fields(
         self,
@@ -412,7 +413,7 @@ class _ScsDataClient:
             return CacheDictionaryRemoveFields.Success()
         except Exception as e:
             self._log_request_error("dictionary_remove_fields", e)
-            return CacheDictionaryRemoveFields.Error(convert_error(e))
+            return CacheDictionaryRemoveFields.Error(convert_error(e, Service.CACHE))
 
     def dictionary_set_fields(
         self,
@@ -446,7 +447,7 @@ class _ScsDataClient:
             return CacheDictionarySetFields.Success()
         except Exception as e:
             self._log_request_error("dictionary_set_fields", e)
-            return CacheDictionarySetFields.Error(convert_error(e))
+            return CacheDictionarySetFields.Error(convert_error(e, Service.CACHE))
 
     # LIST COLLECTION METHODS
     def list_concatenate_back(
@@ -478,7 +479,7 @@ class _ScsDataClient:
             return CacheListConcatenateBack.Success(response.list_length)
         except Exception as e:
             self._log_request_error("list_concatenate_back", e)
-            return CacheListConcatenateBack.Error(convert_error(e))
+            return CacheListConcatenateBack.Error(convert_error(e, Service.CACHE))
 
     def list_concatenate_front(
         self,
@@ -509,7 +510,7 @@ class _ScsDataClient:
             return CacheListConcatenateFront.Success(response.list_length)
         except Exception as e:
             self._log_request_error("list_concatenate_front", e)
-            return CacheListConcatenateFront.Error(convert_error(e))
+            return CacheListConcatenateFront.Error(convert_error(e, Service.CACHE))
 
     def list_fetch(self, cache_name: TCacheName, list_name: TListName) -> CacheListFetchResponse:
         try:
@@ -533,7 +534,7 @@ class _ScsDataClient:
                 raise UnknownException("Unknown list field")
         except Exception as e:
             self._log_request_error("list_fetch", e)
-            return CacheListFetch.Error(convert_error(e))
+            return CacheListFetch.Error(convert_error(e, Service.CACHE))
 
     def list_length(self, cache_name: TCacheName, list_name: TListName) -> CacheListLengthResponse:
         try:
@@ -557,7 +558,7 @@ class _ScsDataClient:
                 raise UnknownException("Unknown list field")
         except Exception as e:
             self._log_request_error("list_length", e)
-            return CacheListLength.Error(convert_error(e))
+            return CacheListLength.Error(convert_error(e, Service.CACHE))
 
     def list_pop_back(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopBackResponse:
         try:
@@ -583,7 +584,7 @@ class _ScsDataClient:
                 raise UnknownException("Unknown list field")
         except Exception as e:
             self._log_request_error("list_pop_back", e)
-            return CacheListPopBack.Error(convert_error(e))
+            return CacheListPopBack.Error(convert_error(e, Service.CACHE))
 
     def list_pop_front(self, cache_name: TCacheName, list_name: TListName) -> CacheListPopFrontResponse:
         try:
@@ -609,7 +610,7 @@ class _ScsDataClient:
                 raise UnknownException("Unknown list field")
         except Exception as e:
             self._log_request_error("list_pop_front", e)
-            return CacheListPopFront.Error(convert_error(e))
+            return CacheListPopFront.Error(convert_error(e, Service.CACHE))
 
     def list_push_back(
         self,
@@ -640,7 +641,7 @@ class _ScsDataClient:
             return CacheListPushBack.Success(response.list_length)
         except Exception as e:
             self._log_request_error("list_push_back", e)
-            return CacheListPushBack.Error(convert_error(e))
+            return CacheListPushBack.Error(convert_error(e, Service.CACHE))
 
     def list_push_front(
         self,
@@ -671,7 +672,7 @@ class _ScsDataClient:
             return CacheListPushFront.Success(response.list_length)
         except Exception as e:
             self._log_request_error("list_push_front", e)
-            return CacheListPushFront.Error(convert_error(e))
+            return CacheListPushFront.Error(convert_error(e, Service.CACHE))
 
     def list_remove_value(
         self,
@@ -698,7 +699,7 @@ class _ScsDataClient:
             return CacheListRemoveValue.Success()
         except Exception as e:
             self._log_request_error("list_remove_value", e)
-            return CacheListRemoveValue.Error(convert_error(e))
+            return CacheListRemoveValue.Error(convert_error(e, Service.CACHE))
 
     # SET COLLECTION METHODS
     def set_add_elements(
@@ -728,7 +729,7 @@ class _ScsDataClient:
             return CacheSetAddElements.Success()
         except Exception as e:
             self._log_request_error("set_add_elements", e)
-            return CacheSetAddElements.Error(convert_error(e))
+            return CacheSetAddElements.Error(convert_error(e, Service.CACHE))
 
     def set_fetch(
         self,
@@ -757,7 +758,7 @@ class _ScsDataClient:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:
             self._log_request_error("set_fetch", e)
-            return CacheSetFetch.Error(convert_error(e))
+            return CacheSetFetch.Error(convert_error(e, Service.CACHE))
 
     def set_remove_elements(
         self, cache_name: TCacheName, set_name: TSetName, elements: TSetElementsInput
@@ -785,7 +786,7 @@ class _ScsDataClient:
             return CacheSetRemoveElements.Success()
         except Exception as e:
             self._log_request_error("set_remove_elements", e)
-            return CacheSetRemoveElements.Error(convert_error(e))
+            return CacheSetRemoveElements.Error(convert_error(e, Service.CACHE))
 
     def sorted_set_put_elements(
         self,
@@ -818,7 +819,7 @@ class _ScsDataClient:
             return CacheSortedSetPutElements.Success()
         except Exception as e:
             self._log_request_error("sorted_set_put_elements", e)
-            return CacheSortedSetPutElements.Error(convert_error(e))
+            return CacheSortedSetPutElements.Error(convert_error(e, Service.CACHE))
 
     def sorted_set_fetch_by_score(
         self,
@@ -882,7 +883,7 @@ class _ScsDataClient:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:
             self._log_request_error("sorted_set_fetch_by_score", e)
-            return CacheSortedSetFetch.Error(convert_error(e))
+            return CacheSortedSetFetch.Error(convert_error(e, Service.CACHE))
 
     def sorted_set_fetch_by_rank(
         self,
@@ -934,7 +935,7 @@ class _ScsDataClient:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:
             self._log_request_error("sorted_set_fetch_by_rank", e)
-            return CacheSortedSetFetch.Error(convert_error(e))
+            return CacheSortedSetFetch.Error(convert_error(e, Service.CACHE))
 
     def sorted_set_get_scores(
         self, cache_name: TCacheName, sorted_set_name: TSortedSetName, values: TSortedSetValues
@@ -971,7 +972,7 @@ class _ScsDataClient:
                 raise UnknownException(f"Unknown field in response: {type}")
         except Exception as e:
             self._log_request_error("sorted_set_get_scores", e)
-            return CacheSortedSetGetScores.Error(convert_error(e))
+            return CacheSortedSetGetScores.Error(convert_error(e, Service.CACHE))
 
     def sorted_set_get_rank(
         self,
@@ -1010,7 +1011,7 @@ class _ScsDataClient:
                 raise UnknownException(f"Unknown field in response: {type}")
         except Exception as e:
             self._log_request_error("sorted_set_get_rank", e)
-            return CacheSortedSetGetRank.Error(convert_error(e))
+            return CacheSortedSetGetRank.Error(convert_error(e, Service.CACHE))
 
     def sorted_set_remove_elements(
         self,
@@ -1040,7 +1041,7 @@ class _ScsDataClient:
             return CacheSortedSetRemoveElements.Success()
         except Exception as e:
             self._log_request_error("sorted_set_remove_elements", e)
-            return CacheSortedSetRemoveElements.Error(convert_error(e))
+            return CacheSortedSetRemoveElements.Error(convert_error(e, Service.CACHE))
 
     def sorted_set_increment_score(
         self,
@@ -1073,7 +1074,7 @@ class _ScsDataClient:
             return CacheSortedSetIncrementScore.Success(response.score)
         except Exception as e:
             self._log_request_error("sorted_set_increment_score", e)
-            return CacheSortedSetIncrementScore.Error(convert_error(e))
+            return CacheSortedSetIncrementScore.Error(convert_error(e, Service.CACHE))
 
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:
         self._logger.log(logs.TRACE, f"Received a {request_type} response for {request_args}")

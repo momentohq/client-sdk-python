@@ -7,6 +7,7 @@ import jwt
 from jwt.exceptions import DecodeError
 
 from momento.errors import InvalidArgumentException
+from momento.internal.services import Service
 
 _MOMENTO_CONTROL_ENDPOINT_PREFIX = "control."
 _MOMENTO_CACHE_ENDPOINT_PREFIX = "cache."
@@ -29,7 +30,7 @@ class _Base64DecodedV1Token:
 
 def resolve(auth_token: str) -> _TokenAndEndpoints:
     if not auth_token:
-        raise InvalidArgumentException("malformed auth token")
+        raise InvalidArgumentException("malformed auth token", Service.AUTH)
 
     if _is_base64(auth_token):
         decoded_b64_token = base64.b64decode(auth_token).decode("utf-8")
@@ -52,7 +53,7 @@ def _get_endpoint_from_token(auth_token: str) -> _TokenAndEndpoints:
             auth_token=auth_token,
         )
     except (DecodeError, KeyError) as e:
-        raise InvalidArgumentException("Invalid Auth token.") from e
+        raise InvalidArgumentException("Invalid Auth token.", Service.AUTH) from e
 
 
 def _is_base64(value: Union[bytes, str]) -> bool:

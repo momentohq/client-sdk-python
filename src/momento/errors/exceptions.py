@@ -1,6 +1,7 @@
 from typing import Optional
 
 from momento.errors import MomentoErrorCode, MomentoErrorTransportDetails
+from momento.internal.services import Service
 
 
 class SdkException(Exception):
@@ -12,6 +13,8 @@ class SdkException(Exception):
     """Enumeration of all possible Momento error types.  Should be used in
     code to distinguish between different types of errors.
     """
+    service: Service
+    """The service which generated the error, e.g. cache or topics"""
     transport_details: Optional[MomentoErrorTransportDetails] = None
     """Low-level error details, from the transport layer.  Hopefully only needed
     in rare cases, by Momento engineers, for debugging.
@@ -24,12 +27,14 @@ class SdkException(Exception):
         self,
         message: str,
         error_code: MomentoErrorCode,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
         message_wrapper: str = "",
     ):
         super().__init__(message)
         self.message = message
         self.error_code = error_code
+        self.service = service
         self.transport_details = transport_details
         self.message_wrapper = message_wrapper
 
@@ -52,13 +57,15 @@ class AlreadyExistsException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.ALREADY_EXISTS_ERROR,
+            service,
             transport_details,
-            message_wrapper="A cache with the specified name already exists. To resolve this error, either delete the existing cache and make a new one, or use a different name",  # noqa: E501
+            message_wrapper=f"A {service.value} with the specified name already exists. To resolve this error, either delete the existing {service.value} and make a new one, or use a different name",  # noqa: E501
         )
 
 
@@ -68,13 +75,15 @@ class AuthenticationException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.AUTHENTICATION_ERROR,
+            service,
             transport_details,
-            message_wrapper="Invalid authentication credentials to connect to cache service",
+            message_wrapper=f"Invalid authentication credentials to connect to {service.value} service",
         )
 
 
@@ -84,11 +93,13 @@ class BadRequestException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.BAD_REQUEST_ERROR,
+            service,
             transport_details,
             message_wrapper="The request was invalid; please contact us at support@momentohq.com",
         )
@@ -100,11 +111,13 @@ class CancelledException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.CANCELLED_ERROR,
+            service,
             transport_details,
             message_wrapper="The request was cancelled by the server; please contact us at support@momentohq.com",
         )
@@ -120,11 +133,13 @@ class FailedPreconditionException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.FAILED_PRECONDITION_ERROR,
+            service,
             transport_details,
             message_wrapper="System is not in a state required for the operation's execution",
         )
@@ -136,11 +151,13 @@ class InternalServerException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.INTERNAL_SERVER_ERROR,
+            service,
             transport_details,
             message_wrapper="An unexpected error occurred while trying to fulfill the request; please contact us at support@momentohq.com",  # noqa: E501
         )
@@ -152,11 +169,13 @@ class InvalidArgumentException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.INVALID_ARGUMENT_ERROR,
+            service,
             transport_details,
             message_wrapper="Invalid argument passed to Momento client",
         )
@@ -168,11 +187,13 @@ class LimitExceededException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.LIMIT_EXCEEDED_ERROR,
+            service,
             transport_details,
             message_wrapper="Request rate, bandwidth, or object size exceeded the limits for this account. To resolve this error, reduce your usage as appropriate or contact us at support@momentohq.com to request a limit increase",  # noqa: E501
         )
@@ -184,13 +205,15 @@ class NotFoundException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.NOT_FOUND_ERROR,
+            service,
             transport_details,
-            message_wrapper="A cache with the specified name does not exist. To resolve this error, make sure you have created the cache before attempting to use it",  # noqa: E501
+            message_wrapper=f"A {service.value} with the specified name does not exist. To resolve this error, make sure you have created the {service.value} before attempting to use it",  # noqa: E501
         )
 
 
@@ -200,13 +223,15 @@ class PermissionDeniedException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.PERMISSION_ERROR,
+            service,
             transport_details,
-            message_wrapper="Insufficient permissions to perform an operation on a cache",
+            message_wrapper=f"Insufficient permissions to perform an operation on the {service.value}",
         )
 
 
@@ -216,11 +241,13 @@ class ServerUnavailableException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.SERVER_UNAVAILABLE,
+            service,
             transport_details,
             message_wrapper="The server was unable to handle the request; consider retrying. If the error persists, please contact us at support@momentohq.com",  # noqa: E501
         )
@@ -232,11 +259,13 @@ class TimeoutException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.TIMEOUT_ERROR,
+            service,
             transport_details,
             message_wrapper="The client's configured timeout was exceeded; you may need to use a Configuration with more lenient timeouts",  # noqa: E501
         )
@@ -248,10 +277,15 @@ class UnknownException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service = None,  # type: ignore
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
-            message, MomentoErrorCode.UNKNOWN_ERROR, transport_details, message_wrapper="Unknown error has occurred"
+            message,
+            MomentoErrorCode.UNKNOWN_ERROR,
+            service,
+            transport_details,
+            message_wrapper="Unknown error has occurred",
         )
 
 
@@ -261,11 +295,13 @@ class UnknownServiceException(SdkException):
     def __init__(
         self,
         message: str,
+        service: Service,
         transport_details: Optional[MomentoErrorTransportDetails] = None,
     ):
         super().__init__(
             message,
             MomentoErrorCode.BAD_REQUEST_ERROR,
+            service,
             transport_details,
             message_wrapper="Service returned an unknown response; please contact us at support@momentohq.com",
         )

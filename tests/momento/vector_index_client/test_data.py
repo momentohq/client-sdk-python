@@ -4,6 +4,7 @@ from momento.requests.vector_index import Item
 from momento.responses.vector_index import (
     AddItemBatch,
     CreateIndex,
+    DeleteIndex,
     DeleteItemBatch,
     Search,
     SearchHit,
@@ -30,6 +31,9 @@ def test_create_index_add_item_search_happy_path(
     assert len(search_response.hits) == 1
     assert search_response.hits[0].id == "test_item"
     assert search_response.hits[0].distance == 5.0
+
+    del_response = vector_index_client.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 def test_create_index_add_multiple_items_search_happy_path(
@@ -62,6 +66,9 @@ def test_create_index_add_multiple_items_search_happy_path(
         SearchHit(id="test_item_1", distance=5.0),
     ]
 
+    del_response = vector_index_client.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
+
 
 def test_create_index_add_multiple_items_search_with_top_k_happy_path(
     vector_index_client: PreviewVectorIndexClient,
@@ -92,33 +99,8 @@ def test_create_index_add_multiple_items_search_with_top_k_happy_path(
         SearchHit(id="test_item_2", distance=11.0),
     ]
 
-
-def test_create_index_add_multiple_items_search_with_top_k_query_vector_dimensions_incorrect(
-    vector_index_client: PreviewVectorIndexClient,
-    unique_vector_index_name: TUniqueVectorIndexName,
-) -> None:
-    index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
-    assert isinstance(create_response, CreateIndex.Success)
-
-    add_response = vector_index_client.add_item_batch(
-        index_name,
-        items=[
-            Item(id="test_item_1", vector=[1.0, 2.0]),
-            Item(id="test_item_2", vector=[3.0, 4.0]),
-            Item(id="test_item_3", vector=[5.0, 6.0]),
-        ],
-    )
-    assert isinstance(add_response, AddItemBatch.Success)
-
-    search_response = vector_index_client.search(index_name, query_vector=[1.0, 2.0, 3.0], top_k=2)
-    assert isinstance(search_response, Search.Error)
-
-    expected_inner_ex_message = "invalid parameter: query_vector, query vector dimension must match the index dimension"
-    expected_resp_message = f"Invalid argument passed to Momento client: {expected_inner_ex_message}"
-
-    assert search_response.inner_exception.message == expected_inner_ex_message
-    assert search_response.message == expected_resp_message
+    del_response = vector_index_client.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 def test_add_and_search_with_metadata_happy_path(
@@ -173,13 +155,15 @@ def test_add_and_search_with_metadata_happy_path(
         SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
     ]
 
+    del_response = vector_index_client.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
+
 
 def test_create_index_add_item_dimensions_different_than_num_dimensions_error(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-
     create_response = vector_index_client.create_index(index_name, num_dimensions=2)
     assert isinstance(create_response, CreateIndex.Success)
 
@@ -191,6 +175,40 @@ def test_create_index_add_item_dimensions_different_than_num_dimensions_error(
     expected_message = f"Invalid argument passed to Momento client: {expected_inner_ex_message}"
     assert add_response.message == expected_message
     assert add_response.inner_exception.message == expected_inner_ex_message
+
+    del_response = vector_index_client.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
+
+
+def test_create_index_add_multiple_items_search_with_top_k_query_vector_dimensions_incorrect(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    add_response = vector_index_client.add_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 2.0]),
+            Item(id="test_item_2", vector=[3.0, 4.0]),
+            Item(id="test_item_3", vector=[5.0, 6.0]),
+        ],
+    )
+    assert isinstance(add_response, AddItemBatch.Success)
+
+    search_response = vector_index_client.search(index_name, query_vector=[1.0, 2.0, 3.0], top_k=2)
+    assert isinstance(search_response, Search.Error)
+
+    expected_inner_ex_message = "invalid parameter: query_vector, query vector dimension must match the index dimension"
+    expected_resp_message = f"Invalid argument passed to Momento client: {expected_inner_ex_message}"
+
+    assert search_response.inner_exception.message == expected_inner_ex_message
+    assert search_response.message == expected_resp_message
+
+    del_response = vector_index_client.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
 
 
 def test_add_validates_index_name(vector_index_client: PreviewVectorIndexClient) -> None:
@@ -261,3 +279,6 @@ def test_delete_deletes_ids(
     assert search_response.hits == [
         SearchHit(id="test_item_2", distance=11.0),
     ]
+
+    del_response = vector_index_client.delete_index(index_name)
+    assert isinstance(del_response, DeleteIndex.Success)
