@@ -48,18 +48,16 @@ class TransportStrategy(ABC):
 
 class StaticGrpcConfiguration(GrpcConfiguration):
     _deadline: timedelta
-    _root_certificates: Optional[bytes]
 
-    def __init__(self, deadline: timedelta, root_certificates: Optional[bytes] = None):
+    def __init__(self, deadline: timedelta):
         self._deadline = deadline
-        self._root_certificates = root_certificates
 
     def get_deadline(self) -> timedelta:
         return self._deadline
 
     def with_deadline(self, deadline: timedelta) -> GrpcConfiguration:
         _validate_request_timeout(deadline)
-        return StaticGrpcConfiguration(deadline, self._root_certificates)
+        return StaticGrpcConfiguration(deadline)
 
 
 class StaticTransportStrategy(TransportStrategy):
