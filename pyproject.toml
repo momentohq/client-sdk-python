@@ -59,7 +59,6 @@ libcst = "^0.4.9"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-norecursedirs = "tests/momento/vector_index_client"
 
 [tool.mypy]
 python_version = "3.7"
