@@ -10,6 +10,11 @@ from momento.config import Configuration
 from momento.errors import UnknownException
 from momento.requests import CollectionTtl, SortOrder
 
+from momento.utilities.shared_sync_asyncio import (
+    DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS,
+    validate_eager_connection_timeout,
+)
+
 try:
     from momento.internal._utilities import _validate_request_timeout
     from momento.internal.aio._scs_control_client import _ScsControlClient
