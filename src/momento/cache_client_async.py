@@ -172,6 +172,45 @@ class CacheClientAsync:
             for _ in range(CacheClientAsync._NUM_CLIENTS)
         ]
 
+    @staticmethod
+    async def create(
+        configuration: Configuration,
+        credential_provider: CredentialProvider,
+        default_ttl: timedelta,
+        eager_connection_timeout: timedelta = timedelta(seconds=DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS),
+    ) -> CacheClientAsync:
+        """Instantiate a client.
+
+        Args:
+            configuration (Configuration): An object holding configuration settings for communication with the server.
+            credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
+            default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
+                It is possible to override this setting when calling the set method.
+            eager_connection_timeout (timedelta): An optional timeout value to eagerly connect to Momento's server.
+                This helps with your client-side latencies for the initial requests. A value of 0 indicates to the
+                client to not eagerly connect.
+
+        Raises:
+            IllegalArgumentException: If method arguments fail validations.
+        Example::
+
+            from datetime import timedelta
+            from momento import Configurations, CredentialProvider, CacheClientAsync
+
+            configuration = Configurations.Laptop.latest()
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            ttl_seconds = timedelta(seconds=60)
+            eager_connection_timeout = timedelta(seconds=30)
+            client = CacheClientAsync.create(configuration, credential_provider, ttl_seconds, eager_connection_timeout)
+        """
+        validate_eager_connection_timeout(eager_connection_timeout)
+        # an explicit 0 means that the client disabled eager connections
+        if eager_connection_timeout.total_seconds() != 0:
+            client = CacheClientAsync(configuration, credential_provider, default_ttl)
+            for data_client in client._data_clients:
+                await data_client.connect(eager_connection_timeout)
+        return client
+
     async def __aenter__(self) -> CacheClientAsync:
         return self
 

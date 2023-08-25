@@ -299,11 +299,36 @@ def client() -> Iterator[CacheClient]:
             _client.delete_cache(cast(str, TEST_CACHE_NAME))
 
 
+@pytest.fixture(scope="session")
+def client_eager_connection() -> Iterator[CacheClient]:
+    with CacheClient.create(
+        TEST_CONFIGURATION, TEST_AUTH_PROVIDER, DEFAULT_TTL_SECONDS, eager_connection_timeout=timedelta(seconds=10)
+    ) as _client:
+        # Ensure test cache exists
+        _client.create_cache(cast(str, TEST_CACHE_NAME))
+        try:
+            yield _client
+        finally:
+            _client.delete_cache(cast(str, TEST_CACHE_NAME))
+
+
 @pytest_asyncio.fixture(scope="session")
 async def client_async() -> AsyncIterator[CacheClientAsync]:
     async with CacheClientAsync(TEST_CONFIGURATION, TEST_AUTH_PROVIDER, DEFAULT_TTL_SECONDS) as _client:
         # Ensure test cache exists
         # TODO consider deleting cache on when test runner shuts down
+        await _client.create_cache(cast(str, TEST_CACHE_NAME))
+        try:
+            yield _client
+        finally:
+            await _client.delete_cache(cast(str, TEST_CACHE_NAME))
+
+
+@pytest_asyncio.fixture(scope="session")
+async def client_async_eager_connection() -> AsyncIterator[CacheClientAsync]:
+    async with await CacheClientAsync.create(
+        TEST_CONFIGURATION, TEST_AUTH_PROVIDER, DEFAULT_TTL_SECONDS, timedelta(seconds=10)
+    ) as _client:
         await _client.create_cache(cast(str, TEST_CACHE_NAME))
         try:
             yield _client
