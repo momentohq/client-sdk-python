@@ -160,7 +160,7 @@ class _ScsDataClient:
         self._default_ttl = default_ttl
 
     async def connect(self, eager_connection_timeout: timedelta) -> None:
-        await self._grpc_manager.eagerly_connect(eager_connection_timeout.seconds)
+        await self._grpc_manager.eagerly_connect(eager_connection_timeout.total_seconds())
 
     @property
     def endpoint(self) -> str:

@@ -64,7 +64,7 @@ class _DataGrpcManager:
         EAGER_CONNECTION_TIMEOUT elapses.
     """
 
-    def eagerly_connect(self, timeout_seconds: int) -> None:
+    def eagerly_connect(self, timeout_seconds: float) -> None:
         self._logger.debug(
             "Attempting to create an eager connection with Momento's server within " f"{timeout_seconds} seconds"
         )

@@ -236,7 +236,7 @@ class CacheClient:
         client = CacheClient(configuration, credential_provider, default_ttl)
         validate_eager_connection_timeout(eager_connection_timeout)
         # an explicit 0 means that the client disabled eager connections
-        if eager_connection_timeout.seconds != 0:
+        if eager_connection_timeout.total_seconds() != 0:
             for data_client in client._data_clients:
                 data_client.connect(eager_connection_timeout)
         return client

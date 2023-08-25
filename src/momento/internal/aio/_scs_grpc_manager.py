@@ -68,7 +68,7 @@ class _DataGrpcManager:
             ],
         )
 
-    async def eagerly_connect(self, timeout_seconds: int) -> None:
+    async def eagerly_connect(self, timeout_seconds: float) -> None:
         self._logger.debug(
             f"Attempting to create an eager connection with Momento's server within {timeout_seconds} seconds"
         )
