@@ -248,7 +248,6 @@ files = [
     {file = "libcst-0.4.10-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f3e9d9fdd9a9b9b8991936ff1c07527ce7ef396c8233280ba9a7137e72c2e48e"},
     {file = "libcst-0.4.10-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7e1b4cbaf7b1cdad5fa3eababe42d5b46c0d52afe13c5ba4eac2495fc57630ea"},
     {file = "libcst-0.4.10-cp39-cp39-win_amd64.whl", hash = "sha256:bcbd07cec3d7a7be6f0299b0c246e085e3d6cc8af367e2c96059183b97c2e2fe"},
-    {file = "libcst-0.4.10.tar.gz", hash = "sha256:b98a829d96e8b209fb761b00cd1bacc27c70eae77d00e57976e5ae2c718c3f81"},
 ]
 
 [package.dependencies]
@@ -272,13 +271,13 @@ files = [
 
 [[package]]
 name = "momento-wire-types"
-version = "0.67.0"
+version = "0.75.0"
 description = "Momento Client Proto Generated Files"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento_wire_types-0.67.0-py3-none-any.whl", hash = "sha256:b596b45fe20534afba57c57cad50f70cc2b77c0d090646165d4bce66165ed290"},
-    {file = "momento_wire_types-0.67.0.tar.gz", hash = "sha256:64fb30794940e6004b4e678b52b8b2728e3fce4390ac427a38054615795165c4"},
+    {file = "momento_wire_types-0.75.0-py3-none-any.whl", hash = "sha256:dce824584bde6d4896fbb4c010c146b68dac6d10bf6b77c5487edf43ff12ff75"},
+    {file = "momento_wire_types-0.75.0.tar.gz", hash = "sha256:eb70d549bdcc28a0926b273737cd60f37eededbae3456db43e7dfa67ca83446f"},
 ]
 
 [package.dependencies]
@@ -757,4 +756,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "8f5859da31f64cc57d348adc8877578f2b5d55497d9b410c0d0f1bfd8349ad52"
+content-hash = "77f61052c44d002201680e6c85e795dc6d52c61b6d59fdff1af007b1a1d7fc7e"

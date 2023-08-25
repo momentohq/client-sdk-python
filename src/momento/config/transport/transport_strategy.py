@@ -46,6 +46,8 @@ class TransportStrategy(ABC):
 
 
 class StaticGrpcConfiguration(GrpcConfiguration):
+    _deadline: timedelta
+
     def __init__(self, deadline: timedelta):
         self._deadline = deadline
 

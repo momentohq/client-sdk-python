@@ -28,7 +28,8 @@ class _ControlGrpcManager:
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
-            target=credential_provider.control_endpoint, credentials=grpc.ssl_channel_credentials()
+            target=credential_provider.control_endpoint,
+            credentials=grpc.ssl_channel_credentials(),
         )
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())

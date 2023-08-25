@@ -16,3 +16,4 @@ momento-examples-env/
 
 *.egg-info
 build
+certs
