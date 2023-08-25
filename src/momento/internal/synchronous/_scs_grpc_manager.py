@@ -110,8 +110,8 @@ class _DataGrpcManager:
                 self._secure_channel.unsubscribe(on_state_change)
                 connection_event.set()
 
-        # we subscribe to the channel that notifies us of state transitions, and the timer above will take care
-        # of unsubscribing from the channel incase the timeout has elapsed.
+        # we subscribe to the channel that notifies us of state transitions, and the connection event above will take
+        # care of unsubscribing from the channel incase the timeout has elapsed.
         self._secure_channel.subscribe(on_state_change, try_to_connect=True)
 
         connection_established = connection_event.wait(timeout_seconds)
