@@ -92,6 +92,7 @@ if __name__ == "__main__":
         sleep(2)
         search(index_name)
         delete_items(index_name)
+        sleep(2)
         print("\nDeleted two items; search will return 1 hit now")
         search(index_name)
         delete_index(index_name)
