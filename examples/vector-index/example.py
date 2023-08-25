@@ -1,3 +1,5 @@
+from time import sleep
+
 from momento import VectorIndexConfigurations, PreviewVectorIndexClient, CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.requests.vector_index import Item
@@ -80,6 +82,7 @@ if __name__ == "__main__":
         create_index(index_name)
         list_indexes()
         add_items(index_name)
+        sleep(2)
         search(index_name)
         delete_index(index_name)
 
