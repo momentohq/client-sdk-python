@@ -8,9 +8,7 @@ def unique_test_cache_name() -> str:
 
 
 def unique_test_vector_index_name() -> str:
-    name = f"python-test-{uuid_str()}"
-    # TODO remove this
-    return name.replace("-", "_")
+    return f"python-test-{uuid_str()}"
 
 
 def uuid_str() -> str:
