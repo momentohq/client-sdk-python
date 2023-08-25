@@ -60,7 +60,7 @@ class _DataGrpcManager:
         self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     """
-        This method tries to connect to Momento's server eagerly in async fashion until
+        This method tries to eagerly connect to Momento's server until
         EAGER_CONNECTION_TIMEOUT elapses.
     """
 
