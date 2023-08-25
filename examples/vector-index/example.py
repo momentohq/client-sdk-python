@@ -1,5 +1,3 @@
-import logging
-
 from momento import VectorIndexConfigurations, PreviewVectorIndexClient, CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.requests.vector_index import Item
@@ -7,8 +5,6 @@ from momento.responses.vector_index import CreateIndex, ListIndexes, AddItemBatc
 
 VECTOR_INDEX_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
 VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
-
-_logger = logging.getLogger("momento-example")
 
 def _print_start_banner() -> None:
     print("******************************************************************")
