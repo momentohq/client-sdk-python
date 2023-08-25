@@ -11,6 +11,7 @@ jobs:
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         new-python-protobuf: ["true"]
+        max-parallel: 2
         include:
           - python-version: "3.7"
             new-python-protobuf: "false"
