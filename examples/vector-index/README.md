@@ -1,6 +1,6 @@
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
-# Momento Python Client Examples
+# Momento Python Vector Index Client Examples
 
 ## Prereqs
 
