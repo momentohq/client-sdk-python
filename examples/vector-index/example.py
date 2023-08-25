@@ -1,9 +1,20 @@
 from time import sleep
 
-from momento import VectorIndexConfigurations, PreviewVectorIndexClient, CredentialProvider
+from momento import (
+    CredentialProvider,
+    PreviewVectorIndexClient,
+    VectorIndexConfigurations,
+)
 from momento.config import VectorIndexConfiguration
 from momento.requests.vector_index import Item
-from momento.responses.vector_index import CreateIndex, ListIndexes, AddItemBatch, DeleteItemBatch, Search, DeleteIndex
+from momento.responses.vector_index import (
+    AddItemBatch,
+    CreateIndex,
+    DeleteIndex,
+    DeleteItemBatch,
+    ListIndexes,
+    Search,
+)
 
 VECTOR_INDEX_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
 VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
