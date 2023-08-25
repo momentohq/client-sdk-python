@@ -160,6 +160,9 @@ class _ScsDataClient:
         _validate_ttl(default_ttl)
         self._default_ttl = default_ttl
 
+    def connect(self, eager_connection_timeout: timedelta) -> None:
+        self._grpc_manager.eagerly_connect(eager_connection_timeout.total_seconds())
+
     @property
     def endpoint(self) -> str:
         return self._endpoint
