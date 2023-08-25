@@ -3,7 +3,7 @@ from time import sleep
 from momento import VectorIndexConfigurations, PreviewVectorIndexClient, CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.requests.vector_index import Item
-from momento.responses.vector_index import CreateIndex, ListIndexes, AddItemBatch, Search, DeleteIndex
+from momento.responses.vector_index import CreateIndex, ListIndexes, AddItemBatch, DeleteItemBatch, Search, DeleteIndex
 
 VECTOR_INDEX_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
 VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
@@ -65,6 +65,13 @@ def search(index_name):
         raise(Exception("Error while searching on index " + index_name + " " + search_response.message))
     print("******************************************************************\n")
 
+def delete_items(index_name):
+    delete_response = _client.delete_item_batch(index_name, ids=["test_item_1", "test_item_3"])
+    if isinstance(delete_response, DeleteItemBatch.Success):
+        print("Successfully deleted items")
+    elif isinstance(delete_response, DeleteItemBatch.Error):
+        raise(Exception("Error while deleting items " + delete_response.message))
+
 def delete_index(index_name):
     print("Deleting index " + index_name)
     del_response = _client.delete_index(index_name)
@@ -83,6 +90,9 @@ if __name__ == "__main__":
         list_indexes()
         add_items(index_name)
         sleep(2)
+        search(index_name)
+        delete_items(index_name)
+        print("\nDeleted two items; search will return 1 hit now")
         search(index_name)
         delete_index(index_name)
 
