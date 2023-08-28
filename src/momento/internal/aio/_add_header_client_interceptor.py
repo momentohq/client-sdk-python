@@ -6,6 +6,7 @@ import grpc
 from grpc.aio import ClientCallDetails, Metadata
 
 from momento.errors import InvalidArgumentException
+from momento.internal.services import Service
 
 
 class Header:
@@ -129,7 +130,8 @@ def sanitize_client_call_details(client_call_details: grpc.aio.ClientCallDetails
         # Else we raise exception for now since we don't know how to handle an unknown type
         raise InvalidArgumentException(
             "unexpected grpc client request metadata property passed to interceptor "
-            "type=" + str(type(client_call_details.metadata))
+            "type=" + str(type(client_call_details.metadata)),
+            Service.AUTH,
         )
 
     return new_client_call_details

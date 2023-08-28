@@ -9,35 +9,6 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import UnknownException
 from momento.requests import CollectionTtl, SortOrder
-from momento.responses.data.sorted_set.fetch import CacheSortedSetFetchResponse
-from momento.responses.data.sorted_set.get_rank import CacheSortedSetGetRankResponse
-from momento.responses.data.sorted_set.get_score import (
-    CacheSortedSetGetScore,
-    CacheSortedSetGetScoreResponse,
-)
-from momento.responses.data.sorted_set.get_scores import (
-    CacheSortedSetGetScores,
-    CacheSortedSetGetScoresResponse,
-)
-from momento.responses.data.sorted_set.increment_score import (
-    CacheSortedSetIncrementScoreResponse,
-)
-from momento.responses.data.sorted_set.put_element import (
-    CacheSortedSetPutElement,
-    CacheSortedSetPutElementResponse,
-)
-from momento.responses.data.sorted_set.put_elements import (
-    CacheSortedSetPutElements,
-    CacheSortedSetPutElementsResponse,
-)
-from momento.responses.data.sorted_set.remove_element import (
-    CacheSortedSetRemoveElement,
-    CacheSortedSetRemoveElementResponse,
-)
-from momento.responses.data.sorted_set.remove_elements import (
-    CacheSortedSetRemoveElements,
-    CacheSortedSetRemoveElementsResponse,
-)
 from momento.utilities.shared_sync_asyncio import (
     DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS,
     validate_eager_connection_timeout,
@@ -107,6 +78,21 @@ from momento.responses import (
     CacheSetRemoveElements,
     CacheSetRemoveElementsResponse,
     CacheSetResponse,
+    CacheSortedSetFetchResponse,
+    CacheSortedSetGetRankResponse,
+    CacheSortedSetGetScore,
+    CacheSortedSetGetScoreResponse,
+    CacheSortedSetGetScores,
+    CacheSortedSetGetScoresResponse,
+    CacheSortedSetIncrementScoreResponse,
+    CacheSortedSetPutElement,
+    CacheSortedSetPutElementResponse,
+    CacheSortedSetPutElements,
+    CacheSortedSetPutElementsResponse,
+    CacheSortedSetRemoveElement,
+    CacheSortedSetRemoveElementResponse,
+    CacheSortedSetRemoveElements,
+    CacheSortedSetRemoveElementsResponse,
     CreateCacheResponse,
     CreateSigningKeyResponse,
     DeleteCacheResponse,

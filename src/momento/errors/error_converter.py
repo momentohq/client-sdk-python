@@ -24,6 +24,7 @@ from momento.errors import (
     UnknownException,
     UnknownServiceException,
 )
+from momento.internal.services import Service
 
 grpc_status_to_exception: dict[grpc.StatusCode, Type[SdkException]] = {
     grpc.StatusCode.INVALID_ARGUMENT: InvalidArgumentException,
@@ -50,7 +51,7 @@ SDK_ERROR_MESSAGE = "SDK Failed to process the request."
 
 
 def convert_error(
-    exception: Exception, transport_metadata: Optional[Metadata | list[Tuple[str, str]]] = None
+    exception: Exception, service: Service, transport_metadata: Optional[Metadata | list[Tuple[str, str]]] = None
 ) -> SdkException:
     """Convert a low-level exception raised by gRPC to a Momento `SdkException`.
 
@@ -60,6 +61,7 @@ def convert_error(
 
     Args:
         exception (Exception): Low-level (transport, server-side, validation) exception
+        service (Service): The service for which the error occured, e.g., cache or topics or index
         transport_metadata (Optional[TMetadata], optional): Transport metadata to enrich the new exception.
         Defaults to None.
 
@@ -82,13 +84,13 @@ def convert_error(
 
         if status_code in grpc_status_to_exception:
             concrete_exception_type = grpc_status_to_exception[status_code]
-            return concrete_exception_type(details, transport_details)  # type: ignore
+            return concrete_exception_type(details, service, transport_details)  # type: ignore
         else:
             # TODO exception chaining from .NET redundant here?
-            return InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE, transport_details)
+            return InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE, service, transport_details)
 
     # TODO exception chaining from .NET redundant here?
-    return UnknownException(SDK_ERROR_MESSAGE, None)
+    return UnknownException(SDK_ERROR_MESSAGE, None, None)  # type: ignore
 
 
 def _synchronous_metadata_to_metadata(metadata: list[Tuple[str, str]]) -> Metadata:

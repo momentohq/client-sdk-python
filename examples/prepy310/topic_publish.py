@@ -18,7 +18,7 @@ _logger = logging.getLogger("topic-publish-example")
 
 
 def setup_cache() -> None:
-    with CacheClient(Configurations.Laptop.latest(), _AUTH_PROVIDER, timedelta(seconds=60)) as client:
+    with CacheClient.create(Configurations.Laptop.latest(), _AUTH_PROVIDER, timedelta(seconds=60)) as client:
         response = client.create_cache(_CACHE_NAME)
         if isinstance(response, CreateCache.Error):
             raise response.inner_exception

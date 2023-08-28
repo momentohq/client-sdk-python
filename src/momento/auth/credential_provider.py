@@ -15,12 +15,14 @@ class CredentialProvider:
     auth_token: str
     control_endpoint: str
     cache_endpoint: str
+    vector_endpoint: str
 
     @staticmethod
     def from_environment_variable(
         env_var_name: str,
         control_endpoint: Optional[str] = None,
         cache_endpoint: Optional[str] = None,
+        vector_endpoint: Optional[str] = None,
     ) -> CredentialProvider:
         """Reads and parses a Momento auth token stored as an environment variable.
 
@@ -28,7 +30,9 @@ class CredentialProvider:
             env_var_name (str): Name of the environment variable from which the auth token will be read
             control_endpoint (Optional[str], optional): Optionally overrides the default control endpoint.
             Defaults to None.
-            cache_endpoint (Optional[str], optional): Optionally overrides the default control endpoint.
+            cache_endpoint (Optional[str], optional): Optionally overrides the default cache endpoint.
+            Defaults to None.
+            vector_endpoint (Optional[str], optional): Optionally overrides the default vector endpoint.
             Defaults to None.
 
         Raises:
@@ -40,13 +44,14 @@ class CredentialProvider:
         auth_token = os.getenv(env_var_name)
         if not auth_token:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")
-        return CredentialProvider.from_string(auth_token, control_endpoint, cache_endpoint)
+        return CredentialProvider.from_string(auth_token, control_endpoint, cache_endpoint, vector_endpoint)
 
     @staticmethod
     def from_string(
         auth_token: str,
         control_endpoint: Optional[str] = None,
         cache_endpoint: Optional[str] = None,
+        vector_endpoint: Optional[str] = None,
     ) -> CredentialProvider:
         """Reads and parses a Momento auth token.
 
@@ -54,7 +59,9 @@ class CredentialProvider:
             auth_token (str): the Momento auth token
             control_endpoint (Optional[str], optional): Optionally overrides the default control endpoint.
             Defaults to None.
-            cache_endpoint (Optional[str], optional): Optionally overrides the default control endpoint.
+            cache_endpoint (Optional[str], optional): Optionally overrides the default cache endpoint.
+            Defaults to None.
+            vector_endpoint (Optional[str], optional): Optionally overrides the default vector endpoint.
             Defaults to None.
 
         Returns:
@@ -63,8 +70,9 @@ class CredentialProvider:
         token_and_endpoints = momento_endpoint_resolver.resolve(auth_token)
         control_endpoint = control_endpoint or token_and_endpoints.control_endpoint
         cache_endpoint = cache_endpoint or token_and_endpoints.cache_endpoint
+        vector_endpoint = vector_endpoint or token_and_endpoints.vector_endpoint
         auth_token = token_and_endpoints.auth_token
-        return CredentialProvider(auth_token, control_endpoint, cache_endpoint)
+        return CredentialProvider(auth_token, control_endpoint, cache_endpoint, vector_endpoint)
 
     def __repr__(self) -> str:
         attributes: Dict[str, str] = copy.copy(vars(self))  # type: ignore[misc]

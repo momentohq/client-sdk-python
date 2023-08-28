@@ -10,6 +10,7 @@ from momento.auth import CredentialProvider
 from momento.config import TopicConfiguration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_cache_name, _validate_topic_name
+from momento.internal.services import Service
 from momento.internal.synchronous._scs_grpc_manager import (
     _PubsubGrpcManager,
     _PubsubGrpcStreamManager,
@@ -73,7 +74,7 @@ class _ScsPubsubClient:
             return TopicPublish.Success()
         except Exception as e:
             self._log_request_error("publish", e)
-            return TopicPublish.Error(convert_error(e))
+            return TopicPublish.Error(convert_error(e, Service.TOPICS))
 
     def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
         try:
@@ -98,11 +99,11 @@ class _ScsPubsubClient:
             else:
                 err = Exception(f"expected a heartbeat message but got '{msg_type}'")
                 self._log_request_error("subscribe", err)
-                return TopicSubscribe.Error(convert_error(err))
+                return TopicSubscribe.Error(convert_error(err, Service.TOPICS))
             return TopicSubscribe.Subscription(cache_name, topic_name, client_stream=stream)  # type: ignore[misc]
         except Exception as e:
             self._log_request_error("subscribe", e)
-            return TopicSubscribe.Error(convert_error(e))
+            return TopicSubscribe.Error(convert_error(e, Service.TOPICS))
 
     def _log_request_error(self, request_type: str, e: Exception) -> None:
         self._logger.warning(f"{request_type} failed with exception: {e}")

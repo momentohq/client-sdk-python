@@ -99,6 +99,10 @@ from .data.sorted_set.get_scores import (
     CacheSortedSetGetScores,
     CacheSortedSetGetScoresResponse,
 )
+from .data.sorted_set.increment_score import (
+    CacheSortedSetIncrementScore,
+    CacheSortedSetIncrementScoreResponse,
+)
 from .data.sorted_set.put_element import (
     CacheSortedSetPutElement,
     CacheSortedSetPutElementResponse,
@@ -106,6 +110,14 @@ from .data.sorted_set.put_element import (
 from .data.sorted_set.put_elements import (
     CacheSortedSetPutElements,
     CacheSortedSetPutElementsResponse,
+)
+from .data.sorted_set.remove_element import (
+    CacheSortedSetRemoveElement,
+    CacheSortedSetRemoveElementResponse,
+)
+from .data.sorted_set.remove_elements import (
+    CacheSortedSetRemoveElements,
+    CacheSortedSetRemoveElementsResponse,
 )
 from .pubsub.publish import TopicPublish, TopicPublishResponse
 from .pubsub.subscribe import TopicSubscribe, TopicSubscribeResponse
@@ -192,11 +204,17 @@ __all__ = [
     "CacheSortedSetGetScoreResponse",
     "CacheSortedSetGetScores",
     "CacheSortedSetGetScoresResponse",
+    "CacheSortedSetIncrementScore",
+    "CacheSortedSetIncrementScoreResponse",
     "CacheSortedSetPutElementResponse",
     "CacheSortedSetPutElements",
     "CacheSortedSetPutElementsResponse",
     "CacheSortedSetFetch",
     "CacheSortedSetFetchResponse",
+    "CacheSortedSetRemoveElement",
+    "CacheSortedSetRemoveElementResponse",
+    "CacheSortedSetRemoveElements",
+    "CacheSortedSetRemoveElementsResponse",
     "TopicPublish",
     "TopicPublishResponse",
     "TopicSubscribe",

@@ -6,8 +6,8 @@ from momento.responses import CacheGet, CacheSet, CreateCache
 
 def handler(event, lambda_context):
     cache_name = "default-cache"
-    with CacheClient(
-            configuration=Configurations.Laptop.v1(),
+    with CacheClient.create(
+            configuration=Configurations.Lambda.latest(),
             credential_provider=CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
             default_ttl=timedelta(seconds=60),
     ) as cache_client:

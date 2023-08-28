@@ -56,7 +56,7 @@ async def _list_caches(cache_client: CacheClientAsync) -> None:
 async def main() -> None:
     initialize_logging()
     _print_start_banner()
-    async with CacheClientAsync(Configurations.Laptop.v1(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
+    async with await CacheClientAsync.create(Configurations.Laptop.v1(), _AUTH_PROVIDER, _ITEM_DEFAULT_TTL_SECONDS) as cache_client:
         await _create_cache(cache_client, _CACHE_NAME)
         await _list_caches(cache_client)
 

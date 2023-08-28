@@ -1,7 +1,13 @@
+import asyncio
+import time
 import uuid
 
 
 def unique_test_cache_name() -> str:
+    return f"python-test-{uuid_str()}"
+
+
+def unique_test_vector_index_name() -> str:
     return f"python-test-{uuid_str()}"
 
 
@@ -33,3 +39,11 @@ def str_to_bytes(string: str) -> bytes:
         bytes: A UTF-8 byte representation of the string.
     """
     return string.encode("utf-8")
+
+
+def sleep(seconds: int) -> None:
+    time.sleep(seconds)
+
+
+async def sleep_async(seconds: int) -> None:
+    await asyncio.sleep(seconds)
