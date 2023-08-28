@@ -14,7 +14,7 @@ _MOMENTO_CACHE_ENDPOINT_PREFIX = "cache."
 _MOMENTO_VECTOR_ENDPOINT_PREFIX = "vector."
 _CONTROL_ENDPOINT_CLAIM_ID = "cp"
 _CACHE_ENDPOINT_CLAIM_ID = "c"
-_VECTOR_ENDPOINT_CLAIM_ID = "c"
+_VECTOR_ENDPOINT_CLAIM_ID = "c"  # we don't have a new claim here so defaulting to c
 
 
 @dataclass
