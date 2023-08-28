@@ -37,7 +37,7 @@ from datetime import timedelta
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
-cache_client = CacheClient.create(
+cache_client = CacheClient(
     Configurations.Laptop.v1(),
     CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
     timedelta(seconds=60)
@@ -63,7 +63,7 @@ from datetime import timedelta
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache
 
-cache_client = CacheClient.create(
+cache_client = CacheClient(
     configuration=Configurations.Laptop.v1(),
     credential_provider=CredentialProvider.from_environment_variable('MOMENTO_AUTH_TOKEN'),
     default_ttl=timedelta(seconds=60)
