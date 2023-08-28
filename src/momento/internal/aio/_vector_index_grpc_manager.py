@@ -37,7 +37,7 @@ class _VectorIndexDataGrpcManager:
 
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
-            target=credential_provider.cache_endpoint,
+            target=credential_provider.vector_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token),
         )

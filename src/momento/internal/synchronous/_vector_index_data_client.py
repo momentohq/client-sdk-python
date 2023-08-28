@@ -31,7 +31,7 @@ class _VectorIndexDataClient:
     """Internal vector index data client."""
 
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
-        endpoint = credential_provider.cache_endpoint
+        endpoint = credential_provider.vector_endpoint
         self._logger = logs.logger
         self._logger.debug("Vector index data client instantiated with endpoint: %s", endpoint)
         self._endpoint = endpoint
