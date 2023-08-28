@@ -21,7 +21,7 @@ _logger = logging.getLogger("topic-subscribe-example")
 
 
 def setup_cache() -> None:
-    with CacheClient(Configurations.Laptop.latest(), _AUTH_PROVIDER, timedelta(seconds=60)) as client:
+    with CacheClient.create(Configurations.Laptop.latest(), _AUTH_PROVIDER, timedelta(seconds=60)) as client:
         response = client.create_cache(_CACHE_NAME)
         match response:
             case CreateCache.Error():
