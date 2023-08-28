@@ -17,7 +17,7 @@ def example_API_CredentialProviderFromEnvVar():
 # end example
 
 
-def example_API_InstantiateCacheClient():
+async def example_API_InstantiateCacheClient():
     await CacheClientAsync.create(
         Configurations.Laptop.latest(),
         CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
@@ -99,7 +99,7 @@ async def example_API_Delete(cache_client: CacheClientAsync):
 async def main():
     example_API_CredentialProviderFromEnvVar()
 
-    example_API_InstantiateCacheClient()
+    await example_API_InstantiateCacheClient()
     cache_client = await CacheClientAsync.create(
         Configurations.Laptop.latest(),
         CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
