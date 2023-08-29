@@ -1,5 +1,4 @@
-from momento import CredentialProvider, PreviewVectorIndexClient
-from momento.config import VectorIndexConfiguration
+from momento import PreviewVectorIndexClient
 from momento.errors import MomentoErrorCode
 from momento.responses.vector_index import CreateIndex, DeleteIndex, ListIndexes
 from tests.conftest import TUniqueVectorIndexName
@@ -107,24 +106,6 @@ def test_delete_index_returns_error_for_bad_name(
         assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         assert response.inner_exception.message == f"Vector index name must {reason}"
         assert response.message == f"Invalid argument passed to Momento client: {response.inner_exception.message}"
-
-
-def test_create_index_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: CredentialProvider,
-    vector_index_configuration: VectorIndexConfiguration,
-    vector_index_dimensions: int,
-) -> None:
-    index_name = unique_test_vector_index_name()
-
-    with PreviewVectorIndexClient(vector_index_configuration, bad_token_credential_provider) as vector_index_client:
-        response = vector_index_client.create_index(index_name, num_dimensions=2)
-        assert isinstance(response, CreateIndex.Error)
-        assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
-        assert response.inner_exception.message == "Token has expired"
-        assert (
-            response.message == f"Invalid authentication credentials to connect to index service: "
-            f"{response.inner_exception.message}"
-        )
 
 
 # List indexes

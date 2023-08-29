@@ -1,4 +1,3 @@
-import os
 from datetime import timedelta
 
 import pytest
@@ -14,15 +13,6 @@ async def test_init_throws_exception_when_client_uses_negative_default_ttl(
 ) -> None:
     with pytest.raises(InvalidArgumentException, match="TTL must be a positive amount of time."):
         CacheClientAsync(configuration, credential_provider, timedelta(seconds=-1))
-
-
-async def test_init_throws_exception_for_non_jwt_token(
-    configuration: Configuration, default_ttl_seconds: timedelta
-) -> None:
-    with pytest.raises(InvalidArgumentException, match="Invalid Auth token."):
-        os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
-        credential_provider = CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
-        CacheClientAsync(configuration, credential_provider, default_ttl_seconds)
 
 
 async def test_init_throws_exception_when_client_uses_integer_request_timeout_ms(

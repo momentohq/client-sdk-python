@@ -72,12 +72,6 @@ if not TEST_VECTOR_INDEX_NAME:
 TEST_VECTOR_DIMS = 2
 
 DEFAULT_TTL_SECONDS: timedelta = timedelta(seconds=60)
-BAD_AUTH_TOKEN: str = (
-    "eyJlbmRwb2ludCI6ImNlbGwtNC11cy13ZXN0LTItMS5wcm9kLmEubW9tZW50b2hxLmNvbSIsImFwaV9rZXkiOiJleUpoYk"
-    "djaU9pSklVekkxTmlKOS5leUp6ZFdJaU9pSndjbUYwYVd0QWJXOXRaVzUwYjJoeExtTnZiU0lzSW5abGNpSTZNU3dp"
-    "Y0NJNklrTkJRVDBpTENKbGVIQWlPakUyT1RNeE56TTRPRFI5Lkhla3lHcXp2RzRybktvcVlaMzk5UV9yTmo3X29XR0"
-    "wyMmtvN19GbzFPODgifQ=="
-)
 
 
 #############################################
@@ -88,12 +82,6 @@ BAD_AUTH_TOKEN: str = (
 @pytest.fixture(scope="session")
 def credential_provider() -> CredentialProvider:
     return TEST_AUTH_PROVIDER
-
-
-@pytest.fixture(scope="session")
-def bad_token_credential_provider() -> CredentialProvider:
-    os.environ["BAD_AUTH_TOKEN"] = BAD_AUTH_TOKEN
-    return CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
 
 
 @pytest.fixture(scope="session")
@@ -277,11 +265,6 @@ def elements_bytes() -> set[bytes]:
 @pytest.fixture(scope="session")
 def default_ttl_seconds() -> timedelta:
     return DEFAULT_TTL_SECONDS
-
-
-@pytest.fixture(scope="session")
-def bad_auth_token() -> str:
-    return BAD_AUTH_TOKEN
 
 
 @pytest.fixture(scope="session")

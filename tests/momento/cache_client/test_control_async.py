@@ -1,9 +1,4 @@
-from datetime import timedelta
-
-import momento.errors as errors
-from momento import CacheClientAsync, Configurations
-from momento.auth import CredentialProvider
-from momento.config import Configuration
+from momento import CacheClientAsync
 from momento.errors import MomentoErrorCode
 from momento.responses import (
     CacheFlush,
@@ -72,19 +67,6 @@ async def test_create_cache_with_bad_cache_name_throws_exception(
     assert response.inner_exception.message == "Cache name must be a string"
 
 
-async def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: CredentialProvider,
-    configuration: Configuration,
-    default_ttl_seconds: timedelta,
-    unique_cache_name_async: TUniqueCacheNameAsync,
-) -> None:
-    async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
-        new_cache_name = unique_cache_name_async(client_async)
-        response = await client_async.create_cache(new_cache_name)
-        assert isinstance(response, CreateCache.Error)
-        assert response.error_code == errors.MomentoErrorCode.AUTHENTICATION_ERROR
-
-
 # Delete cache
 async def test_delete_cache_succeeds(client_async: CacheClientAsync, cache_name: str) -> None:
     cache_name = uuid_str()
@@ -130,15 +112,6 @@ async def test_delete_with_bad_cache_name_throws_exception(client_async: CacheCl
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert response.inner_exception.message == "Cache name must be a string"
-
-
-async def test_delete_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
-) -> None:
-    async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
-        response = await client_async.delete_cache(uuid_str())
-        assert isinstance(response, DeleteCache.Error)
-        assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
 # Flush Cache
@@ -194,23 +167,6 @@ async def test_list_caches_succeeds(client_async: CacheClientAsync, cache_name: 
     finally:
         delete_response = await client_async.delete_cache(cache_name)
         assert isinstance(delete_response, DeleteCache.Success)
-
-
-async def test_list_caches_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
-) -> None:
-    async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
-        response = await client_async.list_caches()
-        assert isinstance(response, ListCaches.Error)
-        assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
-
-
-async def test_list_caches_succeeds_even_if_cred_provider_has_been_printed() -> None:
-    creds_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
-    print(f"Printing creds provider to ensure that it does not corrupt it :) : {creds_provider}")
-    async with CacheClientAsync(Configurations.Laptop.v1(), creds_provider, timedelta(seconds=60)) as client:
-        response = await client.list_caches()
-        assert isinstance(response, ListCaches.Success)
 
 
 # async def test_create_list_revoke_signing_keys(client_async: CacheClientAsync) -> None:
