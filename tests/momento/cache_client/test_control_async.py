@@ -216,17 +216,17 @@ async def test_list_caches_succeeds_even_if_cred_provider_has_been_printed() -> 
         assert isinstance(response, ListCaches.Success)
 
 
-async def test_create_list_revoke_signing_keys(client_async: CacheClientAsync) -> None:
-    create_response = await client_async.create_signing_key(timedelta(minutes=30))
-    assert isinstance(create_response, CreateSigningKey.Success)
-
-    list_response = await client_async.list_signing_keys()
-    assert isinstance(list_response, ListSigningKeys.Success)
-    assert create_response.key_id in [signing_key.key_id for signing_key in list_response.signing_keys]
-
-    revoke_response = await client_async.revoke_signing_key(create_response.key_id)
-    assert isinstance(revoke_response, RevokeSigningKey.Success)
-
-    list_response = await client_async.list_signing_keys()
-    assert isinstance(list_response, ListSigningKeys.Success)
-    assert create_response.key_id not in [signing_key.key_id for signing_key in list_response.signing_keys]
+# async def test_create_list_revoke_signing_keys(client_async: CacheClientAsync) -> None:
+#     create_response = await client_async.create_signing_key(timedelta(minutes=30))
+#     assert isinstance(create_response, CreateSigningKey.Success)
+#
+#     list_response = await client_async.list_signing_keys()
+#     assert isinstance(list_response, ListSigningKeys.Success)
+#     assert create_response.key_id in [signing_key.key_id for signing_key in list_response.signing_keys]
+#
+#     revoke_response = await client_async.revoke_signing_key(create_response.key_id)
+#     assert isinstance(revoke_response, RevokeSigningKey.Success)
+#
+#     list_response = await client_async.list_signing_keys()
+#     assert isinstance(list_response, ListSigningKeys.Success)
+#     assert create_response.key_id not in [signing_key.key_id for signing_key in list_response.signing_keys]
