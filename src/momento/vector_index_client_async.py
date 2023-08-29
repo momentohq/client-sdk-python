@@ -147,11 +147,7 @@ class PreviewVectorIndexClientAsync:
     async def add_item_batch(self, index_name: str, items: list[Item]) -> AddItemBatchResponse:
         """Adds a batch of items into a vector index.
 
-        Adds an item into the index regardless if the ID already exists.
-        On duplicate ID, a separate entry is created with the same ID.
-
-        To deduplicate, first call `delete_item_batch` to remove all items
-        with the same ID, then call `add_item_batch` to add the new items.
+        Adds an item into the index.
 
         Args:
             index_name (str): Name of the index to add the items into.
