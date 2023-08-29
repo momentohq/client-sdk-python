@@ -72,7 +72,12 @@ if not TEST_VECTOR_INDEX_NAME:
 TEST_VECTOR_DIMS = 2
 
 DEFAULT_TTL_SECONDS: timedelta = timedelta(seconds=60)
-BAD_AUTH_TOKEN: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"  # noqa: E501
+BAD_AUTH_TOKEN: str = (
+    "eyJlbmRwb2ludCI6ImNlbGwtNC11cy13ZXN0LTItMS5wcm9kLmEubW9tZW50b2hxLmNvbSIsImFwaV9rZXkiOiJleUpoYk"
+    "djaU9pSklVekkxTmlKOS5leUp6ZFdJaU9pSndjbUYwYVd0QWJXOXRaVzUwYjJoeExtTnZiU0lzSW5abGNpSTZNU3dp"
+    "Y0NJNklrTkJRVDBpTENKbGVIQWlPakUyT1RNeE56TTRPRFI5Lkhla3lHcXp2RzRybktvcVlaMzk5UV9yTmo3X29XR0"
+    "wyMmtvN19GbzFPODgifQ=="
+)
 
 
 #############################################
