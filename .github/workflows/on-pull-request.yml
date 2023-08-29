@@ -63,7 +63,7 @@ jobs:
         run: poetry run isort . --check --diff
 
       - name: Run tests
-        run: poetry run pytest -p no:sugar -q --ignore=tests/momento/vector_index_client
+        run: poetry run pytest -p no:sugar -q
 
   test-examples:
     runs-on: ubuntu-20.04
