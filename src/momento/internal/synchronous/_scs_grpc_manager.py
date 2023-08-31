@@ -27,7 +27,7 @@ class _ControlGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.sececure_channel(
+        self._secure_channel = grpc.secure_channel(
             target=credential_provider.control_endpoint,
             credentials=grpc.ssl_channel_credentials(),
         )
