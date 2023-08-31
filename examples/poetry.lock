@@ -297,7 +297,7 @@ pyjwt = "^2.4.0"
 type = "git"
 url = "https://github.com/momentohq/client-sdk-python.git"
 reference = "simple-repro"
-resolved_reference = "eacf74013809998266686e417d1d861dcc0cd6be"
+resolved_reference = "57e4cae8611ca206b7551105989645d36d5addc7"
 
 [[package]]
 name = "momento-wire-types"
