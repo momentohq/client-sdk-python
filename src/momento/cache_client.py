@@ -170,10 +170,6 @@ class CacheClient:
         self._logger = logs.logger
         self._next_client_index = 0
         self._control_client = _ScsControlClient(configuration, credential_provider)
-        self._cache_endpoint = credential_provider.cache_endpoint
-        self._data_clients = [
-            _ScsDataClient(configuration, credential_provider, default_ttl) for _ in range(CacheClient._NUM_CLIENTS)
-        ]
 
     def __enter__(self) -> CacheClient:
         return self
