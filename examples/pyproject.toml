@@ -8,7 +8,7 @@ license = "Apache-2.0"
 [tool.poetry.dependencies]
 python = ">=3.7,<3.12"
 
-momento = "1.9.0"
+momento = { git = "https://github.com/momentohq/client-sdk-python.git", branch = "simple-repro" }
 colorlog = "6.7.0"
 hdrhistogram = "^0.10.1"
 
