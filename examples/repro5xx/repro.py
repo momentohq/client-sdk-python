@@ -11,11 +11,13 @@ def do_work():
         print("Created client " + str(i))
 
     for i in range(0, 1000):
+
         client = clients[i % 2]
-        create = client.create_cache(str(i))
-        print(client.list_caches())
+
+        create = print("Client " + str(i%2) + " : " + str(client.create_cache(str(i))))
+        print("Client " + str(i%2) + " : " + str(client.list_caches()))
         if isinstance(create, CreateCache.Success):
-            print(client.delete_cache(str(i)))
+            print("Client " + str(i%2) + " : " + str(client.delete_cache(str(i))))
 
 
 do_work()
