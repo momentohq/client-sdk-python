@@ -16,8 +16,6 @@ def do_work():
 
         create = print("Client " + str(i%2) + " : " + str(client.create_cache(str(i))))
         print("Client " + str(i%2) + " : " + str(client.list_caches()))
-        if isinstance(create, CreateCache.Success):
-            print("Client " + str(i%2) + " : " + str(client.delete_cache(str(i))))
-
+        print("Client " + str(i%2) + " : " + str(client.delete_cache(str(i))))
 
 do_work()
