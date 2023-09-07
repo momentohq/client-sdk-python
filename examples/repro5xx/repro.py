@@ -13,10 +13,10 @@ def do_work():
     for i in range(0, 1000):
 
         client = clients[i % 2]
-
-        create = print("Client " + str(i%2) + " : " + str(client.create_cache(str(i))))
-        print("Client " + str(i%2) + " : " + str(client.list_caches()))
-        print("Client " + str(i%2) + " : " + str(client.delete_cache(str(i))))
+        set = client.set("cache", "key", "val")
+        get = client.get("cache", "key")
+        if (isinstance(get, CacheGet.Hit)):
+            print("Hit!")
 
 
 do_work()
