@@ -14,9 +14,18 @@ def do_work():
 
         client = clients[i % 2]
         set = client.set("cache", "key", "val")
+        if (isinstance(set, CacheSet.Success)):
+            print("Set!")
+        elif (isinstance(set, CacheSet.Error)):
+            print("Error set !" + set.message)
+
         get = client.get("cache", "key")
         if (isinstance(get, CacheGet.Hit)):
             print("Hit!")
+        elif (isinstance(get, CacheGet.Error)):
+            print("Error!")
+        elif (isinstance(get, CacheGet.Miss)):
+            print("Miss!")
 
 
 do_work()
