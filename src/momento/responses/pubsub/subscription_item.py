@@ -1,5 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
+from warnings import warn
 
 from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
@@ -19,13 +20,26 @@ class TopicSubscriptionItem(ABC):
     """Groups all `TopicSubscriptionItemResponse` derived types under a common namespace."""
 
     @dataclass
+    class Success(
+        TopicSubscriptionItemResponse,
+    ):
+        """Indicates the request was successful and value will be returned as bytes."""
+
+        value_bytes: bytes
+
+        def __post_init__(self) -> None:
+            warn("Success is a deprecated response, use Text or Binary instead", DeprecationWarning)
+
+    @dataclass
     class Text(TopicSubscriptionItemResponse):
         """Indicates the request was successful and value will be returned as a string."""
+
         value: str
 
     @dataclass
     class Binary(TopicSubscriptionItemResponse):
         """Indicates the request was successful and value will be returned as bytes."""
+
         value: bytes
 
     class Error(TopicSubscriptionItemResponse, ErrorResponseMixin):

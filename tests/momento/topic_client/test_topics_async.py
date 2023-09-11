@@ -82,7 +82,7 @@ def describe_subscribe() -> None:
 
         print(publish_response)
         item_response = await item_task
-        assert isinstance(item_response, TopicSubscriptionItem.Text)
+        assert isinstance(item_response, TopicSubscriptionItem.Binary)
         assert item_response.value == value
 
     async def succeeds_with_nonexistent_topic(
