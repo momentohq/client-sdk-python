@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from warnings import warn
 
-from ..mixins import ErrorResponseMixin
+from ..mixins import ErrorResponseMixin, ValueStringMixin
 from ..response import PubsubResponse
 
 
@@ -22,13 +22,14 @@ class TopicSubscriptionItem(ABC):
     @dataclass
     class Success(
         TopicSubscriptionItemResponse,
+        ValueStringMixin
     ):
         """Indicates the request was successful and value will be returned as bytes."""
 
         value_bytes: bytes
 
         def __post_init__(self) -> None:
-            warn("Success is a deprecated response, use Text or Binary instead", DeprecationWarning)
+            warn("Success is a deprecated response, use Text or Binary instead", DeprecationWarning, stacklevel=2)
 
     @dataclass
     class Text(TopicSubscriptionItemResponse):
