@@ -46,8 +46,16 @@ class TopicSubscribe(ABC):
                 value_type: str = value.WhichOneof("kind")
                 if value_type == "text":
                     return TopicSubscriptionItem.Text(value.text)
-                elif value_type == "bytes":
-                    return TopicSubscriptionItem.Binary(value.bytes)
+                elif value_type == "binary":
+                    return TopicSubscriptionItem.Binary(value.binary)
+                else:
+                    err = SdkException(
+                        f"Could not find matching TopicSubscriptionItem response for type: {value_type}",
+                        MomentoErrorCode.UNKNOWN_ERROR,
+                        Service.TOPICS,
+                        message_wrapper="Error reading item from topic subscription",
+                    )
+                    return TopicSubscriptionItem.Error(err)
             elif msg_type == "heartbeat":
                 self._logger.debug("client stream received heartbeat")
                 return None
