@@ -22,11 +22,8 @@ class TopicSubscriptionItem(ABC):
     """Groups all `TopicSubscriptionItemResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(
-        TopicSubscriptionItemResponse,
-        ValueStringMixin
-    ):
-        """Indicates the request was successful"""
+    class Success(TopicSubscriptionItemResponse, ValueStringMixin):
+        """Indicates the request was successful."""
 
         value_bytes: bytes
         """The item returned from the subscription for the specified topic. Use the
