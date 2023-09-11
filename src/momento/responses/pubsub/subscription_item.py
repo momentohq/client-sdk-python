@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 
-from ..mixins import ErrorResponseMixin, ValueStringMixin
+from ..mixins import ErrorResponseMixin
 from ..response import PubsubResponse
 
 
@@ -9,7 +9,8 @@ class TopicSubscriptionItemResponse(PubsubResponse):
     """Parent response type for a topic subscription's `item` request.
 
     Its subtypes are:
-    - `TopicSubscriptionItem.Success`
+    - `TopicSubscriptionItem.Text`
+    - `TopicSubscriptionItem.Binary`
     - `TopicSubscriptionItem.Error`
     """
 
@@ -18,12 +19,14 @@ class TopicSubscriptionItem(ABC):
     """Groups all `TopicSubscriptionItemResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(TopicSubscriptionItemResponse, ValueStringMixin):
-        """Indicates the request was successful."""
+    class Text(TopicSubscriptionItemResponse):
+        """Indicates the request was successful and value will be returned as a string."""
+        value: str
 
-        value_bytes: bytes
-        """The item returned from the subscription for the specified topic. Use the
-        `value_string` property to access the value as a string."""
+    @dataclass
+    class Binary(TopicSubscriptionItemResponse):
+        """Indicates the request was successful and value will be returned as bytes."""
+        value: bytes
 
     class Error(TopicSubscriptionItemResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.

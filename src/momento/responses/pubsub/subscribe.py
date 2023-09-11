@@ -45,9 +45,9 @@ class TopicSubscribe(ABC):
                 value = result.item.value
                 value_type: str = value.WhichOneof("kind")
                 if value_type == "text":
-                    return TopicSubscriptionItem.Success(bytes(value.text, "utf-8"))
+                    return TopicSubscriptionItem.Text(value.text)
                 elif value_type == "bytes":
-                    return TopicSubscriptionItem.Success(value.bytes)
+                    return TopicSubscriptionItem.Binary(value.bytes)
             elif msg_type == "heartbeat":
                 self._logger.debug("client stream received heartbeat")
                 return None
@@ -74,7 +74,8 @@ class TopicSubscribe(ABC):
             The item method returns a response object that is resolved to a type-safe object
             of one of the following:
 
-            - TopicSubscriptionItem.Success
+            - TopicSubscriptionItem.Text
+            - TopicSubscriptionItem.Binary
             - TopicSubscriptionItem.Error
 
             Pattern matching can be used to operate on the appropriate subtype.
@@ -82,16 +83,20 @@ class TopicSubscribe(ABC):
 
                 async for response in subscription:
                     match response:
-                        case TopicSubscriptionItem.Success():
-                            return response.value_string # value_bytes is also available
+                        case TopicSubscriptionItem.Text():
+                            return response.value
+                        case TopicSubscriptionItem.Binary():
+                            return response.value
                         case TopicSubscriptionItem.Error():
                             ...there was an error retrieving the item...
 
             or equivalently in earlier versions of python::
 
                 async for response in subscription:
-                    if isinstance(response, TopicSubscriptionItem.Success):
-                        return response.value_string # value_bytes is also available
+                    if isinstance(response, TopicSubscriptionItem.Text):
+                        return response.value
+                    elif isinstance(response, TopicSubscriptionItem.Binary):
+                        return response.value
                     elif isinstance(response, TopicSubscriptionItem.Error):
                         ...there was an error retrieving the item...
             """
@@ -133,7 +138,8 @@ class TopicSubscribe(ABC):
             The item method returns a response object that is resolved to a type-safe object
             of one of the following:
 
-            - TopicSubscriptionItem.Success
+            - TopicSubscriptionItem.Text
+            - TopicSubscriptionItem.Binary
             - TopicSubscriptionItem.Error
 
             Pattern matching can be used to operate on the appropriate subtype.
@@ -141,16 +147,20 @@ class TopicSubscribe(ABC):
 
                 for response in subscription:
                     match response:
-                        case TopicSubscriptionItem.Success():
-                            return response.value_string # value_bytes is also available
+                        case TopicSubscriptionItem.Text():
+                            return response.value
+                        case TopicSubscriptionItem.Binary():
+                            return response.value
                         case TopicSubscriptionItem.Error():
                             ...there was an error retrieving the item...
 
             or equivalently in earlier versions of python::
 
                 for response in subscription:
-                    if isinstance(response, TopicSubscriptionItem.Success):
-                        return response.value_string # value_bytes is also available
+                    if isinstance(response, TopicSubscriptionItem.Text):
+                        return response.value
+                    elif isinstance(response, TopicSubscriptionItem.Binary):
+                        return response.value
                     elif isinstance(response, TopicSubscriptionItem.Error):
                         ...there was an error retrieving the item...
             """
