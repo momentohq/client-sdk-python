@@ -13,6 +13,8 @@ class TopicSubscriptionItemResponse(PubsubResponse):
     - `TopicSubscriptionItem.Text`
     - `TopicSubscriptionItem.Binary`
     - `TopicSubscriptionItem.Error`
+
+    The subtype `TopicSubscriptionItem.Success` is deprecated.
     """
 
 
@@ -24,9 +26,11 @@ class TopicSubscriptionItem(ABC):
         TopicSubscriptionItemResponse,
         ValueStringMixin
     ):
-        """Indicates the request was successful and value will be returned as bytes."""
+        """Indicates the request was successful"""
 
         value_bytes: bytes
+        """The item returned from the subscription for the specified topic. Use the
+        `value_string` property to access the value as a string."""
 
         def __post_init__(self) -> None:
             warn("Success is a deprecated response, use Text or Binary instead", DeprecationWarning, stacklevel=2)
