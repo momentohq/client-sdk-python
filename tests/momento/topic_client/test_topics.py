@@ -5,7 +5,7 @@ from pytest_describe import behaves_like
 
 from momento import CacheClient, TopicClient
 from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
-from tests.utils import uuid_str
+from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors import (
     TCacheNameValidator,
@@ -49,7 +49,7 @@ def describe_subscribe() -> None:
         cache_name = uuid_str()
         return partial(topic_client.subscribe, cache_name=cache_name)
 
-    def subscribe_happy_path(client: CacheClient, topic_client: TopicClient, cache_name: str) -> None:
+    def subscribe_happy_path_string(client: CacheClient, topic_client: TopicClient, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_str()
 
@@ -59,8 +59,21 @@ def describe_subscribe() -> None:
         _ = topic_client.publish(cache_name, topic_name=topic, value=value)
 
         item_response = next(subscribe_response)
-        assert isinstance(item_response, TopicSubscriptionItem.Success)
-        assert item_response.value_string == value
+        assert isinstance(item_response, TopicSubscriptionItem.Text)
+        assert item_response.value == value
+
+    def subscribe_happy_path_binary(client: CacheClient, topic_client: TopicClient, cache_name: str) -> None:
+        topic = uuid_str()
+        value = uuid_bytes()
+
+        subscribe_response = topic_client.subscribe(cache_name, topic_name=topic)
+        assert isinstance(subscribe_response, TopicSubscribe.Subscription)
+
+        _ = topic_client.publish(cache_name, topic_name=topic, value=value)
+
+        item_response = next(subscribe_response)
+        assert isinstance(item_response, TopicSubscriptionItem.Binary)
+        assert item_response.value == value
 
     def succeeds_with_nonexistent_topic(client: CacheClient, topic_client: TopicClient, cache_name: str) -> None:
         topic = uuid_str()

@@ -38,8 +38,10 @@ def main() -> None:
                 print("polling for items. . .")
                 for item in subscription:
                     match item:
-                        case TopicSubscriptionItem.Success():
-                            print(f"got item: {item.value_string} ({item.value_bytes})")
+                        case TopicSubscriptionItem.Text():
+                            print(f"got item as string: {item.value}")
+                        case TopicSubscriptionItem.Binary():
+                            print(f"got item as bytes: {item.value}")
                         case TopicSubscriptionItem.Error():
                             print(f"got item error: {item.message}")
 

@@ -36,8 +36,10 @@ def main() -> None:
         if isinstance(subscription, TopicSubscribe.Subscription):
             print("polling for items. . .")
             for item in subscription:
-                if isinstance(item, TopicSubscriptionItem.Success):
-                    print(f"got item: {item.value_string} ({item.value_bytes})")
+                if isinstance(item, TopicSubscriptionItem.Text):
+                    print(f"got item as string: {item.value}")
+                elif isinstance(item, TopicSubscriptionItem.Binary):
+                    print(f"got item as bytes: {item.value}")
                 elif isinstance(item, TopicSubscriptionItem.Error):
                     print(f"got item error: {item.message}")
 
