@@ -1,7 +1,13 @@
 import asyncio
 from datetime import timedelta
 
-from momento import CacheClientAsync, Configurations, CredentialProvider
+from momento import (
+    CacheClientAsync,
+    Configurations,
+    CredentialProvider,
+    TopicClientAsync,
+    TopicConfigurations,
+)
 from momento.responses import (
     CacheDelete,
     CacheGet,
@@ -9,6 +15,9 @@ from momento.responses import (
     CreateCache,
     DeleteCache,
     ListCaches,
+    TopicPublish,
+    TopicSubscribe,
+    TopicSubscriptionItem,
 )
 
 
@@ -96,6 +105,45 @@ async def example_API_Delete(cache_client: CacheClientAsync):
 # end example
 
 
+async def example_API_InstantiateTopicClient():
+    topic_client = TopicClientAsync(
+        TopicConfigurations.Default.latest(),
+        CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+    )
+# end example
+
+
+async def example_API_TopicSubscribe(topic_client: TopicClientAsync):
+    subscription = await topic_client.subscribe("cache", "my_topic")
+    match subscription:
+        case TopicSubscribe.Error():
+            print("Error subscribing to topic: ", subscription.message)
+        case TopicSubscribe.SubscriptionAsync():
+            await topic_client.publish("cache", "my_topic", "my_value")
+            async for item in subscription:
+                match item:
+                    case TopicSubscriptionItem.Text():
+                        print(f"Received message as string: {item.value}")
+                        return
+                    case TopicSubscriptionItem.Binary():
+                        print(f"Received message as bytes: {item.value}")
+                        return
+                    case TopicSubscriptionItem.Error():
+                        print("Error with received message:", item.inner_exception.message)
+                        return
+# end example
+
+
+async def example_API_TopicPublish(topic_client: TopicClientAsync):
+    response = await topic_client.publish("cache", "my_topic", "my_value")
+    match response:
+        case TopicPublish.Success():
+            print("Successfully published a message")
+        case TopicPublish.Error():
+            print("Error publishing a message: ", response.message)
+# end example
+
+
 async def main():
     example_API_CredentialProviderFromEnvVar()
 
@@ -105,6 +153,7 @@ async def main():
         CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
         timedelta(seconds=60)
     )
+
     await example_API_CreateCache(cache_client)
     await example_API_DeleteCache(cache_client)
     await example_API_CreateCache(cache_client)
@@ -115,6 +164,15 @@ async def main():
     await example_API_Delete(cache_client)
 
     await example_API_DeleteCache(cache_client)
+
+    topic_client = TopicClientAsync(
+        TopicConfigurations.Default.latest(),
+        CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+    )
+    await example_API_InstantiateTopicClient()
+    await example_API_TopicPublish(topic_client)
+    await example_API_TopicSubscribe(topic_client)
+    await topic_client.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
