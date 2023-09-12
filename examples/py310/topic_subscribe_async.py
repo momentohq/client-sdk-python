@@ -59,8 +59,10 @@ async def main() -> None:
 async def poll_subscription(subscription: TopicSubscribe.SubscriptionAsync):
     async for item in subscription:
         match item:
-            case TopicSubscriptionItem.Success():
-                print(f"got item: {item.value_string} ({item.value_bytes})")
+            case TopicSubscriptionItem.Text():
+                print(f"got item as string: {item.value}")
+            case TopicSubscriptionItem.Binary():
+                print(f"got item as bytes: {item.value}")
             case TopicSubscriptionItem.Error():
                 print("stream closed")
                 print(item.inner_exception.message)
