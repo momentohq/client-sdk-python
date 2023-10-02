@@ -36,12 +36,12 @@ except ImportError as e:
 
 from momento.requests.vector_index import Item
 from momento.responses.vector_index import (
-    AddItemBatchResponse,
     CreateIndexResponse,
     DeleteIndexResponse,
     DeleteItemBatchResponse,
     ListIndexesResponse,
     SearchResponse,
+    UpsertItemBatchResponse,
 )
 
 
@@ -144,10 +144,11 @@ class PreviewVectorIndexClientAsync:
         """
         return await self._control_client.list_indexes()
 
-    async def add_item_batch(self, index_name: str, items: list[Item]) -> AddItemBatchResponse:
-        """Adds a batch of items into a vector index.
+    async def upsert_item_batch(self, index_name: str, items: list[Item]) -> UpsertItemBatchResponse:
+        """Upserts a batch of items into a vector index.
 
-        Adds an item into the index.
+        If an item with the same ID already exists in the index, it will be replaced.
+        Otherwise, it will be added to the index.
 
         Args:
             index_name (str): Name of the index to add the items into.
@@ -156,7 +157,7 @@ class PreviewVectorIndexClientAsync:
         Returns:
             AddItemBatchResponse: The result of an add item batch operation.
         """
-        return await self._data_client.add_item_batch(index_name, items)
+        return await self._data_client.upsert_item_batch(index_name, items)
 
     async def delete_item_batch(self, index_name: str, ids: list[str]) -> DeleteItemBatchResponse:
         """Deletes a batch of items from a vector index.

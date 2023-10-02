@@ -42,7 +42,11 @@ class _VectorIndexControlClient:
             self._logger.info(f"Creating index with name: {index_name}")
             _validate_index_name(index_name)
             _validate_num_dimensions(num_dimensions)
-            request = ctrl_pb._CreateIndexRequest(index_name=index_name, num_dimensions=num_dimensions)
+            request = ctrl_pb._CreateIndexRequest(
+                index_name=index_name,
+                num_dimensions=num_dimensions,
+                inner_product=ctrl_pb._CreateIndexRequest._InnerProduct(),
+            )
             await self._build_stub().CreateIndex(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to create index: %s with exception: %s", index_name, e)
