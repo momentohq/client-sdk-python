@@ -6,6 +6,7 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
+from momento.requests.vector_index import SimilarityMetric
 
 try:
     from momento.internal._utilities import _validate_request_timeout
@@ -34,7 +35,7 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from momento.requests.vector_index import AllMetadata, Item
+from momento.requests.vector_index import AllMetadata, Item, SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndexResponse,
     DeleteIndexResponse,
@@ -113,17 +114,35 @@ class PreviewVectorIndexClientAsync:
         await self._control_client.close()
         await self._data_client.close()
 
-    async def create_index(self, index_name: str, num_dimensions: int) -> CreateIndexResponse:
+    async def create_index(
+        self,
+        index_name: str,
+        num_dimensions: int,
+        similarity_metric: SimilarityMetric = SimilarityMetric.COSINE_SIMILARITY,
+    ) -> CreateIndexResponse:
         """Creates a vector index if it doesn't exist.
+
+        Remark on the choice of similarity metric:
+        - Cosine similarity is appropriate for most embedding models as they tend to be optimized
+            for this metric.
+        - If the vectors are unit normalized, cosine similarity is equivalent to inner product.
+            If your vectors are already unit normalized, you can use inner product to improve
+            performance.
+        - Euclidean similarity, the sum of squared differences, is appropriate for datasets where
+            this metric is meaningful. For example, if the vectors represent images, and the
+            embedding model is trained to optimize the euclidean distance between images, then
+            euclidean similarity is appropriate.
 
         Args:
             index_name (str): Name of the index to be created.
             num_dimensions (int): Number of dimensions of the vectors to be indexed.
+            similarity_metric (SimilarityMetric): The similarity metric to use when comparing
+                vectors in the index. Defaults to SimilarityMetric.COSINE_SIMILARITY.
 
         Returns:
             CreateIndexResponse: The result of a create index operation.
         """
-        return await self._control_client.create_index(index_name, num_dimensions)
+        return await self._control_client.create_index(index_name, num_dimensions, similarity_metric)
 
     async def delete_index(self, index_name: str) -> DeleteIndexResponse:
         """Deletes a vector index and all of the items within it.

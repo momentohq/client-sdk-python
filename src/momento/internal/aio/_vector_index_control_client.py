@@ -5,12 +5,13 @@ from momento_wire_types import controlclient_pb2_grpc as ctrl_grpc
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
-from momento.errors import convert_error
+from momento.errors import InvalidArgumentException, convert_error
 from momento.internal._utilities import _validate_index_name, _validate_num_dimensions
 from momento.internal.aio._vector_index_grpc_manager import (
     _VectorIndexControlGrpcManager,
 )
 from momento.internal.services import Service
+from momento.requests.vector_index import SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndex,
     CreateIndexResponse,
@@ -37,16 +38,35 @@ class _VectorIndexControlClient:
     def endpoint(self) -> str:
         return self._endpoint
 
-    async def create_index(self, index_name: str, num_dimensions: int) -> CreateIndexResponse:
+    async def create_index(
+        self, index_name: str, num_dimensions: int, similarity_metric: SimilarityMetric
+    ) -> CreateIndexResponse:
         try:
             self._logger.info(f"Creating index with name: {index_name}")
             _validate_index_name(index_name)
             _validate_num_dimensions(num_dimensions)
-            request = ctrl_pb._CreateIndexRequest(
-                index_name=index_name,
-                num_dimensions=num_dimensions,
-                inner_product=ctrl_pb._CreateIndexRequest._InnerProduct(),
-            )
+
+            if similarity_metric == SimilarityMetric.EUCLIDEAN_SIMILARITY:
+                request = ctrl_pb._CreateIndexRequest(
+                    index_name=index_name,
+                    num_dimensions=num_dimensions,
+                    euclidean_similarity=ctrl_pb._CreateIndexRequest._EuclideanSimilarity(),
+                )
+            elif similarity_metric == SimilarityMetric.INNER_PRODUCT:
+                print("here")
+                request = ctrl_pb._CreateIndexRequest(
+                    index_name=index_name,
+                    num_dimensions=num_dimensions,
+                    inner_product=ctrl_pb._CreateIndexRequest._InnerProduct(),
+                )
+            elif similarity_metric == SimilarityMetric.COSINE_SIMILARITY:
+                request = ctrl_pb._CreateIndexRequest(
+                    index_name=index_name,
+                    num_dimensions=num_dimensions,
+                    cosine_similarity=ctrl_pb._CreateIndexRequest._CosineSimilarity(),
+                )
+            else:
+                raise InvalidArgumentException(f"Invalid similarity metric `{similarity_metric}`", Service.INDEX)
             await self._build_stub().CreateIndex(request, timeout=_DEADLINE_SECONDS)
         except Exception as e:
             self._logger.debug("Failed to create index: %s with exception: %s", index_name, e)

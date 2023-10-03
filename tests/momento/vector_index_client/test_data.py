@@ -1,6 +1,6 @@
 from momento import PreviewVectorIndexClient
 from momento.errors import MomentoErrorCode
-from momento.requests.vector_index import ALL_METADATA, Item
+from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndex,
     DeleteIndex,
@@ -13,12 +13,14 @@ from tests.conftest import TUniqueVectorIndexName
 from tests.utils import sleep
 
 
-def test_create_index_upsert_item_search_happy_path(
+def test_create_index_with_inner_product_upsert_item_search_happy_path(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(index_name, items=[Item(id="test_item", vector=[1.0, 2.0])])
@@ -32,8 +34,67 @@ def test_create_index_upsert_item_search_happy_path(
     assert search_response.hits[0].id == "test_item"
     assert search_response.hits[0].distance == 5.0
 
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
+
+def test_create_index_with_cosine_similarity_upsert_item_search_happy_path(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.COSINE_SIMILARITY
+    )
+    assert isinstance(create_response, CreateIndex.Success)
+
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 1.0]),
+            Item(id="test_item_2", vector=[-1.0, 1.0]),
+            Item(id="test_item_3", vector=[-1.0, -1.0]),
+        ],
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    sleep(2)
+
+    search_response = vector_index_client.search(index_name, query_vector=[2.0, 2.0], top_k=3)
+    assert isinstance(search_response, Search.Success)
+    assert search_response.hits == [
+        SearchHit(id="test_item_1", distance=1.0),
+        SearchHit(id="test_item_2", distance=0.0),
+        SearchHit(id="test_item_3", distance=-1.0),
+    ]
+
+
+def test_create_index_with_euclidean_similarity_upsert_item_search_happy_path(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.EUCLIDEAN_SIMILARITY
+    )
+    assert isinstance(create_response, CreateIndex.Success)
+
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 1.0]),
+            Item(id="test_item_2", vector=[-1.0, 1.0]),
+            Item(id="test_item_3", vector=[-1.0, -1.0]),
+        ],
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    sleep(2)
+
+    search_response = vector_index_client.search(index_name, query_vector=[1.0, 1.0], top_k=3)
+    assert isinstance(search_response, Search.Success)
+    assert search_response.hits == [
+        SearchHit(id="test_item_1", distance=0.0),
+        SearchHit(id="test_item_2", distance=4.0),
+        SearchHit(id="test_item_3", distance=8.0),
+    ]
 
 
 def test_create_index_upsert_multiple_items_search_happy_path(
@@ -41,7 +102,9 @@ def test_create_index_upsert_multiple_items_search_happy_path(
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(
@@ -66,16 +129,15 @@ def test_create_index_upsert_multiple_items_search_happy_path(
         SearchHit(id="test_item_1", distance=5.0),
     ]
 
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
-
 
 def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(
@@ -99,16 +161,15 @@ def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
         SearchHit(id="test_item_2", distance=11.0),
     ]
 
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
-
 
 def test_upsert_and_search_with_metadata_happy_path(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(
@@ -155,16 +216,15 @@ def test_upsert_and_search_with_metadata_happy_path(
         SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
     ]
 
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
-
 
 def test_upsert_and_search_with_all_metadata_happy_path(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(
@@ -207,7 +267,9 @@ def test_upsert_replaces_existing_items(
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(
@@ -244,16 +306,15 @@ def test_upsert_replaces_existing_items(
         SearchHit(id="test_item_1", distance=10.0, metadata={"key4": "value4"}),
     ]
 
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
-
 
 def test_create_index_upsert_item_dimensions_different_than_num_dimensions_error(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     # upserting 3 dimensions
@@ -267,16 +328,15 @@ def test_create_index_upsert_item_dimensions_different_than_num_dimensions_error
     assert upsert_response.message == expected_message
     assert upsert_response.inner_exception.message == expected_inner_ex_message
 
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
-
 
 def test_create_index_upsert_multiple_items_search_with_top_k_query_vector_dimensions_incorrect(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(
@@ -297,9 +357,6 @@ def test_create_index_upsert_multiple_items_search_with_top_k_query_vector_dimen
 
     assert search_response.inner_exception.message == expected_inner_ex_message
     assert search_response.message == expected_resp_message
-
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
 
 
 def test_upsert_validates_index_name(vector_index_client: PreviewVectorIndexClient) -> None:
@@ -332,7 +389,9 @@ def test_delete_deletes_ids(
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
-    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = vector_index_client.upsert_item_batch(
@@ -370,6 +429,3 @@ def test_delete_deletes_ids(
     assert search_response.hits == [
         SearchHit(id="test_item_2", distance=11.0),
     ]
-
-    del_response = vector_index_client.delete_index(index_name)
-    assert isinstance(del_response, DeleteIndex.Success)
