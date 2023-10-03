@@ -1,6 +1,6 @@
 from momento import PreviewVectorIndexClientAsync
 from momento.errors import MomentoErrorCode
-from momento.requests.vector_index import Item
+from momento.requests.vector_index import ALL_METADATA, Item
 from momento.responses.vector_index import (
     CreateIndex,
     DeleteIndex,
@@ -161,6 +161,49 @@ async def test_upsert_and_search_with_metadata_happy_path(
 
     del_response = await vector_index_client_async.delete_index(index_name)
     assert isinstance(del_response, DeleteIndex.Success)
+
+
+async def test_upsert_and_search_with_all_metadata_happy_path(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+    create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    upsert_response = await vector_index_client_async.upsert_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
+            Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
+            Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key1": "value3", "key3": "value3"}),
+        ],
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    await sleep_async(2)
+
+    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=3)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 3
+
+    assert search_response.hits == [
+        SearchHit(id="test_item_3", distance=17.0),
+        SearchHit(id="test_item_2", distance=11.0),
+        SearchHit(id="test_item_1", distance=5.0),
+    ]
+
+    search_response = await vector_index_client_async.search(
+        index_name, query_vector=[1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA
+    )
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 3
+
+    assert search_response.hits == [
+        SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
+        SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
+        SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
+    ]
 
 
 async def test_upsert_replaces_existing_items(

@@ -13,7 +13,7 @@ from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.aio._vector_index_grpc_manager import _VectorIndexDataGrpcManager
 from momento.internal.services import Service
-from momento.requests.vector_index.item import Item
+from momento.requests.vector_index import AllMetadata, Item
 from momento.responses.vector_index import (
     DeleteItemBatch,
     DeleteItemBatchResponse,
@@ -90,7 +90,11 @@ class _VectorIndexDataClient:
             return DeleteItemBatch.Error(convert_error(e, Service.INDEX))
 
     async def search(
-        self, index_name: str, query_vector: list[float], top_k: int, metadata_fields: Optional[list[str]] = None
+        self,
+        index_name: str,
+        query_vector: list[float],
+        top_k: int,
+        metadata_fields: Optional[list[str]] | AllMetadata = None,
     ) -> SearchResponse:
         try:
             self._log_issuing_request("Search", {"index_name": index_name})
@@ -98,9 +102,14 @@ class _VectorIndexDataClient:
             _validate_top_k(top_k)
 
             query_vector_pb = vectorindex_pb._Vector(elements=query_vector)
-            metadata_fields_pb = vectorindex_pb._MetadataRequest(
-                some=vectorindex_pb._MetadataRequest.Some(fields=metadata_fields if metadata_fields is not None else [])
-            )
+            if isinstance(metadata_fields, AllMetadata):
+                metadata_fields_pb = vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All())
+            else:
+                metadata_fields_pb = vectorindex_pb._MetadataRequest(
+                    some=vectorindex_pb._MetadataRequest.Some(
+                        fields=metadata_fields if metadata_fields is not None else []
+                    )
+                )
 
             request = vectorindex_pb._SearchRequest(
                 index_name=index_name, query_vector=query_vector_pb, top_k=top_k, metadata_fields=metadata_fields_pb

@@ -34,7 +34,7 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from momento.requests.vector_index import Item
+from momento.requests.vector_index import AllMetadata, Item
 from momento.responses.vector_index import (
     CreateIndexResponse,
     DeleteIndexResponse,
@@ -174,7 +174,11 @@ class PreviewVectorIndexClientAsync:
         return await self._data_client.delete_item_batch(index_name, ids)
 
     async def search(
-        self, index_name: str, query_vector: list[float], top_k: int = 10, metadata_fields: Optional[list[str]] = None
+        self,
+        index_name: str,
+        query_vector: list[float],
+        top_k: int = 10,
+        metadata_fields: Optional[list[str]] | AllMetadata = None,
     ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
@@ -189,8 +193,10 @@ class PreviewVectorIndexClientAsync:
             index_name (str): Name of the index to search in.
             query_vector (list[float]): The vector to search for.
             top_k (int): The number of results to return. Defaults to 10.
-            metadata_fields (Optional[list[str]]): A list of metadata fields to return with each result.
-                If not provided, no metadata is returned. Defaults to None.
+            metadata_fields (Optional[list[str]] | AllMetadata): A list of metadata fields
+                to return with each result. If not provided, no metadata is returned.
+                If the special value `ALL_METADATA` is provided, all metadata is returned.
+                Defaults to None.
 
         Returns:
             SearchResponse: The result of a search operation.

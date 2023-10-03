@@ -1,6 +1,6 @@
 from momento import PreviewVectorIndexClient
 from momento.errors import MomentoErrorCode
-from momento.requests.vector_index import Item
+from momento.requests.vector_index import ALL_METADATA, Item
 from momento.responses.vector_index import (
     CreateIndex,
     DeleteIndex,
@@ -157,6 +157,49 @@ def test_upsert_and_search_with_metadata_happy_path(
 
     del_response = vector_index_client.delete_index(index_name)
     assert isinstance(del_response, DeleteIndex.Success)
+
+
+def test_upsert_and_search_with_all_metadata_happy_path(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
+            Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
+            Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key1": "value3", "key3": "value3"}),
+        ],
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    sleep(2)
+
+    search_response = vector_index_client.search(index_name, query_vector=[1.0, 2.0], top_k=3)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 3
+
+    assert search_response.hits == [
+        SearchHit(id="test_item_3", distance=17.0),
+        SearchHit(id="test_item_2", distance=11.0),
+        SearchHit(id="test_item_1", distance=5.0),
+    ]
+
+    search_response = vector_index_client.search(
+        index_name, query_vector=[1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA
+    )
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 3
+
+    assert search_response.hits == [
+        SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
+        SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
+        SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
+    ]
 
 
 def test_upsert_replaces_existing_items(
