@@ -200,12 +200,7 @@ class PreviewVectorIndexClientAsync:
     ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
-        Ranks the vectors in the index by maximum inner product to the query vector.
-
-        If the index and query vectors are unit normalized, this is equivalent to
-        ranking by cosine similarity. Hence to perform a cosine similarity search,
-        the index vectors should be unit normalized prior to indexing, and the query
-        vector should be unit normalized prior to searching.
+        Ranks the results using the similarity metric specified when the index was created.
 
         Args:
             index_name (str): Name of the index to search in.
