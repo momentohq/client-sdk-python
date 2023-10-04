@@ -91,11 +91,11 @@ class PreviewVectorIndexClient:
             IllegalArgumentException: If method arguments fail validations.
         Example::
 
-            from momento import CredentialProvider, PreviewVectorIndexClientAsync, VectorIndexConfigurations
+            from momento import CredentialProvider, PreviewVectorIndexClient, VectorIndexConfigurations
 
             configuration = VectorIndexConfigurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
-            client = PreviewVectorIndexClientAsync(configuration, credential_provider)
+            client = PreviewVectorIndexClient(configuration, credential_provider)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())
         self._logger = logs.logger
