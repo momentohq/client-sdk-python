@@ -3,7 +3,6 @@ from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndex,
-    DeleteIndex,
     DeleteItemBatch,
     Search,
     SearchHit,

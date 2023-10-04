@@ -6,7 +6,6 @@ from typing import Optional, Type
 from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
-from momento.requests.vector_index import SimilarityMetric
 
 try:
     from momento.internal._utilities import _validate_request_timeout
