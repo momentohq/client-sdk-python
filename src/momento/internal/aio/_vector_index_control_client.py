@@ -53,7 +53,6 @@ class _VectorIndexControlClient:
                     euclidean_similarity=ctrl_pb._CreateIndexRequest._EuclideanSimilarity(),
                 )
             elif similarity_metric == SimilarityMetric.INNER_PRODUCT:
-                print("here")
                 request = ctrl_pb._CreateIndexRequest(
                     index_name=index_name,
                     num_dimensions=num_dimensions,
