@@ -60,7 +60,7 @@ jobs:
         run: poetry run black src tests --check --diff
 
       - name: Run isort
-        run: poetry run isort . --check --diff
+        run: poetry run isort src tests --check --diff
 
       - name: Run tests
         run: poetry run pytest -p no:sugar -q --ignore=tests/momento/vector_index_client

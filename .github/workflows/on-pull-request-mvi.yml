@@ -61,7 +61,7 @@ jobs:
         run: /Users/runner/.local/bin/poetry run black src tests --check --diff
 
       - name: Run isort
-        run: /Users/runner/.local/bin/poetry run isort . --check --diff
+        run: /Users/runner/.local/bin/poetry run isort src tests --check --diff
 
       - name: Run tests
         run: /Users/runner/.local/bin/poetry run pytest tests/momento/vector_index_client -p no:sugar -q
