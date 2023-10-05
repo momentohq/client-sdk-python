@@ -25,7 +25,7 @@ The Momento Python SDK package is available on pypi: [momento](https://pypi.org/
 
 ## Usage
 
-The examples below require an environment variable named MOMENTO_API_KEY which must
+The examples below require an environment variable named `MOMENTO_API_KEY` which must
 be set to a valid Momento API key. You can get one from the [Momento Console](https://console.gomomento.com).
 
 Python 3.10 introduced the `match` statement, which allows for [structural pattern matching on objects](https://peps.python.org/pep-0636/#adding-a-ui-matching-objects).
