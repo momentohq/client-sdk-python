@@ -6,8 +6,8 @@ The Momento Python SDK package is available on pypi: [momento](https://pypi.org/
 
 ## Usage
 
-The examples below require an environment variable named MOMENTO_AUTH_TOKEN which must
-be set to a valid [Momento authentication token](https://docs.momentohq.com/docs/getting-started#obtain-an-auth-token).
+The examples below require an environment variable named `MOMENTO_API_KEY` which must
+be set to a valid Momento API key. You can get one from the [Momento Console](https://console.gomomento.com).
 
 Python 3.10 introduced the `match` statement, which allows for [structural pattern matching on objects](https://peps.python.org/pep-0636/#adding-a-ui-matching-objects).
 If you are running python 3.10 or greater, here is a quickstart you can use in your own project:

@@ -1,12 +1,12 @@
 from datetime import timedelta
 
 from momento import CacheClient, Configurations, CredentialProvider
-from momento.responses import CacheGet, CacheSet, CreateCache
+from momento.responses import CacheGet
 
 cache_client = CacheClient(
     configuration=Configurations.Laptop.v1(),
-    credential_provider=CredentialProvider.from_environment_variable('MOMENTO_AUTH_TOKEN'),
-    default_ttl=timedelta(seconds=60)
+    credential_provider=CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+    default_ttl=timedelta(seconds=60),
 )
 cache_client.create_cache("cache")
 cache_client.set("cache", "myKey", "myValue")

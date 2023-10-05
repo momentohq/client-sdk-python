@@ -7,7 +7,7 @@ from datetime import timedelta
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
 _CACHE_NAME = "test-cache"
 _KEY = "test-key"

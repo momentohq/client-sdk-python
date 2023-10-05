@@ -16,7 +16,7 @@ install:
 ## Format the code using black and isort
 format:
 	@poetry run black src tests
-	@poetry run isort .
+	@poetry run isort src tests
 
 .PHONY: lint
 ## Lint the code using mypy and flake8

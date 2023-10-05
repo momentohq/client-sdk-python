@@ -7,8 +7,8 @@ export class MomentoLambdaStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        if (!process.env.MOMENTO_AUTH_TOKEN) {
-            throw new Error('The environment variable MOMENTO_AUTH_TOKEN must be set.');
+        if (!process.env.MOMENTO_API_KEY) {
+            throw new Error('The environment variable MOMENTO_API_KEY must be set.');
         }
 
         // Create Lambda function from Docker Image
@@ -16,7 +16,7 @@ export class MomentoLambdaStack extends cdk.Stack {
             functionName: 'MomentoDockerLambda',
             code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '../../docker')), // Point to the root since Dockerfile should be there
             environment: {
-                MOMENTO_AUTH_TOKEN: process.env.MOMENTO_AUTH_TOKEN || ''
+                MOMENTO_API_KEY: process.env.MOMENTO_API_KEY || ''
             },
             memorySize: 128,
             timeout: cdk.Duration.seconds(30)

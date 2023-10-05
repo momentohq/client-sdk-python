@@ -39,7 +39,7 @@ jobs:
           - python-version: "3.7"
             new-python-protobuf: "false"
     env:
-      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
       TEST_VECTOR_INDEX_NAME: python-integration-test-vector-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
 
@@ -79,7 +79,7 @@ jobs:
         run: poetry run black src tests --check --diff
 
       - name: Run isort
-        run: poetry run isort . --check --diff
+        run: poetry run isort src tests --check --diff
 
       - name: Run tests
         run: poetry run pytest -p no:sugar -q --ignore=tests/momento/vector_index_client
