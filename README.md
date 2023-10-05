@@ -25,8 +25,8 @@ The Momento Python SDK package is available on pypi: [momento](https://pypi.org/
 
 ## Usage
 
-The examples below require an environment variable named MOMENTO_AUTH_TOKEN which must
-be set to a valid [Momento authentication token](https://docs.momentohq.com/docs/getting-started#obtain-an-auth-token).
+The examples below require an environment variable named MOMENTO_API_KEY which must
+be set to a valid Momento API key. You can get one from the [Momento Console](https://console.gomomento.com).
 
 Python 3.10 introduced the `match` statement, which allows for [structural pattern matching on objects](https://peps.python.org/pep-0636/#adding-a-ui-matching-objects).
 If you are running python 3.10 or greater, here is a quickstart you can use in your own project:
@@ -35,12 +35,10 @@ If you are running python 3.10 or greater, here is a quickstart you can use in y
 from datetime import timedelta
 
 from momento import CacheClient, Configurations, CredentialProvider
-from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
+from momento.responses import CacheGet
 
 cache_client = CacheClient(
-    Configurations.Laptop.v1(),
-    CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
-    timedelta(seconds=60)
+    Configurations.Laptop.v1(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY"), timedelta(seconds=60)
 )
 
 cache_client.create_cache("cache")
@@ -61,12 +59,12 @@ Using a Python version less than 3.10? No problem. Here is the same example comp
 from datetime import timedelta
 
 from momento import CacheClient, Configurations, CredentialProvider
-from momento.responses import CacheGet, CacheSet, CreateCache
+from momento.responses import CacheGet
 
 cache_client = CacheClient(
     configuration=Configurations.Laptop.v1(),
-    credential_provider=CredentialProvider.from_environment_variable('MOMENTO_AUTH_TOKEN'),
-    default_ttl=timedelta(seconds=60)
+    credential_provider=CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+    default_ttl=timedelta(seconds=60),
 )
 cache_client.create_cache("cache")
 cache_client.set("cache", "myKey", "myValue")
