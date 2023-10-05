@@ -2,6 +2,8 @@ import asyncio
 import logging
 from datetime import timedelta
 
+from example_utils.example_logging import initialize_logging
+
 from momento import (
     CacheClient,
     Configurations,
@@ -10,8 +12,6 @@ from momento import (
     TopicConfigurations,
 )
 from momento.responses import CreateCache, TopicPublish
-
-from example_utils.example_logging import initialize_logging
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _CACHE_NAME = "cache"
