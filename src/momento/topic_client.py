@@ -50,7 +50,7 @@ class TopicClient:
             from momento import CredentialProvider, TopicClient, TopicConfigurations
 
             configuration = TopicConfigurations.Default.v1()
-            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
             client = TopicClient(configuration, credential_provider)
         """
         self._logger = logs.logger

@@ -2,8 +2,6 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from example_utils.example_logging import initialize_logging
-
 from momento import (
     CacheClient,
     Configurations,
@@ -14,7 +12,9 @@ from momento import (
 from momento.errors import SdkException
 from momento.responses import CreateCache, TopicSubscribe, TopicSubscriptionItem
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+from example_utils.example_logging import initialize_logging
+
+_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _CACHE_NAME = "cache"
 _NUM_SUBSCRIBERS = 10
 _logger = logging.getLogger("topic-subscribe-example")
@@ -49,8 +49,8 @@ async def main() -> None:
         tasks = [asyncio.create_task(poll_subscription(subscription)) for subscription in subscriptions]
         try:
             await asyncio.gather(*tasks)
-        except SdkException as e:
-            print(f"got exception")
+        except SdkException:
+            print("got exception")
             for task in tasks:
                 task.cancel()
 
@@ -60,11 +60,12 @@ async def poll_subscription(subscription: TopicSubscribe.SubscriptionAsync):
         if isinstance(item, TopicSubscriptionItem.Text):
             print(f"got item as string: {item.value}")
         elif isinstance(item, TopicSubscriptionItem.Binary):
-            print(f"got item as bytes: {item.value}")
+            print(f"got item as bytes: {item.value!r}")
         elif isinstance(item, TopicSubscriptionItem.Error):
             print("stream closed")
             print(item.inner_exception.message)
             return
+
 
 if __name__ == "__main__":
     asyncio.run(main())

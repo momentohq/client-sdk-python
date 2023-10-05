@@ -17,7 +17,7 @@ jobs:
             new-python-protobuf: "false"
 
     env:
-      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
       TEST_VECTOR_INDEX_NAME: python-integration-test-vector-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
 
@@ -61,7 +61,7 @@ jobs:
         run: /Users/runner/.local/bin/poetry run black src tests --check --diff
 
       - name: Run isort
-        run: /Users/runner/.local/bin/poetry run isort . --check --diff
+        run: /Users/runner/.local/bin/poetry run isort src tests --check --diff
 
       - name: Run tests
         run: /Users/runner/.local/bin/poetry run pytest tests/momento/vector_index_client -p no:sugar -q

@@ -36,7 +36,7 @@ You will also need a superuser token generated from the [Momento Console](https:
 Then run:
 
 ```
-export MOMENTO_AUTH_TOKEN=<YOUR_MOMENTO_AUTH_TOKEN>
+export MOMENTO_API_KEY=<YOUR_MOMENTO_API_KEY>
 npm run cdk deploy
 ```
 

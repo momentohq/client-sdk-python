@@ -2,8 +2,6 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from example_utils.example_logging import initialize_logging
-
 from momento import (
     CacheClient,
     Configurations,
@@ -13,7 +11,9 @@ from momento import (
 )
 from momento.responses import CreateCache, TopicPublish
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+from example_utils.example_logging import initialize_logging
+
+_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _CACHE_NAME = "cache"
 _logger = logging.getLogger("topic-publish-example")
 
@@ -33,6 +33,7 @@ async def main() -> None:
         response = await client.publish("cache", "my_topic", "my_value")
         if isinstance(response, TopicPublish.Error):
             print("error: ", response.message)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

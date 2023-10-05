@@ -1,8 +1,6 @@
 import logging
 from datetime import timedelta
 
-from example_utils.example_logging import initialize_logging
-
 from momento import (
     CacheClient,
     Configurations,
@@ -12,7 +10,9 @@ from momento import (
 )
 from momento.responses import CreateCache, TopicSubscribe, TopicSubscriptionItem
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+from example_utils.example_logging import initialize_logging
+
+_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _CACHE_NAME = "cache"
 _logger = logging.getLogger("topic-subscribe-example")
 
@@ -41,7 +41,7 @@ def main() -> None:
                         case TopicSubscriptionItem.Text():
                             print(f"got item as string: {item.value}")
                         case TopicSubscriptionItem.Binary():
-                            print(f"got item as bytes: {item.value}")
+                            print(f"got item as bytes: {item.value!r}")
                         case TopicSubscriptionItem.Error():
                             print(f"got item error: {item.message}")
 
