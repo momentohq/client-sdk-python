@@ -57,8 +57,8 @@ TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest()
 TEST_VECTOR_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
 
 
-TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
-TEST_VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
+TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_API_KEY")
+TEST_VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_API_KEY")
 
 
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
@@ -72,7 +72,7 @@ if not TEST_VECTOR_INDEX_NAME:
 TEST_VECTOR_DIMS = 2
 
 DEFAULT_TTL_SECONDS: timedelta = timedelta(seconds=60)
-BAD_AUTH_TOKEN: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"  # noqa: E501
+BAD_API_KEY: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy"  # noqa: E501
 
 
 #############################################
@@ -87,8 +87,8 @@ def credential_provider() -> CredentialProvider:
 
 @pytest.fixture(scope="session")
 def bad_token_credential_provider() -> CredentialProvider:
-    os.environ["BAD_AUTH_TOKEN"] = BAD_AUTH_TOKEN
-    return CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
+    os.environ["BAD_API_KEY"] = BAD_API_KEY
+    return CredentialProvider.from_environment_variable("BAD_API_KEY")
 
 
 @pytest.fixture(scope="session")
@@ -276,7 +276,7 @@ def default_ttl_seconds() -> timedelta:
 
 @pytest.fixture(scope="session")
 def bad_auth_token() -> str:
-    return BAD_AUTH_TOKEN
+    return BAD_API_KEY
 
 
 @pytest.fixture(scope="session")

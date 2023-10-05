@@ -20,8 +20,8 @@ async def test_init_throws_exception_for_non_jwt_token(
     configuration: Configuration, default_ttl_seconds: timedelta
 ) -> None:
     with pytest.raises(InvalidArgumentException, match="Invalid Auth token."):
-        os.environ["BAD_AUTH_TOKEN"] = "notanauthtoken"
-        credential_provider = CredentialProvider.from_environment_variable("BAD_AUTH_TOKEN")
+        os.environ["BAD_API_KEY"] = "notanauthtoken"
+        credential_provider = CredentialProvider.from_environment_variable("BAD_API_KEY")
         CacheClientAsync(configuration, credential_provider, default_ttl_seconds)
 
 
