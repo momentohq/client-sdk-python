@@ -69,8 +69,8 @@ async def main() -> None:
         match set_response:
             case CacheSet.Success():
                 pass
-            case CacheSet.Error() as error:
-                _logger.error(f"Error creating cache: {error.message}")
+            case CacheSet.Error() as cache_set_error:
+                _logger.error(f"Error creating cache: {cache_set_error.message}")
             case _:
                 _logger.error("Unreachable")
 
@@ -82,8 +82,8 @@ async def main() -> None:
                 _logger.info(f"Looked up Value: {hit.value_string!r}")
             case CacheGet.Miss():
                 _logger.info("Look up resulted in a: miss. This is unexpected.")
-            case CacheGet.Error() as error:
-                _logger.error(f"Error creating cache: {error.message}")
+            case CacheGet.Error() as cache_get_error:
+                _logger.error(f"Error creating cache: {cache_get_error.message}")
             case _:
                 _logger.error("Unreachable")
     _print_end_banner()

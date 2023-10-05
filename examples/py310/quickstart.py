@@ -14,14 +14,14 @@ if __name__ == "__main__":
         match create_cache_response:
             case CreateCache.CacheAlreadyExists():
                 print(f"Cache with name: {cache_name} already exists.")
-            case CreateCache.Error() as error:
-                raise error.inner_exception
+            case CreateCache.Error() as create_cache_error:
+                raise create_cache_error.inner_exception
 
         print("Setting Key: foo to Value: FOO")
         set_response = cache_client.set(cache_name, "foo", "FOO")
         match set_response:
-            case CacheSet.Error() as error:
-                raise error.inner_exception
+            case CacheSet.Error() as cache_set_error:
+                raise cache_set_error.inner_exception
 
         print("Getting Key: foo")
         get_response = cache_client.get(cache_name, "foo")
@@ -31,5 +31,5 @@ if __name__ == "__main__":
                 print(f"Looked up Value: {hit.value_string!r}")
             case CacheGet.Miss():
                 print("Look up resulted in a: miss. This is unexpected.")
-            case CacheGet.Error() as error:
-                raise error.inner_exception
+            case CacheGet.Error() as cache_get_error:
+                raise cache_get_error.inner_exception

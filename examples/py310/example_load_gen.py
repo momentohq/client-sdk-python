@@ -9,7 +9,7 @@ from typing import Callable, Coroutine, Optional, Tuple, TypeVar
 
 import colorlog  # type: ignore
 import momento.errors
-from hdrh.histogram import HdrHistogram
+from hdrh.histogram import HdrHistogram  # type: ignore[import]
 from momento import CacheClientAsync, Configurations, CredentialProvider
 from momento.logs import initialize_momento_logging
 from momento.responses import (
@@ -223,7 +223,7 @@ class BasicPythonLoadGen:
 
         match result:
             case CacheGet.Hit() | CacheGet.Miss() | CacheSet.Success():
-                return AsyncSetGetResult.SUCCESS, result
+                return AsyncSetGetResult.SUCCESS, result  # type: ignore[return-value]
             case CacheGet.Error() | CacheSet.Error():
                 match result.inner_exception:
                     case momento.errors.InternalServerException() as e:

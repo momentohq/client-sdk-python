@@ -145,7 +145,7 @@ async def example_API_TopicSubscribe(topic_client: TopicClientAsync):
                         print(f"Received message as string: {item.value}")
                         return
                     case TopicSubscriptionItem.Binary():
-                        print(f"Received message as bytes: {item.value}")
+                        print(f"Received message as bytes: {item.value!r}")
                         return
                     case TopicSubscriptionItem.Error():
                         print("Error with received message:", item.inner_exception.message)

@@ -41,7 +41,7 @@ def main() -> None:
                         case TopicSubscriptionItem.Text():
                             print(f"got item as string: {item.value}")
                         case TopicSubscriptionItem.Binary():
-                            print(f"got item as bytes: {item.value}")
+                            print(f"got item as bytes: {item.value!r}")
                         case TopicSubscriptionItem.Error():
                             print(f"got item error: {item.message}")
 
