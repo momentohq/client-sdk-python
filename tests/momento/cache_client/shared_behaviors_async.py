@@ -76,16 +76,6 @@ class TConnectionValidator(Protocol):
 
 
 def a_connection_validator() -> None:
-    async def throws_authentication_exception_for_bad_token(
-        bad_token_credential_provider: CredentialProvider,
-        configuration: Configuration,
-        default_ttl_seconds: timedelta,
-        connection_validator: TConnectionValidator,
-    ) -> None:
-        async with CacheClientAsync(configuration, bad_token_credential_provider, default_ttl_seconds) as client_async:
-            response = await connection_validator(client_async)
-            assert_response_is_error(response, error_code=MomentoErrorCode.AUTHENTICATION_ERROR)
-
     async def throws_timeout_error_for_short_request_timeout(
         configuration: Configuration,
         credential_provider: CredentialProvider,

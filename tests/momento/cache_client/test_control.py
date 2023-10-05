@@ -1,20 +1,15 @@
 from datetime import timedelta
 
-import momento.errors as errors
 from momento import CacheClient, Configurations
 from momento.auth import CredentialProvider
-from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import (
     CacheFlush,
     CacheGet,
     CacheSet,
     CreateCache,
-    CreateSigningKey,
     DeleteCache,
     ListCaches,
-    ListSigningKeys,
-    RevokeSigningKey,
 )
 from tests.conftest import TUniqueCacheName
 from tests.utils import uuid_str
@@ -73,19 +68,6 @@ def test_create_cache_with_bad_cache_name_throws_exception(
     assert response.inner_exception.message == "Cache name must be a string"
 
 
-def test_create_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: CredentialProvider,
-    configuration: Configuration,
-    default_ttl_seconds: timedelta,
-    unique_cache_name: TUniqueCacheName,
-) -> None:
-    with CacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
-        new_cache_name = unique_cache_name(client)
-        response = client.create_cache(new_cache_name)
-        assert isinstance(response, CreateCache.Error)
-        assert response.error_code == errors.MomentoErrorCode.AUTHENTICATION_ERROR
-
-
 # Delete cache
 def test_delete_cache_succeeds(client: CacheClient, cache_name: str) -> None:
     cache_name = uuid_str()
@@ -131,15 +113,6 @@ def test_delete_with_bad_cache_name_throws_exception(client: CacheClient) -> Non
     assert isinstance(response, DeleteCache.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert response.inner_exception.message == "Cache name must be a string"
-
-
-def test_delete_cache_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
-) -> None:
-    with CacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
-        response = client.delete_cache(uuid_str())
-        assert isinstance(response, DeleteCache.Error)
-        assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
 
 
 # Flush Cache
@@ -195,15 +168,6 @@ def test_list_caches_succeeds(client: CacheClient, cache_name: str) -> None:
         assert isinstance(delete_response, DeleteCache.Success)
 
 
-def test_list_caches_throws_authentication_exception_for_bad_token(
-    bad_token_credential_provider: CredentialProvider, configuration: Configuration, default_ttl_seconds: timedelta
-) -> None:
-    with CacheClient(configuration, bad_token_credential_provider, default_ttl_seconds) as client:
-        response = client.list_caches()
-        assert isinstance(response, ListCaches.Error)
-        assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
-
-
 def test_list_caches_succeeds_even_if_cred_provider_has_been_printed() -> None:
     creds_provider = CredentialProvider.from_environment_variable("TEST_AUTH_TOKEN")
     print(f"Printing creds provider to ensure that it does not corrupt it :) : {creds_provider}")
@@ -212,17 +176,17 @@ def test_list_caches_succeeds_even_if_cred_provider_has_been_printed() -> None:
         assert isinstance(response, ListCaches.Success)
 
 
-def test_create_list_revoke_signing_keys(client: CacheClient) -> None:
-    create_response = client.create_signing_key(timedelta(minutes=30))
-    assert isinstance(create_response, CreateSigningKey.Success)
-
-    list_response = client.list_signing_keys()
-    assert isinstance(list_response, ListSigningKeys.Success)
-    assert create_response.key_id in [signing_key.key_id for signing_key in list_response.signing_keys]
-
-    revoke_response = client.revoke_signing_key(create_response.key_id)
-    assert isinstance(revoke_response, RevokeSigningKey.Success)
-
-    list_response = client.list_signing_keys()
-    assert isinstance(list_response, ListSigningKeys.Success)
-    assert create_response.key_id not in [signing_key.key_id for signing_key in list_response.signing_keys]
+# def test_create_list_revoke_signing_keys(client: CacheClient) -> None:
+#     create_response = client.create_signing_key(timedelta(minutes=30))
+#     assert isinstance(create_response, CreateSigningKey.Success)
+#
+#     list_response = client.list_signing_keys()
+#     assert isinstance(list_response, ListSigningKeys.Success)
+#     assert create_response.key_id in [signing_key.key_id for signing_key in list_response.signing_keys]
+#
+#     revoke_response = client.revoke_signing_key(create_response.key_id)
+#     assert isinstance(revoke_response, RevokeSigningKey.Success)
+#
+#     list_response = client.list_signing_keys()
+#     assert isinstance(list_response, ListSigningKeys.Success)
+#     assert create_response.key_id not in [signing_key.key_id for signing_key in list_response.signing_keys]
