@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from momento import CacheClient, Configurations, CredentialProvider
-from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
+from momento.responses import CacheGet
 
 cache_client = CacheClient(
     Configurations.Laptop.v1(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY"), timedelta(seconds=60)

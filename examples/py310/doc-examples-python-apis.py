@@ -124,7 +124,7 @@ async def example_API_Delete(cache_client: CacheClientAsync):
 
 
 async def example_API_InstantiateTopicClient():
-    topic_client = TopicClientAsync(
+    TopicClientAsync(
         TopicConfigurations.Default.latest(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
     )
 

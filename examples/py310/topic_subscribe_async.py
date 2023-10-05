@@ -51,7 +51,7 @@ async def main() -> None:
         try:
             await asyncio.gather(*tasks)
         except SdkException:
-            print(f"got exception")
+            print("got exception")
             for task in tasks:
                 task.cancel()
 
