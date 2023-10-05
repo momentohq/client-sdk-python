@@ -8,12 +8,12 @@ from momento import (
 from momento.config import VectorIndexConfiguration
 from momento.requests.vector_index import Item
 from momento.responses.vector_index import (
-    UpsertItemBatch,
     CreateIndex,
     DeleteIndex,
     DeleteItemBatch,
     ListIndexes,
     Search,
+    UpsertItemBatch,
 )
 
 VECTOR_INDEX_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
