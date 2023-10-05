@@ -7,7 +7,7 @@ if __name__ == "__main__":
     cache_name = "default-cache"
     with CacheClient.create(
         configuration=Configurations.Laptop.v1(),
-        credential_provider=CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
+        credential_provider=CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
         default_ttl=timedelta(seconds=60),
     ) as cache_client:
         create_cache_response = cache_client.create_cache(cache_name)

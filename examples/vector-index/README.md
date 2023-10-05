@@ -21,5 +21,5 @@ poetry install
 To run the basic Momento Vector Index example
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m example
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m example
 ```

@@ -17,7 +17,7 @@ from momento.responses.vector_index import (
 )
 
 VECTOR_INDEX_CONFIGURATION: VectorIndexConfiguration = VectorIndexConfigurations.Default.latest()
-VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+VECTOR_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 
 
 def _print_start_banner() -> None:

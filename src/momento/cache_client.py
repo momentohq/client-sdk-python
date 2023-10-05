@@ -162,7 +162,7 @@ class CacheClient:
             from momento import Configurations, CredentialProvider, CacheClient
 
             configuration = Configurations.Laptop.latest()
-            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
             ttl_seconds = timedelta(seconds=60)
             client = CacheClient(configuration, credential_provider, ttl_seconds)
         """
@@ -201,7 +201,7 @@ class CacheClient:
             from momento import Configurations, CredentialProvider, CacheClient
 
             configuration = Configurations.Laptop.latest()
-            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
             ttl_seconds = timedelta(seconds=60)
             eager_connection_timeout = timedelta(seconds=30)
             client = CacheClient.create(configuration, credential_provider, ttl_seconds, eager_connection_timeout)

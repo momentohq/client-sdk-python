@@ -15,15 +15,15 @@ pipenv install
 ```
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example.py
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example_async.py
+MOMENTO_API_KEY=<YOUR_API_KEY> pipenv run python example.py
+MOMENTO_API_KEY=<YOUR_API_KEY> pipenv run python example_async.py
 ```
 
 SDK のデバッグログをオンするには、下記のように実行して下さい:
 
 ```bash
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example.py
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> pipenv run python example_async.py
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> pipenv run python example.py
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> pipenv run python example_async.py
 ```
 
 ## SDK を自身のプロジェクトで使用する

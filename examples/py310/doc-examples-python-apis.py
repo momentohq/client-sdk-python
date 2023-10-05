@@ -22,14 +22,14 @@ from momento.responses import (
 
 
 def example_API_CredentialProviderFromEnvVar():
-    CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+    CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 # end example
 
 
 async def example_API_InstantiateCacheClient():
     await CacheClientAsync.create(
         Configurations.Laptop.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
+        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
         timedelta(seconds=60)
     )
 # end example
@@ -108,7 +108,7 @@ async def example_API_Delete(cache_client: CacheClientAsync):
 async def example_API_InstantiateTopicClient():
     topic_client = TopicClientAsync(
         TopicConfigurations.Default.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+        CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
     )
 # end example
 
@@ -150,7 +150,7 @@ async def main():
     await example_API_InstantiateCacheClient()
     cache_client = await CacheClientAsync.create(
         Configurations.Laptop.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN"),
+        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
         timedelta(seconds=60)
     )
 
@@ -167,7 +167,7 @@ async def main():
 
     topic_client = TopicClientAsync(
         TopicConfigurations.Default.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+        CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
     )
     await example_API_InstantiateTopicClient()
     await example_API_TopicPublish(topic_client)

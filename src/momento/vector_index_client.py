@@ -94,7 +94,7 @@ class PreviewVectorIndexClient:
             from momento import CredentialProvider, PreviewVectorIndexClient, VectorIndexConfigurations
 
             configuration = VectorIndexConfigurations.Laptop.latest()
-            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+            credential_provider = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
             client = PreviewVectorIndexClient(configuration, credential_provider)
         """
         _validate_request_timeout(configuration.get_transport_strategy().get_grpc_configuration().get_deadline())

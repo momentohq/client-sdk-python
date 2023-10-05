@@ -6,7 +6,7 @@ from example_utils.example_logging import initialize_logging
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache, ListCaches
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _CACHE_NAME = "cache"
 _ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
 _KEY = "MyKey"

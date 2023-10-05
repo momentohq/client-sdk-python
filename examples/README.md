@@ -8,7 +8,7 @@ _Read this in other languages_: [日本語](README.ja.md)
 ## Prereqs
 
 - [Python 3.7 or above is required](https://www.python.org/downloads/)
-- A Momento Auth Token is required, you can generate one using the [Momento CLI](https://github.com/momentohq/momento-cli)
+- To get started with Momento you will need a Momento API key. You can get one from the [Momento Console](https://console.gomomento.com).
 - Developer libraries (gcc/python dev headers) installed on machine you intend to run on
 
 **Amazon Linux**
@@ -44,29 +44,29 @@ poetry install
 To run the python version 3.10+ examples:
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example_async
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.example
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.example_async
 ```
 
 To run the examples with SDK debug logging enabled:
 
 ```bash
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m py310.example_async
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.example
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.example_async
 ```
 
 To run the python version <3.10 examples:
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example_async
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example_async
 ```
 
 To run the examples with SDK debug logging enabled:
 
 ```bash
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> poetry run python -m prepy310.example_async
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example_async
 ```
 
 ## Running the Example Using pip
@@ -80,29 +80,29 @@ pip install -r requirements.txt
 To run the python version 3.10+ examples:
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example_async
+MOMENTO_API_KEY=<YOUR_API_KEY> python -m py310.example
+MOMENTO_API_KEY=<YOUR_API_KEY> python -m py310.example_async
 ```
 
 To run the examples with SDK debug logging enabled:
 
 ```bash
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m py310.example_async
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> python -m py310.example
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> python -m py310.example_async
 ```
 
 To run the python version <3.10 examples:
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example
-MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example_async
+MOMENTO_API_KEY=<YOUR_API_KEY> python -m prepy310.example
+MOMENTO_API_KEY=<YOUR_API_KEY> python -m prepy310.example_async
 ```
 
 To run the examples with SDK debug logging enabled:
 
 ```bash
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example
-DEBUG=true MOMENTO_AUTH_TOKEN=<YOUR_TOKEN> python -m prepy310.example_async
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> python -m prepy310.example
+DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> python -m prepy310.example_async
 ```
 
 ## Running the load generator example
@@ -135,7 +135,7 @@ To run the load generator:
 
 ```bash
 # Run example load generator
-MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> poetry run python -m py310.example_load_gen
+MOMENTO_API_KEY=<YOUR AUTH TOKEN> poetry run python -m py310.example_load_gen
 ```
 
 You can check out the example code in [example_load_gen.py](py310/example_load_gen.py). The configurable

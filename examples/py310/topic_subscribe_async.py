@@ -14,7 +14,7 @@ from momento import (
 from momento.errors import SdkException
 from momento.responses import CreateCache, TopicSubscribe, TopicSubscriptionItem
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
+_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _CACHE_NAME = "cache"
 _NUM_SUBSCRIBERS = 10
 _logger = logging.getLogger("topic-subscribe-example")

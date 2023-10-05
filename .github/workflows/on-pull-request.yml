@@ -85,7 +85,7 @@ jobs:
     env:
       # TODO: remove token stored as secret in favor of using a
       # momento-local instance that can be spun up for testing
-      MOMENTO_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      MOMENTO_API_KEY: ${{ secrets.ALPHA_TEST_API_KEY }}
     steps:
       - uses: actions/checkout@v3
       - name: Python SDK sample
