@@ -2,8 +2,6 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from example_utils.example_logging import initialize_logging
-
 from momento import (
     CacheClient,
     Configurations,
@@ -13,6 +11,8 @@ from momento import (
 )
 from momento.errors import SdkException
 from momento.responses import CreateCache, TopicSubscribe, TopicSubscriptionItem
+
+from example_utils.example_logging import initialize_logging
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _CACHE_NAME = "cache"
@@ -65,6 +65,7 @@ async def poll_subscription(subscription: TopicSubscribe.SubscriptionAsync):
             print("stream closed")
             print(item.inner_exception.message)
             return
+
 
 if __name__ == "__main__":
     asyncio.run(main())
