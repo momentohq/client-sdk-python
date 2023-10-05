@@ -69,6 +69,18 @@ async def test_create_index_returns_error_for_bad_num_dimensions(
         assert response.message == f"Invalid argument passed to Momento client: {response.inner_exception.message}"
 
 
+async def test_create_index_returns_error_for_bad_similarity_metric(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+) -> None:
+    response = await vector_index_client_async.create_index(
+        index_name="vector-index", num_dimensions=2, similarity_metric="ASDF"  # type: ignore[arg-type]
+    )
+    assert isinstance(response, CreateIndex.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+    assert response.inner_exception.message == "Invalid similarity metric `ASDF`"
+    assert response.message == f"Invalid argument passed to Momento client: {response.inner_exception.message}"
+
+
 # Delete index
 async def test_delete_index_succeeds(
     vector_index_client_async: PreviewVectorIndexClientAsync, vector_index_dimensions: int

@@ -34,14 +34,14 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from momento.requests.vector_index import Item
+from momento.requests.vector_index import AllMetadata, Item, SimilarityMetric
 from momento.responses.vector_index import (
-    AddItemBatchResponse,
     CreateIndexResponse,
     DeleteIndexResponse,
     DeleteItemBatchResponse,
     ListIndexesResponse,
     SearchResponse,
+    UpsertItemBatchResponse,
 )
 
 
@@ -113,17 +113,35 @@ class PreviewVectorIndexClientAsync:
         await self._control_client.close()
         await self._data_client.close()
 
-    async def create_index(self, index_name: str, num_dimensions: int) -> CreateIndexResponse:
+    async def create_index(
+        self,
+        index_name: str,
+        num_dimensions: int,
+        similarity_metric: SimilarityMetric = SimilarityMetric.COSINE_SIMILARITY,
+    ) -> CreateIndexResponse:
         """Creates a vector index if it doesn't exist.
+
+        Remark on the choice of similarity metric:
+        - Cosine similarity is appropriate for most embedding models as they tend to be optimized
+            for this metric.
+        - If the vectors are unit normalized, cosine similarity is equivalent to inner product.
+            If your vectors are already unit normalized, you can use inner product to improve
+            performance.
+        - Euclidean similarity, the sum of squared differences, is appropriate for datasets where
+            this metric is meaningful. For example, if the vectors represent images, and the
+            embedding model is trained to optimize the euclidean distance between images, then
+            euclidean similarity is appropriate.
 
         Args:
             index_name (str): Name of the index to be created.
             num_dimensions (int): Number of dimensions of the vectors to be indexed.
+            similarity_metric (SimilarityMetric): The similarity metric to use when comparing
+                vectors in the index. Defaults to SimilarityMetric.COSINE_SIMILARITY.
 
         Returns:
             CreateIndexResponse: The result of a create index operation.
         """
-        return await self._control_client.create_index(index_name, num_dimensions)
+        return await self._control_client.create_index(index_name, num_dimensions, similarity_metric)
 
     async def delete_index(self, index_name: str) -> DeleteIndexResponse:
         """Deletes a vector index and all of the items within it.
@@ -144,10 +162,11 @@ class PreviewVectorIndexClientAsync:
         """
         return await self._control_client.list_indexes()
 
-    async def add_item_batch(self, index_name: str, items: list[Item]) -> AddItemBatchResponse:
-        """Adds a batch of items into a vector index.
+    async def upsert_item_batch(self, index_name: str, items: list[Item]) -> UpsertItemBatchResponse:
+        """Upserts a batch of items into a vector index.
 
-        Adds an item into the index.
+        If an item with the same ID already exists in the index, it will be replaced.
+        Otherwise, it will be added to the index.
 
         Args:
             index_name (str): Name of the index to add the items into.
@@ -156,7 +175,7 @@ class PreviewVectorIndexClientAsync:
         Returns:
             AddItemBatchResponse: The result of an add item batch operation.
         """
-        return await self._data_client.add_item_batch(index_name, items)
+        return await self._data_client.upsert_item_batch(index_name, items)
 
     async def delete_item_batch(self, index_name: str, ids: list[str]) -> DeleteItemBatchResponse:
         """Deletes a batch of items from a vector index.
@@ -173,23 +192,24 @@ class PreviewVectorIndexClientAsync:
         return await self._data_client.delete_item_batch(index_name, ids)
 
     async def search(
-        self, index_name: str, query_vector: list[float], top_k: int = 10, metadata_fields: Optional[list[str]] = None
+        self,
+        index_name: str,
+        query_vector: list[float],
+        top_k: int = 10,
+        metadata_fields: Optional[list[str]] | AllMetadata = None,
     ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
-        Ranks the vectors in the index by maximum inner product to the query vector.
-
-        If the index and query vectors are unit normalized, this is equivalent to
-        ranking by cosine similarity. Hence to perform a cosine similarity search,
-        the index vectors should be unit normalized prior to indexing, and the query
-        vector should be unit normalized prior to searching.
+        Ranks the results using the similarity metric specified when the index was created.
 
         Args:
             index_name (str): Name of the index to search in.
             query_vector (list[float]): The vector to search for.
             top_k (int): The number of results to return. Defaults to 10.
-            metadata_fields (Optional[list[str]]): A list of metadata fields to return with each result.
-                If not provided, no metadata is returned. Defaults to None.
+            metadata_fields (Optional[list[str]] | AllMetadata): A list of metadata fields
+                to return with each result. If not provided, no metadata is returned.
+                If the special value `ALL_METADATA` is provided, all metadata is returned.
+                Defaults to None.
 
         Returns:
             SearchResponse: The result of a search operation.

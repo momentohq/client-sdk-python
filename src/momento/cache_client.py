@@ -175,19 +175,6 @@ class CacheClient:
             _ScsDataClient(configuration, credential_provider, default_ttl) for _ in range(CacheClient._NUM_CLIENTS)
         ]
 
-    def __enter__(self) -> CacheClient:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> None:
-        self._control_client.close()
-        for data_client in self._data_clients:
-            data_client.close()
-
     @staticmethod
     def create(
         configuration: Configuration,
@@ -203,8 +190,8 @@ class CacheClient:
             default_ttl (timedelta): A default Time To Live timedelta for cache objects created by this client.
                 It is possible to override this setting when calling the set method.
             eager_connection_timeout (timedelta): An optional timeout value to eagerly connect to Momento's server.
-               This helps with your client-side latencies for the initial requests. A value of 0 indicates to the client
-               to not eagerly connect.
+                This helps with your client-side latencies for the initial requests. A value of 0 indicates to the
+                client to not eagerly connect.
 
         Raises:
             IllegalArgumentException: If method arguments fail validations.
@@ -216,16 +203,29 @@ class CacheClient:
             configuration = Configurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_AUTH_TOKEN")
             ttl_seconds = timedelta(seconds=60)
-            eager_connection_timeout = timedelta(seconds=10)
+            eager_connection_timeout = timedelta(seconds=30)
             client = CacheClient.create(configuration, credential_provider, ttl_seconds, eager_connection_timeout)
         """
-        client = CacheClient(configuration, credential_provider, default_ttl)
         validate_eager_connection_timeout(eager_connection_timeout)
         # an explicit 0 means that the client disabled eager connections
         if eager_connection_timeout.total_seconds() != 0:
+            client = CacheClient(configuration, credential_provider, default_ttl)
             for data_client in client._data_clients:
                 data_client.connect(eager_connection_timeout)
         return client
+
+    def __enter__(self) -> CacheClient:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
+        self._control_client.close()
+        for data_client in self._data_clients:
+            data_client.close()
 
     def create_cache(self, cache_name: str) -> CreateCacheResponse:
         """Creates a cache if it doesn't exist.
