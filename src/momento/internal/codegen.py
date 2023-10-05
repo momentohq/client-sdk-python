@@ -132,7 +132,7 @@ name_replacements = NameReplacement(
 
 simple_string_replacements = SimpleStringReplacement(
     [
-        ("((?:Cache|Vector)Client)Async", "\\1"),
+        ("((?:Cache|(?:Preview)?VectorIndex)Client)Async", "\\1"),
         (r"(.*?)Async(\s+(?:Cache|Vector\s+Index)\s+Client.*?)", "\\1Synchronous\\2"),
         (r"(.*?)\bawait\s+(.*?)", "\\1\\2"),
     ]
