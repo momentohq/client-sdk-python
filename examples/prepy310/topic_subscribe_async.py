@@ -49,8 +49,8 @@ async def main() -> None:
         tasks = [asyncio.create_task(poll_subscription(subscription)) for subscription in subscriptions]
         try:
             await asyncio.gather(*tasks)
-        except SdkException as e:
-            print(f"got exception")
+        except SdkException:
+            print("got exception")
             for task in tasks:
                 task.cancel()
 
@@ -60,7 +60,7 @@ async def poll_subscription(subscription: TopicSubscribe.SubscriptionAsync):
         if isinstance(item, TopicSubscriptionItem.Text):
             print(f"got item as string: {item.value}")
         elif isinstance(item, TopicSubscriptionItem.Binary):
-            print(f"got item as bytes: {item.value}")
+            print(f"got item as bytes: {item.value!r}")
         elif isinstance(item, TopicSubscriptionItem.Error):
             print("stream closed")
             print(item.inner_exception.message)

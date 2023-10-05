@@ -39,7 +39,7 @@ def main() -> None:
                 if isinstance(item, TopicSubscriptionItem.Text):
                     print(f"got item as string: {item.value}")
                 elif isinstance(item, TopicSubscriptionItem.Binary):
-                    print(f"got item as bytes: {item.value}")
+                    print(f"got item as bytes: {item.value!r}")
                 elif isinstance(item, TopicSubscriptionItem.Error):
                     print(f"got item error: {item.message}")
 
