@@ -48,6 +48,13 @@ MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.example
 MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.example_async
 ```
 
+To run the python version 3.10+ vector index examples:
+
+```bash
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.vector_index
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m py310.vector_index_async
+```
+
 To run the examples with SDK debug logging enabled:
 
 ```bash
@@ -62,17 +69,18 @@ MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example
 MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example_async
 ```
 
+To run the python version <3.10 vector index examples:
+
+```bash
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.vector_index
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.vector_index_async
+```
+
 To run the examples with SDK debug logging enabled:
 
 ```bash
 DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example
 DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example_async
-```
-
-To run the vector index example:
-
-```bash
-MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m vector_index.example
 ```
 
 ## Running the Example Using pip
