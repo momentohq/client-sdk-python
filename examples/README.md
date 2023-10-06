@@ -69,6 +69,12 @@ DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example
 DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m prepy310.example_async
 ```
 
+To run the vector index example:
+
+```bash
+MOMENTO_API_KEY=<YOUR_API_KEY> poetry run python -m vector_index.example
+```
+
 ## Running the Example Using pip
 
 Install the prerequisites:
@@ -103,6 +109,12 @@ To run the examples with SDK debug logging enabled:
 ```bash
 DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> python -m prepy310.example
 DEBUG=true MOMENTO_API_KEY=<YOUR_API_KEY> python -m prepy310.example_async
+```
+
+To run the vector index example:
+
+```bash
+MOMENTO_API_KEY=<YOUR_API_KEY> python -m vector_index.example
 ```
 
 ## Running the load generator example
