@@ -6,8 +6,9 @@ from momento import (
     Configurations,
     CredentialProvider,
     TopicClientAsync,
-    TopicConfigurations,
+    TopicConfigurations, PreviewVectorIndexClientAsync, VectorIndexConfigurations,
 )
+from momento.requests.vector_index import Item, ALL_METADATA
 from momento.responses import (
     CacheDelete,
     CacheGet,
@@ -19,6 +20,8 @@ from momento.responses import (
     TopicSubscribe,
     TopicSubscriptionItem,
 )
+from momento.responses.vector_index import CreateIndex, ListIndexes, DeleteIndex, UpsertItemBatch, DeleteItemBatch, \
+    Search
 
 
 def example_API_CredentialProviderFromEnvVar():
@@ -133,11 +136,11 @@ async def example_API_InstantiateTopicClient():
 
 
 async def example_API_TopicSubscribe(topic_client: TopicClientAsync):
-    subscription = await topic_client.subscribe("cache", "my_topic")
-    match subscription:
-        case TopicSubscribe.Error():
-            print("Error subscribing to topic: ", subscription.message)
-        case TopicSubscribe.SubscriptionAsync():
+    response = await topic_client.subscribe("cache", "my_topic")
+    match response:
+        case TopicSubscribe.Error() as error:
+            print(f"Error subscribing to topic: {error.message}")
+        case TopicSubscribe.SubscriptionAsync() as subscription:
             await topic_client.publish("cache", "my_topic", "my_value")
             async for item in subscription:
                 match item:
@@ -148,7 +151,7 @@ async def example_API_TopicSubscribe(topic_client: TopicClientAsync):
                         print(f"Received message as bytes: {item.value!r}")
                         return
                     case TopicSubscriptionItem.Error():
-                        print("Error with received message:", item.inner_exception.message)
+                        print(f"Error with received message: {item.inner_exception.message}")
                         return
 
 
@@ -160,12 +163,90 @@ async def example_API_TopicPublish(topic_client: TopicClientAsync):
     match response:
         case TopicPublish.Success():
             print("Successfully published a message")
-        case TopicPublish.Error():
-            print("Error publishing a message: ", response.message)
+        case TopicPublish.Error() as error:
+            print(f"Error publishing a message: {error.message}")
 
 
 # end example
 
+async def example_API_InstantiateVectorClient():
+    PreviewVectorIndexClientAsync(
+        VectorIndexConfigurations.Default.latest(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+    )
+
+
+# end example
+
+async def example_API_CreateIndex(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.create_index("test-index", 2)
+    match response:
+        case CreateIndex.Success():
+            print("Index 'test-index' created")
+        case CreateIndex.IndexAlreadyExists():
+            print("Index 'test-index' already exists")
+        case CreateIndex.Error() as error:
+            print(f"Error creating index 'test-index': {error.message}")
+
+
+# end example
+
+async def example_API_ListIndexes(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.list_indexes()
+    match response:
+        case ListIndexes.Success() as success:
+            print(f"Indexes:\n{success.index_names}")
+        case CreateIndex.Error() as error:
+            print(f"Error listing indexes: {error.message}")
+
+
+# end example
+
+async def example_API_DeleteIndex(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.delete_index("test-index")
+    match response:
+        case DeleteIndex.Success():
+            print("Index 'test-index' deleted")
+        case DeleteIndex.Error() as error:
+            print(f"Error deleting index 'test-index': {error.message}")
+
+
+# end example
+
+async def example_API_UpsertItemBatch(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.upsert_item_batch('test-index', [
+        Item(id="example_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
+        Item(id="example_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
+    ])
+    match response:
+        case UpsertItemBatch.Success():
+            print("Successfully added items to index 'test-index'")
+        case UpsertItemBatch.Error() as error:
+            print(f"Error adding items to index 'test-index': {error.message}")
+
+
+# end example
+
+async def example_API_DeleteItemBatch(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.delete_item_batch('test-index', ['example_item_1', 'example_item_2'])
+    match response:
+        case DeleteItemBatch.Success():
+            print("Successfully deleted items from index 'test-index'")
+        case DeleteItemBatch.Error() as error:
+            print(f"Error deleting items from index 'test-index': {error.message}")
+
+
+# end example
+
+async def example_API_Search(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.search('test-index', [1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA)
+    match response:
+        case Search.Success() as success:
+            print(f"Found {len(success.hits)} matches")
+        case Search.Error() as error:
+            print(f"Error searching index 'test-index': {error.message}")
+
+
+# end example
 
 async def main():
     example_API_CredentialProviderFromEnvVar()
@@ -195,6 +276,16 @@ async def main():
     await example_API_TopicPublish(topic_client)
     await example_API_TopicSubscribe(topic_client)
     await topic_client.close()
+
+    vector_client = PreviewVectorIndexClientAsync(VectorIndexConfigurations.Default.latest(),
+                                                  CredentialProvider.from_environment_variable("MOMENTO_API_KEY"))
+    await example_API_InstantiateVectorClient()
+    await example_API_CreateIndex(vector_client)
+    await example_API_ListIndexes(vector_client)
+    await example_API_UpsertItemBatch(vector_client)
+    await example_API_Search(vector_client)
+    await example_API_DeleteItemBatch(vector_client)
+    await example_API_DeleteIndex(vector_client)
 
 
 if __name__ == "__main__":
