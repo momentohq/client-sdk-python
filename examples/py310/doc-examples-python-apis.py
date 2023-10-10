@@ -136,11 +136,11 @@ async def example_API_InstantiateTopicClient():
 
 
 async def example_API_TopicSubscribe(topic_client: TopicClientAsync):
-    subscription = await topic_client.subscribe("cache", "my_topic")
-    match subscription:
-        case TopicSubscribe.Error():
-            print("Error subscribing to topic: ", subscription.message)
-        case TopicSubscribe.SubscriptionAsync():
+    response = await topic_client.subscribe("cache", "my_topic")
+    match response:
+        case TopicSubscribe.Error() as error:
+            print("Error subscribing to topic: ", error.message)
+        case TopicSubscribe.SubscriptionAsync() as subscription:
             await topic_client.publish("cache", "my_topic", "my_value")
             async for item in subscription:
                 match item:
@@ -163,8 +163,8 @@ async def example_API_TopicPublish(topic_client: TopicClientAsync):
     match response:
         case TopicPublish.Success():
             print("Successfully published a message")
-        case TopicPublish.Error():
-            print("Error publishing a message: ", response.message)
+        case TopicPublish.Error() as error:
+            print("Error publishing a message: ", error.message)
 
 
 # end example
@@ -180,12 +180,12 @@ async def example_API_InstantiateVectorClient():
 async def example_API_CreateIndex(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.create_index("test-index", 2)
     match response:
-        case CreateIndex.Success:
+        case CreateIndex.Success():
             print("Index 'test-index' created")
-        case CreateIndex.IndexAlreadyExists:
+        case CreateIndex.IndexAlreadyExists():
             print("Index 'test-index' already exists")
-        case CreateIndex.Error:
-            print("Error creating index 'test-index': ", response.message)
+        case CreateIndex.Error() as error:
+            print("Error creating index 'test-index': ", error.message)
 
 
 # end example
@@ -193,10 +193,10 @@ async def example_API_CreateIndex(vector_client: PreviewVectorIndexClientAsync):
 async def example_API_ListIndexes(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.list_indexes()
     match response:
-        case ListIndexes.Success:
-            print(f"Indexes:\n{response.index_names}")
-        case CreateIndex.Error:
-            print("Error listing indexes: ", response.message)
+        case ListIndexes.Success() as success:
+            print(f"Indexes:\n{success.index_names}")
+        case CreateIndex.Error() as error:
+            print("Error listing indexes: ", error.message)
 
 
 # end example
@@ -204,10 +204,10 @@ async def example_API_ListIndexes(vector_client: PreviewVectorIndexClientAsync):
 async def example_API_DeleteIndex(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.delete_index("test-index")
     match response:
-        case DeleteIndex.Success:
+        case DeleteIndex.Success():
             print("Index 'test-index' deleted")
-        case DeleteIndex.Error:
-            print("Error deleting index 'test-index': ", response.message)
+        case DeleteIndex.Error() as error:
+            print("Error deleting index 'test-index': ", error.message)
 
 
 # end example
@@ -218,10 +218,10 @@ async def example_API_UpsertItemBatch(vector_client: PreviewVectorIndexClientAsy
         Item(id="example_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
     ])
     match response:
-        case UpsertItemBatch.Success:
+        case UpsertItemBatch.Success():
             print("Successfully added items to index 'test-index'")
-        case UpsertItemBatch.Error:
-            print("Error adding items to index 'test-index': ", response.message)
+        case UpsertItemBatch.Error() as error:
+            print("Error adding items to index 'test-index': ", error.message)
 
 
 # end example
@@ -229,10 +229,10 @@ async def example_API_UpsertItemBatch(vector_client: PreviewVectorIndexClientAsy
 async def example_API_DeleteItemBatch(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.delete_item_batch('test-index', ['example_item_1', 'example_item_2'])
     match response:
-        case DeleteItemBatch.Success:
+        case DeleteItemBatch.Success():
             print("Successfully deleted items from index 'test-index'")
-        case DeleteItemBatch.Error:
-            print("Error deleting items from index 'test-index': ", response.message)
+        case DeleteItemBatch.Error() as error:
+            print("Error deleting items from index 'test-index': ", error.message)
 
 
 # end example
@@ -240,10 +240,10 @@ async def example_API_DeleteItemBatch(vector_client: PreviewVectorIndexClientAsy
 async def example_API_Search(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.search('test-index', [1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA)
     match response:
-        case Search.Success:
-            print(f"Found {len(response.hits)} matches")
-        case Search.Error:
-            print("Error searching index 'test-index': ", response.message)
+        case Search.Success() as success:
+            print(f"Found {len(success.hits)} matches")
+        case Search.Error() as error:
+            print("Error searching index 'test-index': ", error.message)
 
 
 # end example
