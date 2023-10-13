@@ -216,6 +216,18 @@ def test_upsert_and_search_with_metadata_happy_path(
     ]
 
 
+def test_upsert_with_bad_metadata(vector_index_client: PreviewVectorIndexClient) -> None:
+    response = vector_index_client.upsert_item_batch(
+        index_name="test_index", items=[Item(id="test_item", vector=[1.0, 2.0], metadata={"key": 1})]  # type: ignore
+    )
+    assert isinstance(response, UpsertItemBatch.Error)
+    assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
+    assert (
+        response.message
+        == "Invalid argument passed to Momento client: Metadata values must be strings. Field 'key' has a value of type <class 'int'> with value 1."  # noqa: E501 W503
+    )
+
+
 def test_upsert_and_search_with_all_metadata_happy_path(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
