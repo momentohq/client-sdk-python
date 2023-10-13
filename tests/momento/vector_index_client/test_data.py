@@ -224,7 +224,7 @@ def test_upsert_with_bad_metadata(vector_index_client: PreviewVectorIndexClient)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert (
         response.message
-        == "Invalid argument passed to Momento client: Metadata values must be strings. Field 'key' has a value of type <class 'int'> with value 1."
+        == "Invalid argument passed to Momento client: Metadata values must be strings. Field 'key' has a value of type <class 'int'> with value 1."  # noqa: E501 W503
     )
 
 

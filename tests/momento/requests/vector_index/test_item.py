@@ -20,7 +20,7 @@ def test_serialize_item_with_bad_metadata() -> None:
     assert exc_info.value.service == Service.INDEX
     assert (
         exc_info.value.message
-        == "Metadata values must be strings. Field 'key' has a value of type <class 'int'> with value 1."
+        == "Metadata values must be strings. Field 'key' has a value of type <class 'int'> with value 1."  # noqa: E501 W503
     )
 
 
@@ -31,5 +31,5 @@ def test_serialize_item_with_null_metadata() -> None:
     assert exc_info.value.service == Service.INDEX
     assert (
         exc_info.value.message
-        == "Metadata values must be strings. Field 'key' has a value of type <class 'NoneType'> with value None."
+        == "Metadata values must be strings. Field 'key' has a value of type <class 'NoneType'> with value None."  # noqa: E501 W503
     )
