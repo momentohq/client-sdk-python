@@ -29,7 +29,7 @@ class Item:
             for k, v in self.metadata.items():
                 if type(v) is not str:
                     raise InvalidArgumentException(
-                        f"Metadata values must be strings. Field {k!r} has a value of type {type(v)!r} with value {v!r}.",
+                        f"Metadata values must be strings. Field {k!r} has a value of type {type(v)!r} with value {v!r}.",  # noqa: E501
                         Service.INDEX,
                     )
                 metadata.append(pb._Metadata(field=k, string_value=v))
