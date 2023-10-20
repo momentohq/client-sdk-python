@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from momento import PreviewVectorIndexClient
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
@@ -218,13 +220,14 @@ def test_upsert_and_search_with_metadata_happy_path(
 
 def test_upsert_with_bad_metadata(vector_index_client: PreviewVectorIndexClient) -> None:
     response = vector_index_client.upsert_item_batch(
-        index_name="test_index", items=[Item(id="test_item", vector=[1.0, 2.0], metadata={"key": 1})]  # type: ignore
+        index_name="test_index",
+        items=[Item(id="test_item", vector=[1.0, 2.0], metadata={"key": {"subkey": "subvalue"}})],  # type: ignore
     )
     assert isinstance(response, UpsertItemBatch.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert (
         response.message
-        == "Invalid argument passed to Momento client: Metadata values must be strings. Field 'key' has a value of type <class 'int'> with value 1."  # noqa: E501 W503
+        == "Invalid argument passed to Momento client: Metadata values must be either str, int, float, bool, or list[str]. Field 'key' has a value of type <class 'dict'> with value {'subkey': 'subvalue'}."  # noqa: E501 W503
     )
 
 
@@ -270,6 +273,49 @@ def test_upsert_and_search_with_all_metadata_happy_path(
         SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
         SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
         SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
+    ]
+
+
+def test_upsert_and_search_with_diverse_metadata_happy_path(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(
+        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
+    assert isinstance(create_response, CreateIndex.Success)
+
+    metadata: dict[str, str | bool | int | float | list[str]] = {
+        "string": "value",
+        "bool": True,
+        "int": 1,
+        "float": 3.14,
+        "list": ["a", "b", "c"],
+        "empty_list": [],
+    }
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 2.0], metadata=metadata),
+        ],
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    sleep(2)
+
+    search_response = vector_index_client.search(
+        index_name, query_vector=[1.0, 2.0], top_k=1, metadata_fields=ALL_METADATA
+    )
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 1
+
+    assert search_response.hits == [
+        SearchHit(
+            id="test_item_1",
+            metadata=metadata,
+            distance=5.0,
+        ),
     ]
 
 
