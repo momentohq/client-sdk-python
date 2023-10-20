@@ -30,7 +30,7 @@ def test_serialize_item_with_diverse_metadata() -> None:
     assert item.metadata[2].double_value == 3.14
 
     assert item.metadata[3].field == "bool_key"
-    assert item.metadata[3].boolean_value == True
+    assert item.metadata[3].boolean_value is True
 
     assert item.metadata[4].field == "list_of_strings_key"
     assert item.metadata[4].list_of_strings_value.values == ["one", "two"]
