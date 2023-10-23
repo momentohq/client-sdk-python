@@ -7,7 +7,6 @@ from pathlib import Path
 from momento.config import transport
 
 from .transport.transport_strategy import TransportStrategy
-from momento.config.transport import transport_strategy
 
 
 class VectorIndexConfigurationBase(ABC):
