@@ -7,7 +7,9 @@ from momento_wire_types import vectorindex_pb2_grpc as vector_index_client
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.internal._utilities import momento_version
-from momento.internal._utilities._channel_credentials import vector_credentials_from_root_certs_or_default
+from momento.internal._utilities._channel_credentials import (
+    vector_credentials_from_root_certs_or_default,
+)
 
 from ._add_header_client_interceptor import AddHeaderClientInterceptor, Header
 
