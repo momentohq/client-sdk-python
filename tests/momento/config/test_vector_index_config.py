@@ -1,15 +1,16 @@
+from pathlib import Path
+
+import pytest
+
 from momento import (
-    VectorIndexConfigurations,
+    CredentialProvider,
     PreviewVectorIndexClient,
     PreviewVectorIndexClientAsync,
-    CredentialProvider,
+    VectorIndexConfigurations,
 )
 from momento.config import VectorIndexConfiguration
 from momento.errors.error_details import MomentoErrorCode
 from momento.responses.vector_index import ListIndexes, Search
-from pathlib import Path
-
-import pytest
 
 
 def test_missing_root_cert() -> None:
