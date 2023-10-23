@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import Optional
+
+import pytest
+
 from momento import PreviewVectorIndexClientAsync
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
@@ -38,14 +42,20 @@ async def test_create_index_with_inner_product_upsert_item_search_happy_path(
     assert search_response.hits[0].distance == 5.0
 
 
+@pytest.mark.parametrize("similarity_metric", [SimilarityMetric.COSINE_SIMILARITY, None])
 async def test_create_index_with_cosine_similarity_upsert_item_search_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+    similarity_metric: Optional[SimilarityMetric],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
-    create_response = await vector_index_client_async.create_index(
-        index_name, num_dimensions=2, similarity_metric=SimilarityMetric.COSINE_SIMILARITY
-    )
+    num_dimensions = 2
+    if similarity_metric is not None:
+        create_response = await vector_index_client_async.create_index(
+            index_name, num_dimensions=num_dimensions, similarity_metric=similarity_metric
+        )
+    else:
+        create_response = await vector_index_client_async.create_index(index_name, num_dimensions=num_dimensions)
     assert isinstance(create_response, CreateIndex.Success)
 
     upsert_response = await vector_index_client_async.upsert_item_batch(
