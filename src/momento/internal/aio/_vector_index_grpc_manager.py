@@ -7,6 +7,9 @@ from momento_wire_types import vectorindex_pb2_grpc as vector_index_client
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.internal._utilities import momento_version
+from momento.internal._utilities._channel_credentials import (
+    vector_credentials_from_root_certs_or_default,
+)
 
 from ._add_header_client_interceptor import AddHeaderClientInterceptor, Header
 
@@ -19,7 +22,7 @@ class _VectorIndexControlGrpcManager:
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
+            credentials=vector_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token),
         )
 
@@ -38,7 +41,7 @@ class _VectorIndexDataGrpcManager:
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.vector_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
+            credentials=vector_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token),
         )
 
