@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import timedelta
+from pathlib import Path
 
 from .transport.transport_strategy import TransportStrategy
 
@@ -17,6 +18,10 @@ class VectorIndexConfigurationBase(ABC):
 
     @abstractmethod
     def with_client_timeout(self, client_timeout: timedelta) -> VectorIndexConfigurationBase:
+        pass
+
+    @abstractmethod
+    def with_root_certificates_pem(self, root_certificate_path: Path) -> VectorIndexConfigurationBase:
         pass
 
 
@@ -61,3 +66,18 @@ class VectorIndexConfiguration(VectorIndexConfigurationBase):
             Configuration: the new Configuration.
         """
         return VectorIndexConfiguration(self._transport_strategy.with_client_timeout(client_timeout))
+
+    def with_root_certificates_pem(self, root_certificates_pem_path: Path) -> VectorIndexConfiguration:
+        """Copies the Configuration and sets the new root certificates in the copy's TransportStrategy.
+
+        Args:
+            root_certificates_pem_path (Path): the new root certificates.
+
+        Returns:
+            VectorIndexConfigurationBase: the new Configuration.
+        """
+        grpc_configuration = self._transport_strategy.get_grpc_configuration().with_root_certificates_pem(
+            root_certificates_pem_path
+        )
+        transport_strategy = self._transport_strategy.with_grpc_configuration(grpc_configuration)
+        return self.with_transport_strategy(transport_strategy)
