@@ -7,6 +7,7 @@ from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.errors import InvalidArgumentException, convert_error
 from momento.internal._utilities import _validate_index_name, _validate_num_dimensions
+
 from momento.internal.aio._vector_index_grpc_manager import (
     _VectorIndexControlGrpcManager,
 )

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import timedelta
+from pathlib import Path
+from typing import Optional
 
 from momento.internal._utilities import _validate_request_timeout
 
@@ -47,16 +49,28 @@ class TransportStrategy(ABC):
 
 class StaticGrpcConfiguration(GrpcConfiguration):
     _deadline: timedelta
+    _root_certificates_pem: Optional[bytes]
 
-    def __init__(self, deadline: timedelta):
+    def __init__(self, deadline: timedelta, root_certificates_pem: Optional[bytes] = None):
         self._deadline = deadline
+        self._root_certificates_pem = root_certificates_pem
 
     def get_deadline(self) -> timedelta:
         return self._deadline
 
     def with_deadline(self, deadline: timedelta) -> GrpcConfiguration:
         _validate_request_timeout(deadline)
-        return StaticGrpcConfiguration(deadline)
+        return StaticGrpcConfiguration(deadline, self._root_certificates_pem)
+
+    def with_root_certificates_pem(self, root_certificates_pem_path: Path) -> GrpcConfiguration:
+        try:
+            root_certificates_pem_bytes = root_certificates_pem_path.read_bytes()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Root certificate file not found at path: {root_certificates_pem_path}")
+        return StaticGrpcConfiguration(self._deadline, root_certificates_pem_bytes)
+
+    def get_root_certificates_pem(self) -> Optional[bytes]:
+        return self._root_certificates_pem
 
 
 class StaticTransportStrategy(TransportStrategy):
