@@ -4,8 +4,6 @@ from abc import ABC, abstractmethod
 from datetime import timedelta
 from pathlib import Path
 
-from momento.config import transport
-
 from .transport.transport_strategy import TransportStrategy
 
 
