@@ -48,9 +48,6 @@ class TransportStrategy(ABC):
 
 
 class StaticGrpcConfiguration(GrpcConfiguration):
-    _deadline: timedelta
-    _root_certificates_pem: Optional[bytes]
-
     def __init__(self, deadline: timedelta, root_certificates_pem: Optional[bytes] = None):
         self._deadline = deadline
         self._root_certificates_pem = root_certificates_pem
