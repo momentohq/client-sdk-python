@@ -8,6 +8,7 @@ from momento.config import Configuration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheGet, ListCaches
+from tests.utils import unique_test_cache_name
 
 
 def test_configuration_client_timeout_copy_constructor(configuration: Configuration) -> None:
@@ -47,7 +48,7 @@ def test_bad_root_cert(configuration: Configuration, credential_provider: Creden
     assert isinstance(list_indexes_response, ListCaches.Error)
     assert list_indexes_response.error_code == MomentoErrorCode.SERVER_UNAVAILABLE
 
-    get_response = client.get("asdf", "key")
+    get_response = client.get(unique_test_cache_name(), "key")
     assert isinstance(get_response, CacheGet.Error)
     assert get_response.error_code == MomentoErrorCode.SERVER_UNAVAILABLE
 
@@ -61,6 +62,34 @@ async def test_bad_root_cert_async(configuration: Configuration, credential_prov
     assert isinstance(list_indexes_response, ListCaches.Error)
     assert list_indexes_response.error_code == MomentoErrorCode.SERVER_UNAVAILABLE
 
-    get_response = await client.get("asdf", "key")
+    get_response = await client.get(unique_test_cache_name(), "key")
     assert isinstance(get_response, CacheGet.Error)
     assert get_response.error_code == MomentoErrorCode.SERVER_UNAVAILABLE
+
+
+# def test_good_root_cert(configuration: Configuration, credential_provider: CredentialProvider) -> None:
+#     # On my machine, this is the path to the root certificates pem file that is cached by the grpc library.
+#     root_cert_path = Path("./.venv/lib/python3.11/site-packages/grpc/_cython/_credentials/roots.pem")
+#     config = configuration.with_root_certificates_pem(root_cert_path)
+
+#     client = CacheClient(config, credential_provider, timedelta(seconds=60))
+#     list_indexes_response = client.list_caches()
+#     assert isinstance(list_indexes_response, ListCaches.Success)
+
+#     get_response = client.get(unique_test_cache_name(), "key")
+#     assert isinstance(get_response, CacheGet.Error)
+#     assert get_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+
+
+# async def test_good_root_cert_async(configuration: Configuration, credential_provider: CredentialProvider) -> None:
+#     # On my machine, this is the path to the root certificates pem file that is cached by the grpc library.
+#     root_cert_path = Path("./.venv/lib/python3.11/site-packages/grpc/_cython/_credentials/roots.pem")
+#     config = configuration.with_root_certificates_pem(root_cert_path)
+
+#     client = CacheClientAsync(config, credential_provider, timedelta(seconds=60))
+#     list_indexes_response = await client.list_caches()
+#     assert isinstance(list_indexes_response, ListCaches.Success)
+
+#     get_response = await client.get(unique_test_cache_name(), "key")
+#     assert isinstance(get_response, CacheGet.Error)
+#     assert get_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
