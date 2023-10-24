@@ -9,8 +9,19 @@ from momento import (
     VectorIndexConfigurations,
 )
 from momento.config import VectorIndexConfiguration
+from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.error_details import MomentoErrorCode
 from momento.responses.vector_index import ListIndexes, Search
+
+
+def _with_root_cert(config: VectorIndexConfiguration, root_cert: bytes) -> VectorIndexConfiguration:
+    grpc_configuration = StaticGrpcConfiguration(
+        config.get_transport_strategy().get_grpc_configuration().get_deadline(), root_cert
+    )
+    new_config = config.with_transport_strategy(
+        config.get_transport_strategy().with_grpc_configuration(grpc_configuration)
+    )
+    return new_config
 
 
 def test_missing_root_cert() -> None:
@@ -26,12 +37,7 @@ def test_bad_root_cert(
 ) -> None:
     root_cert = b"asdfasdf"
 
-    grpc_configuration = vector_index_configuration.get_transport_strategy().get_grpc_configuration()
-    grpc_configuration._root_certificates_pem = root_cert  # type: ignore[attr-defined]
-    config = vector_index_configuration.with_transport_strategy(
-        vector_index_configuration.get_transport_strategy().with_grpc_configuration(grpc_configuration)
-    )
-
+    config = _with_root_cert(vector_index_configuration, root_cert)
     client = PreviewVectorIndexClient(config, credential_provider)
     list_indexes_response = client.list_indexes()
     assert isinstance(list_indexes_response, ListIndexes.Error)
@@ -46,12 +52,7 @@ async def test_bad_root_cert_async(
     vector_index_configuration: VectorIndexConfiguration, credential_provider: CredentialProvider
 ) -> None:
     root_cert = b"asdfasdf"
-
-    grpc_configuration = vector_index_configuration.get_transport_strategy().get_grpc_configuration()
-    grpc_configuration._root_certificates_pem = root_cert  # type: ignore[attr-defined]
-    config = vector_index_configuration.with_transport_strategy(
-        vector_index_configuration.get_transport_strategy().with_grpc_configuration(grpc_configuration)
-    )
+    config = _with_root_cert(vector_index_configuration, root_cert)
 
     client = PreviewVectorIndexClientAsync(config, credential_provider)
     list_indexes_response = await client.list_indexes()

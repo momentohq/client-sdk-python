@@ -2,17 +2,20 @@
 
 Note that this isn't in the _utilities init to avoid a circular import.
 """
+from __future__ import annotations
 
 import grpc
 
-from momento.config import VectorIndexConfiguration
+from momento.config import Configuration, VectorIndexConfiguration
 
 
-def vector_credentials_from_root_certs_or_default(config: VectorIndexConfiguration) -> grpc.ChannelCredentials:
+def channel_credentials_from_root_certs_or_default(
+    config: Configuration | VectorIndexConfiguration,
+) -> grpc.ChannelCredentials:
     """Create gRPC channel credentials from the root certificates or the default credentials.
 
     Args:
-        config (VectorIndexConfiguration): the configuration to use.
+        config (Configuration): the configuration to use.
 
     Returns:
         grpc.ChannelCredentials: the gRPC channel credentials.

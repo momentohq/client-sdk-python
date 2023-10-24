@@ -12,6 +12,9 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.internal._utilities import momento_version
+from momento.internal._utilities._channel_credentials import (
+    channel_credentials_from_root_certs_or_default,
+)
 from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     AddHeaderStreamingClientInterceptor,
@@ -29,7 +32,7 @@ class _ControlGrpcManager:
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.control_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
+            credentials=channel_credentials_from_root_certs_or_default(configuration),
         )
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
@@ -52,7 +55,7 @@ class _DataGrpcManager:
         self._logger = logs.logger
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
+            credentials=channel_credentials_from_root_certs_or_default(configuration),
         )
 
         intercept_channel = grpc.intercept_channel(

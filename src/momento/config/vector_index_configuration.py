@@ -65,7 +65,7 @@ class VectorIndexConfiguration(VectorIndexConfigurationBase):
         Return:
             Configuration: the new Configuration.
         """
-        return VectorIndexConfiguration(self._transport_strategy.with_client_timeout(client_timeout))
+        return self.with_transport_strategy(self._transport_strategy.with_client_timeout(client_timeout))
 
     def with_root_certificates_pem(self, root_certificates_pem_path: Path) -> VectorIndexConfiguration:
         """Copies the Configuration and sets the new root certificates in the copy's TransportStrategy.

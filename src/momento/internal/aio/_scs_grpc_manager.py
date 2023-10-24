@@ -11,6 +11,9 @@ from momento_wire_types import controlclient_pb2_grpc as control_client
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.internal._utilities import momento_version
+from momento.internal._utilities._channel_credentials import (
+    channel_credentials_from_root_certs_or_default,
+)
 from momento.retry import RetryStrategy
 
 from ... import logs
@@ -30,7 +33,7 @@ class _ControlGrpcManager:
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
+            credentials=channel_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
         )
 
@@ -50,7 +53,7 @@ class _DataGrpcManager:
         self._logger = logs.logger
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
+            credentials=channel_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
             # Here is where you would pass override configuration to the underlying C gRPC layer.
             # However, I have tried several different tuning options here and did not see any
@@ -84,7 +87,6 @@ class _DataGrpcManager:
         idle: grpc.ChannelConnectivity = grpc.ChannelConnectivity.IDLE
 
         while latest_state != ready:
-
             if latest_state == idle:
                 self._logger.debug("State is idle; waiting to transition to CONNECTING")
             elif latest_state == connecting:
