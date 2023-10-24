@@ -83,4 +83,4 @@ class StaticTransportStrategy(TransportStrategy):
         return StaticTransportStrategy(grpc_configuration)
 
     def with_client_timeout(self, client_timeout: timedelta) -> TransportStrategy:
-        return StaticTransportStrategy(self._grpc_configuration.with_deadline(client_timeout))
+        return self.with_grpc_configuration(self._grpc_configuration.with_deadline(client_timeout))
