@@ -199,6 +199,7 @@ class PreviewVectorIndexClient:
         query_vector: list[float],
         top_k: int = 10,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
+        score_threshold: Optional[float] = None,
     ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
@@ -212,10 +213,14 @@ class PreviewVectorIndexClient:
                 to return with each result. If not provided, no metadata is returned.
                 If the special value `ALL_METADATA` is provided, all metadata is returned.
                 Defaults to None.
+            score_threshold (Optional[float]): A score threshold to filter results by.
+                For cosine similarity and inner product, scores lower than the threshold
+                are excluded. For euclidean similarity, scores higher than the threshold
+                are excluded. The threshold is exclusive. Defaults to None, ie no threshold.
 
         Returns:
             SearchResponse: The result of a search operation.
         """
-        return self._data_client.search(index_name, query_vector, top_k, metadata_fields)
+        return self._data_client.search(index_name, query_vector, top_k, metadata_fields, score_threshold)
 
     # TODO: repr

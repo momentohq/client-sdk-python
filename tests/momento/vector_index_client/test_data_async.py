@@ -451,6 +451,66 @@ async def test_search_validates_top_k(vector_index_client_async: PreviewVectorIn
     assert response.inner_exception.message == "Top k must be a positive integer."
 
 
+@pytest.mark.parametrize(
+    ["similarity_metric", "distances", "thresholds"],
+    [
+        # Distances are the distance to the same 3 data vectors from the same query vector.
+        # Thresholds are those that should:
+        # 1. exclude lowest two matches
+        # 2. keep all matches
+        # 3. exclude all matches
+        (SimilarityMetric.COSINE_SIMILARITY, [1.0, 0.0, -1.0], [0.5, -1.01, 1.0]),
+        (SimilarityMetric.INNER_PRODUCT, [4.0, 0.0, -4.0], [0.0, -4.01, 4.0]),
+        (SimilarityMetric.EUCLIDEAN_SIMILARITY, [2, 10, 18], [3, 20, -0.01]),
+    ],
+)
+async def test_search_score_threshold_happy_path(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+    similarity_metric: SimilarityMetric,
+    distances: list[float],
+    thresholds: list[float],
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+    num_dimensions = 2
+    create_response = await vector_index_client_async.create_index(
+        index_name, num_dimensions=num_dimensions, similarity_metric=similarity_metric
+    )
+    assert isinstance(create_response, CreateIndex.Success)
+
+    upsert_response = await vector_index_client_async.upsert_item_batch(
+        index_name,
+        items=[
+            Item(id="test_item_1", vector=[1.0, 1.0]),
+            Item(id="test_item_2", vector=[-1.0, 1.0]),
+            Item(id="test_item_3", vector=[-1.0, -1.0]),
+        ],
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    await sleep_async(2)
+
+    search_hits = [SearchHit(id=f"test_item_{i+1}", distance=distance) for i, distance in enumerate(distances)]
+
+    search_response = await vector_index_client_async.search(
+        index_name, query_vector=[2.0, 2.0], top_k=3, score_threshold=thresholds[0]
+    )
+    assert isinstance(search_response, Search.Success)
+    assert search_response.hits == [search_hits[0]]
+
+    search_response2 = await vector_index_client_async.search(
+        index_name, query_vector=[2.0, 2.0], top_k=3, score_threshold=thresholds[1]
+    )
+    assert isinstance(search_response2, Search.Success)
+    assert search_response2.hits == search_hits
+
+    search_response3 = await vector_index_client_async.search(
+        index_name, query_vector=[2.0, 2.0], top_k=3, score_threshold=thresholds[2]
+    )
+    assert isinstance(search_response3, Search.Success)
+    assert search_response3.hits == []
+
+
 async def test_delete_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
     response = await vector_index_client_async.delete_item_batch(index_name="", ids=[])
     assert isinstance(response, DeleteItemBatch.Error)
