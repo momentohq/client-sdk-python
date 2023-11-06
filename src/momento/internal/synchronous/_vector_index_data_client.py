@@ -114,14 +114,18 @@ class _VectorIndexDataClient:
                     )
                 )
 
-            request = vectorindex_pb._SearchRequest(
-                index_name=index_name, query_vector=query_vector_pb, top_k=top_k, metadata_fields=metadata_fields_pb
-            )
+            no_score_threshold = None
+            if score_threshold is None:
+                no_score_threshold = vectorindex_pb._NoScoreThreshold()
 
-            if score_threshold is not None:
-                request.score_threshold = score_threshold
-            else:
-                request.no_score_threshold = vectorindex_pb._SearchRequest._NoScoreThreshold()
+            request = vectorindex_pb._SearchRequest(
+                index_name=index_name,
+                query_vector=query_vector_pb,
+                top_k=top_k,
+                metadata_fields=metadata_fields_pb,
+                score_threshold=score_threshold,
+                no_score_threshold=no_score_threshold,
+            )
 
             response: vectorindex_pb._SearchResponse = self._build_stub().Search(
                 request, timeout=self._default_deadline_seconds
