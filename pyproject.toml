@@ -30,12 +30,12 @@ exclude = ["src/momento/internal/codegen.py"]
 [tool.poetry.dependencies]
 python = "^3.7"
 
-momento-wire-types = "^0.86.0"
+momento-wire-types = "^0.91.1"
 grpcio = "^1.46.0"
 # note if you bump this presigned url test need be updated
 pyjwt = "^2.4.0"
 # Need a lower bound of 4 to be compatible with python 3.7 flake8
-importlib-metadata = { version=">=4", python="<3.8" }
+importlib-metadata = { version = ">=4", python = "<3.8" }
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.1.3"
@@ -68,38 +68,33 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S.%f"
 python_version = "3.7"
 
 # Increase our expectations
-check_untyped_defs          = true
-disallow_incomplete_defs    = true
-disallow_untyped_defs       = true
-no_implicit_optional        = true
-show_column_numbers         = true
-show_error_codes            = true
-strict_optional             = true
-warn_no_return              = true
-warn_redundant_casts        = true
-warn_return_any             = true
-warn_unreachable            = true
-warn_unused_ignores         = true
-disallow_any_decorated      = true
-disallow_any_explicit       = true
-disallow_any_expr           = true
-disallow_any_generics       = true
-disallow_untyped_calls      = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+show_column_numbers = true
+show_error_codes = true
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_ignores = true
+disallow_any_decorated = true
+disallow_any_explicit = true
+disallow_any_expr = true
+disallow_any_generics = true
+disallow_untyped_calls = true
 disallow_untyped_decorators = true
-strict_equality             = true
+strict_equality = true
 
 # These are too strict for us at the moment
-disallow_any_unimported     = false
-disallow_subclassing_any    = false
+disallow_any_unimported = false
+disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
-module = [
-  "momento_wire_types.*",
-  "grpc.*",
-  "google.*",
-  "pytest_describe"
-]
-ignore_missing_imports      = true
+module = ["momento_wire_types.*", "grpc.*", "google.*", "pytest_describe"]
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -127,12 +122,12 @@ module = [
   "momento.responses.control.signing_key.*",
   "momento.responses.vector_index.data.search",
 ]
-disallow_any_expr           = false
+disallow_any_expr = false
 
 [[tool.mypy.overrides]]
 module = "tests.*"
-disallow_any_expr           = false
-disallow_any_decorated      = false
+disallow_any_expr = false
+disallow_any_decorated = false
 disallow_untyped_decorators = false
 
 

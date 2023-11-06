@@ -95,6 +95,7 @@ class _VectorIndexDataClient:
         query_vector: list[float],
         top_k: int,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
+        score_threshold: Optional[float] = None,
     ) -> SearchResponse:
         try:
             self._log_issuing_request("Search", {"index_name": index_name})
@@ -111,8 +112,17 @@ class _VectorIndexDataClient:
                     )
                 )
 
+            no_score_threshold = None
+            if score_threshold is None:
+                no_score_threshold = vectorindex_pb._NoScoreThreshold()
+
             request = vectorindex_pb._SearchRequest(
-                index_name=index_name, query_vector=query_vector_pb, top_k=top_k, metadata_fields=metadata_fields_pb
+                index_name=index_name,
+                query_vector=query_vector_pb,
+                top_k=top_k,
+                metadata_fields=metadata_fields_pb,
+                score_threshold=score_threshold,
+                no_score_threshold=no_score_threshold,
             )
 
             response: vectorindex_pb._SearchResponse = await self._build_stub().Search(
