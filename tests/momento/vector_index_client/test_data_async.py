@@ -490,22 +490,23 @@ async def test_search_score_threshold_happy_path(
 
     await sleep_async(2)
 
+    query_vector = [2.0, 2.0]
     search_hits = [SearchHit(id=f"test_item_{i+1}", distance=distance) for i, distance in enumerate(distances)]
 
     search_response = await vector_index_client_async.search(
-        index_name, query_vector=[2.0, 2.0], top_k=3, score_threshold=thresholds[0]
+        index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[0]
     )
     assert isinstance(search_response, Search.Success)
     assert search_response.hits == [search_hits[0]]
 
     search_response2 = await vector_index_client_async.search(
-        index_name, query_vector=[2.0, 2.0], top_k=3, score_threshold=thresholds[1]
+        index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[1]
     )
     assert isinstance(search_response2, Search.Success)
     assert search_response2.hits == search_hits
 
     search_response3 = await vector_index_client_async.search(
-        index_name, query_vector=[2.0, 2.0], top_k=3, score_threshold=thresholds[2]
+        index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[2]
     )
     assert isinstance(search_response3, Search.Success)
     assert search_response3.hits == []
