@@ -24,13 +24,13 @@ class SearchResponse(VectorIndexResponse):
 @dataclass
 class SearchHit:
     id: str
-    distance: float
+    score: float
     metadata: dict[str, str | int | float | bool | list[str]] = field(default_factory=dict)
 
     @staticmethod
     def from_proto(hit: vectorindex_pb._SearchHit) -> SearchHit:
         metadata = pb_metadata_to_dict(hit.metadata)
-        return SearchHit(id=hit.id, distance=hit.distance, metadata=metadata)
+        return SearchHit(id=hit.id, score=hit.distance, metadata=metadata)
 
 
 class Search(ABC):
