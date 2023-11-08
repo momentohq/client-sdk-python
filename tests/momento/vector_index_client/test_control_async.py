@@ -20,7 +20,7 @@ async def test_create_index_list_indexes_and_delete_index(
 
     list_indexes_response = await vector_index_client_async.list_indexes()
     assert isinstance(list_indexes_response, ListIndexes.Success)
-    assert any(index_name == new_index_name for index_name in list_indexes_response.index_names)
+    assert any(index.name == new_index_name for index in list_indexes_response.indexes)
 
     delete_index_response = await vector_index_client_async.delete_index(new_index_name)
     assert isinstance(delete_index_response, DeleteIndex.Success)
@@ -149,7 +149,7 @@ async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorInd
     initial_response = await vector_index_client_async.list_indexes()
     assert isinstance(initial_response, ListIndexes.Success)
 
-    index_names = [index_name for index_name in initial_response.index_names]
+    index_names = [index.name for index in initial_response.indexes]
     assert index_name not in index_names
 
     try:
@@ -159,7 +159,7 @@ async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorInd
         list_cache_resp = await vector_index_client_async.list_indexes()
         assert isinstance(list_cache_resp, ListIndexes.Success)
 
-        index_names = [index_name for index_name in list_cache_resp.index_names]
+        index_names = [index.name for index in list_cache_resp.indexes]
         assert index_name in index_names
     finally:
         delete_response = await vector_index_client_async.delete_index(index_name)
