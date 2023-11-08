@@ -41,6 +41,7 @@ from momento.responses.vector_index import (
     DeleteItemBatchResponse,
     ListIndexesResponse,
     SearchResponse,
+    SearchAndFetchVectorsResponse,
     UpsertItemBatchResponse,
 )
 
@@ -220,5 +221,37 @@ class PreviewVectorIndexClientAsync:
             SearchResponse: The result of a search operation.
         """
         return await self._data_client.search(index_name, query_vector, top_k, metadata_fields, score_threshold)
+
+    async def search_and_fetch_vectors(
+        self,
+        index_name: str,
+        query_vector: list[float],
+        top_k: int = 10,
+        metadata_fields: Optional[list[str]] | AllMetadata = None,
+        score_threshold: Optional[float] = None,
+    ) -> SearchAndFetchVectorsResponse:
+        """Searches for the most similar vectors to the query vector in the index.
+
+        Ranks the results using the similarity metric specified when the index was created.
+
+        Args:
+            index_name (str): Name of the index to search in.
+            query_vector (list[float]): The vector to search for.
+            top_k (int): The number of results to return. Defaults to 10.
+            metadata_fields (Optional[list[str]] | AllMetadata): A list of metadata fields
+                to return with each result. If not provided, no metadata is returned.
+                If the special value `ALL_METADATA` is provided, all metadata is returned.
+                Defaults to None.
+            score_threshold (Optional[float]): A score threshold to filter results by.
+                For cosine similarity and inner product, scores lower than the threshold
+                are excluded. For euclidean similarity, scores higher than the threshold
+                are excluded. The threshold is exclusive. Defaults to None, ie no threshold.
+
+        Returns:
+            SearchResponse: The result of a search operation.
+        """
+        return await self._data_client.search_and_fetch_vectors(
+            index_name, query_vector, top_k, metadata_fields, score_threshold
+        )
 
     # TODO: repr

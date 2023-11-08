@@ -1,6 +1,13 @@
+from __future__ import annotations
 import asyncio
 import time
 import uuid
+
+from momento.requests.vector_index import Item
+from momento.responses.vector_index import Search, SearchAndFetchVectors
+from momento.responses.vector_index.data.search import SearchHit
+from momento.responses.vector_index.data.search_and_fetch_vectors import SearchAndFetchVectorsHit
+from typing import cast
 
 
 def unique_test_cache_name() -> str:
@@ -47,3 +54,14 @@ def sleep(seconds: int) -> None:
 
 async def sleep_async(seconds: int) -> None:
     await asyncio.sleep(seconds)
+
+
+def when_fetching_vectors_apply_vectors_to_hits(
+    response: Search.Success | SearchAndFetchVectors.Success,
+    hits: list[SearchHit] | list[SearchAndFetchVectorsHit],
+    items: list[Item],
+) -> list[SearchHit]:
+    if isinstance(response, Search.Success):
+        return cast(list[SearchHit], hits)
+    item_index = {item.id: item for item in items}
+    return [SearchAndFetchVectorsHit.from_search_hit(hit, item_index[hit.id].vector) for hit in hits]
