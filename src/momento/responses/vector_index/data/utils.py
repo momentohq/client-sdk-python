@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from typing import Iterable
+
 from momento_wire_types import vectorindex_pb2 as vectorindex_pb
+
 from momento.errors import UnknownException
 
 

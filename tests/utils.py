@@ -1,13 +1,16 @@
 from __future__ import annotations
+
 import asyncio
 import time
 import uuid
+from typing import cast
 
 from momento.requests.vector_index import Item
 from momento.responses.vector_index import Search, SearchAndFetchVectors
 from momento.responses.vector_index.data.search import SearchHit
-from momento.responses.vector_index.data.search_and_fetch_vectors import SearchAndFetchVectorsHit
-from typing import cast
+from momento.responses.vector_index.data.search_and_fetch_vectors import (
+    SearchAndFetchVectorsHit,
+)
 
 
 def unique_test_cache_name() -> str:

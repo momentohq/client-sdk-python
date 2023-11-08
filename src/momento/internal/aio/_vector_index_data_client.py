@@ -19,12 +19,12 @@ from momento.responses.vector_index import (
     DeleteItemBatchResponse,
     Search,
     SearchAndFetchVectors,
-    SearchResponse,
+    SearchAndFetchVectorsHit,
     SearchAndFetchVectorsResponse,
+    SearchHit,
+    SearchResponse,
     UpsertItemBatch,
     UpsertItemBatchResponse,
-    SearchHit,
-    SearchAndFetchVectorsHit,
 )
 
 

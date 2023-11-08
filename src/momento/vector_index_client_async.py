@@ -40,8 +40,8 @@ from momento.responses.vector_index import (
     DeleteIndexResponse,
     DeleteItemBatchResponse,
     ListIndexesResponse,
-    SearchResponse,
     SearchAndFetchVectorsResponse,
+    SearchResponse,
     UpsertItemBatchResponse,
 )
 
@@ -233,6 +233,7 @@ class PreviewVectorIndexClientAsync:
         """Searches for the most similar vectors to the query vector in the index.
 
         Ranks the results using the similarity metric specified when the index was created.
+        Also returns the vectors associated with each result.
 
         Args:
             index_name (str): Name of the index to search in.
