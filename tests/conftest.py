@@ -401,7 +401,7 @@ async def unique_cache_name_async(
         client_async (CacheClientAsync): The client to use to delete the cache.
 
     Returns:
-        str: the unique cache name
+        str: the unique cache name.
     """
     cache_names = []
 
