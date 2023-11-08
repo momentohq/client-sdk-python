@@ -20,11 +20,14 @@ from momento.responses.vector_index import (
     DeleteItemBatch,
     DeleteItemBatchResponse,
     Search,
+    SearchAndFetchVectors,
+    SearchAndFetchVectorsHit,
+    SearchAndFetchVectorsResponse,
+    SearchHit,
     SearchResponse,
     UpsertItemBatch,
     UpsertItemBatchResponse,
 )
-from momento.responses.vector_index.data.search import SearchHit
 
 
 class _VectorIndexDataClient:
@@ -137,6 +140,53 @@ class _VectorIndexDataClient:
         except Exception as e:
             self._log_request_error("search", e)
             return Search.Error(convert_error(e, Service.INDEX))
+
+    def search_and_fetch_vectors(
+        self,
+        index_name: str,
+        query_vector: list[float],
+        top_k: int,
+        metadata_fields: Optional[list[str]] | AllMetadata = None,
+        score_threshold: Optional[float] = None,
+    ) -> SearchAndFetchVectorsResponse:
+        try:
+            self._log_issuing_request("SearchAndFetchVectors", {"index_name": index_name})
+            _validate_index_name(index_name)
+            _validate_top_k(top_k)
+
+            query_vector_pb = vectorindex_pb._Vector(elements=query_vector)
+            if isinstance(metadata_fields, AllMetadata):
+                metadata_fields_pb = vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All())
+            else:
+                metadata_fields_pb = vectorindex_pb._MetadataRequest(
+                    some=vectorindex_pb._MetadataRequest.Some(
+                        fields=metadata_fields if metadata_fields is not None else []
+                    )
+                )
+
+            no_score_threshold = None
+            if score_threshold is None:
+                no_score_threshold = vectorindex_pb._NoScoreThreshold()
+
+            request = vectorindex_pb._SearchAndFetchVectorsRequest(
+                index_name=index_name,
+                query_vector=query_vector_pb,
+                top_k=top_k,
+                metadata_fields=metadata_fields_pb,
+                score_threshold=score_threshold,
+                no_score_threshold=no_score_threshold,
+            )
+
+            response: vectorindex_pb._SearchAndFetchVectorsResponse = self._build_stub().SearchAndFetchVectors(
+                request, timeout=self._default_deadline_seconds
+            )
+
+            hits = [SearchAndFetchVectorsHit.from_proto(hit) for hit in response.hits]
+            self._log_received_response("SearchAndFetchVectors", {"index_name": index_name})
+            return SearchAndFetchVectors.Success(hits=hits)
+        except Exception as e:
+            self._log_request_error("search_and_fetch_vectors", e)
+            return SearchAndFetchVectors.Error(convert_error(e, Service.INDEX))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:

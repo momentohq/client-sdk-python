@@ -11,11 +11,12 @@ from momento.responses.vector_index import (
     CreateIndex,
     DeleteItemBatch,
     Search,
+    SearchAndFetchVectors,
     SearchHit,
     UpsertItemBatch,
 )
 from tests.conftest import TUniqueVectorIndexNameAsync
-from tests.utils import sleep_async
+from tests.utils import sleep_async, when_fetching_vectors_apply_vectors_to_hits
 
 
 async def test_create_index_with_inner_product_upsert_item_search_happy_path(
@@ -143,9 +144,20 @@ async def test_create_index_upsert_multiple_items_search_happy_path(
     ]
 
 
+# A note on the parameterized search tests:
+# The search tests are parameterized to test both the search and search_and_fetch_vectors methods.
+# We pass both the name of the specific search method and the response type.
+# The tests will run for both search methods, and the response type will be used to assert the type of the response.
+# The vectors are attached to the hits if the response type is SearchAndFetchVectors.Success.
+@pytest.mark.parametrize(
+    ["search_method_name", "response"],
+    [("search", Search.Success), ("search_and_fetch_vectors", SearchAndFetchVectors.Success)],
+)
 async def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+    search_method_name: str,
+    response: type[Search.Success] | type[SearchAndFetchVectors.Success],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(
@@ -153,31 +165,38 @@ async def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
     )
     assert isinstance(create_response, CreateIndex.Success)
 
+    items = [
+        Item(id="test_item_1", vector=[1.0, 2.0]),
+        Item(id="test_item_2", vector=[3.0, 4.0]),
+        Item(id="test_item_3", vector=[5.0, 6.0]),
+    ]
     upsert_response = await vector_index_client_async.upsert_item_batch(
         index_name,
-        items=[
-            Item(id="test_item_1", vector=[1.0, 2.0]),
-            Item(id="test_item_2", vector=[3.0, 4.0]),
-            Item(id="test_item_3", vector=[5.0, 6.0]),
-        ],
+        items=items,
     )
     assert isinstance(upsert_response, UpsertItemBatch.Success)
 
     await sleep_async(2)
 
-    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=2)
-    assert isinstance(search_response, Search.Success)
+    search = getattr(vector_index_client_async, search_method_name)
+    search_response = await search(index_name, query_vector=[1.0, 2.0], top_k=2)
+    assert isinstance(search_response, response)
     assert len(search_response.hits) == 2
 
-    assert search_response.hits == [
-        SearchHit(id="test_item_3", distance=17.0),
-        SearchHit(id="test_item_2", distance=11.0),
-    ]
+    hits = [SearchHit(id="test_item_3", distance=17.0), SearchHit(id="test_item_2", distance=11.0)]
+    hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
+    assert search_response.hits == hits
 
 
+@pytest.mark.parametrize(
+    ["search_method_name", "response"],
+    [("search", Search.Success), ("search_and_fetch_vectors", SearchAndFetchVectors.Success)],
+)
 async def test_upsert_and_search_with_metadata_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+    search_method_name: str,
+    response: type[Search.Success] | type[SearchAndFetchVectors.Success],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(
@@ -185,51 +204,57 @@ async def test_upsert_and_search_with_metadata_happy_path(
     )
     assert isinstance(create_response, CreateIndex.Success)
 
+    items = [
+        Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
+        Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
+        Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key1": "value3", "key3": "value3"}),
+    ]
     upsert_response = await vector_index_client_async.upsert_item_batch(
         index_name,
-        items=[
-            Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
-            Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
-            Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key1": "value3", "key3": "value3"}),
-        ],
+        items=items,
     )
     assert isinstance(upsert_response, UpsertItemBatch.Success)
 
     await sleep_async(2)
 
-    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=3)
-    assert isinstance(search_response, Search.Success)
+    search = getattr(vector_index_client_async, search_method_name)
+    search_response = await search(index_name, query_vector=[1.0, 2.0], top_k=3)
+    assert isinstance(search_response, response)
     assert len(search_response.hits) == 3
 
-    assert search_response.hits == [
+    hits = [
         SearchHit(id="test_item_3", distance=17.0),
         SearchHit(id="test_item_2", distance=11.0),
         SearchHit(id="test_item_1", distance=5.0),
     ]
+    hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
+    assert search_response.hits == hits
 
-    search_response = await vector_index_client_async.search(
-        index_name, query_vector=[1.0, 2.0], top_k=3, metadata_fields=["key1"]
-    )
-    assert isinstance(search_response, Search.Success)
+    search_response = await search(index_name, query_vector=[1.0, 2.0], top_k=3, metadata_fields=["key1"])
+    assert isinstance(search_response, response)
     assert len(search_response.hits) == 3
 
-    assert search_response.hits == [
+    hits = [
         SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3"}),
         SearchHit(id="test_item_2", distance=11.0, metadata={}),
         SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
     ]
+    hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
+    assert search_response.hits == hits
 
-    search_response = await vector_index_client_async.search(
+    search_response = await search(
         index_name, query_vector=[1.0, 2.0], top_k=3, metadata_fields=["key1", "key2", "key3", "key4"]
     )
-    assert isinstance(search_response, Search.Success)
+    assert isinstance(search_response, response)
     assert len(search_response.hits) == 3
 
-    assert search_response.hits == [
+    hits = [
         SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
         SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
         SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
     ]
+    hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
+    assert search_response.hits == hits
 
 
 async def test_upsert_with_bad_metadata(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
@@ -245,9 +270,15 @@ async def test_upsert_with_bad_metadata(vector_index_client_async: PreviewVector
     )
 
 
+@pytest.mark.parametrize(
+    ["search_method_name", "response"],
+    [("search", Search.Success), ("search_and_fetch_vectors", SearchAndFetchVectors.Success)],
+)
 async def test_upsert_and_search_with_all_metadata_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+    search_method_name: str,
+    response: type[Search.Success] | type[SearchAndFetchVectors.Success],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(
@@ -255,44 +286,60 @@ async def test_upsert_and_search_with_all_metadata_happy_path(
     )
     assert isinstance(create_response, CreateIndex.Success)
 
+    items = [
+        Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
+        Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
+        Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key1": "value3", "key3": "value3"}),
+    ]
     upsert_response = await vector_index_client_async.upsert_item_batch(
         index_name,
-        items=[
-            Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
-            Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
-            Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key1": "value3", "key3": "value3"}),
-        ],
+        items=items,
     )
     assert isinstance(upsert_response, UpsertItemBatch.Success)
 
     await sleep_async(2)
 
-    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=3)
-    assert isinstance(search_response, Search.Success)
+    search = getattr(vector_index_client_async, search_method_name)
+    search_response = await search(index_name, query_vector=[1.0, 2.0], top_k=3)
+    assert isinstance(search_response, response)
     assert len(search_response.hits) == 3
 
-    assert search_response.hits == [
+    hits = [
         SearchHit(id="test_item_3", distance=17.0),
         SearchHit(id="test_item_2", distance=11.0),
         SearchHit(id="test_item_1", distance=5.0),
     ]
+    hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
+    assert search_response.hits == hits
 
-    search_response = await vector_index_client_async.search(
-        index_name, query_vector=[1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA
-    )
-    assert isinstance(search_response, Search.Success)
+    search_response = await search(index_name, query_vector=[1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA)
+    assert isinstance(search_response, response)
     assert len(search_response.hits) == 3
 
-    assert search_response.hits == [
+    hits = [
         SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
         SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
         SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
     ]
+    hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
+    assert search_response.hits == hits
 
 
+@pytest.mark.parametrize(
+    ["search_method_name", "response"],
+    [
+        ("search", Search.Success),
+        (
+            "search_and_fetch_vectors",
+            SearchAndFetchVectors.Success,
+        ),
+    ],
+)
 async def test_upsert_and_search_with_diverse_metadata_happy_path(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+    search_method_name: str,
+    response: type[Search.Success] | type[SearchAndFetchVectors.Success],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(
@@ -308,29 +355,22 @@ async def test_upsert_and_search_with_diverse_metadata_happy_path(
         "list": ["a", "b", "c"],
         "empty_list": [],
     }
-    upsert_response = await vector_index_client_async.upsert_item_batch(
-        index_name,
-        items=[
-            Item(id="test_item_1", vector=[1.0, 2.0], metadata=metadata),
-        ],
-    )
+    items = [
+        Item(id="test_item_1", vector=[1.0, 2.0], metadata=metadata),
+    ]
+    upsert_response = await vector_index_client_async.upsert_item_batch(index_name, items=items)
     assert isinstance(upsert_response, UpsertItemBatch.Success)
 
     await sleep_async(2)
 
-    search_response = await vector_index_client_async.search(
-        index_name, query_vector=[1.0, 2.0], top_k=1, metadata_fields=ALL_METADATA
-    )
-    assert isinstance(search_response, Search.Success)
+    search = getattr(vector_index_client_async, search_method_name)
+    search_response = await search(index_name, query_vector=[1.0, 2.0], top_k=1, metadata_fields=ALL_METADATA)
+    assert isinstance(search_response, response)
     assert len(search_response.hits) == 1
 
-    assert search_response.hits == [
-        SearchHit(
-            id="test_item_1",
-            metadata=metadata,
-            distance=5.0,
-        ),
-    ]
+    hits = [SearchHit(id="test_item_1", metadata=metadata, distance=5.0)]
+    hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
+    assert search_response.hits == hits
 
 
 async def test_upsert_replaces_existing_items(
@@ -400,9 +440,15 @@ async def test_create_index_upsert_item_dimensions_different_than_num_dimensions
     assert upsert_response.inner_exception.message == expected_inner_ex_message
 
 
+@pytest.mark.parametrize(
+    ["search_method_name", "error_type"],
+    [("search", Search.Error), ("search_and_fetch_vectors", SearchAndFetchVectors.Error)],
+)
 async def test_create_index_upsert_multiple_items_search_with_top_k_query_vector_dimensions_incorrect(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+    search_method_name: str,
+    error_type: type[Search.Error] | type[SearchAndFetchVectors.Error],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(
@@ -420,8 +466,9 @@ async def test_create_index_upsert_multiple_items_search_with_top_k_query_vector
     )
     assert isinstance(upsert_response, UpsertItemBatch.Success)
 
-    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0, 3.0], top_k=2)
-    assert isinstance(search_response, Search.Error)
+    search = getattr(vector_index_client_async, search_method_name)
+    search_response = await search(index_name, query_vector=[1.0, 2.0, 3.0], top_k=2)
+    assert isinstance(search_response, error_type)
 
     expected_inner_ex_message = "invalid parameter: query_vector, query vector dimension must match the index dimension"
     expected_resp_message = f"Invalid argument passed to Momento client: {expected_inner_ex_message}"
@@ -438,30 +485,69 @@ async def test_upsert_validates_index_name(vector_index_client_async: PreviewVec
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-async def test_search_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
-    response = await vector_index_client_async.search(index_name="", query_vector=[1.0, 2.0])
-    assert isinstance(response, Search.Error)
+@pytest.mark.parametrize(
+    ["search_method_name", "error_type"],
+    [("search", Search.Error), ("search_and_fetch_vectors", SearchAndFetchVectors.Error)],
+)
+async def test_search_validates_index_name(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    search_method_name: str,
+    error_type: type[Search.Error] | type[SearchAndFetchVectors.Error],
+) -> None:
+    search = getattr(vector_index_client_async, search_method_name)
+    response = await search(index_name="", query_vector=[1.0, 2.0])
+    assert isinstance(response, error_type)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-async def test_search_validates_top_k(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
-    response = await vector_index_client_async.search(index_name="test_index", query_vector=[1.0, 2.0], top_k=0)
-    assert isinstance(response, Search.Error)
+@pytest.mark.parametrize(
+    ["search_method_name", "error_type"],
+    [("search", Search.Error), ("search_and_fetch_vectors", SearchAndFetchVectors.Error)],
+)
+async def test_search_validates_top_k(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    search_method_name: str,
+    error_type: type[Search.Error] | type[SearchAndFetchVectors.Error],
+) -> None:
+    search = getattr(vector_index_client_async, search_method_name)
+    response = await search(index_name="test_index", query_vector=[1.0, 2.0], top_k=0)
+    assert isinstance(response, error_type)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
     assert response.inner_exception.message == "Top k must be a positive integer."
 
 
 @pytest.mark.parametrize(
-    ["similarity_metric", "distances", "thresholds"],
+    ["similarity_metric", "distances", "thresholds", "search_method_name", "response"],
     [
         # Distances are the distance to the same 3 data vectors from the same query vector.
         # Thresholds are those that should:
         # 1. exclude lowest two matches
         # 2. keep all matches
         # 3. exclude all matches
-        (SimilarityMetric.COSINE_SIMILARITY, [1.0, 0.0, -1.0], [0.5, -1.01, 1.0]),
-        (SimilarityMetric.INNER_PRODUCT, [4.0, 0.0, -4.0], [0.0, -4.01, 4.0]),
-        (SimilarityMetric.EUCLIDEAN_SIMILARITY, [2, 10, 18], [3, 20, -0.01]),
+        (SimilarityMetric.COSINE_SIMILARITY, [1.0, 0.0, -1.0], [0.5, -1.01, 1.0], "search", Search.Success),
+        (
+            SimilarityMetric.COSINE_SIMILARITY,
+            [1.0, 0.0, -1.0],
+            [0.5, -1.01, 1.0],
+            "search_and_fetch_vectors",
+            SearchAndFetchVectors.Success,
+        ),
+        (SimilarityMetric.INNER_PRODUCT, [4.0, 0.0, -4.0], [0.0, -4.01, 4.0], "search", Search.Success),
+        (
+            SimilarityMetric.INNER_PRODUCT,
+            [4.0, 0.0, -4.0],
+            [0.0, -4.01, 4.0],
+            "search_and_fetch_vectors",
+            SearchAndFetchVectors.Success,
+        ),
+        (SimilarityMetric.EUCLIDEAN_SIMILARITY, [2, 10, 18], [3, 20, -0.01], "search", Search.Success),
+        (
+            SimilarityMetric.EUCLIDEAN_SIMILARITY,
+            [2, 10, 18],
+            [3, 20, -0.01],
+            "search_and_fetch_vectors",
+            SearchAndFetchVectors.Success,
+        ),
     ],
 )
 async def test_search_score_threshold_happy_path(
@@ -470,6 +556,8 @@ async def test_search_score_threshold_happy_path(
     similarity_metric: SimilarityMetric,
     distances: list[float],
     thresholds: list[float],
+    search_method_name: str,
+    response: type[Search.Success] | type[SearchAndFetchVectors.Success],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     num_dimensions = 2
@@ -478,13 +566,14 @@ async def test_search_score_threshold_happy_path(
     )
     assert isinstance(create_response, CreateIndex.Success)
 
+    items = [
+        Item(id="test_item_1", vector=[1.0, 1.0]),
+        Item(id="test_item_2", vector=[-1.0, 1.0]),
+        Item(id="test_item_3", vector=[-1.0, -1.0]),
+    ]
     upsert_response = await vector_index_client_async.upsert_item_batch(
         index_name,
-        items=[
-            Item(id="test_item_1", vector=[1.0, 1.0]),
-            Item(id="test_item_2", vector=[-1.0, 1.0]),
-            Item(id="test_item_3", vector=[-1.0, -1.0]),
-        ],
+        items=items,
     )
     assert isinstance(upsert_response, UpsertItemBatch.Success)
 
@@ -493,22 +582,17 @@ async def test_search_score_threshold_happy_path(
     query_vector = [2.0, 2.0]
     search_hits = [SearchHit(id=f"test_item_{i+1}", distance=distance) for i, distance in enumerate(distances)]
 
-    search_response = await vector_index_client_async.search(
-        index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[0]
-    )
-    assert isinstance(search_response, Search.Success)
-    assert search_response.hits == [search_hits[0]]
+    search = getattr(vector_index_client_async, search_method_name)
+    search_response = await search(index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[0])
+    assert isinstance(search_response, response)
+    assert search_response.hits == when_fetching_vectors_apply_vectors_to_hits(search_response, [search_hits[0]], items)
 
-    search_response2 = await vector_index_client_async.search(
-        index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[1]
-    )
-    assert isinstance(search_response2, Search.Success)
-    assert search_response2.hits == search_hits
+    search_response2 = await search(index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[1])
+    assert isinstance(search_response2, response)
+    assert search_response2.hits == when_fetching_vectors_apply_vectors_to_hits(search_response, search_hits, items)
 
-    search_response3 = await vector_index_client_async.search(
-        index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[2]
-    )
-    assert isinstance(search_response3, Search.Success)
+    search_response3 = await search(index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[2])
+    assert isinstance(search_response3, response)
     assert search_response3.hits == []
 
 
