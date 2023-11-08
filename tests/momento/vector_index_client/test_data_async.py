@@ -144,6 +144,11 @@ async def test_create_index_upsert_multiple_items_search_happy_path(
     ]
 
 
+# A note on the parameterized search tests:
+# The search tests are parameterized to test both the search and search_and_fetch_vectors methods.
+# We pass both the name of the specific search method and the response type.
+# The tests will run for both search methods, and the response type will be used to assert the type of the response.
+# The vectors are attached to the hits if the response type is SearchAndFetchVectors.Success.
 @pytest.mark.parametrize(
     ["search_method_name", "response"],
     [("search", Search.Success), ("search_and_fetch_vectors", SearchAndFetchVectors.Success)],
