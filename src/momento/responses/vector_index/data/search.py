@@ -9,6 +9,7 @@ from momento.errors import UnknownException
 
 from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
+from .utils import pb_metadata_to_dict
 
 
 class SearchResponse(VectorIndexResponse):
@@ -30,22 +31,7 @@ class SearchHit:
 
     @staticmethod
     def from_proto(hit: vectorindex_pb._SearchHit) -> SearchHit:
-        metadata = {}
-        for item in hit.metadata:
-            type = item.WhichOneof("value")
-            field = item.field
-            if type == "string_value":
-                metadata[field] = item.string_value
-            elif type == "integer_value":
-                metadata[field] = item.integer_value
-            elif type == "double_value":
-                metadata[field] = item.double_value
-            elif type == "boolean_value":
-                metadata[field] = item.boolean_value
-            elif type == "list_of_strings_value":
-                metadata[field] = item.list_of_strings_value.values
-            else:
-                raise UnknownException(f"Unknown metadata value: {type}")
+        metadata = pb_metadata_to_dict(hit.metadata)
         return SearchHit(id=hit.id, distance=hit.distance, metadata=metadata)
 
 
