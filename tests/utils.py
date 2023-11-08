@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import time
 import uuid
-from typing import cast
 
 from momento.requests.vector_index import Item
 from momento.responses.vector_index import Search, SearchAndFetchVectors
