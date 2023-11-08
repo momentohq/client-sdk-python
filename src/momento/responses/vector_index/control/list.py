@@ -64,7 +64,7 @@ class ListIndexes(ABC):
                 grpc_list_index_response: Protobuf based response returned by Scs.
             """
             return ListIndexes.Success(
-                indexes=[IndexInfo(index_name) for index_name in grpc_list_index_response.index_names]  # type: ignore[misc]
+                indexes=[IndexInfo(index_name) for index_name in grpc_list_index_response.index_names]  # type: ignore[misc]  # noqa: E501
             )
 
     class Error(ListIndexesResponse, ErrorResponseMixin):
