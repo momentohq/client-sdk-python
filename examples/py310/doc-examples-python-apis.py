@@ -5,10 +5,12 @@ from momento import (
     CacheClientAsync,
     Configurations,
     CredentialProvider,
+    PreviewVectorIndexClientAsync,
     TopicClientAsync,
-    TopicConfigurations, PreviewVectorIndexClientAsync, VectorIndexConfigurations,
+    TopicConfigurations,
+    VectorIndexConfigurations,
 )
-from momento.requests.vector_index import Item, ALL_METADATA
+from momento.requests.vector_index import ALL_METADATA, Item
 from momento.responses import (
     CacheDelete,
     CacheGet,
@@ -20,8 +22,14 @@ from momento.responses import (
     TopicSubscribe,
     TopicSubscriptionItem,
 )
-from momento.responses.vector_index import CreateIndex, ListIndexes, DeleteIndex, UpsertItemBatch, DeleteItemBatch, \
-    Search
+from momento.responses.vector_index import (
+    CreateIndex,
+    DeleteIndex,
+    DeleteItemBatch,
+    ListIndexes,
+    Search,
+    UpsertItemBatch,
+)
 
 
 def example_API_CredentialProviderFromEnvVar():
@@ -194,7 +202,7 @@ async def example_API_ListIndexes(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.list_indexes()
     match response:
         case ListIndexes.Success() as success:
-            print(f"Indexes:\n{success.index_names}")
+            print(f"Indexes:\n{success.indexes}")
         case CreateIndex.Error() as error:
             print(f"Error listing indexes: {error.message}")
 
