@@ -65,6 +65,6 @@ def when_fetching_vectors_apply_vectors_to_hits(
     items: list[Item],
 ) -> list[SearchHit]:
     if isinstance(response, Search.Success):
-        return cast(list[SearchHit], hits)
+        return hits  # type: ignore
     item_index = {item.id: item for item in items}
     return [SearchAndFetchVectorsHit.from_search_hit(hit, item_index[hit.id].vector) for hit in hits]
