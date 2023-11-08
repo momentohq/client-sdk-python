@@ -63,6 +63,24 @@ def when_fetching_vectors_apply_vectors_to_hits(
     hits: list[SearchHit] | list[SearchAndFetchVectorsHit],
     items: list[Item],
 ) -> list[SearchHit]:
+    """Normalizes the search hits according to the response.
+
+    The tests will use this function to normalize the expected search hits
+    according to the response type. This allows us to specify one set of expected
+    search hits for both `search` and `search_and_fetch_vectors` requests.
+
+    This method will augment the search hits with the original vectors when
+    the response is `SearchAndFetchVectors.Success`. Otherwise, it will return
+    the search hits as-is.
+
+    Args:
+        response (Search.Success | SearchAndFetchVectors.Success): The search response.
+        hits (list[SearchHit] | list[SearchAndFetchVectorsHit]): The search hits.
+        items (list[Item]): The items that were indexed, used to fetch the original vectors.
+
+    Returns:
+        list[SearchHit]: The normalized search hits.
+    """
     if isinstance(response, Search.Success):
         return hits  # type: ignore
     item_index = {item.id: item for item in items}
