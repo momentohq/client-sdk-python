@@ -40,7 +40,7 @@ async def test_create_index_with_inner_product_upsert_item_search_happy_path(
     assert isinstance(search_response, Search.Success)
     assert len(search_response.hits) == 1
     assert search_response.hits[0].id == "test_item"
-    assert search_response.hits[0].distance == 5.0
+    assert search_response.hits[0].score == 5.0
 
 
 @pytest.mark.parametrize("similarity_metric", [SimilarityMetric.COSINE_SIMILARITY, None])
@@ -74,9 +74,9 @@ async def test_create_index_with_cosine_similarity_upsert_item_search_happy_path
     search_response = await vector_index_client_async.search(index_name, query_vector=[2.0, 2.0], top_k=3)
     assert isinstance(search_response, Search.Success)
     assert search_response.hits == [
-        SearchHit(id="test_item_1", distance=1.0),
-        SearchHit(id="test_item_2", distance=0.0),
-        SearchHit(id="test_item_3", distance=-1.0),
+        SearchHit(id="test_item_1", score=1.0),
+        SearchHit(id="test_item_2", score=0.0),
+        SearchHit(id="test_item_3", score=-1.0),
     ]
 
 
@@ -105,9 +105,9 @@ async def test_create_index_with_euclidean_similarity_upsert_item_search_happy_p
     search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 1.0], top_k=3)
     assert isinstance(search_response, Search.Success)
     assert search_response.hits == [
-        SearchHit(id="test_item_1", distance=0.0),
-        SearchHit(id="test_item_2", distance=4.0),
-        SearchHit(id="test_item_3", distance=8.0),
+        SearchHit(id="test_item_1", score=0.0),
+        SearchHit(id="test_item_2", score=4.0),
+        SearchHit(id="test_item_3", score=8.0),
     ]
 
 
@@ -138,9 +138,9 @@ async def test_create_index_upsert_multiple_items_search_happy_path(
     assert len(search_response.hits) == 3
 
     assert search_response.hits == [
-        SearchHit(id="test_item_3", distance=17.0),
-        SearchHit(id="test_item_2", distance=11.0),
-        SearchHit(id="test_item_1", distance=5.0),
+        SearchHit(id="test_item_3", score=17.0),
+        SearchHit(id="test_item_2", score=11.0),
+        SearchHit(id="test_item_1", score=5.0),
     ]
 
 
@@ -183,7 +183,7 @@ async def test_create_index_upsert_multiple_items_search_with_top_k_happy_path(
     assert isinstance(search_response, response)
     assert len(search_response.hits) == 2
 
-    hits = [SearchHit(id="test_item_3", distance=17.0), SearchHit(id="test_item_2", distance=11.0)]
+    hits = [SearchHit(id="test_item_3", score=17.0), SearchHit(id="test_item_2", score=11.0)]
     hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
     assert search_response.hits == hits
 
@@ -223,9 +223,9 @@ async def test_upsert_and_search_with_metadata_happy_path(
     assert len(search_response.hits) == 3
 
     hits = [
-        SearchHit(id="test_item_3", distance=17.0),
-        SearchHit(id="test_item_2", distance=11.0),
-        SearchHit(id="test_item_1", distance=5.0),
+        SearchHit(id="test_item_3", score=17.0),
+        SearchHit(id="test_item_2", score=11.0),
+        SearchHit(id="test_item_1", score=5.0),
     ]
     hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
     assert search_response.hits == hits
@@ -235,9 +235,9 @@ async def test_upsert_and_search_with_metadata_happy_path(
     assert len(search_response.hits) == 3
 
     hits = [
-        SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3"}),
-        SearchHit(id="test_item_2", distance=11.0, metadata={}),
-        SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
+        SearchHit(id="test_item_3", score=17.0, metadata={"key1": "value3"}),
+        SearchHit(id="test_item_2", score=11.0, metadata={}),
+        SearchHit(id="test_item_1", score=5.0, metadata={"key1": "value1"}),
     ]
     hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
     assert search_response.hits == hits
@@ -249,9 +249,9 @@ async def test_upsert_and_search_with_metadata_happy_path(
     assert len(search_response.hits) == 3
 
     hits = [
-        SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
-        SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
-        SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
+        SearchHit(id="test_item_3", score=17.0, metadata={"key1": "value3", "key3": "value3"}),
+        SearchHit(id="test_item_2", score=11.0, metadata={"key2": "value2"}),
+        SearchHit(id="test_item_1", score=5.0, metadata={"key1": "value1"}),
     ]
     hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
     assert search_response.hits == hits
@@ -305,9 +305,9 @@ async def test_upsert_and_search_with_all_metadata_happy_path(
     assert len(search_response.hits) == 3
 
     hits = [
-        SearchHit(id="test_item_3", distance=17.0),
-        SearchHit(id="test_item_2", distance=11.0),
-        SearchHit(id="test_item_1", distance=5.0),
+        SearchHit(id="test_item_3", score=17.0),
+        SearchHit(id="test_item_2", score=11.0),
+        SearchHit(id="test_item_1", score=5.0),
     ]
     hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
     assert search_response.hits == hits
@@ -317,9 +317,9 @@ async def test_upsert_and_search_with_all_metadata_happy_path(
     assert len(search_response.hits) == 3
 
     hits = [
-        SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
-        SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
-        SearchHit(id="test_item_1", distance=5.0, metadata={"key1": "value1"}),
+        SearchHit(id="test_item_3", score=17.0, metadata={"key1": "value3", "key3": "value3"}),
+        SearchHit(id="test_item_2", score=11.0, metadata={"key2": "value2"}),
+        SearchHit(id="test_item_1", score=5.0, metadata={"key1": "value1"}),
     ]
     hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
     assert search_response.hits == hits
@@ -368,7 +368,7 @@ async def test_upsert_and_search_with_diverse_metadata_happy_path(
     assert isinstance(search_response, response)
     assert len(search_response.hits) == 1
 
-    hits = [SearchHit(id="test_item_1", metadata=metadata, distance=5.0)]
+    hits = [SearchHit(id="test_item_1", metadata=metadata, score=5.0)]
     hits = when_fetching_vectors_apply_vectors_to_hits(search_response, hits, items)
     assert search_response.hits == hits
 
@@ -412,9 +412,9 @@ async def test_upsert_replaces_existing_items(
     assert len(search_response.hits) == 3
 
     assert search_response.hits == [
-        SearchHit(id="test_item_3", distance=17.0, metadata={"key1": "value3", "key3": "value3"}),
-        SearchHit(id="test_item_2", distance=11.0, metadata={"key2": "value2"}),
-        SearchHit(id="test_item_1", distance=10.0, metadata={"key4": "value4"}),
+        SearchHit(id="test_item_3", score=17.0, metadata={"key1": "value3", "key3": "value3"}),
+        SearchHit(id="test_item_2", score=11.0, metadata={"key2": "value2"}),
+        SearchHit(id="test_item_1", score=10.0, metadata={"key4": "value4"}),
     ]
 
 
@@ -580,7 +580,7 @@ async def test_search_score_threshold_happy_path(
     await sleep_async(2)
 
     query_vector = [2.0, 2.0]
-    search_hits = [SearchHit(id=f"test_item_{i+1}", distance=distance) for i, distance in enumerate(distances)]
+    search_hits = [SearchHit(id=f"test_item_{i+1}", score=distance) for i, distance in enumerate(distances)]
 
     search = getattr(vector_index_client_async, search_method_name)
     search_response = await search(index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[0])
@@ -630,9 +630,9 @@ async def test_delete_deletes_ids(
     assert len(search_response.hits) == 3
 
     assert search_response.hits == [
-        SearchHit(id="test_item_3", distance=23.0),
-        SearchHit(id="test_item_2", distance=11.0),
-        SearchHit(id="test_item_1", distance=5.0),
+        SearchHit(id="test_item_3", score=23.0),
+        SearchHit(id="test_item_2", score=11.0),
+        SearchHit(id="test_item_1", score=5.0),
     ]
 
     delete_response = await vector_index_client_async.delete_item_batch(index_name, ids=["test_item_1", "test_item_3"])
@@ -645,5 +645,5 @@ async def test_delete_deletes_ids(
     assert len(search_response.hits) == 1
 
     assert search_response.hits == [
-        SearchHit(id="test_item_2", distance=11.0),
+        SearchHit(id="test_item_2", score=11.0),
     ]
