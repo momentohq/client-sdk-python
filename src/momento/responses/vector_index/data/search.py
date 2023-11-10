@@ -30,7 +30,7 @@ class SearchHit:
     @staticmethod
     def from_proto(hit: vectorindex_pb._SearchHit) -> SearchHit:
         metadata = pb_metadata_to_dict(hit.metadata)
-        return SearchHit(id=hit.id, score=hit.distance, metadata=metadata)
+        return SearchHit(id=hit.id, score=hit.score, metadata=metadata)
 
 
 class Search(ABC):

@@ -60,7 +60,7 @@ def list_indexes(client: PreviewVectorIndexClient) -> None:
     _logger.info("Listing indexes:")
     list_indexes_response = client.list_indexes()
     if isinstance(list_indexes_response, ListIndexes.Success):
-        for index in list_indexes_response.index_names:
+        for index in list_indexes_response.indexes:
             _logger.info(f"- {index!r}")
     elif isinstance(list_indexes_response, ListIndexes.Error):
         _logger.error(f"Error while listing indexes {list_indexes_response.message}")
