@@ -33,9 +33,7 @@ class SearchAndFetchVectorsHit(SearchHit):
     @staticmethod
     def from_proto(hit: vectorindex_pb._SearchAndFetchVectorsHit) -> SearchAndFetchVectorsHit:
         metadata = pb_metadata_to_dict(hit.metadata)
-        return SearchAndFetchVectorsHit(
-            id=hit.id, score=hit.distance, metadata=metadata, vector=list(hit.vector.elements)
-        )
+        return SearchAndFetchVectorsHit(id=hit.id, score=hit.score, metadata=metadata, vector=list(hit.vector.elements))
 
 
 class SearchAndFetchVectors(ABC):
