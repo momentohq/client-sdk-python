@@ -28,6 +28,7 @@ from momento.responses.vector_index import (
     DeleteItemBatch,
     ListIndexes,
     Search,
+    SearchAndFetchVectors,
     UpsertItemBatch,
 )
 
@@ -177,6 +178,7 @@ async def example_API_TopicPublish(topic_client: TopicClientAsync):
 
 # end example
 
+
 async def example_API_InstantiateVectorClient():
     PreviewVectorIndexClientAsync(
         VectorIndexConfigurations.Default.latest(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
@@ -184,6 +186,7 @@ async def example_API_InstantiateVectorClient():
 
 
 # end example
+
 
 async def example_API_CreateIndex(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.create_index("test-index", 2)
@@ -198,6 +201,7 @@ async def example_API_CreateIndex(vector_client: PreviewVectorIndexClientAsync):
 
 # end example
 
+
 async def example_API_ListIndexes(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.list_indexes()
     match response:
@@ -208,6 +212,7 @@ async def example_API_ListIndexes(vector_client: PreviewVectorIndexClientAsync):
 
 
 # end example
+
 
 async def example_API_DeleteIndex(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.delete_index("test-index")
@@ -220,11 +225,15 @@ async def example_API_DeleteIndex(vector_client: PreviewVectorIndexClientAsync):
 
 # end example
 
+
 async def example_API_UpsertItemBatch(vector_client: PreviewVectorIndexClientAsync):
-    response = await vector_client.upsert_item_batch('test-index', [
-        Item(id="example_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
-        Item(id="example_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
-    ])
+    response = await vector_client.upsert_item_batch(
+        "test-index",
+        [
+            Item(id="example_item_1", vector=[1.0, 2.0], metadata={"key1": "value1"}),
+            Item(id="example_item_2", vector=[3.0, 4.0], metadata={"key2": "value2"}),
+        ],
+    )
     match response:
         case UpsertItemBatch.Success():
             print("Successfully added items to index 'test-index'")
@@ -234,8 +243,9 @@ async def example_API_UpsertItemBatch(vector_client: PreviewVectorIndexClientAsy
 
 # end example
 
+
 async def example_API_DeleteItemBatch(vector_client: PreviewVectorIndexClientAsync):
-    response = await vector_client.delete_item_batch('test-index', ['example_item_1', 'example_item_2'])
+    response = await vector_client.delete_item_batch("test-index", ["example_item_1", "example_item_2"])
     match response:
         case DeleteItemBatch.Success():
             print("Successfully deleted items from index 'test-index'")
@@ -245,8 +255,9 @@ async def example_API_DeleteItemBatch(vector_client: PreviewVectorIndexClientAsy
 
 # end example
 
+
 async def example_API_Search(vector_client: PreviewVectorIndexClientAsync):
-    response = await vector_client.search('test-index', [1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA)
+    response = await vector_client.search("test-index", [1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA)
     match response:
         case Search.Success() as success:
             print(f"Found {len(success.hits)} matches")
@@ -255,6 +266,21 @@ async def example_API_Search(vector_client: PreviewVectorIndexClientAsync):
 
 
 # end example
+
+
+async def example_API_SearchAndFetchVectors(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.search_and_fetch_vectors(
+        "test-index", [1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA
+    )
+    match response:
+        case SearchAndFetchVectors.Success() as success:
+            print(f"Found {len(success.hits)} matches")
+        case SearchAndFetchVectors.Error() as error:
+            print(f"Error searching index 'test-index': {error.message}")
+
+
+# end example
+
 
 async def main():
     example_API_CredentialProviderFromEnvVar()
@@ -285,13 +311,15 @@ async def main():
     await example_API_TopicSubscribe(topic_client)
     await topic_client.close()
 
-    vector_client = PreviewVectorIndexClientAsync(VectorIndexConfigurations.Default.latest(),
-                                                  CredentialProvider.from_environment_variable("MOMENTO_API_KEY"))
+    vector_client = PreviewVectorIndexClientAsync(
+        VectorIndexConfigurations.Default.latest(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+    )
     await example_API_InstantiateVectorClient()
     await example_API_CreateIndex(vector_client)
     await example_API_ListIndexes(vector_client)
     await example_API_UpsertItemBatch(vector_client)
     await example_API_Search(vector_client)
+    await example_API_SearchAndFetchVectors(vector_client)
     await example_API_DeleteItemBatch(vector_client)
     await example_API_DeleteIndex(vector_client)
 
