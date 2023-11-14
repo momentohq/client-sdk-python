@@ -289,30 +289,30 @@ files = [
 
 [[package]]
 name = "momento"
-version = "1.13.0"
+version = "1.13.2"
 description = "SDK for Momento"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento-1.13.0-py3-none-any.whl", hash = "sha256:dd5ace5b8d679e882afcefaa16bc413973c270b0a7a1c6c45f3eb60b0b9526de"},
-    {file = "momento-1.13.0.tar.gz", hash = "sha256:39419627542b8f5997a777ff91aa3aaf6406b7d76fb83cd84284a0f7d1f9e356"},
+    {file = "momento-1.13.2-py3-none-any.whl", hash = "sha256:deb0c09835a1f0cf7c8ea769e03b3b8617b42b9a38a8d3ff471a2080edf7e6b2"},
+    {file = "momento-1.13.2.tar.gz", hash = "sha256:daa4d7ffd38d9d685d3540a890eefaa10facf0e37d4389444ccffd1794b8b4b1"},
 ]
 
 [package.dependencies]
 grpcio = ">=1.46.0,<2.0.0"
 importlib-metadata = {version = ">=4", markers = "python_version < \"3.8\""}
-momento-wire-types = ">=0.91.1,<0.92.0"
+momento-wire-types = ">=0.94.1,<0.95.0"
 pyjwt = ">=2.4.0,<3.0.0"
 
 [[package]]
 name = "momento-wire-types"
-version = "0.91.4"
+version = "0.94.1"
 description = "Momento Client Proto Generated Files"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento_wire_types-0.91.4-py3-none-any.whl", hash = "sha256:f296249693de2f6c383a397e7616b84dd83dfd466743d34b035b90865000a2a8"},
-    {file = "momento_wire_types-0.91.4.tar.gz", hash = "sha256:de8cd14a12835d95997eb9b753ea47e1a5d2916658ec9320e416da8bd835fdff"},
+    {file = "momento_wire_types-0.94.1-py3-none-any.whl", hash = "sha256:9df6860b9f09308bf36cb702fb85bfc83583bf9f36bb8ac63aef8f2d485827a8"},
+    {file = "momento_wire_types-0.94.1.tar.gz", hash = "sha256:1ca589e0ed26b112dbf25ad71f11910ce35dde1e931783b8ce0a0a484bf6dff2"},
 ]
 
 [package.dependencies]
@@ -397,13 +397,13 @@ files = [
 
 [[package]]
 name = "platformdirs"
-version = "3.11.0"
+version = "4.0.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "platformdirs-3.11.0-py3-none-any.whl", hash = "sha256:e9d171d00af68be50e9202731309c4e658fd8bc76f55c11c7dd760d023bda68e"},
-    {file = "platformdirs-3.11.0.tar.gz", hash = "sha256:cf8ee52a3afdb965072dcc652433e0c7e3e40cf5ea1477cd4b3b1d2eb75495b3"},
+    {file = "platformdirs-4.0.0-py3-none-any.whl", hash = "sha256:118c954d7e949b35437270383a3f2531e99dd93cf7ce4dc8340d3356d30f173b"},
+    {file = "platformdirs-4.0.0.tar.gz", hash = "sha256:cb633b2bcf10c51af60beb0ab06d2f1d69064b43abf4c185ca6b28865f3f9731"},
 ]
 
 [package.dependencies]
@@ -567,4 +567,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.12"
-content-hash = "96d113e53468dc0e8f0eccf3abf1b71aab49afd8602c1013364f786f1d526e31"
+content-hash = "36c4e9e13f173a0326761da579b704db22313ee70a55f05814b030895e366d32"
