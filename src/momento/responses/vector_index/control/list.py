@@ -52,7 +52,7 @@ class IndexInfo:
 
     @staticmethod
     def from_grpc_response(grpc_index_info: ctrl_pb._ListIndexesResponse._Index) -> "IndexInfo":
-        metric_type: str = grpc_index_info.similarity_metric.WhichOneof("similarity_metric")  # type: ignore[misc]
+        metric_type: str = grpc_index_info.similarity_metric.WhichOneof("similarity_metric")
         similarity_metric = SimilarityMetric.COSINE_SIMILARITY
 
         if metric_type == "cosine_similarity":
