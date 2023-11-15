@@ -50,19 +50,25 @@ class _VectorIndexControlClient:
                 request = ctrl_pb._CreateIndexRequest(
                     index_name=index_name,
                     num_dimensions=num_dimensions,
-                    euclidean_similarity=ctrl_pb._CreateIndexRequest._EuclideanSimilarity(),
+                    similarity_metric=ctrl_pb._SimilarityMetric(
+                        euclidean_similarity=ctrl_pb._SimilarityMetric._EuclideanSimilarity()
+                    ),
                 )
             elif similarity_metric == SimilarityMetric.INNER_PRODUCT:
                 request = ctrl_pb._CreateIndexRequest(
                     index_name=index_name,
                     num_dimensions=num_dimensions,
-                    inner_product=ctrl_pb._CreateIndexRequest._InnerProduct(),
+                    similarity_metric=ctrl_pb._SimilarityMetric(
+                        inner_product=ctrl_pb._SimilarityMetric._InnerProduct()
+                    ),
                 )
             elif similarity_metric == SimilarityMetric.COSINE_SIMILARITY:
                 request = ctrl_pb._CreateIndexRequest(
                     index_name=index_name,
                     num_dimensions=num_dimensions,
-                    cosine_similarity=ctrl_pb._CreateIndexRequest._CosineSimilarity(),
+                    similarity_metric=ctrl_pb._SimilarityMetric(
+                        cosine_similarity=ctrl_pb._SimilarityMetric._CosineSimilarity()
+                    ),
                 )
             else:
                 raise InvalidArgumentException(f"Invalid similarity metric `{similarity_metric}`", Service.INDEX)

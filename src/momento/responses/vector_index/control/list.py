@@ -5,6 +5,9 @@ from dataclasses import dataclass
 
 from momento_wire_types import controlclient_pb2 as ctrl_pb
 
+from momento.errors.exceptions import UnknownException
+from momento.requests.vector_index import SimilarityMetric
+
 from ...mixins import ErrorResponseMixin
 from ...response import ControlResponse
 
@@ -44,6 +47,28 @@ class IndexInfo:
     """Contains a Momento index's info."""
 
     name: str
+    num_dimensions: int
+    similarity_metric: SimilarityMetric
+
+    @staticmethod
+    def from_grpc_response(grpc_index_info: ctrl_pb._ListIndexesResponse._Index) -> "IndexInfo":
+        metric_type: str = grpc_index_info.similarity_metric.WhichOneof("similarity_metric")
+        similarity_metric: SimilarityMetric
+
+        if metric_type == "cosine_similarity":
+            similarity_metric = SimilarityMetric.COSINE_SIMILARITY
+        elif metric_type == "euclidean_similarity":
+            similarity_metric = SimilarityMetric.EUCLIDEAN_SIMILARITY
+        elif metric_type == "inner_product":
+            similarity_metric = SimilarityMetric.INNER_PRODUCT
+        else:
+            raise UnknownException(f"Unknown similarity metric: {metric_type}")
+
+        return IndexInfo(
+            name=grpc_index_info.index_name,
+            num_dimensions=grpc_index_info.num_dimensions,
+            similarity_metric=similarity_metric,
+        )
 
 
 class ListIndexes(ABC):
@@ -64,7 +89,7 @@ class ListIndexes(ABC):
                 grpc_list_index_response: Protobuf based response returned by Scs.
             """
             return ListIndexes.Success(
-                indexes=[IndexInfo(index_name) for index_name in grpc_list_index_response.index_names]  # type: ignore[misc]  # noqa: E501
+                indexes=[IndexInfo.from_grpc_response(index) for index in grpc_list_index_response.indexes]  # type: ignore[misc]  # noqa: E501
             )
 
     class Error(ListIndexesResponse, ErrorResponseMixin):
