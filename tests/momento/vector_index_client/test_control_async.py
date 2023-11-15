@@ -1,3 +1,5 @@
+import pytest
+
 from momento import CredentialProvider, PreviewVectorIndexClientAsync
 from momento.config import VectorIndexConfiguration
 from momento.errors import MomentoErrorCode
@@ -152,7 +154,17 @@ async def test_create_index_throws_authentication_exception_for_bad_token(
 
 
 # List indexes
-async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
+@pytest.mark.parametrize(
+    "num_dimensions, similarity_metric",
+    [
+        (1, SimilarityMetric.COSINE_SIMILARITY),
+        (2, SimilarityMetric.EUCLIDEAN_SIMILARITY),
+        (3, SimilarityMetric.INNER_PRODUCT),
+    ],
+)
+async def test_list_indexes_succeeds(
+    vector_index_client_async: PreviewVectorIndexClientAsync, num_dimensions: int, similarity_metric: SimilarityMetric
+) -> None:
     index_name = unique_test_vector_index_name()
 
     initial_response = await vector_index_client_async.list_indexes()
@@ -162,13 +174,13 @@ async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorInd
     assert index_name not in index_names
 
     try:
-        response = await vector_index_client_async.create_index(index_name, num_dimensions=1)
+        response = await vector_index_client_async.create_index(index_name, num_dimensions, similarity_metric)
         assert isinstance(response, CreateIndex.Success)
 
         list_cache_resp = await vector_index_client_async.list_indexes()
         assert isinstance(list_cache_resp, ListIndexes.Success)
 
-        assert IndexInfo(index_name, 1, SimilarityMetric.COSINE_SIMILARITY) in list_cache_resp.indexes
+        assert IndexInfo(index_name, num_dimensions, similarity_metric) in list_cache_resp.indexes
     finally:
         delete_response = await vector_index_client_async.delete_index(index_name)
         assert isinstance(delete_response, DeleteIndex.Success)
