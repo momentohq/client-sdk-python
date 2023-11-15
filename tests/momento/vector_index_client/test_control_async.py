@@ -1,7 +1,15 @@
+import pytest
+
 from momento import CredentialProvider, PreviewVectorIndexClientAsync
 from momento.config import VectorIndexConfiguration
 from momento.errors import MomentoErrorCode
-from momento.responses.vector_index import CreateIndex, DeleteIndex, ListIndexes
+from momento.requests.vector_index import SimilarityMetric
+from momento.responses.vector_index import (
+    CreateIndex,
+    DeleteIndex,
+    IndexInfo,
+    ListIndexes,
+)
 from tests.conftest import TUniqueVectorIndexNameAsync
 from tests.utils import unique_test_vector_index_name
 
@@ -20,7 +28,10 @@ async def test_create_index_list_indexes_and_delete_index(
 
     list_indexes_response = await vector_index_client_async.list_indexes()
     assert isinstance(list_indexes_response, ListIndexes.Success)
-    assert any(index.name == new_index_name for index in list_indexes_response.indexes)
+    assert any(
+        IndexInfo(new_index_name, vector_index_dimensions, SimilarityMetric.COSINE_SIMILARITY) == index
+        for index in list_indexes_response.indexes
+    )
 
     delete_index_response = await vector_index_client_async.delete_index(new_index_name)
     assert isinstance(delete_index_response, DeleteIndex.Success)
@@ -143,7 +154,17 @@ async def test_create_index_throws_authentication_exception_for_bad_token(
 
 
 # List indexes
-async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
+@pytest.mark.parametrize(
+    "num_dimensions, similarity_metric",
+    [
+        (1, SimilarityMetric.COSINE_SIMILARITY),
+        (2, SimilarityMetric.EUCLIDEAN_SIMILARITY),
+        (3, SimilarityMetric.INNER_PRODUCT),
+    ],
+)
+async def test_list_indexes_succeeds(
+    vector_index_client_async: PreviewVectorIndexClientAsync, num_dimensions: int, similarity_metric: SimilarityMetric
+) -> None:
     index_name = unique_test_vector_index_name()
 
     initial_response = await vector_index_client_async.list_indexes()
@@ -153,14 +174,13 @@ async def test_list_indexes_succeeds(vector_index_client_async: PreviewVectorInd
     assert index_name not in index_names
 
     try:
-        response = await vector_index_client_async.create_index(index_name, num_dimensions=1)
+        response = await vector_index_client_async.create_index(index_name, num_dimensions, similarity_metric)
         assert isinstance(response, CreateIndex.Success)
 
         list_cache_resp = await vector_index_client_async.list_indexes()
         assert isinstance(list_cache_resp, ListIndexes.Success)
 
-        index_names = [index.name for index in list_cache_resp.indexes]
-        assert index_name in index_names
+        assert IndexInfo(index_name, num_dimensions, similarity_metric) in list_cache_resp.indexes
     finally:
         delete_response = await vector_index_client_async.delete_index(index_name)
         assert isinstance(delete_response, DeleteIndex.Success)
