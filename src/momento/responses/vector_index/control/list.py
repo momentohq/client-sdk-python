@@ -4,8 +4,8 @@ from abc import ABC
 from dataclasses import dataclass
 
 from momento_wire_types import controlclient_pb2 as ctrl_pb
-from momento.errors.exceptions import UnknownException
 
+from momento.errors.exceptions import UnknownException
 from momento.requests.vector_index import SimilarityMetric, similarity_metric
 
 from ...mixins import ErrorResponseMixin
