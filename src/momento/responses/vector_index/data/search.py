@@ -27,11 +27,6 @@ class SearchHit:
     score: float
     metadata: dict[str, str | int | float | bool | list[str]] = field(default_factory=dict)
 
-    @property
-    def distance(self) -> float:
-        """Alias for `score`."""
-        return self.score
-
     @staticmethod
     def from_proto(hit: vectorindex_pb._SearchHit) -> SearchHit:
         metadata = pb_metadata_to_dict(hit.metadata)
