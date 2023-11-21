@@ -48,6 +48,7 @@ flake8 = "^5.0.4"
 mypy = "^0.971"
 types-setuptools = "^65.3.0"
 flake8-docstrings = "^1.7.0"
+ruff = "^0.1.6"
 
 [tool.poetry.group.format.dependencies]
 black = "^22.8.0"
@@ -151,6 +152,28 @@ exclude = """
 profile = "black"
 src_paths = ["src", "tests"]
 extend_skip_glob = ["src/momento/errors/__init__.py"]
+
+[tool.ruff]
+select = [
+  "E", # pycodestyle errors
+  "W", # pycodestyle warnings
+  "F", # pyflakes
+  "I", # isort
+  "C", # flake8-comprehensions
+  "B", # flake8-bugbear
+]
+ignore = [
+  "B008", # function calls as default arg; collection ttl
+  "B024", # abstract class without abstract methods
+  "E501", # line too long, handled by black
+  "C901", # function too complex
+]
+fix = true
+target-version = "py37"
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"src/momento/requests/vector_index/item.py" = ["E721"]
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

@@ -45,7 +45,8 @@ def add_logging_level(level_name: str, level_num: int, method_name: Optional[str
         warnings.warn(
             "Logging level {level} or logging method {method} already defined. Skipping.".format(
                 level=level_name, method=method_name
-            )
+            ),
+            stacklevel=1,
         )
         return False
 
