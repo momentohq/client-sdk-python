@@ -125,6 +125,11 @@ module = [
 disallow_any_expr = false
 
 [[tool.mypy.overrides]]
+# this file has mypy incompatibilities between py37 and later versions
+module = "momento.internal._utilities._momento_version"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
 module = "tests.*"
 disallow_any_expr = false
 disallow_any_decorated = false
@@ -169,8 +174,9 @@ ignore = [
   "D106", # missing docstring in public nested class
   "D107", # missing docstring in __init__
 ]
-fix = true
+line-length = 120
 target-version = "py37"
+fix = true
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]

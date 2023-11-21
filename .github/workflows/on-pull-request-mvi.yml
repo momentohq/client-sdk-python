@@ -54,14 +54,11 @@ jobs:
         if: matrix.python-version == '3.7'
         run: poetry run mypy src tests
 
-      - name: Run flake8
-        run: poetry run flake8 src tests
+      - name: Run ruff
+        run: poetry run ruff --no-fix src tests
 
       - name: Run black
         run: poetry run black src tests --check --diff
-
-      - name: Run isort
-        run: poetry run isort src tests --check --diff
 
       - name: Run tests
         run: poetry run pytest tests/momento/vector_index_client -p no:sugar -q
