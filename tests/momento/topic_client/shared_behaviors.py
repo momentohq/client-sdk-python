@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing_extensions import Protocol
-
 from momento.errors import MomentoErrorCode
 from momento.responses import PubsubResponse
 from momento.typing import TCacheName, TTopicName
+from typing_extensions import Protocol
+
 from tests.asserts import assert_response_is_error
 from tests.utils import uuid_str
 

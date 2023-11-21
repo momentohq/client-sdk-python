@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Optional
 
 import pytest
-
 from momento import PreviewVectorIndexClient
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
@@ -15,6 +14,7 @@ from momento.responses.vector_index import (
     SearchHit,
     UpsertItemBatch,
 )
+
 from tests.conftest import TUniqueVectorIndexName
 from tests.utils import sleep, when_fetching_vectors_apply_vectors_to_hits
 

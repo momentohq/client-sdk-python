@@ -5,10 +5,6 @@ from functools import partial
 from time import sleep
 from typing import Awaitable, Union, cast
 
-from pytest import fixture
-from pytest_describe import behaves_like
-from typing_extensions import Protocol
-
 from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
@@ -36,6 +32,10 @@ from momento.typing import (
     TDictionaryName,
     TDictionaryValue,
 )
+from pytest import fixture
+from pytest_describe import behaves_like
+from typing_extensions import Protocol
+
 from tests.utils import uuid_str
 
 from .shared_behaviors_async import (
@@ -267,7 +267,7 @@ def a_dictionary_setter() -> None:
     ) -> None:
         ttl_seconds = 1
         ttl = CollectionTtl.of(timedelta(seconds=ttl_seconds))
-        items = dict([("one", "1"), ("two", "2"), ("three", "3"), ("four", "4")])
+        items = {"one": "1", "two": "2", "three": "3", "four": "4"}
 
         for field, value in items.items():
             await dictionary_setter(client_async, cache_name, dictionary_name, field, value, ttl=ttl)
@@ -500,7 +500,7 @@ def describe_dictionary_get_fields() -> None:
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> None:
-        dictionary_items: dict[str, str] = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        dictionary_items: dict[str, str] = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}
         set_response = await client_async.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 
@@ -521,7 +521,7 @@ def describe_dictionary_get_fields() -> None:
     async def it_excludes_misses_from_dictionary(
         client_async: CacheClientAsync, cache_name: TCacheName, dictionary_name: TDictionaryName
     ) -> None:
-        dictionary_items: dict[str, str] = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        dictionary_items: dict[str, str] = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}
         set_response = await client_async.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 

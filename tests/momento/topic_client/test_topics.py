@@ -1,10 +1,10 @@
 from functools import partial
 
+from momento import CacheClient, TopicClient
+from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from pytest import fixture
 from pytest_describe import behaves_like
 
-from momento import CacheClient, TopicClient
-from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors import (

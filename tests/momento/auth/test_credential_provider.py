@@ -4,9 +4,9 @@ import os
 
 import jwt
 import pytest
-
 from momento.auth.credential_provider import CredentialProvider
 from momento.auth.momento_endpoint_resolver import _Base64DecodedV1Token
+
 from tests.utils import uuid_str
 
 test_email = "user@test.com"

@@ -1,6 +1,5 @@
-import pytest
-
 import momento.internal.codegen as codegen
+import pytest
 
 
 @pytest.mark.parametrize(

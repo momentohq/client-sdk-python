@@ -4,10 +4,6 @@ from datetime import timedelta
 from functools import partial
 from time import sleep
 
-from pytest import fixture
-from pytest_describe import behaves_like
-from typing_extensions import Protocol
-
 from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
@@ -23,6 +19,10 @@ from momento.responses import (
 )
 from momento.responses.mixins import ErrorResponseMixin
 from momento.typing import TCacheName, TSetElement, TSetElementsInput, TSetName
+from pytest import fixture
+from pytest_describe import behaves_like
+from typing_extensions import Protocol
+
 from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors import (
@@ -123,7 +123,7 @@ def a_set_which_takes_an_element() -> None:
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert resp.inner_exception.message == "Could not convert the given type to bytes: <class 'int'>"
         else:
-            assert False
+            raise AssertionError("Expected an error response")
 
     def it_errors_with_none(
         set_which_takes_an_element: TSetWhichTakesAnElement,
@@ -135,7 +135,7 @@ def a_set_which_takes_an_element() -> None:
             assert resp.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert resp.inner_exception.message == "Could not convert the given type to bytes: <class 'NoneType'>"
         else:
-            assert False
+            raise AssertionError("Expected an error response")
 
 
 class TSetNameValidator(Protocol):
@@ -150,7 +150,7 @@ def a_set_name_validator() -> None:
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert response.inner_exception.message == "Set name must be a string"
         else:
-            assert False
+            raise AssertionError("Expected an error response")
 
     def with_empty_set_name_it_returns_invalid(set_name_validator: TSetNameValidator) -> None:
         response = set_name_validator(set_name="")

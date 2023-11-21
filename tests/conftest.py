@@ -8,7 +8,6 @@ from typing import AsyncIterator, Callable, Iterator, List, Optional, Union, cas
 
 import pytest
 import pytest_asyncio
-
 from momento import (
     CacheClient,
     CacheClientAsync,
@@ -41,6 +40,7 @@ from momento.typing import (
     TSortedSetValues,
     TTopicName,
 )
+
 from tests.utils import (
     unique_test_cache_name,
     unique_test_vector_index_name,
@@ -199,7 +199,7 @@ def dictionary_fields() -> TDictionaryFields:
 
 @pytest.fixture
 def dictionary_items() -> TDictionaryItems:
-    return cast(TDictionaryItems, dict([(uuid_str(), uuid_str()), (uuid_bytes(), uuid_bytes())]))
+    return cast(TDictionaryItems, {uuid_str(): uuid_str(), uuid_bytes(): uuid_bytes()})
 
 
 @pytest.fixture
@@ -239,7 +239,7 @@ def sorted_set_score() -> TSortedSetScore:
 
 @pytest.fixture
 def sorted_set_elements() -> TSortedSetElements:
-    return cast(TSortedSetElements, dict([(uuid_str(), random.random()), (uuid_bytes(), random.random())]))
+    return cast(TSortedSetElements, {uuid_str(): random.random(), uuid_bytes(): random.random()})
 
 
 @pytest.fixture
