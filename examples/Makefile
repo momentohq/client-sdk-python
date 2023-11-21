@@ -4,11 +4,9 @@ export:
 
 .PHONY: format
 format:
-	@poetry run black prepy310 py310
-	@poetry run isort prepy310 py310
-
+	@poetry run ruff format prepy310 py310
 
 .PHONY: lint
 lint:
 	@poetry run mypy prepy310 py310
-	@poetry run flake8 prepy310 py310
+	@poetry run ruff check prepy310 py310

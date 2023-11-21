@@ -8,9 +8,7 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
 def example_observability_setup_tracing():
     # Create a resource object
-    resource = Resource(attributes={
-        SERVICE_NAME: "momento_requests_counter"
-    })
+    resource = Resource(attributes={SERVICE_NAME: "momento_requests_counter"})
 
     # Create a tracer provider
     tracer_provider = TracerProvider(resource=resource)

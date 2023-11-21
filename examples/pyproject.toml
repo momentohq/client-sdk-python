@@ -13,33 +13,17 @@ colorlog = "6.7.0"
 hdrhistogram = "^0.10.1"
 
 [tool.poetry.group.lint.dependencies]
-flake8 = "^5.0.4"
 mypy = "^0.971"
-
-[tool.poetry.group.format.dependencies]
-black = "^22.8.0"
-isort = "^5.10.1"
+ruff = "^0.1.6"
 
 [tool.mypy]
 [[tool.mypy.overrides]]
 module = ["momento.*", "", "example_utils.*"]
 ignore_missing_imports = true
 
-[tool.black]
+[tool.ruff]
 line-length = 120
-include = "\\.pyi?$"
-exclude = """
-/(
-  \\.mypy_cache
-  | \\.pytest_cache
-  | \\.venv
-  | dist
-)
-"""
-
-[tool.isort]
-profile = "black"
-src_paths = ["."]
+fix = true
 
 [build-system]
 requires = ["poetry-core"]
