@@ -347,7 +347,12 @@ def a_dictionary_setter() -> None:
         ]:
             cache_name = uuid_str()
             response = dictionary_setter(
-                client, cache_name, dictionary_name, field, value, ttl=CollectionTtl()  # type:ignore[arg-type]
+                client,
+                cache_name,
+                dictionary_name,
+                field,  # type:ignore[arg-type]
+                value,  # type:ignore[arg-type]
+                ttl=CollectionTtl(),
             )
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR

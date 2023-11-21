@@ -54,11 +54,11 @@ jobs:
         if: matrix.python-version == '3.7'
         run: /Users/runner/.local/bin/poetry run mypy src tests
 
-      - name: Run ruff
-        run: /Users/runner/.local/bin/poetry run ruff --no-fix src tests
+      - name: Run ruff analyzer
+        run: /Users/runner/.local/bin/poetry run ruff check --no-fix src tests
 
-      - name: Run black
-        run: /Users/runner/.local/bin/poetry run black src tests --check --diff
+      - name: Run ruff formatter
+        run: /Users/runner/.local/bin/poetry run ruff format --diff src tests
 
       - name: Run tests
         run: /Users/runner/.local/bin/poetry run pytest tests/momento/vector_index_client -p no:sugar -q

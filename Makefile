@@ -13,15 +13,14 @@ install:
 	@poetry install
 
 .PHONY: format
-## Format the code using black and ruff
+## Format the code using ruff
 format:
-	@poetry run black src tests
-	@poetry run ruff src tests
+	@poetry run ruff format src tests
 
 .PHONY: lint
 ## Lint the code using ruff and mypy
 lint:
-	@poetry run ruff src tests
+	@poetry run ruff check src tests
 	@poetry run mypy src tests
 
 .PHONY: do-gen-sync

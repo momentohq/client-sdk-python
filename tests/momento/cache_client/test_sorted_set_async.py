@@ -187,7 +187,11 @@ def a_sorted_set_setter() -> None:
         ]:
             cache_name = uuid_str()
             response = await sorted_set_setter(
-                client_async, cache_name, sorted_set_name, {value: score}, ttl=CollectionTtl()  # type:ignore[arg-type]
+                client_async,
+                cache_name,
+                sorted_set_name,
+                {value: score},  # type:ignore[arg-type]
+                ttl=CollectionTtl(),
             )
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -208,13 +212,16 @@ def a_sorted_set_setter() -> None:
         ]:
             cache_name = uuid_str()
             response = await sorted_set_setter(
-                client_async, cache_name, sorted_set_name, {value: score}, ttl=CollectionTtl()  # type:ignore[arg-type]
+                client_async,
+                cache_name,
+                sorted_set_name,
+                {value: score},  # type:ignore[arg-type]
+                ttl=CollectionTtl(),
             )
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert (
-                response.message
-                == f"Invalid argument passed to Momento client: score must be a float. Given type: "  # noqa: W503,E501
+                response.message == f"Invalid argument passed to Momento client: score must be a float. Given type: "  # noqa: W503,E501
                 f"<class '{bad_type}'>"
             )
 
@@ -551,7 +558,7 @@ def describe_sorted_set_put_field() -> None:
             ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         ) -> CacheResponse:
             response = None
-            for (value, score) in elements.items():
+            for value, score in elements.items():
                 response = await client_async.sorted_set_put_element(
                     cache_name=cache_name,
                     sorted_set_name=sorted_set_name,
@@ -885,7 +892,7 @@ def describe_sorted_set_increment_score() -> None:
             ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         ) -> CacheResponse:
             response = None
-            for (value, score) in elements.items():
+            for value, score in elements.items():
                 response = await client_async.sorted_set_increment_score(
                     cache_name=cache_name,
                     sorted_set_name=sorted_set_name,
