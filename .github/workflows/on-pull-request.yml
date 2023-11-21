@@ -119,23 +119,17 @@ jobs:
         working-directory: ./examples
         run: poetry run mypy ${{ matrix.package }}
 
-      - name: Run flake8
-        id: flake8
+      - name: Run ruff analyzer
+        id: ruff
         continue-on-error: true
         working-directory: ./examples
-        run: poetry run flake8 ${{ matrix.package }}
+        run: poetry run ruff check --no-fix ${{ matrix.package }}
 
-      - name: Run black
-        id: black
+      - name: Run ruff formatter
+        id: format
         continue-on-error: true
         working-directory: ./examples
-        run: poetry run black ${{ matrix.package }} --check --diff
-
-      - name: Run isort
-        id: isort
-        continue-on-error: true
-        working-directory: ./examples
-        run: poetry run isort ${{ matrix.package }} --check --diff
+        run: poetry run ruff format --diff ${{ matrix.package }}
 
       - name: Run samples for python ${{ matrix.python-version }}
         id: validation
@@ -154,14 +148,14 @@ jobs:
         run: poetry run python ${{ matrix.package }}/doc-examples-python-apis.py
 
       - name: Send CI failure mail
-        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' || steps.docs-ex-validation.outcome == 'failure' }}
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.ruff == 'failure' || steps.outputs.format == 'failure' || steps.validation.outcome == 'failure' || steps.docs-ex-validation.outcome == 'failure' }}
         uses: momentohq/standards-and-practices/github-actions/error-email-action@gh-actions-v1
         with:
           username: ${{secrets.MOMENTO_ROBOT_GMAIL_USERNAME}}
           password: ${{secrets.MOMENTO_ROBOT_GMAIL_PASSWORD}}
 
       - name: Flag Job Failure
-        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.flake8 == 'failure' || steps.outputs.black == 'failure' || steps.outputs.isort == 'failure' || steps.validation.outcome == 'failure' || steps.docs-ex-validation.outcome == 'failure' }}
+        if: ${{ steps.outputs.mypy == 'failure' || steps.outputs.ruff == 'failure' || steps.outputs.format == 'failure' || steps.validation.outcome == 'failure' || steps.docs-ex-validation.outcome == 'failure' }}
         run: |
           echo "Job statuses"
           echo "============"
