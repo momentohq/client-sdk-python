@@ -3,16 +3,16 @@ from datetime import timedelta
 from functools import partial
 from typing import Optional
 
-from pytest import fixture
-from pytest_describe import behaves_like
-from typing_extensions import Protocol
-
 from momento import CacheClient
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheDelete, CacheGet, CacheSet, CacheSetIfNotExists
 from momento.responses.mixins import ErrorResponseMixin
 from momento.responses.response import CacheResponse
 from momento.typing import TCacheName, TScalarKey, TScalarValue
+from pytest import fixture
+from pytest_describe import behaves_like
+from typing_extensions import Protocol
+
 from tests.utils import str_to_bytes, uuid_bytes, uuid_str
 
 from .shared_behaviors import (
@@ -69,7 +69,7 @@ def a_ttl_setter() -> None:
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert set_response.inner_exception.message == "TTL must be a positive amount of time."
         else:
-            assert False
+            raise AssertionError("Expected an error response.")
 
 
 class TSetter(Protocol):
@@ -85,7 +85,7 @@ def a_setter() -> None:
         if isinstance(set_response, ErrorResponseMixin):
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
         else:
-            assert False
+            raise AssertionError("Expected an error response.")
 
     def with_bad_value_throws_exception(setter: TSetter, client: CacheClient, cache_name: str) -> None:
         set_response = setter(cache_name, "foo", 1)  # type:ignore[arg-type]
@@ -93,7 +93,7 @@ def a_setter() -> None:
             assert set_response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert set_response.inner_exception.message == "Unsupported type for value: <class 'int'>"
         else:
-            assert False
+            raise AssertionError("Expected an error response.")
 
 
 def describe_set_and_get() -> None:
@@ -109,7 +109,7 @@ def describe_set_and_get() -> None:
             assert get_resp.value_string == value
             assert get_resp.value_bytes == str_to_bytes(value)
         else:
-            assert False
+            raise AssertionError("Expected a hit response.")
 
     def with_byte_key_values(client: CacheClient, cache_name: str) -> None:
         key = uuid_bytes()
@@ -136,7 +136,7 @@ def describe_set_and_get_eager_connection_client() -> None:
             assert get_resp.value_string == value
             assert get_resp.value_bytes == str_to_bytes(value)
         else:
-            assert False
+            raise AssertionError("Expected a hit response.")
 
     def with_byte_key_values(client_eager_connection: CacheClient, cache_name: str) -> None:
         key = uuid_bytes()

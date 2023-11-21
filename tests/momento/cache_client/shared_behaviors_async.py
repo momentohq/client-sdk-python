@@ -3,14 +3,14 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Awaitable
 
-from typing_extensions import Protocol
-
 from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
 from momento.responses import CacheResponse
 from momento.typing import TCacheName, TScalarKey
+from typing_extensions import Protocol
+
 from tests.asserts import assert_response_is_error
 from tests.utils import uuid_str
 

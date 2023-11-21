@@ -13,16 +13,16 @@ install:
 	@poetry install
 
 .PHONY: format
-## Format the code using black and isort
+## Format the code using black and ruff
 format:
 	@poetry run black src tests
-	@poetry run isort src tests
+	@poetry run ruff src tests
 
 .PHONY: lint
-## Lint the code using mypy and flake8
+## Lint the code using ruff and mypy
 lint:
+	@poetry run ruff src tests
 	@poetry run mypy src tests
-	@poetry run flake8 src tests
 
 .PHONY: do-gen-sync
 do-gen-sync:
@@ -46,7 +46,7 @@ do-gen-sync:
 
 .PHONY: gen-sync
 ## Generate synchronous code and tests from asynchronous code.
-gen-sync: do-gen-sync format
+gen-sync: do-gen-sync format lint
 
 .PHONY: test
 ## Run unit and integration tests with pytest

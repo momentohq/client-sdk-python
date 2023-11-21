@@ -30,7 +30,7 @@ from .exceptions import (
 
 # NB: since this module imports from sibling modules, it must be at the bottom
 # to avoid circular imports
-from .error_converter import convert_error
+from .error_converter import convert_error  # isort: skip
 
 __all__ = [
     "MomentoErrorCode",

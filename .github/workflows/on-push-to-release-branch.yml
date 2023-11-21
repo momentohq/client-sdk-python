@@ -43,7 +43,6 @@ jobs:
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
       TEST_VECTOR_INDEX_NAME: python-integration-test-vector-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
 
-
     steps:
       - uses: actions/checkout@v3
 
@@ -72,14 +71,11 @@ jobs:
         if: matrix.python-version == '3.7'
         run: poetry run mypy src tests
 
-      - name: Run flake8
-        run: poetry run flake8 src tests
+      - name: Run ruff
+        run: poetry run ruff --no-fix src tests
 
       - name: Run black
         run: poetry run black src tests --check --diff
-
-      - name: Run isort
-        run: poetry run isort src tests --check --diff
 
       - name: Run tests
         run: poetry run pytest -p no:sugar -q --ignore=tests/momento/vector_index_client

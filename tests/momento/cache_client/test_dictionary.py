@@ -5,10 +5,6 @@ from functools import partial
 from time import sleep
 from typing import Union, cast
 
-from pytest import fixture
-from pytest_describe import behaves_like
-from typing_extensions import Protocol
-
 from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
@@ -36,6 +32,10 @@ from momento.typing import (
     TDictionaryName,
     TDictionaryValue,
 )
+from pytest import fixture
+from pytest_describe import behaves_like
+from typing_extensions import Protocol
+
 from tests.utils import uuid_str
 
 from .shared_behaviors import (
@@ -267,7 +267,7 @@ def a_dictionary_setter() -> None:
     ) -> None:
         ttl_seconds = 1
         ttl = CollectionTtl.of(timedelta(seconds=ttl_seconds))
-        items = dict([("one", "1"), ("two", "2"), ("three", "3"), ("four", "4")])
+        items = {"one": "1", "two": "2", "three": "3", "four": "4"}
 
         for field, value in items.items():
             dictionary_setter(client, cache_name, dictionary_name, field, value, ttl=ttl)
@@ -496,7 +496,7 @@ def describe_dictionary_get_fields() -> None:
         cache_name: TCacheName,
         dictionary_name: TDictionaryName,
     ) -> None:
-        dictionary_items: dict[str, str] = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        dictionary_items: dict[str, str] = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}
         set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 
@@ -517,7 +517,7 @@ def describe_dictionary_get_fields() -> None:
     def it_excludes_misses_from_dictionary(
         client: CacheClient, cache_name: TCacheName, dictionary_name: TDictionaryName
     ) -> None:
-        dictionary_items: dict[str, str] = dict([(uuid_str(), uuid_str()), (uuid_str(), uuid_str())])
+        dictionary_items: dict[str, str] = {uuid_str(): uuid_str(), uuid_str(): uuid_str()}
         set_response = client.dictionary_set_fields(cache_name, dictionary_name, dictionary_items)
         assert isinstance(set_response, CacheDictionarySetFields.Success)
 

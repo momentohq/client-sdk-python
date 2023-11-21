@@ -12,9 +12,7 @@ try:
     from momento.internal.synchronous._vector_index_control_client import (
         _VectorIndexControlClient,
     )
-    from momento.internal.synchronous._vector_index_data_client import (
-        _VectorIndexDataClient,
-    )
+    from momento.internal.synchronous._vector_index_data_client import _VectorIndexDataClient
 except ImportError as e:
     if e.name == "cygrpc":
         import sys

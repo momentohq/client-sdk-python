@@ -27,15 +27,15 @@ class Item:
         metadata = []
         if self.metadata is not None:
             for k, v in self.metadata.items():
-                if type(v) == str:
+                if type(v) is str:
                     metadata.append(pb._Metadata(field=k, string_value=v))
-                elif type(v) == int:
+                elif type(v) is int:
                     metadata.append(pb._Metadata(field=k, integer_value=v))
-                elif type(v) == float:
+                elif type(v) is float:
                     metadata.append(pb._Metadata(field=k, double_value=v))
-                elif type(v) == bool:
+                elif type(v) is bool:
                     metadata.append(pb._Metadata(field=k, boolean_value=v))
-                elif type(v) == list and all(type(x) == str for x in v):
+                elif type(v) is list and all(type(x) is str for x in v):
                     list_of_strings = pb._Metadata._ListOfStrings(values=v)
                     metadata.append(pb._Metadata(field=k, list_of_strings_value=list_of_strings))
                 else:

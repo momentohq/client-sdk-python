@@ -58,8 +58,8 @@ class ListSigningKeys(ABC):
             """Creates a ListSigningKeysResponse from a grpc response.
 
             Args:
-                grpc_list_signing_keys_response (google.protobuf.message.Message):
-                endpoint (str): _description_
+                grpc_list_signing_keys_response (google.protobuf.message.Message): the grpc response
+                endpoint (str): endpoint of the signing key
 
             Returns:
                 ListSigningKeysResponse

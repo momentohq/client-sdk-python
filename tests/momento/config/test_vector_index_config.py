@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from momento import (
     CredentialProvider,
     PreviewVectorIndexClient,
@@ -12,6 +11,7 @@ from momento.config import VectorIndexConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.error_details import MomentoErrorCode
 from momento.responses.vector_index import ListIndexes, Search
+
 from tests.utils import unique_test_vector_index_name
 
 

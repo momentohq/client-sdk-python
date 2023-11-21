@@ -6,10 +6,6 @@ from functools import partial
 from time import sleep
 
 import pytest
-from pytest import fixture
-from pytest_describe import behaves_like
-from typing_extensions import Protocol
-
 from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
@@ -34,6 +30,10 @@ from momento.typing import (
     TListValuesInput,
     TListValuesInputStr,
 )
+from pytest import fixture
+from pytest_describe import behaves_like
+from typing_extensions import Protocol
+
 from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors import (
@@ -216,7 +216,7 @@ def a_list_name_validator() -> None:
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert response.inner_exception.message == "List name must be a string"
         else:
-            assert False
+            raise AssertionError("Expected an ErrorResponseMixin")
 
     def with_empty_list_name_it_returns_invalid(list_name_validator: TListNameValidator) -> None:
         response = list_name_validator(list_name="")
@@ -367,7 +367,7 @@ def describe_list_concatenate_back() -> None:
         if isinstance(fetch_resp, CacheListFetch.Hit):
             assert fetch_resp.value_list_string == ["three", "four", "five", "six"]
         else:
-            assert False
+            raise AssertionError("Expected a CacheListFetch.Hit")
 
 
 @behaves_like(
@@ -446,7 +446,7 @@ def describe_list_concatenate_front() -> None:
         if isinstance(fetch_resp, CacheListFetch.Hit):
             assert fetch_resp.value_list_string == ["four", "five", "six", "one"]
         else:
-            assert False
+            raise AssertionError("Expected a CacheListFetch.Hit")
 
 
 @behaves_like(
@@ -652,7 +652,7 @@ def describe_list_push_back() -> None:
         if isinstance(fetch_resp, CacheListFetch.Hit):
             assert fetch_resp.value_list_string == ["2", "3"]
         else:
-            assert False
+            raise AssertionError("Expected a CacheListFetch.Hit")
 
 
 @behaves_like(
@@ -718,7 +718,7 @@ def describe_list_push_front() -> None:
         if isinstance(fetch_resp, CacheListFetch.Hit):
             assert fetch_resp.value_list_string == ["3", "2"]
         else:
-            assert False
+            raise AssertionError("Expected a CacheListFetch.Hit")
 
 
 @behaves_like(
@@ -770,4 +770,4 @@ def describe_list_remove_value() -> None:
         if isinstance(fetch_resp, CacheListFetch.Hit):
             assert fetch_resp.value_list_string == expected_values
         else:
-            assert False
+            raise AssertionError("Expected a CacheListFetch.Hit")

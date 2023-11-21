@@ -2,7 +2,6 @@ from typing import List, Optional
 
 import grpc.aio
 import pytest
-
 from momento.errors import InvalidArgumentException
 from momento.internal.aio._add_header_client_interceptor import (
     sanitize_client_call_details,

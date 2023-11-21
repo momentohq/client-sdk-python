@@ -21,7 +21,7 @@ class Response(ABC):
             appended = False
 
             # To truncate a collection, we must render it as a string all at once to account for the ellipsis
-            if type(value) == list:
+            if isinstance(value, list):
                 if len(value) > max_collection_length:
                     message_parts.append(
                         Response._display_list(attribute, value, max_value_length, max_collection_length)
@@ -29,7 +29,7 @@ class Response(ABC):
                     appended = True
                 else:
                     value = [Response._truncate_value(v_i, max_value_length) for v_i in value]
-            elif type(value) == set:
+            elif isinstance(value, set):
                 if len(value) > max_collection_length:
                     message_parts.append(
                         Response._display_set(attribute, value, max_value_length, max_collection_length)
@@ -37,7 +37,7 @@ class Response(ABC):
                     appended = True
                 else:
                     value = {Response._truncate_value(v_i, max_value_length) for v_i in value}
-            elif type(value) == dict:
+            elif isinstance(value, dict):
                 if len(value) > max_collection_length:
                     message_parts.append(
                         Response._display_dict(attribute, value, max_value_length, max_collection_length)
@@ -90,12 +90,12 @@ class Response(ABC):
     @staticmethod
     @no_type_check
     def _truncate_value(value: Any, max_length: int = 32) -> Any:
-        if type(value) == bytes:
+        if isinstance(value, bytes):
             if len(value) < max_length:
                 return value
 
             return value[:max_length] + b"..."
-        elif type(value) == str:
+        elif isinstance(value, str):
             if len(value) < max_length:
                 return value
 

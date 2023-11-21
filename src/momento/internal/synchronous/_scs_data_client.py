@@ -878,9 +878,7 @@ class _ScsDataClient:
             if type == "missing":
                 return CacheSortedSetFetch.Miss()
             elif type == "found":
-                return CacheSortedSetFetch.Hit(
-                    list((e.value, e.score) for e in response.found.values_with_scores.elements)
-                )
+                return CacheSortedSetFetch.Hit([(e.value, e.score) for e in response.found.values_with_scores.elements])
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:
@@ -930,9 +928,7 @@ class _ScsDataClient:
             if type == "missing":
                 return CacheSortedSetFetch.Miss()
             elif type == "found":
-                return CacheSortedSetFetch.Hit(
-                    list((e.value, e.score) for e in response.found.values_with_scores.elements)
-                )
+                return CacheSortedSetFetch.Hit([(e.value, e.score) for e in response.found.values_with_scores.elements])
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
         except Exception as e:

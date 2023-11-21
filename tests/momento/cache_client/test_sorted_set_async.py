@@ -3,10 +3,6 @@ from functools import partial
 from time import sleep
 from typing import Optional
 
-from pytest import fixture
-from pytest_describe import behaves_like
-from typing_extensions import Awaitable, Protocol
-
 from momento import CacheClientAsync, CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -32,6 +28,10 @@ from momento.typing import (
     TSortedSetValue,
     TSortedSetValues,
 )
+from pytest import fixture
+from pytest_describe import behaves_like
+from typing_extensions import Awaitable, Protocol
+
 from tests.utils import uuid_str
 
 from .shared_behaviors_async import (
@@ -109,8 +109,8 @@ def a_sorted_set_setter() -> None:
     ) -> None:
         ttl_seconds = 1
         ttl = CollectionTtl.of(timedelta(seconds=ttl_seconds))
-        elements = dict([("one", 1.0), ("two", 2.0), ("three", 3.0), ("four", 4.0)])
-        elements_list = [(value, score) for value, score in sorted(elements.items(), key=lambda item: item[1])]
+        elements = {"one": 1.0, "two": 2.0, "three": 3.0, "four": 4.0}
+        elements_list = sorted(elements.items(), key=lambda item: item[1])
 
         await sorted_set_setter(client_async, cache_name, sorted_set_name, elements, ttl=ttl)
 
