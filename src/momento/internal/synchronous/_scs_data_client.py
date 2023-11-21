@@ -28,9 +28,9 @@ from momento.internal._utilities._data_validation import (
     _validate_sorted_set_name,
     _validate_sorted_set_score,
 )
+from momento.internal.services import Service
 from momento.internal.synchronous._scs_grpc_manager import _DataGrpcManager
 from momento.internal.synchronous._utilities import make_metadata
-from momento.internal.services import Service
 from momento.requests import CollectionTtl, SortOrder
 from momento.responses import (
     CacheDelete,
