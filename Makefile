@@ -13,16 +13,15 @@ install:
 	@poetry install
 
 .PHONY: format
-## Format the code using black and isort
+## Format the code using black
 format:
 	@poetry run black src tests
-	@poetry run isort src tests
 
 .PHONY: lint
 ## Lint the code using mypy and flake8
 lint:
+	@poetry run ruff src tests
 	@poetry run mypy src tests
-	@poetry run flake8 src tests
 
 .PHONY: do-gen-sync
 do-gen-sync:

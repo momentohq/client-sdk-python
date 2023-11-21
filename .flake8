@@ -1,7 +1,0 @@
-[flake8]
-max-line-length = 120
-docstring-convention = google
-exclude =
-  .venv
-per-file-ignores = __init__.py:F401
-ignore = D100,D101,D102,D103,D104,D105,D107
