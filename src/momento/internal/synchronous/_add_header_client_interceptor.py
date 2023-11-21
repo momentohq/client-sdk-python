@@ -47,7 +47,6 @@ class AddHeaderStreamingClientInterceptor(grpc.UnaryStreamClientInterceptor):
         client_call_details: grpc.ClientCallDetails,
         request: RequestType,
     ) -> grpc.Call | ResponseType:
-
         new_client_call_details = sanitize_client_call_details(client_call_details)
 
         for header in self.headers_to_add_every_time:

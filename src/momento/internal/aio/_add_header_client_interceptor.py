@@ -37,7 +37,6 @@ class AddHeaderStreamingClientInterceptor(grpc.aio.UnaryStreamClientInterceptor)
         client_call_details: grpc.aio._interceptor.ClientCallDetails,
         request: grpc.aio._typing.RequestType,
     ) -> grpc.aio._call.UnaryStreamCall | grpc.aio._typing.ResponseType:
-
         new_client_call_details = sanitize_client_call_details(client_call_details)
 
         for header in self.headers_to_add_every_time:
@@ -71,7 +70,6 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         client_call_details: grpc.aio._interceptor.ClientCallDetails,
         request: grpc.aio._typing.RequestType,
     ) -> grpc.aio._call.UnaryUnaryCall | grpc.aio._typing.ResponseType:
-
         new_client_call_details = sanitize_client_call_details(client_call_details)
 
         for header in self.headers_to_add_every_time:

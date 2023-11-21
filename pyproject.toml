@@ -48,10 +48,6 @@ mypy = "^0.971"
 types-setuptools = "^65.3.0"
 ruff = "^0.1.6"
 
-[tool.poetry.group.format.dependencies]
-black = "^22.8.0"
-
-
 [tool.poetry.group.codegen.dependencies]
 libcst = "^0.4.9"
 
@@ -135,20 +131,6 @@ disallow_any_expr = false
 disallow_any_decorated = false
 disallow_untyped_decorators = false
 
-
-[tool.black]
-line-length = 120
-target-version = ["py37"]
-include = "\\.pyi?$"
-exclude = """
-/(
-  \\.git
-  | \\.mypy_cache
-  | \\.pytest_cache
-  | \\.venv
-  | dist
-)
-"""
 
 [tool.ruff]
 select = [
