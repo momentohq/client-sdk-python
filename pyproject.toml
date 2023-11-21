@@ -155,6 +155,7 @@ extend_skip_glob = ["src/momento/errors/__init__.py"]
 
 [tool.ruff]
 select = [
+  "D", # docstring errors
   "E", # pycodestyle errors
   "W", # pycodestyle warnings
   "F", # pyflakes
@@ -167,6 +168,14 @@ ignore = [
   "B024", # abstract class without abstract methods
   "E501", # line too long, handled by black
   "C901", # function too complex
+  "D100", # missing docstring in public module
+  "D101", # missing docstring in public class
+  "D102", # missing docstring in public method
+  "D103", # missing docstring in public function
+  "D104", # missing docstring in public package
+  "D105", # missing docstring in magic method
+  "D106", # missing docstring in public nested class
+  "D107", # missing docstring in __init__
 ]
 fix = true
 target-version = "py37"
@@ -174,6 +183,9 @@ target-version = "py37"
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
 "src/momento/requests/vector_index/item.py" = ["E721"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
