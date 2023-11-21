@@ -39,29 +39,29 @@ jobs:
           curl -sL https://install.python-poetry.org | python - -y --version 1.3.1
 
       - name: Configure poetry
-        run: /Users/runner/.local/bin/poetry config virtualenvs.in-project true
+        run: poetry config virtualenvs.in-project true
 
       - name: Install dependencies
-        run: /Users/runner/.local/bin/poetry install
+        run: poetry install
 
       - name: Install Old Protobuf
         # Exercises the wire types generated against the old protobuf library
         if: matrix.new-python-protobuf == 'false'
-        run: /Users/runner/.local/bin/poetry add "protobuf<3.20"
+        run: poetry add "protobuf<3.20"
 
       - name: Run mypy
         # mypy has inconsistencies between 3.7 and the rest; default to lowest common denominator
         if: matrix.python-version == '3.7'
-        run: /Users/runner/.local/bin/poetry run mypy src tests
+        run: poetry run mypy src tests
 
       - name: Run flake8
-        run: /Users/runner/.local/bin/poetry run flake8 src tests
+        run: poetry run flake8 src tests
 
       - name: Run black
-        run: /Users/runner/.local/bin/poetry run black src tests --check --diff
+        run: poetry run black src tests --check --diff
 
       - name: Run isort
-        run: /Users/runner/.local/bin/poetry run isort src tests --check --diff
+        run: poetry run isort src tests --check --diff
 
       - name: Run tests
-        run: /Users/runner/.local/bin/poetry run pytest tests/momento/vector_index_client -p no:sugar -q
+        run: poetry run pytest tests/momento/vector_index_client -p no:sugar -q
