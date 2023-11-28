@@ -44,7 +44,7 @@ pytest-describe = "^2.0.1"
 pytest-sugar = "^0.9.5"
 
 [tool.poetry.group.lint.dependencies]
-mypy = "^0.971"
+mypy = "^1.0"
 types-setuptools = "^65.3.0"
 ruff = "^0.1.6"
 
