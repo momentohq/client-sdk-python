@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from momento_wire_types.v4 import vectorindex_pb2
+from momento_wire_types import vectorindex_pb2 as pb
 
 from momento.errors.exceptions import UnknownException
 
@@ -35,7 +35,7 @@ class GetItemBatch(ABC):
         """The items that were found."""
 
         @staticmethod
-        def from_proto(response: vectorindex_pb2._GetItemBatchResponse) -> "GetItemBatch.Success":
+        def from_proto(response: pb._GetItemBatchResponse) -> "GetItemBatch.Success":
             """Converts a proto hit to a `GetItemBatch.Success`."""
             hits = {}
             for item in response.item_response:
