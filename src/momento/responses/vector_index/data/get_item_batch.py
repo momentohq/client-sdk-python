@@ -13,30 +13,30 @@ from ..response import VectorIndexResponse
 from .utils import pb_metadata_to_dict
 
 
-class GetItemAndFetchVectorsBatchResponse(VectorIndexResponse):
-    """Parent response type for a `get_item_and_fetch_vectors_batch` request.
+class GetItemBatchResponse(VectorIndexResponse):
+    """Parent response type for a `get_item_batch` request.
 
     Its subtypes are:
-    - `GetItemAndFetchVectorsBatch.Success`
-    - `GetItemAndFetchVectorsBatch.Error`
+    - `GetItemBatch.Success`
+    - `GetItemBatch.Error`
 
     See `PreviewVectorIndexClient` for how to work with responses.
     """
 
 
-class GetItemAndFetchVectorsBatch(ABC):
-    """Groups all `GetItemAndFetchVectorsBatchResponse` derived types under a common namespace."""
+class GetItemBatch(ABC):
+    """Groups all `GetItemBatchResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(GetItemAndFetchVectorsBatchResponse):
-        """Contains the result of a `get_item_and_fetch_vectors_batch` request."""
+    class Success(GetItemBatchResponse):
+        """Contains the result of a `get_item_batch` request."""
 
         hits: dict[str, Item]
         """The items that were found."""
 
         @staticmethod
-        def from_proto(response: pb._GetItemAndFetchVectorsBatchResponse) -> "GetItemAndFetchVectorsBatch.Success":
-            """Converts a proto hit to a `GetItemAndFetchVectorsBatch.Success`."""
+        def from_proto(response: pb._GetItemAndFetchVectorsBatchResponse) -> "GetItemBatch.Success":
+            """Converts a proto hit to a `GetItemBatch.Success`."""
             hits = {}
             for item in response.item_with_vector_response:
                 type = item.WhichOneof("response")
@@ -48,9 +48,9 @@ class GetItemAndFetchVectorsBatch(ABC):
                 else:
                     raise UnknownException(f"Unknown response type {type!r}.")
 
-            return GetItemAndFetchVectorsBatch.Success(hits=hits)
+            return GetItemBatch.Success(hits=hits)
 
-    class Error(GetItemAndFetchVectorsBatchResponse, ErrorResponseMixin):
+    class Error(GetItemBatchResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
 
         This includes:

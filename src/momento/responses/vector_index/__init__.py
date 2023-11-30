@@ -4,9 +4,9 @@ from .control.create import CreateIndex, CreateIndexResponse
 from .control.delete import DeleteIndex, DeleteIndexResponse
 from .control.list import IndexInfo, ListIndexes, ListIndexesResponse
 from .data.delete_item_batch import DeleteItemBatch, DeleteItemBatchResponse
-from .data.get_item_and_fetch_vectors_batch import (
-    GetItemAndFetchVectorsBatch,
-    GetItemAndFetchVectorsBatchResponse,
+from .data.get_item_batch import (
+    GetItemBatch,
+    GetItemBatchResponse,
 )
 from .data.get_item_metadata_batch import GetItemMetadataBatch, GetItemMetadataBatchResponse
 from .data.search import Search, SearchHit, SearchResponse
@@ -25,8 +25,8 @@ __all__ = [
     "DeleteIndexResponse",
     "GetItemMetadataBatch",
     "GetItemMetadataBatchResponse",
-    "GetItemAndFetchVectorsBatch",
-    "GetItemAndFetchVectorsBatchResponse",
+    "GetItemBatch",
+    "GetItemBatchResponse",
     "IndexInfo",
     "Item",
     "ListIndexes",
