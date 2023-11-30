@@ -5,11 +5,11 @@ from dataclasses import dataclass
 
 from momento_wire_types import vectorindex_pb2 as pb
 
+from momento.common_data.vector_index.item import Item
 from momento.errors.exceptions import UnknownException
 
 from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
-from .item import Item
 from .utils import pb_metadata_to_dict
 
 
@@ -42,7 +42,7 @@ class GetItemAndFetchVectorsBatch(ABC):
                 type = item.WhichOneof("response")
                 if type == "hit":
                     id_, metadata = item.hit.id, pb_metadata_to_dict(item.hit.metadata)
-                    hits[id_] = Item(id=id_, metadata=metadata, vector=list(item.hit.vector.elements))
+                    hits[id_] = Item(id=id_, vector=list(item.hit.vector.elements), metadata=metadata)
                 elif type == "miss":
                     pass
                 else:

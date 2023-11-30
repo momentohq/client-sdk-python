@@ -1,3 +1,5 @@
+from momento.common_data.vector_index.item import Item
+
 from .control.create import CreateIndex, CreateIndexResponse
 from .control.delete import DeleteIndex, DeleteIndexResponse
 from .control.list import IndexInfo, ListIndexes, ListIndexesResponse
@@ -7,7 +9,6 @@ from .data.get_item_and_fetch_vectors_batch import (
     GetItemAndFetchVectorsBatchResponse,
 )
 from .data.get_item_batch import GetItemBatch, GetItemBatchResponse
-from .data.item import Item, ItemWithoutVector
 from .data.search import Search, SearchHit, SearchResponse
 from .data.search_and_fetch_vectors import (
     SearchAndFetchVectors,
@@ -28,7 +29,6 @@ __all__ = [
     "GetItemAndFetchVectorsBatchResponse",
     "IndexInfo",
     "Item",
-    "ItemWithoutVector",
     "ListIndexes",
     "ListIndexesResponse",
     "SearchHit",
