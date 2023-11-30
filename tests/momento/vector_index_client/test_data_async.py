@@ -350,7 +350,7 @@ async def test_upsert_and_search_with_diverse_metadata_happy_path(
     )
     assert isinstance(create_response, CreateIndex.Success)
 
-    metadata: dict[str, str | bool | int | float | list[str]] = {
+    metadata: Metadata = {
         "string": "value",
         "bool": True,
         "int": 1,
