@@ -274,7 +274,7 @@ class PreviewVectorIndexClientAsync:
 
         Args:
             index_name (str): Name of the index to get the items from.
-            ids (list[str]): The IDs of the items to be retrieved from the index.
+            ids (list[str]): The IDs of the item metadata to be retrieved from the index.
 
         Returns:
             GetItemMetadataBatchResponse: The result of a get item metadata batch operation.

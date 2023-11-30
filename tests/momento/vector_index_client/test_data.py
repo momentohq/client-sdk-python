@@ -656,9 +656,8 @@ def test_delete_deletes_ids(
         "expected_get_item_hits",
     ],
     [
-        ("get_item_metadata_batch", [], GetItemMetadataBatch.Success, {}),
         ("get_item_batch", [], GetItemBatch.Success, {}),
-        ("get_item_metadata_batch", ["missing_id"], GetItemMetadataBatch.Success, {}),
+        ("get_item_metadata_batch", [], GetItemMetadataBatch.Success, {}),
         ("get_item_batch", ["missing_id"], GetItemBatch.Success, {}),
         (
             "get_item_metadata_batch",
@@ -666,21 +665,13 @@ def test_delete_deletes_ids(
             GetItemMetadataBatch.Success,
             {"test_item_1": {"key1": "value1"}},
         ),
+        ("get_item_metadata_batch", ["missing_id"], GetItemMetadataBatch.Success, {}),
         (
             "get_item_batch",
             ["test_item_1"],
             GetItemBatch.Success,
             {
                 "test_item_1": Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
-            },
-        ),
-        (
-            "get_item_metadata_batch",
-            ["test_item_1", "missing_id", "test_item_2"],
-            GetItemMetadataBatch.Success,
-            {
-                "test_item_1": {"key1": "value1"},
-                "test_item_2": {},
             },
         ),
         (
@@ -690,6 +681,15 @@ def test_delete_deletes_ids(
             {
                 "test_item_1": Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
                 "test_item_2": Item(id="test_item_2", vector=[-1.0, 1.0], metadata={}),
+            },
+        ),
+        (
+            "get_item_metadata_batch",
+            ["test_item_1", "missing_id", "test_item_2"],
+            GetItemMetadataBatch.Success,
+            {
+                "test_item_1": {"key1": "value1"},
+                "test_item_2": {},
             },
         ),
     ],
