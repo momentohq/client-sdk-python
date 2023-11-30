@@ -214,7 +214,7 @@ class _VectorIndexDataClient:
             self._log_received_response("GetItemBatch", {"index_name": index_name})
             return GetItemBatch.Success.from_proto(batch_response)
         except Exception as e:
-            self._log_request_error("get", e)
+            self._log_request_error("get_item_batch", e)
             return GetItemBatch.Error(convert_error(e, Service.INDEX))
 
     async def get_item_and_fetch_vectors_batch(
@@ -241,7 +241,7 @@ class _VectorIndexDataClient:
             self._log_received_response("GetItemAndFetchVectorsBatch", {"index_name": index_name})
             return GetItemAndFetchVectorsBatch.Success.from_proto(batch_response)
         except Exception as e:
-            self._log_request_error("get", e)
+            self._log_request_error("get_item_and_fetch_vectors_batch", e)
             return GetItemAndFetchVectorsBatch.Error(convert_error(e, Service.INDEX))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
