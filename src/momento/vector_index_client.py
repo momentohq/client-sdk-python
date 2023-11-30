@@ -265,7 +265,7 @@ class PreviewVectorIndexClient:
             ids (list[str]): The IDs of the items to be retrieved from the index.
 
         Returns:
-            GetItemBatchResponse: The result of a get item and fetch vectors batch operation.
+            GetItemBatchResponse: The result of a get item batch operation.
         """
         return self._data_client.get_item_batch(index_name, ids)
 
