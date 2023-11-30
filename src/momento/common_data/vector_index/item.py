@@ -14,7 +14,7 @@ Metadata = Dict[str, Union[str, int, float, bool, List[str]]]
 class ItemMetadata:
     """Represents the id-metadata portion of an entry in the vector index.
 
-    This is used for responses that do not include the vector, such as `get_item_metadata`.
+    This is used in requests to update only the metadata of an item.
     """
 
     def __init__(self, id: str, metadata: Optional[Metadata] = None) -> None:
