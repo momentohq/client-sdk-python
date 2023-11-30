@@ -17,6 +17,10 @@ from momento.requests.vector_index import AllMetadata, Item
 from momento.responses.vector_index import (
     DeleteItemBatch,
     DeleteItemBatchResponse,
+    GetItemAndFetchVectorsBatch,
+    GetItemAndFetchVectorsBatchResponse,
+    GetItemBatch,
+    GetItemBatchResponse,
     Search,
     SearchAndFetchVectors,
     SearchAndFetchVectorsHit,
@@ -185,6 +189,60 @@ class _VectorIndexDataClient:
         except Exception as e:
             self._log_request_error("search_and_fetch_vectors", e)
             return SearchAndFetchVectors.Error(convert_error(e, Service.INDEX))
+
+    async def get_item_batch(
+        self,
+        index_name: str,
+        ids: list[str],
+    ) -> GetItemBatchResponse:
+        try:
+            self._log_issuing_request("GetItemBatch", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            if len(ids) == 0:
+                return GetItemBatch.Success(hits={})
+
+            request = vectorindex_pb._GetItemBatchRequest(
+                index_name=index_name,
+                ids=ids,
+                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
+            )
+
+            batch_response: vectorindex_pb._GetItemBatchResponse = await self._build_stub().GetItemBatch(
+                request, timeout=self._default_deadline_seconds
+            )
+            self._log_received_response("GetItemBatch", {"index_name": index_name})
+            return GetItemBatch.Success.from_proto(batch_response)
+        except Exception as e:
+            self._log_request_error("get_item_batch", e)
+            return GetItemBatch.Error(convert_error(e, Service.INDEX))
+
+    async def get_item_and_fetch_vectors_batch(
+        self,
+        index_name: str,
+        ids: list[str],
+    ) -> GetItemAndFetchVectorsBatchResponse:
+        try:
+            self._log_issuing_request("GetItemAndFetchVectorsBatch", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            if len(ids) == 0:
+                return GetItemAndFetchVectorsBatch.Success(hits={})
+
+            request = vectorindex_pb._GetItemAndFetchVectorsBatchRequest(
+                index_name=index_name,
+                ids=ids,
+                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
+            )
+
+            batch_response: vectorindex_pb._GetItemAndFetchVectorsBatchResponse = (
+                await self._build_stub().GetItemAndFetchVectorsBatch(request, timeout=self._default_deadline_seconds)
+            )
+            self._log_received_response("GetItemAndFetchVectorsBatch", {"index_name": index_name})
+            return GetItemAndFetchVectorsBatch.Success.from_proto(batch_response)
+        except Exception as e:
+            self._log_request_error("get_item_and_fetch_vectors_batch", e)
+            return GetItemAndFetchVectorsBatch.Error(convert_error(e, Service.INDEX))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:
