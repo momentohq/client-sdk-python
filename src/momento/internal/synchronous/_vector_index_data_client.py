@@ -19,8 +19,8 @@ from momento.responses.vector_index import (
     DeleteItemBatchResponse,
     GetItemAndFetchVectorsBatch,
     GetItemAndFetchVectorsBatchResponse,
-    GetItemBatch,
-    GetItemBatchResponse,
+    GetItemMetadataBatch,
+    GetItemMetadataBatchResponse,
     Search,
     SearchAndFetchVectors,
     SearchAndFetchVectorsHit,
@@ -190,17 +190,17 @@ class _VectorIndexDataClient:
             self._log_request_error("search_and_fetch_vectors", e)
             return SearchAndFetchVectors.Error(convert_error(e, Service.INDEX))
 
-    def get_item_batch(
+    def get_item_metadata_batch(
         self,
         index_name: str,
         ids: list[str],
-    ) -> GetItemBatchResponse:
+    ) -> GetItemMetadataBatchResponse:
         try:
             self._log_issuing_request("GetItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
             if len(ids) == 0:
-                return GetItemBatch.Success(hits={})
+                return GetItemMetadataBatch.Success(hits={})
 
             request = vectorindex_pb._GetItemBatchRequest(
                 index_name=index_name,
@@ -212,10 +212,10 @@ class _VectorIndexDataClient:
                 request, timeout=self._default_deadline_seconds
             )
             self._log_received_response("GetItemBatch", {"index_name": index_name})
-            return GetItemBatch.Success.from_proto(batch_response)
+            return GetItemMetadataBatch.Success.from_proto(batch_response)
         except Exception as e:
-            self._log_request_error("get_item_batch", e)
-            return GetItemBatch.Error(convert_error(e, Service.INDEX))
+            self._log_request_error("get_item_metadata_batch", e)
+            return GetItemMetadataBatch.Error(convert_error(e, Service.INDEX))
 
     def get_item_and_fetch_vectors_batch(
         self,

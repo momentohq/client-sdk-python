@@ -13,30 +13,30 @@ from ..response import VectorIndexResponse
 from .utils import pb_metadata_to_dict
 
 
-class GetItemBatchResponse(VectorIndexResponse):
-    """Parent response type for a `get_item_batch` request.
+class GetItemMetadataBatchResponse(VectorIndexResponse):
+    """Parent response type for a `get_item_metadata_batch` request.
 
     Its subtypes are:
-    - `GetItemBatch.Success`
-    - `GetItemBatch.Error`
+    - `GetItemMetadataBatch.Success`
+    - `GetItemMetadataBatch.Error`
 
     See `PreviewVectorIndexClient` for how to work with responses.
     """
 
 
-class GetItemBatch(ABC):
-    """Groups all `GetItemBatchResponse` derived types under a common namespace."""
+class GetItemMetadataBatch(ABC):
+    """Groups all `GetItemMetadataBatchResponse` derived types under a common namespace."""
 
     @dataclass
-    class Success(GetItemBatchResponse):
-        """Contains the result of a `get_item_batch` request."""
+    class Success(GetItemMetadataBatchResponse):
+        """Contains the result of a `get_item_metadata_batch` request."""
 
         hits: dict[str, Metadata]
-        """The items that were found."""
+        """The metadata of the items that were found."""
 
         @staticmethod
-        def from_proto(response: pb._GetItemBatchResponse) -> "GetItemBatch.Success":
-            """Converts a proto hit to a `GetItemBatch.Success`."""
+        def from_proto(response: pb._GetItemBatchResponse) -> "GetItemMetadataBatch.Success":
+            """Converts a proto hit to a `GetItemMetadataBatch.Success`."""
             hits = {}
             for item in response.item_response:
                 type = item.WhichOneof("response")
@@ -47,9 +47,9 @@ class GetItemBatch(ABC):
                 else:
                     raise UnknownException(f"Unknown response type {type!r}.")
 
-            return GetItemBatch.Success(hits=hits)
+            return GetItemMetadataBatch.Success(hits=hits)
 
-    class Error(GetItemBatchResponse, ErrorResponseMixin):
+    class Error(GetItemMetadataBatchResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
 
         This includes:

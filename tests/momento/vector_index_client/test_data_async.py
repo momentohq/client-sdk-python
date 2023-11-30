@@ -11,7 +11,7 @@ from momento.responses.vector_index import (
     CreateIndex,
     DeleteItemBatch,
     GetItemAndFetchVectorsBatch,
-    GetItemBatch,
+    GetItemMetadataBatch,
     Search,
     SearchAndFetchVectors,
     SearchHit,
@@ -660,14 +660,14 @@ async def test_delete_deletes_ids(
         "expected_get_item_hits",
     ],
     [
-        ("get_item_batch", [], GetItemBatch.Success, {}),
+        ("get_item_metadata_batch", [], GetItemMetadataBatch.Success, {}),
         ("get_item_and_fetch_vectors_batch", [], GetItemAndFetchVectorsBatch.Success, {}),
-        ("get_item_batch", ["missing_id"], GetItemBatch.Success, {}),
+        ("get_item_metadata_batch", ["missing_id"], GetItemMetadataBatch.Success, {}),
         ("get_item_and_fetch_vectors_batch", ["missing_id"], GetItemAndFetchVectorsBatch.Success, {}),
         (
-            "get_item_batch",
+            "get_item_metadata_batch",
             ["test_item_1"],
-            GetItemBatch.Success,
+            GetItemMetadataBatch.Success,
             {"test_item_1": {"key1": "value1"}},
         ),
         (
@@ -679,9 +679,9 @@ async def test_delete_deletes_ids(
             },
         ),
         (
-            "get_item_batch",
+            "get_item_metadata_batch",
             ["test_item_1", "missing_id", "test_item_2"],
-            GetItemBatch.Success,
+            GetItemMetadataBatch.Success,
             {
                 "test_item_1": {"key1": "value1"},
                 "test_item_2": {},
@@ -703,7 +703,7 @@ async def test_get_items_by_id(
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
     get_item_method_name: str,
     ids: list[str],
-    expected_get_item_response: type[GetItemBatch.Success] | type[GetItemAndFetchVectorsBatch.Success],
+    expected_get_item_response: type[GetItemMetadataBatch.Success] | type[GetItemAndFetchVectorsBatch.Success],
     expected_get_item_hits: dict[str, Metadata] | dict[str, Item],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
