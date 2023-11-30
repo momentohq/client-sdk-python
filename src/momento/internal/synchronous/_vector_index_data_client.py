@@ -17,10 +17,10 @@ from momento.requests.vector_index import AllMetadata, Item
 from momento.responses.vector_index import (
     DeleteItemBatch,
     DeleteItemBatchResponse,
-    GetItemAndFetchVectorsBatch,
-    GetItemAndFetchVectorsBatchResponse,
     GetItemBatch,
     GetItemBatchResponse,
+    GetItemMetadataBatch,
+    GetItemMetadataBatchResponse,
     Search,
     SearchAndFetchVectors,
     SearchAndFetchVectorsHit,
@@ -196,38 +196,11 @@ class _VectorIndexDataClient:
         ids: list[str],
     ) -> GetItemBatchResponse:
         try:
-            self._log_issuing_request("GetItemBatch", {"index_name": index_name})
-            _validate_index_name(index_name)
-
-            if len(ids) == 0:
-                return GetItemBatch.Success(hits={})
-
-            request = vectorindex_pb._GetItemBatchRequest(
-                index_name=index_name,
-                ids=ids,
-                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
-            )
-
-            batch_response: vectorindex_pb._GetItemBatchResponse = self._build_stub().GetItemBatch(
-                request, timeout=self._default_deadline_seconds
-            )
-            self._log_received_response("GetItemBatch", {"index_name": index_name})
-            return GetItemBatch.Success.from_proto(batch_response)
-        except Exception as e:
-            self._log_request_error("get_item_batch", e)
-            return GetItemBatch.Error(convert_error(e, Service.INDEX))
-
-    def get_item_and_fetch_vectors_batch(
-        self,
-        index_name: str,
-        ids: list[str],
-    ) -> GetItemAndFetchVectorsBatchResponse:
-        try:
             self._log_issuing_request("GetItemAndFetchVectorsBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
             if len(ids) == 0:
-                return GetItemAndFetchVectorsBatch.Success(hits={})
+                return GetItemBatch.Success(hits={})
 
             request = vectorindex_pb._GetItemAndFetchVectorsBatchRequest(
                 index_name=index_name,
@@ -239,10 +212,37 @@ class _VectorIndexDataClient:
                 self._build_stub().GetItemAndFetchVectorsBatch(request, timeout=self._default_deadline_seconds)
             )
             self._log_received_response("GetItemAndFetchVectorsBatch", {"index_name": index_name})
-            return GetItemAndFetchVectorsBatch.Success.from_proto(batch_response)
+            return GetItemBatch.Success.from_proto(batch_response)
         except Exception as e:
-            self._log_request_error("get_item_and_fetch_vectors_batch", e)
-            return GetItemAndFetchVectorsBatch.Error(convert_error(e, Service.INDEX))
+            self._log_request_error("get_item_batch", e)
+            return GetItemBatch.Error(convert_error(e, Service.INDEX))
+
+    def get_item_metadata_batch(
+        self,
+        index_name: str,
+        ids: list[str],
+    ) -> GetItemMetadataBatchResponse:
+        try:
+            self._log_issuing_request("GetItemBatch", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            if len(ids) == 0:
+                return GetItemMetadataBatch.Success(hits={})
+
+            request = vectorindex_pb._GetItemBatchRequest(
+                index_name=index_name,
+                ids=ids,
+                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
+            )
+
+            batch_response: vectorindex_pb._GetItemBatchResponse = self._build_stub().GetItemBatch(
+                request, timeout=self._default_deadline_seconds
+            )
+            self._log_received_response("GetItemBatch", {"index_name": index_name})
+            return GetItemMetadataBatch.Success.from_proto(batch_response)
+        except Exception as e:
+            self._log_request_error("get_item_metadata_batch", e)
+            return GetItemMetadataBatch.Error(convert_error(e, Service.INDEX))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:

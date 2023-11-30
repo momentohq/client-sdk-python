@@ -39,8 +39,8 @@ from momento.responses.vector_index import (
     CreateIndexResponse,
     DeleteIndexResponse,
     DeleteItemBatchResponse,
-    GetItemAndFetchVectorsBatchResponse,
     GetItemBatchResponse,
+    GetItemMetadataBatchResponse,
     ListIndexesResponse,
     SearchAndFetchVectorsResponse,
     SearchResponse,
@@ -261,7 +261,7 @@ class PreviewVectorIndexClientAsync:
         """Gets a batch of items from a vector index by ID.
 
         Args:
-            index_name (str): Name of the index to get the items from.
+            index_name (str): Name of the index to get the item from.
             ids (list[str]): The IDs of the items to be retrieved from the index.
 
         Returns:
@@ -269,20 +269,16 @@ class PreviewVectorIndexClientAsync:
         """
         return await self._data_client.get_item_batch(index_name, ids)
 
-    async def get_item_and_fetch_vectors_batch(
-        self, index_name: str, ids: list[str]
-    ) -> GetItemAndFetchVectorsBatchResponse:
-        """Gets a batch of items from a vector index by ID.
-
-        Also returns the vectors associated with each result.
+    async def get_item_metadata_batch(self, index_name: str, ids: list[str]) -> GetItemMetadataBatchResponse:
+        """Gets metadata for a batch of items from a vector index by ID.
 
         Args:
-            index_name (str): Name of the index to get the item from.
-            ids (list[str]): The IDs of the items to be retrieved from the index.
+            index_name (str): Name of the index to get the items from.
+            ids (list[str]): The IDs of the item metadata to be retrieved from the index.
 
         Returns:
-            GetItemAndFetchVectorsBatchResponse: The result of a get item and fetch vectors batch operation.
+            GetItemMetadataBatchResponse: The result of a get item metadata batch operation.
         """
-        return await self._data_client.get_item_and_fetch_vectors_batch(index_name, ids)
+        return await self._data_client.get_item_metadata_batch(index_name, ids)
 
     # TODO: repr
