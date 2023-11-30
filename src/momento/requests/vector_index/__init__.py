@@ -1,4 +1,5 @@
-from .item import Item
+from momento.common_data.vector_index.item import Item
+
 from .search import ALL_METADATA, AllMetadata
 from .similarity_metric import SimilarityMetric
 

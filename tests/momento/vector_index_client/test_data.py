@@ -4,6 +4,7 @@ from typing import Optional
 
 import pytest
 from momento import PreviewVectorIndexClient
+from momento.common_data.vector_index.item import Metadata
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
 from momento.responses.vector_index import (
@@ -15,12 +16,6 @@ from momento.responses.vector_index import (
     SearchAndFetchVectors,
     SearchHit,
     UpsertItemBatch,
-)
-from momento.responses.vector_index import (
-    Item as FetchedItem,
-)
-from momento.responses.vector_index import (
-    ItemWithoutVector as FetchedItemWithoutVector,
 )
 
 from tests.conftest import TUniqueVectorIndexName
@@ -669,14 +664,14 @@ def test_delete_deletes_ids(
             "get_item_batch",
             ["test_item_1"],
             GetItemBatch.Success,
-            {"test_item_1": FetchedItemWithoutVector(id="test_item_1", metadata={"key1": "value1"})},
+            {"test_item_1": {"key1": "value1"}},
         ),
         (
             "get_item_and_fetch_vectors_batch",
             ["test_item_1"],
             GetItemAndFetchVectorsBatch.Success,
             {
-                "test_item_1": FetchedItem(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
+                "test_item_1": Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
             },
         ),
         (
@@ -684,8 +679,8 @@ def test_delete_deletes_ids(
             ["test_item_1", "missing_id", "test_item_2"],
             GetItemBatch.Success,
             {
-                "test_item_1": FetchedItemWithoutVector(id="test_item_1", metadata={"key1": "value1"}),
-                "test_item_2": FetchedItemWithoutVector(id="test_item_2", metadata={}),
+                "test_item_1": {"key1": "value1"},
+                "test_item_2": {},
             },
         ),
         (
@@ -693,8 +688,8 @@ def test_delete_deletes_ids(
             ["test_item_1", "missing_id", "test_item_2"],
             GetItemAndFetchVectorsBatch.Success,
             {
-                "test_item_1": FetchedItem(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
-                "test_item_2": FetchedItem(id="test_item_2", vector=[-1.0, 1.0], metadata={}),
+                "test_item_1": Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
+                "test_item_2": Item(id="test_item_2", vector=[-1.0, 1.0], metadata={}),
             },
         ),
     ],
@@ -705,7 +700,7 @@ def test_get_items_by_id(
     get_item_method_name: str,
     ids: list[str],
     expected_get_item_response: type[GetItemBatch.Success] | type[GetItemAndFetchVectorsBatch.Success],
-    expected_get_item_hits: dict[str, FetchedItemWithoutVector],
+    expected_get_item_hits: dict[str, Metadata] | dict[str, Item],
 ) -> None:
     index_name = unique_vector_index_name(vector_index_client)
     create_response = vector_index_client.create_index(index_name, num_dimensions=2)

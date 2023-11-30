@@ -5,11 +5,11 @@ from dataclasses import dataclass
 
 from momento_wire_types import vectorindex_pb2 as pb
 
+from momento.common_data.vector_index.item import Metadata
 from momento.errors.exceptions import UnknownException
 
 from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
-from .item import ItemWithoutVector
 from .utils import pb_metadata_to_dict
 
 
@@ -31,7 +31,7 @@ class GetItemBatch(ABC):
     class Success(GetItemBatchResponse):
         """Contains the result of a `get_item_batch` request."""
 
-        hits: dict[str, ItemWithoutVector]
+        hits: dict[str, Metadata]
         """The items that were found."""
 
         @staticmethod
@@ -41,8 +41,7 @@ class GetItemBatch(ABC):
             for item in response.item_response:
                 type = item.WhichOneof("response")
                 if type == "hit":
-                    id_, metadata = item.hit.id, pb_metadata_to_dict(item.hit.metadata)
-                    hits[id_] = ItemWithoutVector(id=id_, metadata=metadata)
+                    hits[item.hit.id] = pb_metadata_to_dict(item.hit.metadata)
                 elif type == "miss":
                     pass
                 else:
