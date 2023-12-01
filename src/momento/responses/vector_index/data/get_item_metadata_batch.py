@@ -35,10 +35,10 @@ class GetItemMetadataBatch(ABC):
         """The metadata of the items that were found."""
 
         @staticmethod
-        def from_proto(response: pb._GetItemBatchResponse) -> "GetItemMetadataBatch.Success":
+        def from_proto(response: pb._GetItemMetadataBatchResponse) -> "GetItemMetadataBatch.Success":
             """Converts a proto hit to a `GetItemMetadataBatch.Success`."""
             hits = {}
-            for item in response.item_response:
+            for item in response.item_metadata_response:
                 type = item.WhichOneof("response")
                 if type == "hit":
                     hits[item.hit.id] = pb_metadata_to_dict(item.hit.metadata)

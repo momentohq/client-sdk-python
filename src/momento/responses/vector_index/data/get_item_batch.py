@@ -35,10 +35,10 @@ class GetItemBatch(ABC):
         """The items that were found."""
 
         @staticmethod
-        def from_proto(response: pb._GetItemAndFetchVectorsBatchResponse) -> "GetItemBatch.Success":
+        def from_proto(response: pb._GetItemBatchResponse) -> "GetItemBatch.Success":
             """Converts a proto hit to a `GetItemBatch.Success`."""
             hits = {}
-            for item in response.item_with_vector_response:
+            for item in response.item_response:
                 type = item.WhichOneof("response")
                 if type == "hit":
                     id_, metadata = item.hit.id, pb_metadata_to_dict(item.hit.metadata)

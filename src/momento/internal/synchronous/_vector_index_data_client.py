@@ -196,38 +196,11 @@ class _VectorIndexDataClient:
         ids: list[str],
     ) -> GetItemBatchResponse:
         try:
-            self._log_issuing_request("GetItemAndFetchVectorsBatch", {"index_name": index_name})
-            _validate_index_name(index_name)
-
-            if len(ids) == 0:
-                return GetItemBatch.Success(hits={})
-
-            request = vectorindex_pb._GetItemAndFetchVectorsBatchRequest(
-                index_name=index_name,
-                ids=ids,
-                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
-            )
-
-            batch_response: vectorindex_pb._GetItemAndFetchVectorsBatchResponse = (
-                self._build_stub().GetItemAndFetchVectorsBatch(request, timeout=self._default_deadline_seconds)
-            )
-            self._log_received_response("GetItemAndFetchVectorsBatch", {"index_name": index_name})
-            return GetItemBatch.Success.from_proto(batch_response)
-        except Exception as e:
-            self._log_request_error("get_item_batch", e)
-            return GetItemBatch.Error(convert_error(e, Service.INDEX))
-
-    def get_item_metadata_batch(
-        self,
-        index_name: str,
-        ids: list[str],
-    ) -> GetItemMetadataBatchResponse:
-        try:
             self._log_issuing_request("GetItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
             if len(ids) == 0:
-                return GetItemMetadataBatch.Success(hits={})
+                return GetItemBatch.Success(hits={})
 
             request = vectorindex_pb._GetItemBatchRequest(
                 index_name=index_name,
@@ -239,6 +212,33 @@ class _VectorIndexDataClient:
                 request, timeout=self._default_deadline_seconds
             )
             self._log_received_response("GetItemBatch", {"index_name": index_name})
+            return GetItemBatch.Success.from_proto(batch_response)
+        except Exception as e:
+            self._log_request_error("get_item_batch", e)
+            return GetItemBatch.Error(convert_error(e, Service.INDEX))
+
+    def get_item_metadata_batch(
+        self,
+        index_name: str,
+        ids: list[str],
+    ) -> GetItemMetadataBatchResponse:
+        try:
+            self._log_issuing_request("GetItemMetadataBatch", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            if len(ids) == 0:
+                return GetItemMetadataBatch.Success(hits={})
+
+            request = vectorindex_pb._GetItemMetadataBatchRequest(
+                index_name=index_name,
+                ids=ids,
+                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
+            )
+
+            batch_response: vectorindex_pb._GetItemMetadataBatchResponse = self._build_stub().GetItemMetadataBatch(
+                request, timeout=self._default_deadline_seconds
+            )
+            self._log_received_response("GetItemMetadataBatch", {"index_name": index_name})
             return GetItemMetadataBatch.Success.from_proto(batch_response)
         except Exception as e:
             self._log_request_error("get_item_metadata_batch", e)
