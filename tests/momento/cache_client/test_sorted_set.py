@@ -3,10 +3,6 @@ from functools import partial
 from time import sleep
 from typing import Optional
 
-from pytest import fixture
-from pytest_describe import behaves_like
-from typing_extensions import Protocol
-
 from momento import CacheClient, CredentialProvider
 from momento.config import Configuration
 from momento.errors import MomentoErrorCode
@@ -32,6 +28,10 @@ from momento.typing import (
     TSortedSetValue,
     TSortedSetValues,
 )
+from pytest import fixture
+from pytest_describe import behaves_like
+from typing_extensions import Protocol
+
 from tests.utils import uuid_str
 
 from .shared_behaviors import (
@@ -109,8 +109,8 @@ def a_sorted_set_setter() -> None:
     ) -> None:
         ttl_seconds = 1
         ttl = CollectionTtl.of(timedelta(seconds=ttl_seconds))
-        elements = dict([("one", 1.0), ("two", 2.0), ("three", 3.0), ("four", 4.0)])
-        elements_list = [(value, score) for value, score in sorted(elements.items(), key=lambda item: item[1])]
+        elements = {"one": 1.0, "two": 2.0, "three": 3.0, "four": 4.0}
+        elements_list = sorted(elements.items(), key=lambda item: item[1])
 
         sorted_set_setter(client, cache_name, sorted_set_name, elements, ttl=ttl)
 
@@ -185,7 +185,11 @@ def a_sorted_set_setter() -> None:
         ]:
             cache_name = uuid_str()
             response = sorted_set_setter(
-                client, cache_name, sorted_set_name, {value: score}, ttl=CollectionTtl()  # type:ignore[arg-type]
+                client,
+                cache_name,
+                sorted_set_name,
+                {value: score},  # type:ignore[arg-type]
+                ttl=CollectionTtl(),
             )
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
@@ -206,13 +210,16 @@ def a_sorted_set_setter() -> None:
         ]:
             cache_name = uuid_str()
             response = sorted_set_setter(
-                client, cache_name, sorted_set_name, {value: score}, ttl=CollectionTtl()  # type:ignore[arg-type]
+                client,
+                cache_name,
+                sorted_set_name,
+                {value: score},  # type:ignore[arg-type]
+                ttl=CollectionTtl(),
             )
             assert isinstance(response, ErrorResponseMixin)
             assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
             assert (
-                response.message
-                == f"Invalid argument passed to Momento client: score must be a float. Given type: "  # noqa: W503,E501
+                response.message == f"Invalid argument passed to Momento client: score must be a float. Given type: "  # noqa: W503,E501
                 f"<class '{bad_type}'>"
             )
 
@@ -549,7 +556,7 @@ def describe_sorted_set_put_field() -> None:
             ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         ) -> CacheResponse:
             response = None
-            for (value, score) in elements.items():
+            for value, score in elements.items():
                 response = client.sorted_set_put_element(
                     cache_name=cache_name,
                     sorted_set_name=sorted_set_name,
@@ -875,7 +882,7 @@ def describe_sorted_set_increment_score() -> None:
             ttl: CollectionTtl = CollectionTtl.from_cache_ttl(),
         ) -> CacheResponse:
             response = None
-            for (value, score) in elements.items():
+            for value, score in elements.items():
                 response = client.sorted_set_increment_score(
                     cache_name=cache_name,
                     sorted_set_name=sorted_set_name,

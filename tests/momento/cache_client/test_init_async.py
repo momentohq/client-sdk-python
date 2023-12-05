@@ -2,7 +2,6 @@ import os
 from datetime import timedelta
 
 import pytest
-
 from momento import CacheClientAsync
 from momento.auth import CredentialProvider
 from momento.config import Configuration

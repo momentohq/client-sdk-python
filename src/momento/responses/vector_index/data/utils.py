@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from momento_wire_types import vectorindex_pb2 as vectorindex_pb
+from momento_wire_types import vectorindex_pb2 as pb
 
+from momento.common_data.vector_index.item import Metadata
 from momento.errors import UnknownException
 
 
 def pb_metadata_to_dict(
-    pb_metadata: Iterable[vectorindex_pb._Metadata],
-) -> dict[str, str | int | float | bool | list[str]]:
-    metadata: dict[str, str | int | float | bool | list[str]] = {}
+    pb_metadata: Iterable[pb._Metadata],
+) -> Metadata:
+    metadata: Metadata = {}
     for item in pb_metadata:
         type = item.WhichOneof("value")
         field = item.field

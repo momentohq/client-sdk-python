@@ -1,17 +1,19 @@
 from utils.instrumentation import example_observability_setup_tracing
 
-example_observability_setup_tracing()
-
 from datetime import timedelta
 
 from momento import CacheClient, Configurations, CredentialProvider
 from momento.responses import CacheGet, CacheSet, CreateCache
+
+
+example_observability_setup_tracing()
 
 _AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
 _ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
 _CACHE_NAME = "test-cache"
 _KEY = "test-key"
 _VALUE = "test-value"
+
 
 def _create_cache(cache_client: CacheClient) -> None:
     create_cache_response = cache_client.create_cache(_CACHE_NAME)
@@ -57,4 +59,4 @@ def main() -> None:
 
 
 main()
-print('Success! Zipkin at http://localhost:9411 should contain traces for the cache creation, get, and set.')
+print("Success! Zipkin at http://localhost:9411 should contain traces for the cache creation, get, and set.")

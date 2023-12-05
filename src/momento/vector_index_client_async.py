@@ -39,6 +39,8 @@ from momento.responses.vector_index import (
     CreateIndexResponse,
     DeleteIndexResponse,
     DeleteItemBatchResponse,
+    GetItemBatchResponse,
+    GetItemMetadataBatchResponse,
     ListIndexesResponse,
     SearchAndFetchVectorsResponse,
     SearchResponse,
@@ -254,5 +256,29 @@ class PreviewVectorIndexClientAsync:
         return await self._data_client.search_and_fetch_vectors(
             index_name, query_vector, top_k, metadata_fields, score_threshold
         )
+
+    async def get_item_batch(self, index_name: str, ids: list[str]) -> GetItemBatchResponse:
+        """Gets a batch of items from a vector index by ID.
+
+        Args:
+            index_name (str): Name of the index to get the item from.
+            ids (list[str]): The IDs of the items to be retrieved from the index.
+
+        Returns:
+            GetItemBatchResponse: The result of a get item batch operation.
+        """
+        return await self._data_client.get_item_batch(index_name, ids)
+
+    async def get_item_metadata_batch(self, index_name: str, ids: list[str]) -> GetItemMetadataBatchResponse:
+        """Gets metadata for a batch of items from a vector index by ID.
+
+        Args:
+            index_name (str): Name of the index to get the items from.
+            ids (list[str]): The IDs of the item metadata to be retrieved from the index.
+
+        Returns:
+            GetItemMetadataBatchResponse: The result of a get item metadata batch operation.
+        """
+        return await self._data_client.get_item_metadata_batch(index_name, ids)
 
     # TODO: repr

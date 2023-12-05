@@ -1,5 +1,4 @@
 import pytest
-
 from momento import CredentialProvider, PreviewVectorIndexClientAsync
 from momento.config import VectorIndexConfiguration
 from momento.errors import MomentoErrorCode
@@ -10,6 +9,7 @@ from momento.responses.vector_index import (
     IndexInfo,
     ListIndexes,
 )
+
 from tests.conftest import TUniqueVectorIndexNameAsync
 from tests.utils import unique_test_vector_index_name
 
@@ -84,7 +84,9 @@ async def test_create_index_returns_error_for_bad_similarity_metric(
     vector_index_client_async: PreviewVectorIndexClientAsync,
 ) -> None:
     response = await vector_index_client_async.create_index(
-        index_name="vector-index", num_dimensions=2, similarity_metric="ASDF"  # type: ignore[arg-type]
+        index_name="vector-index",
+        num_dimensions=2,
+        similarity_metric="ASDF",  # type: ignore[arg-type]
     )
     assert isinstance(response, CreateIndex.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR

@@ -62,10 +62,10 @@ class StaticGrpcConfiguration(GrpcConfiguration):
     def with_root_certificates_pem(self, root_certificates_pem_path: Path) -> GrpcConfiguration:
         try:
             root_certificates_pem_bytes = root_certificates_pem_path.read_bytes()
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Root certificate file not found at path: {root_certificates_pem_path}")
-        except PermissionError:
-            raise PermissionError(f"Root certificate file not readable at path: {root_certificates_pem_path}")
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Root certificate file not found at path: {root_certificates_pem_path}") from e
+        except PermissionError as e:
+            raise PermissionError(f"Root certificate file not readable at path: {root_certificates_pem_path}") from e
         return StaticGrpcConfiguration(self._deadline, root_certificates_pem_bytes)
 
     def get_root_certificates_pem(self) -> Optional[bytes]:

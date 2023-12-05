@@ -3,18 +3,21 @@ from __future__ import annotations
 from typing import Optional
 
 import pytest
-
 from momento import PreviewVectorIndexClient
+from momento.common_data.vector_index.item import Metadata
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndex,
     DeleteItemBatch,
+    GetItemBatch,
+    GetItemMetadataBatch,
     Search,
     SearchAndFetchVectors,
     SearchHit,
     UpsertItemBatch,
 )
+
 from tests.conftest import TUniqueVectorIndexName
 from tests.utils import sleep, when_fetching_vectors_apply_vectors_to_hits
 
@@ -345,7 +348,7 @@ def test_upsert_and_search_with_diverse_metadata_happy_path(
     )
     assert isinstance(create_response, CreateIndex.Success)
 
-    metadata: dict[str, str | bool | int | float | list[str]] = {
+    metadata: Metadata = {
         "string": "value",
         "bool": True,
         "int": 1,
@@ -643,3 +646,80 @@ def test_delete_deletes_ids(
     assert search_response.hits == [
         SearchHit(id="test_item_2", score=11.0),
     ]
+
+
+@pytest.mark.parametrize(
+    [
+        "get_item_method_name",
+        "ids",
+        "expected_get_item_response",
+        "expected_get_item_hits",
+    ],
+    [
+        ("get_item_batch", [], GetItemBatch.Success, {}),
+        ("get_item_metadata_batch", [], GetItemMetadataBatch.Success, {}),
+        ("get_item_batch", ["missing_id"], GetItemBatch.Success, {}),
+        (
+            "get_item_metadata_batch",
+            ["test_item_1"],
+            GetItemMetadataBatch.Success,
+            {"test_item_1": {"key1": "value1"}},
+        ),
+        ("get_item_metadata_batch", ["missing_id"], GetItemMetadataBatch.Success, {}),
+        (
+            "get_item_batch",
+            ["test_item_1"],
+            GetItemBatch.Success,
+            {
+                "test_item_1": Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
+            },
+        ),
+        (
+            "get_item_batch",
+            ["test_item_1", "missing_id", "test_item_2"],
+            GetItemBatch.Success,
+            {
+                "test_item_1": Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
+                "test_item_2": Item(id="test_item_2", vector=[-1.0, 1.0], metadata={}),
+            },
+        ),
+        (
+            "get_item_metadata_batch",
+            ["test_item_1", "missing_id", "test_item_2"],
+            GetItemMetadataBatch.Success,
+            {
+                "test_item_1": {"key1": "value1"},
+                "test_item_2": {},
+            },
+        ),
+    ],
+)
+def test_get_items_by_id(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+    get_item_method_name: str,
+    ids: list[str],
+    expected_get_item_response: type[GetItemMetadataBatch.Success] | type[GetItemBatch.Success],
+    expected_get_item_hits: dict[str, Metadata] | dict[str, Item],
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    items = [
+        Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key1": "value1"}),
+        Item(id="test_item_2", vector=[-1.0, 1.0]),
+        Item(id="test_item_3", vector=[-1.0, -1.0]),
+    ]
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=items,
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    sleep(2)
+
+    get_item = getattr(vector_index_client, get_item_method_name)
+    get_item_response = get_item(index_name, ids)
+    assert isinstance(get_item_response, expected_get_item_response)
+    assert get_item_response.hits == expected_get_item_hits

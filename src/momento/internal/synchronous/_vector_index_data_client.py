@@ -12,13 +12,15 @@ from momento.config import VectorIndexConfiguration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.services import Service
-from momento.internal.synchronous._vector_index_grpc_manager import (
-    _VectorIndexDataGrpcManager,
-)
+from momento.internal.synchronous._vector_index_grpc_manager import _VectorIndexDataGrpcManager
 from momento.requests.vector_index import AllMetadata, Item
 from momento.responses.vector_index import (
     DeleteItemBatch,
     DeleteItemBatchResponse,
+    GetItemBatch,
+    GetItemBatchResponse,
+    GetItemMetadataBatch,
+    GetItemMetadataBatchResponse,
     Search,
     SearchAndFetchVectors,
     SearchAndFetchVectorsHit,
@@ -187,6 +189,60 @@ class _VectorIndexDataClient:
         except Exception as e:
             self._log_request_error("search_and_fetch_vectors", e)
             return SearchAndFetchVectors.Error(convert_error(e, Service.INDEX))
+
+    def get_item_batch(
+        self,
+        index_name: str,
+        ids: list[str],
+    ) -> GetItemBatchResponse:
+        try:
+            self._log_issuing_request("GetItemBatch", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            if len(ids) == 0:
+                return GetItemBatch.Success(hits={})
+
+            request = vectorindex_pb._GetItemBatchRequest(
+                index_name=index_name,
+                ids=ids,
+                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
+            )
+
+            batch_response: vectorindex_pb._GetItemBatchResponse = self._build_stub().GetItemBatch(
+                request, timeout=self._default_deadline_seconds
+            )
+            self._log_received_response("GetItemBatch", {"index_name": index_name})
+            return GetItemBatch.Success.from_proto(batch_response)
+        except Exception as e:
+            self._log_request_error("get_item_batch", e)
+            return GetItemBatch.Error(convert_error(e, Service.INDEX))
+
+    def get_item_metadata_batch(
+        self,
+        index_name: str,
+        ids: list[str],
+    ) -> GetItemMetadataBatchResponse:
+        try:
+            self._log_issuing_request("GetItemMetadataBatch", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            if len(ids) == 0:
+                return GetItemMetadataBatch.Success(hits={})
+
+            request = vectorindex_pb._GetItemMetadataBatchRequest(
+                index_name=index_name,
+                ids=ids,
+                metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
+            )
+
+            batch_response: vectorindex_pb._GetItemMetadataBatchResponse = self._build_stub().GetItemMetadataBatch(
+                request, timeout=self._default_deadline_seconds
+            )
+            self._log_received_response("GetItemMetadataBatch", {"index_name": index_name})
+            return GetItemMetadataBatch.Success.from_proto(batch_response)
+        except Exception as e:
+            self._log_request_error("get_item_metadata_batch", e)
+            return GetItemMetadataBatch.Error(convert_error(e, Service.INDEX))
 
     # TODO these were copied from the data client. Shouldn't use interpolation here for perf?
     def _log_received_response(self, request_type: str, request_args: dict[str, str]) -> None:

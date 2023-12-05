@@ -66,5 +66,5 @@ def _is_base64(value: Union[bytes, str]) -> bool:
         if isinstance(value, str):
             value = value.encode("utf-8")
         return base64.b64encode(base64.b64decode(value)) == value
-    except (Exception,):
+    except Exception:
         return False

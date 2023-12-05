@@ -2,7 +2,6 @@ from datetime import timedelta
 from typing import Optional
 
 import pytest
-
 from momento.errors import InvalidArgumentException
 from momento.requests import CollectionTtl
 

@@ -1,5 +1,4 @@
 import pytest
-
 from momento.errors.exceptions import InvalidArgumentException
 from momento.internal.services import Service
 from momento.requests.vector_index import Item
