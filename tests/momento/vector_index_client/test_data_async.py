@@ -726,4 +726,4 @@ async def test_get_items_by_id(
     get_item = getattr(vector_index_client_async, get_item_method_name)
     get_item_response = await get_item(index_name, ids)
     assert isinstance(get_item_response, expected_get_item_response)
-    assert get_item_response.hits == expected_get_item_hits
+    assert get_item_response.values == expected_get_item_hits
