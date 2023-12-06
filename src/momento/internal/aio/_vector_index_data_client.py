@@ -200,7 +200,7 @@ class _VectorIndexDataClient:
             _validate_index_name(index_name)
 
             if len(ids) == 0:
-                return GetItemBatch.Success(hits={})
+                return GetItemBatch.Success(values={})
 
             request = vectorindex_pb._GetItemBatchRequest(
                 index_name=index_name,
@@ -227,7 +227,7 @@ class _VectorIndexDataClient:
             _validate_index_name(index_name)
 
             if len(ids) == 0:
-                return GetItemMetadataBatch.Success(hits={})
+                return GetItemMetadataBatch.Success(values={})
 
             request = vectorindex_pb._GetItemMetadataBatchRequest(
                 index_name=index_name,

@@ -31,24 +31,24 @@ class GetItemBatch(ABC):
     class Success(GetItemBatchResponse):
         """Contains the result of a `get_item_batch` request."""
 
-        hits: dict[str, Item]
+        values: dict[str, Item]
         """The items that were found."""
 
         @staticmethod
         def from_proto(response: pb._GetItemBatchResponse) -> "GetItemBatch.Success":
             """Converts a proto hit to a `GetItemBatch.Success`."""
-            hits = {}
+            values = {}
             for item in response.item_response:
                 type = item.WhichOneof("response")
                 if type == "hit":
                     id_, metadata = item.hit.id, pb_metadata_to_dict(item.hit.metadata)
-                    hits[id_] = Item(id=id_, vector=list(item.hit.vector.elements), metadata=metadata)
+                    values[id_] = Item(id=id_, vector=list(item.hit.vector.elements), metadata=metadata)
                 elif type == "miss":
                     pass
                 else:
                     raise UnknownException(f"Unknown response type {type!r}.")
 
-            return GetItemBatch.Success(hits=hits)
+            return GetItemBatch.Success(values=values)
 
     class Error(GetItemBatchResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
