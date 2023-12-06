@@ -657,7 +657,7 @@ async def test_delete_deletes_ids(
         "get_item_method_name",
         "ids",
         "expected_get_item_response",
-        "expected_get_item_hits",
+        "expected_get_item_values",
     ],
     [
         ("get_item_batch", [], GetItemBatch.Success, {}),
@@ -704,7 +704,7 @@ async def test_get_items_by_id(
     get_item_method_name: str,
     ids: list[str],
     expected_get_item_response: type[GetItemMetadataBatch.Success] | type[GetItemBatch.Success],
-    expected_get_item_hits: dict[str, Metadata] | dict[str, Item],
+    expected_get_item_values: dict[str, Metadata] | dict[str, Item],
 ) -> None:
     index_name = unique_vector_index_name_async(vector_index_client_async)
     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
@@ -726,4 +726,4 @@ async def test_get_items_by_id(
     get_item = getattr(vector_index_client_async, get_item_method_name)
     get_item_response = await get_item(index_name, ids)
     assert isinstance(get_item_response, expected_get_item_response)
-    assert get_item_response.values == expected_get_item_hits
+    assert get_item_response.values == expected_get_item_values
