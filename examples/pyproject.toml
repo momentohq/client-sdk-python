@@ -8,7 +8,7 @@ license = "Apache-2.0"
 [tool.poetry.dependencies]
 python = ">=3.7,<3.12"
 
-momento = "1.13.2"
+momento = "1.15.1"
 colorlog = "6.7.0"
 hdrhistogram = "^0.10.1"
 
