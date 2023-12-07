@@ -26,6 +26,8 @@ from momento.responses.vector_index import (
     CreateIndex,
     DeleteIndex,
     DeleteItemBatch,
+    GetItemBatch,
+    GetItemMetadataBatch,
     ListIndexes,
     Search,
     SearchAndFetchVectors,
@@ -256,6 +258,30 @@ async def example_API_DeleteItemBatch(vector_client: PreviewVectorIndexClientAsy
 # end example
 
 
+async def example_API_GetItemBatch(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.get_item_batch("test-index", ["example_item_1", "example_item_2"])
+    match response:
+        case GetItemBatch.Success() as success:
+            print(f"Found {len(success.values)} items")
+        case GetItemBatch.Error() as error:
+            print(f"Error getting items from index 'test-index': {error.message}")
+
+
+# end example
+
+
+async def example_API_GetItemMetadataBatch(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.get_item_metadata_batch("test-index", ["example_item_1", "example_item_2"])
+    match response:
+        case GetItemMetadataBatch.Success() as success:
+            print(f"Found metadata for {len(success.values)} items")
+        case GetItemMetadataBatch.Error() as error:
+            print(f"Error getting item metadata from index 'test-index': {error.message}")
+
+
+# end example
+
+
 async def example_API_Search(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.search("test-index", [1.0, 2.0], top_k=3, metadata_fields=ALL_METADATA)
     match response:
@@ -318,6 +344,8 @@ async def main():
     await example_API_CreateIndex(vector_client)
     await example_API_ListIndexes(vector_client)
     await example_API_UpsertItemBatch(vector_client)
+    await example_API_GetItemBatch(vector_client)
+    await example_API_GetItemMetadataBatch(vector_client)
     await example_API_Search(vector_client)
     await example_API_SearchAndFetchVectors(vector_client)
     await example_API_DeleteItemBatch(vector_client)
