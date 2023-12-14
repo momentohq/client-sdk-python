@@ -285,6 +285,3 @@ class Field:
 
     def list_contains(self, value: str) -> ListContains:
         return ListContains(self.name, value)
-
-
-print((Field("name") == "foo") & (Field("year") >= 2000) & ~Field("tags").list_contains("books"))
