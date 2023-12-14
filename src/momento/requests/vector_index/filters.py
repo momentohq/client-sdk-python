@@ -1,0 +1,290 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+from momento_wire_types import vectorindex_pb2 as vectorindex_pb
+
+from momento.errors.exceptions import InvalidArgumentException
+from momento.internal.services import Service
+
+
+@dataclass
+class FilterExpression(ABC):
+    """Base class for all filter expressions."""
+
+    @abstractmethod
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        """Converts the filter expression to a protobuf filter expression.
+
+        Returns:
+            vectorindex_pb._FilterExpression: The protobuf filter expression.
+        """
+        ...
+
+    def __and__(self, other: FilterExpression) -> FilterExpression:
+        """Creates an AND expression between this expression and another.
+
+        Args:
+            other (FilterExpression): The other expression to AND with.
+
+        Returns:
+            FilterExpression: The AND expression.
+        """
+        return And(self, other)
+
+    def __or__(self, other: FilterExpression) -> FilterExpression:
+        """Creates an OR expression between this expression and another.
+
+        Args:
+            other (FilterExpression): The other expression to OR with.
+
+        Returns:
+            FilterExpression: The OR expression.
+        """
+        return Or(self, other)
+
+    def __invert__(self) -> FilterExpression:
+        """Creates a NOT expression of this expression.
+
+        Returns:
+            FilterExpression: The NOT expression.
+        """
+        return Not(self)
+
+
+@dataclass
+class And(FilterExpression):
+    """Represents an AND expression between two filter expressions."""
+
+    first_expression: FilterExpression
+    """The first expression to AND."""
+    second_expression: FilterExpression
+    """The second expression to AND."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(and_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._AndExpression:
+        return vectorindex_pb._AndExpression(
+            first_expression=self.first_expression.to_filter_expression_proto(),
+            second_expression=self.second_expression.to_filter_expression_proto(),
+        )
+
+
+@dataclass
+class Or(FilterExpression):
+    """Represents an OR expression between two filter expressions."""
+
+    first_expression: FilterExpression
+    """The first expression to OR."""
+    second_expression: FilterExpression
+    """The second expression to OR."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(or_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._OrExpression:
+        return vectorindex_pb._OrExpression(
+            first_expression=self.first_expression.to_filter_expression_proto(),
+            second_expression=self.second_expression.to_filter_expression_proto(),
+        )
+
+
+@dataclass
+class Not(FilterExpression):
+    """Represents a NOT expression of a filter expression."""
+
+    expression_to_negate: FilterExpression
+    """The expression to negate."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(not_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._NotExpression:
+        return vectorindex_pb._NotExpression(
+            expression_to_negate=self.expression_to_negate.to_filter_expression_proto()
+        )
+
+
+@dataclass
+class Equals(FilterExpression):
+    """Represents an equals expression between a field and a value."""
+
+    field: str
+    """The field to compare."""
+    value: str | int | float | bool
+    """The value to test equality with."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(equals_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._EqualsExpression:
+        if type(self.value) is str:
+            return vectorindex_pb._EqualsExpression(field=self.field, string_value=self.value)
+        elif type(self.value) is int:
+            return vectorindex_pb._EqualsExpression(field=self.field, integer_value=self.value)
+        elif type(self.value) is float:
+            return vectorindex_pb._EqualsExpression(field=self.field, float_value=self.value)
+        elif type(self.value) is bool:
+            return vectorindex_pb._EqualsExpression(field=self.field, boolean_value=self.value)
+        else:
+            raise InvalidArgumentException(
+                f"Invalid type for value: {type(self.value)} in equals expression. Must be one of str, int, float, bool.",
+                Service.INDEX,
+            )
+
+
+@dataclass
+class GreaterThan(FilterExpression):
+    """Represents a greater than expression between a field and a value."""
+
+    field: str
+    """The field to compare."""
+    value: int | float
+    """The value to test greater than with."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(greater_than_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._GreaterThanExpression:
+        if type(self.value) is int:
+            return vectorindex_pb._GreaterThanExpression(field=self.field, integer_value=self.value)
+        elif type(self.value) is float:
+            return vectorindex_pb._GreaterThanExpression(field=self.field, float_value=self.value)
+        else:
+            raise InvalidArgumentException(
+                f"Invalid type for value: {type(self.value)} in greater than expression. Must be one of int, float.",
+                Service.INDEX,
+            )
+
+
+@dataclass
+class GreaterThanOrEqual(FilterExpression):
+    """Represents a greater than or equal expression between a field and a value."""
+
+    field: str
+    """The field to compare."""
+    value: int | float
+    """The value to test greater than or equal with."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(greater_or_equal_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._GreaterOrEqualExpression:
+        if type(self.value) is int:
+            return vectorindex_pb._GreaterOrEqualExpression(field=self.field, integer_value=self.value)
+        elif type(self.value) is float:
+            return vectorindex_pb._GreaterOrEqualExpression(field=self.field, float_value=self.value)
+        else:
+            raise InvalidArgumentException(
+                f"Invalid type for value: {type(self.value)} in greater than or equal expression. Must be one of int, float.",
+                Service.INDEX,
+            )
+
+
+@dataclass
+class LessThan(FilterExpression):
+    """Represents a less than expression between a field and a value."""
+
+    field: str
+    """The field to compare."""
+    value: int | float
+    """The value to test less than with."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(less_than_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._LessThanExpression:
+        if type(self.value) is int:
+            return vectorindex_pb._LessThanExpression(field=self.field, integer_value=self.value)
+        elif type(self.value) is float:
+            return vectorindex_pb._LessThanExpression(field=self.field, float_value=self.value)
+        else:
+            raise InvalidArgumentException(
+                f"Invalid type for value: {type(self.value)} in less than expression. Must be one of int, float.",
+                Service.INDEX,
+            )
+
+
+@dataclass
+class LessThanOrEqual(FilterExpression):
+    """Represents a less than or equal expression between a field and a value."""
+
+    field: str
+    """The field to compare."""
+    value: int | float
+    """The value to test less than or equal with."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(less_or_equal_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._LessOrEqualExpression:
+        if type(self.value) is int:
+            return vectorindex_pb._LessOrEqualExpression(field=self.field, integer_value=self.value)
+        elif type(self.value) is float:
+            return vectorindex_pb._LessOrEqualExpression(field=self.field, float_value=self.value)
+        else:
+            raise InvalidArgumentException(
+                f"Invalid type for value: {type(self.value)} in less than or equal expression. Must be one of int, float.",
+                Service.INDEX,
+            )
+
+
+@dataclass
+class ListContains(FilterExpression):
+    """Represents a list contains expression between a field and a value."""
+
+    field: str
+    """The list field to test."""
+    value: str
+    """The value to test list contains with."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(list_contains_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._ListContainsExpression:
+        # todo should make oneof defensively
+        return vectorindex_pb._ListContainsExpression(field=self.field, value=self.value)
+
+
+@dataclass
+class Field:
+    """Represents a field in a filter expression.
+
+    Can be used to create filter expressions in a more readable way::
+
+        from momento.requests.vector_index.filters import Field
+
+        Field("name") == "foo"
+        Field("age") >= 18
+        Field("tags").list_contains("books")
+        (Field("year") > 2000) | (Field("year") < 1990)
+    """
+
+    name: str
+    """The name of the field."""
+
+    def __eq__(self, other: str | int | float | bool) -> Equals:  # type: ignore
+        return Equals(self.name, other)
+
+    def __ne__(self, other: str | int | float | bool) -> Not:  # type: ignore
+        return Not(Equals(self.name, other))
+
+    def __gt__(self, other: int | float) -> GreaterThan:
+        return GreaterThan(self.name, other)
+
+    def __ge__(self, other: int | float) -> GreaterThanOrEqual:
+        return GreaterThanOrEqual(self.name, other)
+
+    def __lt__(self, other: int | float) -> LessThan:
+        return LessThan(self.name, other)
+
+    def __le__(self, other: int | float) -> LessThanOrEqual:
+        return LessThanOrEqual(self.name, other)
+
+    def list_contains(self, value: str) -> ListContains:
+        return ListContains(self.name, value)
+
+
+print((Field("name") == "foo") & (Field("year") >= 2000) & ~Field("tags").list_contains("books"))
