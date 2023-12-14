@@ -18,6 +18,11 @@ from momento_wire_types import vectorindex_pb2 as pb
             pb._FilterExpression(equals_expression=pb._EqualsExpression(field="foo", boolean_value=True)),
         ),
         (
+            ~Field("foo"),
+            F.Equals("foo", False),
+            pb._FilterExpression(equals_expression=pb._EqualsExpression(field="foo", boolean_value=False)),
+        ),
+        (
             Field("foo") == 5.5,
             F.Equals("foo", 5.5),
             pb._FilterExpression(equals_expression=pb._EqualsExpression(field="foo", float_value=5.5)),
@@ -127,5 +132,5 @@ def test_field_shorthand(
     field_based_expression: FilterExpression, full_expression: FilterExpression, protobuf: pb._FilterExpression
 ) -> None:
     assert field_based_expression == full_expression
-    if protobuf is not None:
-        assert full_expression.to_filter_expression_proto() == protobuf
+    assert field_based_expression.to_filter_expression_proto() == protobuf
+    assert full_expression.to_filter_expression_proto() == protobuf

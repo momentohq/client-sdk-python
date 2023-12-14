@@ -265,8 +265,21 @@ class Field:
     name: str
     """The name of the field."""
 
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        """Converts the field to a protobuf filter expression.
+
+        A bare field is equivalent to the field in a boolean context.
+
+        Returns:
+            vectorindex_pb._FilterExpression: The protobuf filter expression.
+        """
+        return Equals(self.name, True).to_filter_expression_proto()
+
     def __eq__(self, other: str | int | float | bool) -> Equals:  # type: ignore
         return Equals(self.name, other)
+
+    def __invert__(self) -> Equals:
+        return Equals(self.name, False)
 
     def __ne__(self, other: str | int | float | bool) -> Not:  # type: ignore
         return Not(Equals(self.name, other))
