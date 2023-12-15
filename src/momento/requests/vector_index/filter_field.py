@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import momento_wire_types.vectorindex_pb2 as vectorindex_pb
+from momento_wire_types import vectorindex_pb2 as vectorindex_pb
 
 from . import filters as F
 
