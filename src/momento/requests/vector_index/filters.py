@@ -1,3 +1,15 @@
+"""Filter expressions for the vector index request.
+
+The filter expressions are used to filter the results of a vector index request.
+This module contains the base class for all filter expressions, as well as
+implementations for all the different types of filter expressions::
+    And(Equals("foo", "bar"), GreaterThan("age", 18))
+    Or(Equals("foo", "bar"), LessThan("age", 18))
+    Not(Equals("foo", "bar"))
+
+The `Field` class is used to create filter expressions in a more idiomatic way.
+"""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -246,55 +258,3 @@ class ListContains(FilterExpression):
     def to_proto(self) -> vectorindex_pb._ListContainsExpression:
         # todo should make oneof defensively
         return vectorindex_pb._ListContainsExpression(field=self.field, string_value=self.value)
-
-
-@dataclass
-class Field:
-    """Represents a field in a filter expression.
-
-    Can be used to create filter expressions in a more readable way::
-
-        from momento.requests.vector_index.filters import Field
-
-        Field("name") == "foo"
-        Field("age") >= 18
-        Field("tags").list_contains("books")
-        (Field("year") > 2000) | (Field("year") < 1990)
-    """
-
-    name: str
-    """The name of the field."""
-
-    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
-        """Converts the field to a protobuf filter expression.
-
-        A bare field is equivalent to the field in a boolean context.
-
-        Returns:
-            vectorindex_pb._FilterExpression: The protobuf filter expression.
-        """
-        return Equals(self.name, True).to_filter_expression_proto()
-
-    def __eq__(self, other: str | int | float | bool) -> Equals:  # type: ignore
-        return Equals(self.name, other)
-
-    def __invert__(self) -> Equals:
-        return Equals(self.name, False)
-
-    def __ne__(self, other: str | int | float | bool) -> Not:  # type: ignore
-        return Not(Equals(self.name, other))
-
-    def __gt__(self, other: int | float) -> GreaterThan:
-        return GreaterThan(self.name, other)
-
-    def __ge__(self, other: int | float) -> GreaterThanOrEqual:
-        return GreaterThanOrEqual(self.name, other)
-
-    def __lt__(self, other: int | float) -> LessThan:
-        return LessThan(self.name, other)
-
-    def __le__(self, other: int | float) -> LessThanOrEqual:
-        return LessThanOrEqual(self.name, other)
-
-    def list_contains(self, value: str) -> ListContains:
-        return ListContains(self.name, value)

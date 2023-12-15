@@ -1,6 +1,7 @@
 from momento.common_data.vector_index.item import Item
 
-from .filters import Field, FilterExpression
+from .filter_field import Field
+from .filters import FilterExpression
 from .search import ALL_METADATA, AllMetadata
 from .similarity_metric import SimilarityMetric
 
