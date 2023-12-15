@@ -113,7 +113,7 @@ class _VectorIndexDataClient:
 
     @staticmethod
     def __build_filter_expression(
-        filter_expression: Optional[FilterExpression]
+        filter_expression: Optional[FilterExpression],
     ) -> Optional[vectorindex_pb._FilterExpression]:
         if filter_expression is None:
             return None
