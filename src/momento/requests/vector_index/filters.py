@@ -169,13 +169,13 @@ class GreaterThanOrEqual(FilterExpression):
     """The value to test greater than or equal with."""
 
     def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
-        return vectorindex_pb._FilterExpression(greater_or_equal_expression=self.to_proto())
+        return vectorindex_pb._FilterExpression(greater_than_or_equal_expression=self.to_proto())
 
-    def to_proto(self) -> vectorindex_pb._GreaterOrEqualExpression:
+    def to_proto(self) -> vectorindex_pb._GreaterThanOrEqualExpression:
         if type(self.value) is int:
-            return vectorindex_pb._GreaterOrEqualExpression(field=self.field, integer_value=self.value)
+            return vectorindex_pb._GreaterThanOrEqualExpression(field=self.field, integer_value=self.value)
         elif type(self.value) is float:
-            return vectorindex_pb._GreaterOrEqualExpression(field=self.field, float_value=self.value)
+            return vectorindex_pb._GreaterThanOrEqualExpression(field=self.field, float_value=self.value)
         else:
             raise InvalidArgumentException(
                 f"Invalid type for value: {type(self.value)} in greater than or equal expression. Must be one of int, float.",
@@ -217,13 +217,13 @@ class LessThanOrEqual(FilterExpression):
     """The value to test less than or equal with."""
 
     def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
-        return vectorindex_pb._FilterExpression(less_or_equal_expression=self.to_proto())
+        return vectorindex_pb._FilterExpression(less_than_or_equal_expression=self.to_proto())
 
-    def to_proto(self) -> vectorindex_pb._LessOrEqualExpression:
+    def to_proto(self) -> vectorindex_pb._LessThanOrEqualExpression:
         if type(self.value) is int:
-            return vectorindex_pb._LessOrEqualExpression(field=self.field, integer_value=self.value)
+            return vectorindex_pb._LessThanOrEqualExpression(field=self.field, integer_value=self.value)
         elif type(self.value) is float:
-            return vectorindex_pb._LessOrEqualExpression(field=self.field, float_value=self.value)
+            return vectorindex_pb._LessThanOrEqualExpression(field=self.field, float_value=self.value)
         else:
             raise InvalidArgumentException(
                 f"Invalid type for value: {type(self.value)} in less than or equal expression. Must be one of int, float.",
@@ -245,7 +245,7 @@ class ListContains(FilterExpression):
 
     def to_proto(self) -> vectorindex_pb._ListContainsExpression:
         # todo should make oneof defensively
-        return vectorindex_pb._ListContainsExpression(field=self.field, value=self.value)
+        return vectorindex_pb._ListContainsExpression(field=self.field, string_value=self.value)
 
 
 @dataclass

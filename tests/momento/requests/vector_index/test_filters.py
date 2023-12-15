@@ -63,14 +63,14 @@ from momento_wire_types import vectorindex_pb2 as pb
             Field("foo") >= 5,
             F.GreaterThanOrEqual("foo", 5),
             pb._FilterExpression(
-                greater_or_equal_expression=pb._GreaterOrEqualExpression(field="foo", integer_value=5)
+                greater_than_or_equal_expression=pb._GreaterThanOrEqualExpression(field="foo", integer_value=5)
             ),
         ),
         (
             Field("foo") >= 5.5,
             F.GreaterThanOrEqual("foo", 5.5),
             pb._FilterExpression(
-                greater_or_equal_expression=pb._GreaterOrEqualExpression(field="foo", float_value=5.5)
+                greater_than_or_equal_expression=pb._GreaterThanOrEqualExpression(field="foo", float_value=5.5)
             ),
         ),
         (
@@ -86,17 +86,21 @@ from momento_wire_types import vectorindex_pb2 as pb
         (
             Field("foo") <= 5,
             F.LessThanOrEqual("foo", 5),
-            pb._FilterExpression(less_or_equal_expression=pb._LessOrEqualExpression(field="foo", integer_value=5)),
+            pb._FilterExpression(
+                less_than_or_equal_expression=pb._LessThanOrEqualExpression(field="foo", integer_value=5)
+            ),
         ),
         (
             Field("foo") <= 5.5,
             F.LessThanOrEqual("foo", 5.5),
-            pb._FilterExpression(less_or_equal_expression=pb._LessOrEqualExpression(field="foo", float_value=5.5)),
+            pb._FilterExpression(
+                less_than_or_equal_expression=pb._LessThanOrEqualExpression(field="foo", float_value=5.5)
+            ),
         ),
         (
             Field("foo").list_contains("bar"),
             F.ListContains("foo", "bar"),
-            pb._FilterExpression(list_contains_expression=pb._ListContainsExpression(field="foo", value="bar")),
+            pb._FilterExpression(list_contains_expression=pb._ListContainsExpression(field="foo", string_value="bar")),
         ),
         (
             (Field("foo") == "bar") & (Field("baz") == 5),
