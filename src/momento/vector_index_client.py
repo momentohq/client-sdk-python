@@ -34,7 +34,7 @@ except ImportError as e:
         print("-".join("" for _ in range(99)), file=sys.stderr)
     raise e
 
-from momento.requests.vector_index import AllMetadata, Item, SimilarityMetric
+from momento.requests.vector_index import AllMetadata, FilterExpression, Item, SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndexResponse,
     DeleteIndexResponse,
@@ -201,6 +201,7 @@ class PreviewVectorIndexClient:
         top_k: int = 10,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
+        filter_expression: Optional[FilterExpression] = None,
     ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
@@ -218,11 +219,15 @@ class PreviewVectorIndexClient:
                 For cosine similarity and inner product, scores lower than the threshold
                 are excluded. For euclidean similarity, scores higher than the threshold
                 are excluded. The threshold is exclusive. Defaults to None, ie no threshold.
+            filter_expression (Optional[FilterExpression]): A filter expression to filter
+                results by. Defaults to None, ie no filter.
 
         Returns:
             SearchResponse: The result of a search operation.
         """
-        return self._data_client.search(index_name, query_vector, top_k, metadata_fields, score_threshold)
+        return self._data_client.search(
+            index_name, query_vector, top_k, metadata_fields, score_threshold, filter_expression
+        )
 
     def search_and_fetch_vectors(
         self,
@@ -231,6 +236,7 @@ class PreviewVectorIndexClient:
         top_k: int = 10,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
+        filter_expression: Optional[FilterExpression] = None,
     ) -> SearchAndFetchVectorsResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
@@ -249,12 +255,14 @@ class PreviewVectorIndexClient:
                 For cosine similarity and inner product, scores lower than the threshold
                 are excluded. For euclidean similarity, scores higher than the threshold
                 are excluded. The threshold is exclusive. Defaults to None, ie no threshold.
+            filter_expression (Optional[FilterExpression]): A filter expression to filter
+                results by. Defaults to None, ie no filter.
 
         Returns:
             SearchResponse: The result of a search operation.
         """
         return self._data_client.search_and_fetch_vectors(
-            index_name, query_vector, top_k, metadata_fields, score_threshold
+            index_name, query_vector, top_k, metadata_fields, score_threshold, filter_expression
         )
 
     def get_item_batch(self, index_name: str, ids: list[str]) -> GetItemBatchResponse:

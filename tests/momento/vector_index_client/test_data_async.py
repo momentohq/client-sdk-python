@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, cast
 
 import pytest
 from momento import PreviewVectorIndexClientAsync
 from momento.common_data.vector_index.item import Metadata
 from momento.errors import MomentoErrorCode
-from momento.requests.vector_index import ALL_METADATA, Item, SimilarityMetric
+from momento.requests.vector_index import ALL_METADATA, Field, FilterExpression, Item, SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndex,
     DeleteItemBatch,
@@ -597,6 +597,91 @@ async def test_search_score_threshold_happy_path(
     search_response3 = await search(index_name, query_vector=query_vector, top_k=3, score_threshold=thresholds[2])
     assert isinstance(search_response3, response)
     assert search_response3.hits == []
+
+
+async def test_search_with_filter_expression(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+    num_dimensions = 2
+    create_response = await vector_index_client_async.create_index(
+        index_name, num_dimensions=num_dimensions, similarity_metric=SimilarityMetric.INNER_PRODUCT
+    )
+    assert isinstance(create_response, CreateIndex.Success)
+    items = [
+        Item(
+            id="test_item_1",
+            vector=[1.0, 1.0],
+            metadata={"str": "value1", "int": 0, "float": 0.0, "bool": True, "tags": ["a", "b", "c"]},
+        ),
+        Item(
+            id="test_item_2",
+            vector=[-1.0, 1.0],
+            metadata={"str": "value2", "int": 5, "float": 5.0, "bool": False, "tags": ["a", "b"]},
+        ),
+        Item(
+            id="test_item_3",
+            vector=[-1.0, -1.0],
+            metadata={"str": "value3", "int": 10, "float": 10.0, "bool": True, "tags": ["a", "d"]},
+        ),
+    ]
+    upsert_response = await vector_index_client_async.upsert_item_batch(
+        index_name,
+        items=items,
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+    await sleep_async(2)
+
+    # Writing the test cases here instead of as a parameterized test because:
+    # 1. The search data is the same across tests, so no need to reindex each time.
+    # 2. It is 10x faster to run the tests this way.
+    for filter_expression, expected_ids, test_case_name in [
+        (Field("str") == "value1", ["test_item_1"], "string equality"),
+        (Field("str") != "value1", ["test_item_2", "test_item_3"], "string inequality"),
+        (Field("int") == 0, ["test_item_1"], "int equality"),
+        (Field("float") == 0.0, ["test_item_1"], "float equality"),
+        (Field("bool"), ["test_item_1", "test_item_3"], "bool equality"),
+        (~Field("bool"), ["test_item_2"], "bool inequality"),
+        (Field("int") > 5, ["test_item_3"], "int greater than"),
+        (Field("int") >= 5, ["test_item_2", "test_item_3"], "int greater than or equal to"),
+        (Field("float") > 5.0, ["test_item_3"], "float greater than"),
+        (Field("float") >= 5.0, ["test_item_2", "test_item_3"], "float greater than or equal to"),
+        (Field("int") < 5, ["test_item_1"], "int less than"),
+        (Field("int") <= 5, ["test_item_1", "test_item_2"], "int less than or equal to"),
+        (Field("float") < 5.0, ["test_item_1"], "float less than"),
+        (Field("float") <= 5.0, ["test_item_1", "test_item_2"], "float less than or equal to"),
+        (Field("tags").list_contains("a"), ["test_item_1", "test_item_2", "test_item_3"], "list contains a"),
+        (Field("tags").list_contains("b"), ["test_item_1", "test_item_2"], "list contains b"),
+        (Field("tags").list_contains("m"), [], "list contains m"),
+        ((Field("tags").list_contains("b")) & (Field("int") > 1), ["test_item_2"], "list contains b and int > 1"),
+        (
+            (Field("tags").list_contains("b")) | (Field("int") > 1),
+            ["test_item_1", "test_item_2", "test_item_3"],
+            "list contains b or int > 1",
+        ),
+    ]:
+        filter_expression = cast(FilterExpression, filter_expression)
+        search_response = await vector_index_client_async.search(
+            index_name, query_vector=[2.0, 2.0], filter_expression=filter_expression
+        )
+        assert isinstance(
+            search_response, Search.Success
+        ), f"Expected search {test_case_name!r} to succeed but got {search_response!r}"
+        assert (
+            [hit.id for hit in search_response.hits] == expected_ids
+        ), f"Expected search {test_case_name!r} to return {expected_ids!r} but got {search_response.hits!r}"
+
+        search_and_fetch_vectors_response = await vector_index_client_async.search_and_fetch_vectors(
+            index_name, query_vector=[2.0, 2.0], filter_expression=filter_expression
+        )
+        assert isinstance(
+            search_and_fetch_vectors_response, SearchAndFetchVectors.Success
+        ), f"Expected search {test_case_name!r} to succeed but got {search_and_fetch_vectors_response!r}"
+        assert [hit.id for hit in search_and_fetch_vectors_response.hits] == expected_ids, (
+            f"Expected search {test_case_name!r} to return {expected_ids!r} "
+            f"but got {search_and_fetch_vectors_response.hits!r}"
+        )
 
 
 async def test_delete_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:

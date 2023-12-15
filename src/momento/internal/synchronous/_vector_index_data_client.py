@@ -13,7 +13,7 @@ from momento.errors import convert_error
 from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.services import Service
 from momento.internal.synchronous._vector_index_grpc_manager import _VectorIndexDataGrpcManager
-from momento.requests.vector_index import AllMetadata, Item
+from momento.requests.vector_index import AllMetadata, FilterExpression, Item
 from momento.responses.vector_index import (
     DeleteItemBatch,
     DeleteItemBatchResponse,
@@ -96,6 +96,29 @@ class _VectorIndexDataClient:
             self._log_request_error("delete", e)
             return DeleteItemBatch.Error(convert_error(e, Service.INDEX))
 
+    @staticmethod
+    def __build_metadata_request(metadata_fields: Optional[list[str]] | AllMetadata) -> vectorindex_pb._MetadataRequest:
+        if isinstance(metadata_fields, AllMetadata):
+            return vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All())
+        else:
+            return vectorindex_pb._MetadataRequest(
+                some=vectorindex_pb._MetadataRequest.Some(fields=metadata_fields if metadata_fields else [])
+            )
+
+    @staticmethod
+    def __build_no_score_threshold(score_threshold: Optional[float]) -> Optional[vectorindex_pb._NoScoreThreshold]:
+        if score_threshold is None:
+            return vectorindex_pb._NoScoreThreshold()
+        return None
+
+    @staticmethod
+    def __build_filter_expression(
+        filter_expression: Optional[FilterExpression],
+    ) -> Optional[vectorindex_pb._FilterExpression]:
+        if filter_expression is None:
+            return None
+        return filter_expression.to_filter_expression_proto()
+
     def search(
         self,
         index_name: str,
@@ -103,6 +126,7 @@ class _VectorIndexDataClient:
         top_k: int,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
+        filter_expression: Optional[FilterExpression] = None,
     ) -> SearchResponse:
         try:
             self._log_issuing_request("Search", {"index_name": index_name})
@@ -110,18 +134,9 @@ class _VectorIndexDataClient:
             _validate_top_k(top_k)
 
             query_vector_pb = vectorindex_pb._Vector(elements=query_vector)
-            if isinstance(metadata_fields, AllMetadata):
-                metadata_fields_pb = vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All())
-            else:
-                metadata_fields_pb = vectorindex_pb._MetadataRequest(
-                    some=vectorindex_pb._MetadataRequest.Some(
-                        fields=metadata_fields if metadata_fields is not None else []
-                    )
-                )
-
-            no_score_threshold = None
-            if score_threshold is None:
-                no_score_threshold = vectorindex_pb._NoScoreThreshold()
+            metadata_fields_pb = _VectorIndexDataClient.__build_metadata_request(metadata_fields)
+            no_score_threshold = _VectorIndexDataClient.__build_no_score_threshold(score_threshold)
+            filter_expression_pb = _VectorIndexDataClient.__build_filter_expression(filter_expression)
 
             request = vectorindex_pb._SearchRequest(
                 index_name=index_name,
@@ -130,6 +145,7 @@ class _VectorIndexDataClient:
                 metadata_fields=metadata_fields_pb,
                 score_threshold=score_threshold,
                 no_score_threshold=no_score_threshold,
+                filter_expression=filter_expression_pb,
             )
 
             response: vectorindex_pb._SearchResponse = self._build_stub().Search(
@@ -150,6 +166,7 @@ class _VectorIndexDataClient:
         top_k: int,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
+        filter_expression: Optional[FilterExpression] = None,
     ) -> SearchAndFetchVectorsResponse:
         try:
             self._log_issuing_request("SearchAndFetchVectors", {"index_name": index_name})
@@ -157,18 +174,9 @@ class _VectorIndexDataClient:
             _validate_top_k(top_k)
 
             query_vector_pb = vectorindex_pb._Vector(elements=query_vector)
-            if isinstance(metadata_fields, AllMetadata):
-                metadata_fields_pb = vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All())
-            else:
-                metadata_fields_pb = vectorindex_pb._MetadataRequest(
-                    some=vectorindex_pb._MetadataRequest.Some(
-                        fields=metadata_fields if metadata_fields is not None else []
-                    )
-                )
-
-            no_score_threshold = None
-            if score_threshold is None:
-                no_score_threshold = vectorindex_pb._NoScoreThreshold()
+            metadata_fields_pb = _VectorIndexDataClient.__build_metadata_request(metadata_fields)
+            no_score_threshold = _VectorIndexDataClient.__build_no_score_threshold(score_threshold)
+            filter_expression_pb = _VectorIndexDataClient.__build_filter_expression(filter_expression)
 
             request = vectorindex_pb._SearchAndFetchVectorsRequest(
                 index_name=index_name,
@@ -177,6 +185,7 @@ class _VectorIndexDataClient:
                 metadata_fields=metadata_fields_pb,
                 score_threshold=score_threshold,
                 no_score_threshold=no_score_threshold,
+                filter_expression=filter_expression_pb,
             )
 
             response: vectorindex_pb._SearchAndFetchVectorsResponse = self._build_stub().SearchAndFetchVectors(
