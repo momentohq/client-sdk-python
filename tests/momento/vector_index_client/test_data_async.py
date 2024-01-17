@@ -8,6 +8,7 @@ from momento.common_data.vector_index.item import Metadata
 from momento.errors import MomentoErrorCode
 from momento.requests.vector_index import ALL_METADATA, Field, FilterExpression, Item, SimilarityMetric
 from momento.responses.vector_index import (
+    CountItems,
     CreateIndex,
     DeleteItemBatch,
     GetItemBatch,
@@ -19,7 +20,7 @@ from momento.responses.vector_index import (
 )
 
 from tests.conftest import TUniqueVectorIndexNameAsync
-from tests.utils import sleep_async, when_fetching_vectors_apply_vectors_to_hits
+from tests.utils import sleep_async, uuid_str, when_fetching_vectors_apply_vectors_to_hits
 
 
 async def test_create_index_with_inner_product_upsert_item_search_happy_path(
@@ -812,3 +813,49 @@ async def test_get_items_by_id(
     get_item_response = await get_item(index_name, ids)
     assert isinstance(get_item_response, expected_get_item_response)
     assert get_item_response.values == expected_get_item_values
+
+
+async def test_count_items_on_missing_index(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+) -> None:
+    response = await vector_index_client_async.count_items(index_name=uuid_str())
+    assert isinstance(response, CountItems.Error)
+    assert response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+
+
+async def test_count_items_on_empty_index(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+
+    create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    count_response = await vector_index_client_async.count_items(index_name)
+    assert isinstance(count_response, CountItems.Success)
+    assert count_response.item_count == 0
+
+
+# async def test_count_items_with_items(
+#     vector_index_client_async: PreviewVectorIndexClientAsync,
+#     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+# ) -> None:
+#     num_items = 10
+#     index_name = unique_vector_index_name_async(vector_index_client_async)
+
+#     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
+#     assert isinstance(create_response, CreateIndex.Success)
+
+#     items = [Item(id=f"test_item_{i}", vector=[i, i]) for i in range(num_items)]  # type: list[Item]
+#     upsert_response = await vector_index_client_async.upsert_item_batch(
+#         index_name,
+#         items=items,
+#     )
+#     assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+#     await sleep_async(600)
+
+#     count_response = await vector_index_client_async.count_items(index_name)
+#     assert isinstance(count_response, CountItems.Success)
+#     assert count_response.item_count == num_items
