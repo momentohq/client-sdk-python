@@ -120,6 +120,8 @@ class PreviewVectorIndexClientAsync:
     async def count_items(self, index_name: str) -> CountItemsResponse:
         """Gets the number of items in a vector index.
 
+        Note that if the vector index does not exist, a `NOT_FOUND` error will be returned.
+
         Args:
             index_name (str): Name of the index to count the items in.
 
