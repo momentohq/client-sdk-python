@@ -60,7 +60,9 @@ class _VectorIndexDataClient:
             self._log_issuing_request("CountItems", {"index_name": index_name})
             _validate_index_name(index_name)
 
-            request = vectorindex_pb._CountItemsRequest(index_name=index_name)
+            request = vectorindex_pb._CountItemsRequest(
+                index_name=index_name, all=vectorindex_pb._CountItemsRequest.All()
+            )
             response: vectorindex_pb._CountItemsResponse = await self._build_stub().CountItems(
                 request, timeout=self._default_deadline_seconds
             )
