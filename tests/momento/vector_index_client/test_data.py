@@ -833,25 +833,34 @@ def test_count_items_on_empty_index(
     assert count_response.item_count == 0
 
 
-# async def test_count_items_with_items(
-#     vector_index_client_async: PreviewVectorIndexClientAsync,
-#     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
-# ) -> None:
-#     num_items = 10
-#     index_name = unique_vector_index_name_async(vector_index_client_async)
+def test_count_items_with_items(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    num_items = 10
+    index_name = unique_vector_index_name(vector_index_client)
 
-#     create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
-#     assert isinstance(create_response, CreateIndex.Success)
+    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
 
-#     items = [Item(id=f"test_item_{i}", vector=[i, i]) for i in range(num_items)]  # type: list[Item]
-#     upsert_response = await vector_index_client_async.upsert_item_batch(
-#         index_name,
-#         items=items,
-#     )
-#     assert isinstance(upsert_response, UpsertItemBatch.Success)
+    items = [Item(id=f"test_item_{i}", vector=[i, i]) for i in range(num_items)]  # type: list[Item]
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=items,
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
 
-#     await sleep_async(600)
+    sleep(2)
 
-#     count_response = await vector_index_client_async.count_items(index_name)
-#     assert isinstance(count_response, CountItems.Success)
-#     assert count_response.item_count == num_items
+    count_response = vector_index_client.count_items(index_name)
+    assert isinstance(count_response, CountItems.Success)
+    assert count_response.item_count == num_items
+
+    delete_response = vector_index_client.delete_item_batch(index_name, ids=[item.id for item in items[:5]])
+    assert isinstance(delete_response, DeleteItemBatch.Success)
+
+    sleep(2)
+
+    count_response = vector_index_client.count_items(index_name)
+    assert isinstance(count_response, CountItems.Success)
+    assert count_response.item_count == 5
