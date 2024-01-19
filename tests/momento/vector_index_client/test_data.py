@@ -856,11 +856,14 @@ def test_count_items_with_items(
     assert isinstance(count_response, CountItems.Success)
     assert count_response.item_count == num_items
 
-    delete_response = vector_index_client.delete_item_batch(index_name, ids=[item.id for item in items[:5]])
+    num_items_to_delete = 5
+    delete_response = vector_index_client.delete_item_batch(
+        index_name, ids=[item.id for item in items[:num_items_to_delete]]
+    )
     assert isinstance(delete_response, DeleteItemBatch.Success)
 
     sleep(2)
 
     count_response = vector_index_client.count_items(index_name)
     assert isinstance(count_response, CountItems.Success)
-    assert count_response.item_count == 5
+    assert count_response.item_count == num_items - num_items_to_delete
