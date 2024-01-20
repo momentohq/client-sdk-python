@@ -15,6 +15,8 @@ from momento.internal.aio._vector_index_grpc_manager import _VectorIndexDataGrpc
 from momento.internal.services import Service
 from momento.requests.vector_index import AllMetadata, FilterExpression, Item
 from momento.responses.vector_index import (
+    CountItems,
+    CountItemsResponse,
     DeleteItemBatch,
     DeleteItemBatchResponse,
     GetItemBatch,
@@ -49,6 +51,27 @@ class _VectorIndexDataClient:
     @property
     def endpoint(self) -> str:
         return self._endpoint
+
+    async def count_items(
+        self,
+        index_name: str,
+    ) -> CountItemsResponse:
+        try:
+            self._log_issuing_request("CountItems", {"index_name": index_name})
+            _validate_index_name(index_name)
+
+            request = vectorindex_pb._CountItemsRequest(
+                index_name=index_name, all=vectorindex_pb._CountItemsRequest.All()
+            )
+            response: vectorindex_pb._CountItemsResponse = await self._build_stub().CountItems(
+                request, timeout=self._default_deadline_seconds
+            )
+
+            self._log_received_response("CountItems", {"index_name": index_name})
+            return CountItems.Success(item_count=response.item_count)
+        except Exception as e:
+            self._log_request_error("count_items", e)
+            return CountItems.Error(convert_error(e, Service.INDEX))
 
     async def upsert_item_batch(
         self,
