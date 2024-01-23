@@ -36,6 +36,7 @@ except ImportError as e:
 
 from momento.requests.vector_index import AllMetadata, FilterExpression, Item, SimilarityMetric
 from momento.responses.vector_index import (
+    CountItemsResponse,
     CreateIndexResponse,
     DeleteIndexResponse,
     DeleteItemBatchResponse,
@@ -115,6 +116,19 @@ class PreviewVectorIndexClientAsync:
     ) -> None:
         await self._control_client.close()
         await self._data_client.close()
+
+    async def count_items(self, index_name: str) -> CountItemsResponse:
+        """Gets the number of items in a vector index.
+
+        Note that if the vector index does not exist, a `NOT_FOUND` error will be returned.
+
+        Args:
+            index_name (str): Name of the index to count the items in.
+
+        Returns:
+            CountItemsResponse: The result of a count items operation.
+        """
+        return await self._data_client.count_items(index_name)
 
     async def create_index(
         self,
