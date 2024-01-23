@@ -23,6 +23,7 @@ from momento.responses import (
     TopicSubscriptionItem,
 )
 from momento.responses.vector_index import (
+    CountItems,
     CreateIndex,
     DeleteIndex,
     DeleteItemBatch,
@@ -228,6 +229,18 @@ async def example_API_DeleteIndex(vector_client: PreviewVectorIndexClientAsync):
 # end example
 
 
+async def example_API_CountItems(vector_client: PreviewVectorIndexClientAsync):
+    response = await vector_client.count_items("test-index")
+    match response:
+        case CountItems.Success() as success:
+            print(f"Found {success.item_count} items")
+        case CountItems.Error() as error:
+            print(f"Error counting items in index 'test-index': {error.message}")
+
+
+# end example
+
+
 async def example_API_UpsertItemBatch(vector_client: PreviewVectorIndexClientAsync):
     response = await vector_client.upsert_item_batch(
         "test-index",
@@ -343,6 +356,7 @@ async def main():
     await example_API_InstantiateVectorClient()
     await example_API_CreateIndex(vector_client)
     await example_API_ListIndexes(vector_client)
+    await example_API_CountItems(vector_client)
     await example_API_UpsertItemBatch(vector_client)
     await example_API_GetItemBatch(vector_client)
     await example_API_GetItemMetadataBatch(vector_client)
