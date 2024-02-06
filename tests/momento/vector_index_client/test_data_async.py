@@ -6,7 +6,7 @@ import pytest
 from momento import PreviewVectorIndexClientAsync
 from momento.common_data.vector_index.item import Metadata
 from momento.errors import MomentoErrorCode
-from momento.requests.vector_index import ALL_METADATA, Field, FilterExpression, Item, SimilarityMetric
+from momento.requests.vector_index import ALL_METADATA, Field, FilterExpression, Item, SimilarityMetric, filters
 from momento.responses.vector_index import (
     CountItems,
     CreateIndex,
@@ -661,6 +661,9 @@ async def test_search_with_filter_expression(
             ["test_item_1", "test_item_2", "test_item_3"],
             "list contains b or int > 1",
         ),
+        (filters.IdInSet({}), [], "id in empty set"),
+        (filters.IdInSet({"not there"}), [], "id in set not there"),
+        (filters.IdInSet({"test_item_1", "test_item_3"}), ["test_item_1", "test_item_3"], "id in set"),
     ]:
         filter_expression = cast(FilterExpression, filter_expression)
         search_response = await vector_index_client_async.search(

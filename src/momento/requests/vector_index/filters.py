@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Iterable
 
 from momento_wire_types import vectorindex_pb2 as vectorindex_pb
 
@@ -258,3 +259,17 @@ class ListContains(FilterExpression):
     def to_proto(self) -> vectorindex_pb._ListContainsExpression:
         # todo should make oneof defensively
         return vectorindex_pb._ListContainsExpression(field=self.field, string_value=self.value)
+
+
+@dataclass
+class IdInSet(FilterExpression):
+    """Represents an expression to test if an item id is in a set of ids."""
+
+    ids: Iterable[str]
+    """The set of ids to test id in set with."""
+
+    def to_filter_expression_proto(self) -> vectorindex_pb._FilterExpression:
+        return vectorindex_pb._FilterExpression(id_in_set_expression=self.to_proto())
+
+    def to_proto(self) -> vectorindex_pb._IdInSetExpression:
+        return vectorindex_pb._IdInSetExpression(ids=list(self.ids))
