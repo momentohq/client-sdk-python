@@ -215,7 +215,7 @@ class PreviewVectorIndexClient:
         top_k: int = 10,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
-        filter_expression: Optional[FilterExpression] = None,
+        filter: Optional[FilterExpression] = None,
     ) -> SearchResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
@@ -233,15 +233,13 @@ class PreviewVectorIndexClient:
                 For cosine similarity and inner product, scores lower than the threshold
                 are excluded. For euclidean similarity, scores higher than the threshold
                 are excluded. The threshold is exclusive. Defaults to None, ie no threshold.
-            filter_expression (Optional[FilterExpression]): A filter expression to filter
+            filter (Optional[FilterExpression]): A filter expression to filter
                 results by. Defaults to None, ie no filter.
 
         Returns:
             SearchResponse: The result of a search operation.
         """
-        return self._data_client.search(
-            index_name, query_vector, top_k, metadata_fields, score_threshold, filter_expression
-        )
+        return self._data_client.search(index_name, query_vector, top_k, metadata_fields, score_threshold, filter)
 
     def search_and_fetch_vectors(
         self,
@@ -250,7 +248,7 @@ class PreviewVectorIndexClient:
         top_k: int = 10,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
-        filter_expression: Optional[FilterExpression] = None,
+        filter: Optional[FilterExpression] = None,
     ) -> SearchAndFetchVectorsResponse:
         """Searches for the most similar vectors to the query vector in the index.
 
@@ -269,14 +267,14 @@ class PreviewVectorIndexClient:
                 For cosine similarity and inner product, scores lower than the threshold
                 are excluded. For euclidean similarity, scores higher than the threshold
                 are excluded. The threshold is exclusive. Defaults to None, ie no threshold.
-            filter_expression (Optional[FilterExpression]): A filter expression to filter
+            filter (Optional[FilterExpression]): A filter expression to filter
                 results by. Defaults to None, ie no filter.
 
         Returns:
             SearchResponse: The result of a search operation.
         """
         return self._data_client.search_and_fetch_vectors(
-            index_name, query_vector, top_k, metadata_fields, score_threshold, filter_expression
+            index_name, query_vector, top_k, metadata_fields, score_threshold, filter
         )
 
     def get_item_batch(self, index_name: str, ids: list[str]) -> GetItemBatchResponse:

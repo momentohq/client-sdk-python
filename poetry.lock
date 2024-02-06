@@ -171,13 +171,13 @@ dev = ["Sphinx (>=5.1.1)", "black (==23.1.0)", "build (>=0.10.0)", "coverage (>=
 
 [[package]]
 name = "momento-wire-types"
-version = "0.105.1"
+version = "0.105.3"
 description = "Momento Client Proto Generated Files"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento_wire_types-0.105.1-py3-none-any.whl", hash = "sha256:b27260c9745a93d919ca0de2791c1dfe46b2f021f6532cf8a3dd15f54c23b305"},
-    {file = "momento_wire_types-0.105.1.tar.gz", hash = "sha256:1db1b86b7c9b26a542041ae634974294d51e1adc7ed1912f4286e0fb1d441ecb"},
+    {file = "momento_wire_types-0.105.3-py3-none-any.whl", hash = "sha256:156c704eec560b9a102c16aa08283981f23fa6d8e61ddbb05b6206b979733672"},
+    {file = "momento_wire_types-0.105.3.tar.gz", hash = "sha256:12a785c7950b8cf62c8516061bfa8b9124619e097f82c16d110e770385ad16bc"},
 ]
 
 [package.dependencies]
@@ -617,4 +617,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "c77cae9d0aa0f8a51a272111bb0f3629c55572d151b4928a988609ebbb472079"
+content-hash = "7a1a7a6bb6d7e6608f2d6daff22c9db84b9f30efdcf34c350b67dafc76616af0"

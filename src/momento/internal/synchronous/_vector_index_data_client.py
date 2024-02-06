@@ -149,7 +149,7 @@ class _VectorIndexDataClient:
         top_k: int,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
-        filter_expression: Optional[FilterExpression] = None,
+        filter: Optional[FilterExpression] = None,
     ) -> SearchResponse:
         try:
             self._log_issuing_request("Search", {"index_name": index_name})
@@ -159,7 +159,7 @@ class _VectorIndexDataClient:
             query_vector_pb = vectorindex_pb._Vector(elements=query_vector)
             metadata_fields_pb = _VectorIndexDataClient.__build_metadata_request(metadata_fields)
             no_score_threshold = _VectorIndexDataClient.__build_no_score_threshold(score_threshold)
-            filter_expression_pb = _VectorIndexDataClient.__build_filter_expression(filter_expression)
+            filter_expression_pb = _VectorIndexDataClient.__build_filter_expression(filter)
 
             request = vectorindex_pb._SearchRequest(
                 index_name=index_name,
@@ -168,7 +168,7 @@ class _VectorIndexDataClient:
                 metadata_fields=metadata_fields_pb,
                 score_threshold=score_threshold,
                 no_score_threshold=no_score_threshold,
-                filter_expression=filter_expression_pb,
+                filter=filter_expression_pb,
             )
 
             response: vectorindex_pb._SearchResponse = self._build_stub().Search(
@@ -189,7 +189,7 @@ class _VectorIndexDataClient:
         top_k: int,
         metadata_fields: Optional[list[str]] | AllMetadata = None,
         score_threshold: Optional[float] = None,
-        filter_expression: Optional[FilterExpression] = None,
+        filter: Optional[FilterExpression] = None,
     ) -> SearchAndFetchVectorsResponse:
         try:
             self._log_issuing_request("SearchAndFetchVectors", {"index_name": index_name})
@@ -199,7 +199,7 @@ class _VectorIndexDataClient:
             query_vector_pb = vectorindex_pb._Vector(elements=query_vector)
             metadata_fields_pb = _VectorIndexDataClient.__build_metadata_request(metadata_fields)
             no_score_threshold = _VectorIndexDataClient.__build_no_score_threshold(score_threshold)
-            filter_expression_pb = _VectorIndexDataClient.__build_filter_expression(filter_expression)
+            filter_expression_pb = _VectorIndexDataClient.__build_filter_expression(filter)
 
             request = vectorindex_pb._SearchAndFetchVectorsRequest(
                 index_name=index_name,
@@ -208,7 +208,7 @@ class _VectorIndexDataClient:
                 metadata_fields=metadata_fields_pb,
                 score_threshold=score_threshold,
                 no_score_threshold=no_score_threshold,
-                filter_expression=filter_expression_pb,
+                filter=filter_expression_pb,
             )
 
             response: vectorindex_pb._SearchAndFetchVectorsResponse = self._build_stub().SearchAndFetchVectors(
