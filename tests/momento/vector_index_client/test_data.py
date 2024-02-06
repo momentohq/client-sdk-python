@@ -6,7 +6,7 @@ import pytest
 from momento import PreviewVectorIndexClient
 from momento.common_data.vector_index.item import Metadata
 from momento.errors import MomentoErrorCode
-from momento.requests.vector_index import ALL_METADATA, Field, FilterExpression, Item, SimilarityMetric
+from momento.requests.vector_index import ALL_METADATA, Field, FilterExpression, Item, SimilarityMetric, filters
 from momento.responses.vector_index import (
     CountItems,
     CreateIndex,
@@ -633,7 +633,7 @@ def test_search_with_filter_expression(
     # Writing the test cases here instead of as a parameterized test because:
     # 1. The search data is the same across tests, so no need to reindex each time.
     # 2. It is 10x faster to run the tests this way.
-    for filter_expression, expected_ids, test_case_name in [
+    for filter, expected_ids, test_case_name in [
         (Field("str") == "value1", ["test_item_1"], "string equality"),
         (Field("str") != "value1", ["test_item_2", "test_item_3"], "string inequality"),
         (Field("int") == 0, ["test_item_1"], "int equality"),
@@ -657,11 +657,12 @@ def test_search_with_filter_expression(
             ["test_item_1", "test_item_2", "test_item_3"],
             "list contains b or int > 1",
         ),
+        (filters.IdInSet({}), [], "id in empty set"),
+        (filters.IdInSet({"not there"}), [], "id in set not there"),
+        (filters.IdInSet({"test_item_1", "test_item_3"}), ["test_item_1", "test_item_3"], "id in set"),
     ]:
-        filter_expression = cast(FilterExpression, filter_expression)
-        search_response = vector_index_client.search(
-            index_name, query_vector=[2.0, 2.0], filter_expression=filter_expression
-        )
+        filter = cast(FilterExpression, filter)
+        search_response = vector_index_client.search(index_name, query_vector=[2.0, 2.0], filter=filter)
         assert isinstance(
             search_response, Search.Success
         ), f"Expected search {test_case_name!r} to succeed but got {search_response!r}"
@@ -670,7 +671,7 @@ def test_search_with_filter_expression(
         ), f"Expected search {test_case_name!r} to return {expected_ids!r} but got {search_response.hits!r}"
 
         search_and_fetch_vectors_response = vector_index_client.search_and_fetch_vectors(
-            index_name, query_vector=[2.0, 2.0], filter_expression=filter_expression
+            index_name, query_vector=[2.0, 2.0], filter=filter
         )
         assert isinstance(
             search_and_fetch_vectors_response, SearchAndFetchVectors.Success
