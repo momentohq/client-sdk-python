@@ -10,7 +10,8 @@ from momento import (
     TopicConfigurations,
     VectorIndexConfigurations,
 )
-from momento.requests.vector_index import ALL_METADATA, Item
+from momento.requests.vector_index import ALL_METADATA, Field, Item
+from momento.requests.vector_index import filters as F
 from momento.responses import (
     CacheDelete,
     CacheGet,
@@ -321,6 +322,74 @@ async def example_API_SearchAndFetchVectors(vector_client: PreviewVectorIndexCli
 # end example
 
 
+def example_API_FilterExpressionOverview() -> None:
+    # For convenience, the filter expressions classes can accessed with filters module:
+    # from momento.requests.vector_index import filters as F
+    #
+    # You can use the Field class to create a more idiomatic filter expression by using the
+    # overloaded comparison operators:
+    # from momento.requests.vector_index import Field
+    #
+    # Below we demonstrate both approaches to creating filter expressions.
+
+    # Is the movie titled "The Matrix"?
+    F.Equals("movie_title", "The Matrix")
+    Field("movie_title") == "The Matrix"
+
+    # Is the movie not titled "The Matrix"?
+    F.Not(F.Equals("movie_title", "The Matrix"))
+    Field("movie_title") != "The Matrix"
+
+    # Was the movie released in 1999?
+    F.Equals("year", 1999)
+    Field("year") == 1999
+
+    # Did the movie gross 463.5 million dollars?
+    F.Equals("gross_revenue_millions", 463.5)
+    Field("gross_revenue_millions") == 463.5
+
+    # Was the movie in theaters?
+    F.Equals("in_theaters", True)
+    Field("in_theaters")
+
+    # Was the movie released after 1990?
+    F.GreaterThan("year", 1990)
+    Field("year") > 1990
+
+    # Was the movie released in or after 2020?
+    F.GreaterThanOrEqual("year", 2020)
+    Field("year") >= 2020
+
+    # Was the movie released before 2000?
+    F.LessThan("year", 2000)
+    Field("year") < 2000
+
+    # Was the movie released in or before 2000?
+    F.LessThanOrEqual("year", 2000)
+    Field("year") <= 2000
+
+    # Was "Keanu Reeves" one of the actors?
+    F.ListContains("actors", "Keanu Reeves")
+    Field("actors").list_contains("Keanu Reeves")
+
+    # Is the ID one of the following?
+    F.IdInSet(["tt0133093", "tt0234215", "tt0242653"])
+
+    # Was the movie directed by "Lana Wachowski" and released after 2000?
+    F.And(F.ListContains("directors", "Lana Wachowski"), F.GreaterThan("year", 2000))
+    Field("directors").list_contains("Lana Wachowski") & (Field("year") > 2000)
+
+    # Was the movie directed by "Lana Wachowski" or released after 2000?
+    F.Or(F.ListContains("directors", "Lana Wachowski"), F.GreaterThan("year", 2000))
+    Field("directors").list_contains("Lana Wachowski") | (Field("year") > 2000)
+
+    # Was "Keanu Reeves" not one of the actors?
+    F.Not(F.ListContains("actors", "Keanu Reeves"))
+
+
+# end example
+
+
 async def main():
     example_API_CredentialProviderFromEnvVar()
 
@@ -362,6 +431,7 @@ async def main():
     await example_API_GetItemMetadataBatch(vector_client)
     await example_API_Search(vector_client)
     await example_API_SearchAndFetchVectors(vector_client)
+    example_API_FilterExpressionOverview()
     await example_API_DeleteItemBatch(vector_client)
     await example_API_DeleteIndex(vector_client)
 
