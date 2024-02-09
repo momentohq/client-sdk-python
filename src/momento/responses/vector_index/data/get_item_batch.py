@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from momento_wire_types import vectorindex_pb2 as pb
 
 from momento.common_data.vector_index.item import Item
-from momento.errors.exceptions import UnknownException
 
 from ...mixins import ErrorResponseMixin
 from ..response import VectorIndexResponse
