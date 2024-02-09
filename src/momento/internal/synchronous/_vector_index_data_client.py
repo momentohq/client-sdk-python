@@ -237,7 +237,7 @@ class _VectorIndexDataClient:
 
             request = vectorindex_pb._GetItemBatchRequest(
                 index_name=index_name,
-                ids=ids,
+                filter=F.IdInSet(ids).to_filter_expression_proto(),
                 metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
             )
 
@@ -264,7 +264,7 @@ class _VectorIndexDataClient:
 
             request = vectorindex_pb._GetItemMetadataBatchRequest(
                 index_name=index_name,
-                ids=ids,
+                filter=F.IdInSet(ids).to_filter_expression_proto(),
                 metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
             )
 
