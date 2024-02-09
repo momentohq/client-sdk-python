@@ -14,6 +14,7 @@ from momento.internal._utilities import _validate_index_name, _validate_top_k
 from momento.internal.services import Service
 from momento.internal.synchronous._vector_index_grpc_manager import _VectorIndexDataGrpcManager
 from momento.requests.vector_index import AllMetadata, FilterExpression, Item
+from momento.requests.vector_index import filters as F
 from momento.responses.vector_index import (
     CountItems,
     CountItemsResponse,
@@ -108,7 +109,7 @@ class _VectorIndexDataClient:
 
             request = vectorindex_pb._DeleteItemBatchRequest(
                 index_name=index_name,
-                ids=ids,
+                filter=F.IdInSet(ids).to_filter_expression_proto(),
             )
 
             self._build_stub().DeleteItemBatch(request, timeout=self._default_deadline_seconds)
