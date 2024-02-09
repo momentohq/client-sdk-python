@@ -36,17 +36,8 @@ class GetItemMetadataBatch(ABC):
 
         @staticmethod
         def from_proto(response: pb._GetItemMetadataBatchResponse) -> "GetItemMetadataBatch.Success":
-            """Converts a proto hit to a `GetItemMetadataBatch.Success`."""
-            values = {}
-            for item in response.item_metadata_response:
-                type = item.WhichOneof("response")
-                if type == "hit":
-                    values[item.hit.id] = pb_metadata_to_dict(item.hit.metadata)
-                elif type == "miss":
-                    pass
-                else:
-                    raise UnknownException(f"Unknown response type {type!r}.")
-
+            """Converts a proto _GetItemMetadataBatchResponse to a `GetItemMetadataBatch.Success`."""
+            values = {item.id: pb_metadata_to_dict(item.metadata) for item in response.item_metadata_response}
             return GetItemMetadataBatch.Success(values=values)
 
     class Error(GetItemMetadataBatchResponse, ErrorResponseMixin):
