@@ -106,12 +106,12 @@ class _VectorIndexDataClient:
 
             filter_expression: vectorindex_pb._FilterExpression
 
-            if isinstance(filter, list):
+            if isinstance(filter, FilterExpression):
+                filter_expression = filter.to_filter_expression_proto()
+            else:
                 if len(filter) == 0:
                     return DeleteItemBatch.Success()
                 filter_expression = F.IdInSet(filter).to_filter_expression_proto()
-            else:
-                filter_expression = filter.to_filter_expression_proto()
 
             request = vectorindex_pb._DeleteItemBatchRequest(index_name=index_name, filter=filter_expression)
 
