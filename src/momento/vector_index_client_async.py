@@ -194,19 +194,19 @@ class PreviewVectorIndexClientAsync:
         """
         return await self._data_client.upsert_item_batch(index_name, items)
 
-    async def delete_item_batch(self, index_name: str, ids: list[str]) -> DeleteItemBatchResponse:
+    async def delete_item_batch(self, index_name: str, filter: list[str]) -> DeleteItemBatchResponse:
         """Deletes a batch of items from a vector index.
 
         Deletes any and all items with the given IDs from the index.
 
         Args:
             index_name (str): Name of the index to delete the items from.
-            ids (list[str]): The IDs of the items to be deleted from the index.
+            filter (list[str]): The IDs of the items to be deleted from the index.
 
         Returns:
             DeleteItemBatchResponse: The result of a delete item batch operation.
         """
-        return await self._data_client.delete_item_batch(index_name, ids)
+        return await self._data_client.delete_item_batch(index_name, filter)
 
     async def search(
         self,

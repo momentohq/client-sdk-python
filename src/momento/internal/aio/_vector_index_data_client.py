@@ -98,18 +98,18 @@ class _VectorIndexDataClient:
     async def delete_item_batch(
         self,
         index_name: str,
-        ids: list[str],
+        filter: list[str],
     ) -> DeleteItemBatchResponse:
         try:
             self._log_issuing_request("DeleteItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
-            if len(ids) == 0:
+            if len(filter) == 0:
                 return DeleteItemBatch.Success()
 
             request = vectorindex_pb._DeleteItemBatchRequest(
                 index_name=index_name,
-                filter=F.IdInSet(ids).to_filter_expression_proto(),
+                filter=F.IdInSet(filter).to_filter_expression_proto(),
             )
 
             await self._build_stub().DeleteItemBatch(request, timeout=self._default_deadline_seconds)
