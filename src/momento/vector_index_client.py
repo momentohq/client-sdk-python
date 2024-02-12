@@ -277,17 +277,17 @@ class PreviewVectorIndexClient:
             index_name, query_vector, top_k, metadata_fields, score_threshold, filter
         )
 
-    def get_item_batch(self, index_name: str, ids: list[str]) -> GetItemBatchResponse:
+    def get_item_batch(self, index_name: str, filter: list[str]) -> GetItemBatchResponse:
         """Gets a batch of items from a vector index by ID.
 
         Args:
             index_name (str): Name of the index to get the item from.
-            ids (list[str]): The IDs of the items to be retrieved from the index.
+            filter (list[str]): The IDs of the items to be retrieved from the index.
 
         Returns:
             GetItemBatchResponse: The result of a get item batch operation.
         """
-        return self._data_client.get_item_batch(index_name, ids)
+        return self._data_client.get_item_batch(index_name, filter)
 
     def get_item_metadata_batch(self, index_name: str, ids: list[str]) -> GetItemMetadataBatchResponse:
         """Gets metadata for a batch of items from a vector index by ID.
