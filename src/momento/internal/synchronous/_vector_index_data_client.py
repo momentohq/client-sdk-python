@@ -98,18 +98,18 @@ class _VectorIndexDataClient:
     def delete_item_batch(
         self,
         index_name: str,
-        ids: list[str],
+        filter: list[str],
     ) -> DeleteItemBatchResponse:
         try:
             self._log_issuing_request("DeleteItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
-            if len(ids) == 0:
+            if len(filter) == 0:
                 return DeleteItemBatch.Success()
 
             request = vectorindex_pb._DeleteItemBatchRequest(
                 index_name=index_name,
-                filter=F.IdInSet(ids).to_filter_expression_proto(),
+                filter=F.IdInSet(filter).to_filter_expression_proto(),
             )
 
             self._build_stub().DeleteItemBatch(request, timeout=self._default_deadline_seconds)
@@ -226,18 +226,18 @@ class _VectorIndexDataClient:
     def get_item_batch(
         self,
         index_name: str,
-        ids: list[str],
+        filter: list[str],
     ) -> GetItemBatchResponse:
         try:
             self._log_issuing_request("GetItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
-            if len(ids) == 0:
+            if len(filter) == 0:
                 return GetItemBatch.Success(values={})
 
             request = vectorindex_pb._GetItemBatchRequest(
                 index_name=index_name,
-                filter=F.IdInSet(ids).to_filter_expression_proto(),
+                filter=F.IdInSet(filter).to_filter_expression_proto(),
                 metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
             )
 
@@ -253,18 +253,18 @@ class _VectorIndexDataClient:
     def get_item_metadata_batch(
         self,
         index_name: str,
-        ids: list[str],
+        filter: list[str],
     ) -> GetItemMetadataBatchResponse:
         try:
             self._log_issuing_request("GetItemMetadataBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
-            if len(ids) == 0:
+            if len(filter) == 0:
                 return GetItemMetadataBatch.Success(values={})
 
             request = vectorindex_pb._GetItemMetadataBatchRequest(
                 index_name=index_name,
-                filter=F.IdInSet(ids).to_filter_expression_proto(),
+                filter=F.IdInSet(filter).to_filter_expression_proto(),
                 metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
             )
 

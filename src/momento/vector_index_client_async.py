@@ -194,19 +194,19 @@ class PreviewVectorIndexClientAsync:
         """
         return await self._data_client.upsert_item_batch(index_name, items)
 
-    async def delete_item_batch(self, index_name: str, ids: list[str]) -> DeleteItemBatchResponse:
+    async def delete_item_batch(self, index_name: str, filter: list[str]) -> DeleteItemBatchResponse:
         """Deletes a batch of items from a vector index.
 
         Deletes any and all items with the given IDs from the index.
 
         Args:
             index_name (str): Name of the index to delete the items from.
-            ids (list[str]): The IDs of the items to be deleted from the index.
+            filter (list[str]): The IDs of the items to be deleted from the index.
 
         Returns:
             DeleteItemBatchResponse: The result of a delete item batch operation.
         """
-        return await self._data_client.delete_item_batch(index_name, ids)
+        return await self._data_client.delete_item_batch(index_name, filter)
 
     async def search(
         self,
@@ -277,28 +277,28 @@ class PreviewVectorIndexClientAsync:
             index_name, query_vector, top_k, metadata_fields, score_threshold, filter
         )
 
-    async def get_item_batch(self, index_name: str, ids: list[str]) -> GetItemBatchResponse:
+    async def get_item_batch(self, index_name: str, filter: list[str]) -> GetItemBatchResponse:
         """Gets a batch of items from a vector index by ID.
 
         Args:
             index_name (str): Name of the index to get the item from.
-            ids (list[str]): The IDs of the items to be retrieved from the index.
+            filter (list[str]): The IDs of the items to be retrieved from the index.
 
         Returns:
             GetItemBatchResponse: The result of a get item batch operation.
         """
-        return await self._data_client.get_item_batch(index_name, ids)
+        return await self._data_client.get_item_batch(index_name, filter)
 
-    async def get_item_metadata_batch(self, index_name: str, ids: list[str]) -> GetItemMetadataBatchResponse:
+    async def get_item_metadata_batch(self, index_name: str, filter: list[str]) -> GetItemMetadataBatchResponse:
         """Gets metadata for a batch of items from a vector index by ID.
 
         Args:
             index_name (str): Name of the index to get the items from.
-            ids (list[str]): The IDs of the item metadata to be retrieved from the index.
+            filter (list[str]): The IDs of the item metadata to be retrieved from the index.
 
         Returns:
             GetItemMetadataBatchResponse: The result of a get item metadata batch operation.
         """
-        return await self._data_client.get_item_metadata_batch(index_name, ids)
+        return await self._data_client.get_item_metadata_batch(index_name, filter)
 
     # TODO: repr
