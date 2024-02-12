@@ -253,18 +253,18 @@ class _VectorIndexDataClient:
     async def get_item_metadata_batch(
         self,
         index_name: str,
-        ids: list[str],
+        filter: list[str],
     ) -> GetItemMetadataBatchResponse:
         try:
             self._log_issuing_request("GetItemMetadataBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
-            if len(ids) == 0:
+            if len(filter) == 0:
                 return GetItemMetadataBatch.Success(values={})
 
             request = vectorindex_pb._GetItemMetadataBatchRequest(
                 index_name=index_name,
-                filter=F.IdInSet(ids).to_filter_expression_proto(),
+                filter=F.IdInSet(filter).to_filter_expression_proto(),
                 metadata_fields=vectorindex_pb._MetadataRequest(all=vectorindex_pb._MetadataRequest.All()),
             )
 

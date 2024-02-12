@@ -289,16 +289,16 @@ class PreviewVectorIndexClientAsync:
         """
         return await self._data_client.get_item_batch(index_name, filter)
 
-    async def get_item_metadata_batch(self, index_name: str, ids: list[str]) -> GetItemMetadataBatchResponse:
+    async def get_item_metadata_batch(self, index_name: str, filter: list[str]) -> GetItemMetadataBatchResponse:
         """Gets metadata for a batch of items from a vector index by ID.
 
         Args:
             index_name (str): Name of the index to get the items from.
-            ids (list[str]): The IDs of the item metadata to be retrieved from the index.
+            filter (list[str]): The IDs of the item metadata to be retrieved from the index.
 
         Returns:
             GetItemMetadataBatchResponse: The result of a get item metadata batch operation.
         """
-        return await self._data_client.get_item_metadata_batch(index_name, ids)
+        return await self._data_client.get_item_metadata_batch(index_name, filter)
 
     # TODO: repr
