@@ -111,7 +111,7 @@ def search(client: PreviewVectorIndexClient, index_name: str) -> None:
 def delete_items(client: PreviewVectorIndexClient, index_name: str) -> None:
     item_ids_to_delete = ["test_item_1", "test_item_3"]
     _logger.info(f"Deleting items: {item_ids_to_delete}")
-    delete_response = client.delete_item_batch(index_name, ids=item_ids_to_delete)
+    delete_response = client.delete_item_batch(index_name, filter=item_ids_to_delete)
     match delete_response:
         case DeleteItemBatch.Success():
             _logger.info("Successfully deleted items")

@@ -687,7 +687,7 @@ async def test_search_with_filter_expression(
 
 
 async def test_delete_validates_index_name(vector_index_client_async: PreviewVectorIndexClientAsync) -> None:
-    response = await vector_index_client_async.delete_item_batch(index_name="", ids=[])
+    response = await vector_index_client_async.delete_item_batch(index_name="", filter=[])
     assert isinstance(response, DeleteItemBatch.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
@@ -725,7 +725,9 @@ async def test_delete_deletes_ids(
         SearchHit(id="test_item_1", score=5.0),
     ]
 
-    delete_response = await vector_index_client_async.delete_item_batch(index_name, ids=["test_item_1", "test_item_3"])
+    delete_response = await vector_index_client_async.delete_item_batch(
+        index_name, filter=["test_item_1", "test_item_3"]
+    )
     assert isinstance(delete_response, DeleteItemBatch.Success)
 
     await sleep_async(2)
@@ -863,7 +865,7 @@ async def test_count_items_with_items(
 
     num_items_to_delete = 5
     delete_response = await vector_index_client_async.delete_item_batch(
-        index_name, ids=[item.id for item in items[:num_items_to_delete]]
+        index_name, filter=[item.id for item in items[:num_items_to_delete]]
     )
     assert isinstance(delete_response, DeleteItemBatch.Success)
 

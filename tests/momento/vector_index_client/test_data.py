@@ -683,7 +683,7 @@ def test_search_with_filter_expression(
 
 
 def test_delete_validates_index_name(vector_index_client: PreviewVectorIndexClient) -> None:
-    response = vector_index_client.delete_item_batch(index_name="", ids=[])
+    response = vector_index_client.delete_item_batch(index_name="", filter=[])
     assert isinstance(response, DeleteItemBatch.Error)
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
@@ -721,7 +721,7 @@ def test_delete_deletes_ids(
         SearchHit(id="test_item_1", score=5.0),
     ]
 
-    delete_response = vector_index_client.delete_item_batch(index_name, ids=["test_item_1", "test_item_3"])
+    delete_response = vector_index_client.delete_item_batch(index_name, filter=["test_item_1", "test_item_3"])
     assert isinstance(delete_response, DeleteItemBatch.Success)
 
     sleep(2)
@@ -859,7 +859,7 @@ def test_count_items_with_items(
 
     num_items_to_delete = 5
     delete_response = vector_index_client.delete_item_batch(
-        index_name, ids=[item.id for item in items[:num_items_to_delete]]
+        index_name, filter=[item.id for item in items[:num_items_to_delete]]
     )
     assert isinstance(delete_response, DeleteItemBatch.Success)
 

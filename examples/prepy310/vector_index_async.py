@@ -110,7 +110,7 @@ async def search(client: PreviewVectorIndexClientAsync, index_name: str) -> None
 async def delete_items(client: PreviewVectorIndexClientAsync, index_name: str) -> None:
     item_ids_to_delete = ["test_item_1", "test_item_3"]
     _logger.info(f"Deleting items: {item_ids_to_delete}")
-    delete_response = await client.delete_item_batch(index_name, ids=item_ids_to_delete)
+    delete_response = await client.delete_item_batch(index_name, filter=item_ids_to_delete)
     if isinstance(delete_response, DeleteItemBatch.Success):
         _logger.info("Successfully deleted items")
     elif isinstance(delete_response, DeleteItemBatch.Error):
