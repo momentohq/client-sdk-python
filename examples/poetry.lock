@@ -193,30 +193,30 @@ testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pep517",
 
 [[package]]
 name = "momento"
-version = "1.18.0"
+version = "1.18.2"
 description = "SDK for Momento"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento-1.18.0-py3-none-any.whl", hash = "sha256:2e05a3b6dd46320a338303dfe067d517009500da5f90221cc4c9d916c16719fd"},
-    {file = "momento-1.18.0.tar.gz", hash = "sha256:70b9a13a630090276ddd0431ba6e247544cc83f55a0b36f396e267b2c2669c82"},
+    {file = "momento-1.18.2-py3-none-any.whl", hash = "sha256:e966a937ce91cab27fcbfb21371ba8df05460aa35b720f69f7e3cd1b428122c0"},
+    {file = "momento-1.18.2.tar.gz", hash = "sha256:c403757bb322aec0a3e70d8ac4fe42bd8d1cc41758e144873af7f444602204b6"},
 ]
 
 [package.dependencies]
 grpcio = ">=1.46.0,<2.0.0"
 importlib-metadata = {version = ">=4", markers = "python_version < \"3.8\""}
-momento-wire-types = ">=0.105.3,<0.106.0"
+momento-wire-types = ">=0.106.0,<0.107.0"
 pyjwt = ">=2.4.0,<3.0.0"
 
 [[package]]
 name = "momento-wire-types"
-version = "0.105.3"
+version = "0.106.0"
 description = "Momento Client Proto Generated Files"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "momento_wire_types-0.105.3-py3-none-any.whl", hash = "sha256:156c704eec560b9a102c16aa08283981f23fa6d8e61ddbb05b6206b979733672"},
-    {file = "momento_wire_types-0.105.3.tar.gz", hash = "sha256:12a785c7950b8cf62c8516061bfa8b9124619e097f82c16d110e770385ad16bc"},
+    {file = "momento_wire_types-0.106.0-py3-none-any.whl", hash = "sha256:7fc36fdb78872e0e0905a7229c35bed9065ed49709085acd59f85c07a10a2aa7"},
+    {file = "momento_wire_types-0.106.0.tar.gz", hash = "sha256:54052bbd23ff765f8667086c2bf5a537f4545190d846a03f1de473ecff59e4a3"},
 ]
 
 [package.dependencies]
@@ -446,4 +446,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.12"
-content-hash = "97442992d861fa0db4d34f47a80e8103d834713d9206d75ae332e2994e86697b"
+content-hash = "bac31f201c87126984bb456836e05116469ae9b8a648e1633c6f1f38b1702ad9"
