@@ -98,19 +98,22 @@ class _VectorIndexDataClient:
     def delete_item_batch(
         self,
         index_name: str,
-        filter: list[str],
+        filter: FilterExpression | list[str],
     ) -> DeleteItemBatchResponse:
         try:
             self._log_issuing_request("DeleteItemBatch", {"index_name": index_name})
             _validate_index_name(index_name)
 
-            if len(filter) == 0:
-                return DeleteItemBatch.Success()
+            filter_expression: vectorindex_pb._FilterExpression
 
-            request = vectorindex_pb._DeleteItemBatchRequest(
-                index_name=index_name,
-                filter=F.IdInSet(filter).to_filter_expression_proto(),
-            )
+            if isinstance(filter, FilterExpression):
+                filter_expression = filter.to_filter_expression_proto()
+            else:
+                if len(filter) == 0:
+                    return DeleteItemBatch.Success()
+                filter_expression = F.IdInSet(filter).to_filter_expression_proto()
+
+            request = vectorindex_pb._DeleteItemBatchRequest(index_name=index_name, filter=filter_expression)
 
             self._build_stub().DeleteItemBatch(request, timeout=self._default_deadline_seconds)
 

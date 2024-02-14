@@ -692,7 +692,7 @@ async def test_delete_validates_index_name(vector_index_client_async: PreviewVec
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-async def test_delete_deletes_ids(
+async def test_delete_items_by_id(
     vector_index_client_async: PreviewVectorIndexClientAsync,
     unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
 ) -> None:
@@ -705,10 +705,10 @@ async def test_delete_deletes_ids(
     upsert_response = await vector_index_client_async.upsert_item_batch(
         index_name,
         items=[
-            Item(id="test_item_1", vector=[1.0, 2.0]),
-            Item(id="test_item_2", vector=[3.0, 4.0]),
-            Item(id="test_item_3", vector=[5.0, 6.0]),
-            Item(id="test_item_3", vector=[7.0, 8.0]),
+            Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key": "value1"}),
+            Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key": "value2"}),
+            Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key": "value3"}),
+            Item(id="test_item_4", vector=[7.0, 8.0], metadata={"key": "value4"}),
         ],
     )
     assert isinstance(upsert_response, UpsertItemBatch.Success)
@@ -717,10 +717,11 @@ async def test_delete_deletes_ids(
 
     search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=10)
     assert isinstance(search_response, Search.Success)
-    assert len(search_response.hits) == 3
+    assert len(search_response.hits) == 4
 
     assert search_response.hits == [
-        SearchHit(id="test_item_3", score=23.0),
+        SearchHit(id="test_item_4", score=23.0),
+        SearchHit(id="test_item_3", score=17.0),
         SearchHit(id="test_item_2", score=11.0),
         SearchHit(id="test_item_1", score=5.0),
     ]
@@ -734,11 +735,50 @@ async def test_delete_deletes_ids(
 
     search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 2.0], top_k=10)
     assert isinstance(search_response, Search.Success)
-    assert len(search_response.hits) == 1
+    assert len(search_response.hits) == 2
 
     assert search_response.hits == [
+        SearchHit(id="test_item_4", score=23.0),
         SearchHit(id="test_item_2", score=11.0),
     ]
+
+
+async def test_delete_items_by_filter(
+    vector_index_client_async: PreviewVectorIndexClientAsync,
+    unique_vector_index_name_async: TUniqueVectorIndexNameAsync,
+) -> None:
+    index_name = unique_vector_index_name_async(vector_index_client_async)
+    create_response = await vector_index_client_async.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    items = [
+        Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key": "value1"}),
+        Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key": "value2"}),
+        Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key": "value1"}),
+        Item(id="test_item_4", vector=[7.0, 8.0], metadata={"key": "value2"}),
+    ]
+    upsert_response = await vector_index_client_async.upsert_item_batch(
+        index_name,
+        items=items,
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    await sleep_async(2)
+
+    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 1.0], top_k=10)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 4
+
+    delete_response = await vector_index_client_async.delete_item_batch(
+        index_name, filter=filters.Equals("key", "value1")
+    )
+    assert isinstance(delete_response, DeleteItemBatch.Success)
+
+    await sleep_async(2)
+
+    search_response = await vector_index_client_async.search(index_name, query_vector=[1.0, 1.0], top_k=10)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 2
 
 
 @pytest.mark.parametrize(

@@ -688,7 +688,7 @@ def test_delete_validates_index_name(vector_index_client: PreviewVectorIndexClie
     assert response.error_code == MomentoErrorCode.INVALID_ARGUMENT_ERROR
 
 
-def test_delete_deletes_ids(
+def test_delete_items_by_id(
     vector_index_client: PreviewVectorIndexClient,
     unique_vector_index_name: TUniqueVectorIndexName,
 ) -> None:
@@ -701,10 +701,10 @@ def test_delete_deletes_ids(
     upsert_response = vector_index_client.upsert_item_batch(
         index_name,
         items=[
-            Item(id="test_item_1", vector=[1.0, 2.0]),
-            Item(id="test_item_2", vector=[3.0, 4.0]),
-            Item(id="test_item_3", vector=[5.0, 6.0]),
-            Item(id="test_item_3", vector=[7.0, 8.0]),
+            Item(id="test_item_1", vector=[1.0, 2.0], metadata={"key": "value1"}),
+            Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key": "value2"}),
+            Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key": "value3"}),
+            Item(id="test_item_4", vector=[7.0, 8.0], metadata={"key": "value4"}),
         ],
     )
     assert isinstance(upsert_response, UpsertItemBatch.Success)
@@ -713,10 +713,11 @@ def test_delete_deletes_ids(
 
     search_response = vector_index_client.search(index_name, query_vector=[1.0, 2.0], top_k=10)
     assert isinstance(search_response, Search.Success)
-    assert len(search_response.hits) == 3
+    assert len(search_response.hits) == 4
 
     assert search_response.hits == [
-        SearchHit(id="test_item_3", score=23.0),
+        SearchHit(id="test_item_4", score=23.0),
+        SearchHit(id="test_item_3", score=17.0),
         SearchHit(id="test_item_2", score=11.0),
         SearchHit(id="test_item_1", score=5.0),
     ]
@@ -728,11 +729,48 @@ def test_delete_deletes_ids(
 
     search_response = vector_index_client.search(index_name, query_vector=[1.0, 2.0], top_k=10)
     assert isinstance(search_response, Search.Success)
-    assert len(search_response.hits) == 1
+    assert len(search_response.hits) == 2
 
     assert search_response.hits == [
+        SearchHit(id="test_item_4", score=23.0),
         SearchHit(id="test_item_2", score=11.0),
     ]
+
+
+def test_delete_items_by_filter(
+    vector_index_client: PreviewVectorIndexClient,
+    unique_vector_index_name: TUniqueVectorIndexName,
+) -> None:
+    index_name = unique_vector_index_name(vector_index_client)
+    create_response = vector_index_client.create_index(index_name, num_dimensions=2)
+    assert isinstance(create_response, CreateIndex.Success)
+
+    items = [
+        Item(id="test_item_1", vector=[1.0, 1.0], metadata={"key": "value1"}),
+        Item(id="test_item_2", vector=[3.0, 4.0], metadata={"key": "value2"}),
+        Item(id="test_item_3", vector=[5.0, 6.0], metadata={"key": "value1"}),
+        Item(id="test_item_4", vector=[7.0, 8.0], metadata={"key": "value2"}),
+    ]
+    upsert_response = vector_index_client.upsert_item_batch(
+        index_name,
+        items=items,
+    )
+    assert isinstance(upsert_response, UpsertItemBatch.Success)
+
+    sleep(2)
+
+    search_response = vector_index_client.search(index_name, query_vector=[1.0, 1.0], top_k=10)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 4
+
+    delete_response = vector_index_client.delete_item_batch(index_name, filter=filters.Equals("key", "value1"))
+    assert isinstance(delete_response, DeleteItemBatch.Success)
+
+    sleep(2)
+
+    search_response = vector_index_client.search(index_name, query_vector=[1.0, 1.0], top_k=10)
+    assert isinstance(search_response, Search.Success)
+    assert len(search_response.hits) == 2
 
 
 @pytest.mark.parametrize(
