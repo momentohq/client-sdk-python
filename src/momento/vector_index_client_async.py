@@ -201,9 +201,8 @@ class PreviewVectorIndexClientAsync:
 
         Args:
             index_name (str): Name of the index to delete the items from.
-            filter (FilterExpression | list[str]): A filter expression to filter
-                items by ID. If a list of strings is provided, it is treated as a
-                "IdInSet" filter expression.
+            filter (FilterExpression | list[str]): A filter expression to match
+                items to be deleted, or list of item IDs to be deleted.
 
         Returns:
             DeleteItemBatchResponse: The result of a delete item batch operation.
