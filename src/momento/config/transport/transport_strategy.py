@@ -48,9 +48,23 @@ class TransportStrategy(ABC):
 
 
 class StaticGrpcConfiguration(GrpcConfiguration):
-    def __init__(self, deadline: timedelta, root_certificates_pem: Optional[bytes] = None):
+    def __init__(
+        self,
+        deadline: timedelta,
+        root_certificates_pem: Optional[bytes] = None,
+        max_send_message_length: Optional[int] = None,
+        max_receive_message_length: Optional[int] = None,
+        keepalive_permit_without_calls: Optional[bool] = None,
+        keepalive_time: Optional[timedelta] = None,
+        keepalive_timeout: Optional[timedelta] = None,
+    ):
         self._deadline = deadline
         self._root_certificates_pem = root_certificates_pem
+        self._max_send_message_length = max_send_message_length
+        self._max_receive_message_length = max_receive_message_length
+        self._keepalive_permit_without_calls = keepalive_permit_without_calls
+        self._keepalive_time = keepalive_time
+        self._keepalive_timeout = keepalive_timeout
 
     def get_deadline(self) -> timedelta:
         return self._deadline
@@ -70,6 +84,21 @@ class StaticGrpcConfiguration(GrpcConfiguration):
 
     def get_root_certificates_pem(self) -> Optional[bytes]:
         return self._root_certificates_pem
+
+    def get_max_send_message_length(self) -> Optional[int]:
+        return self._max_send_message_length if self._max_send_message_length is not None else None
+
+    def get_max_receive_message_length(self) -> Optional[int]:
+        return self._max_receive_message_length if self._max_receive_message_length is not None else None
+
+    def get_keepalive_permit_without_calls(self) -> Optional[int]:
+        return int(self._keepalive_permit_without_calls) if self._keepalive_permit_without_calls is not None else None
+
+    def get_keepalive_time(self) -> Optional[int]:
+        return self._keepalive_time.seconds * 1000 if self._keepalive_time is not None else None
+
+    def get_keepalive_timeout(self) -> Optional[int]:
+        return self._keepalive_timeout.seconds * 1000 if self._keepalive_timeout is not None else None
 
 
 class StaticTransportStrategy(TransportStrategy):
