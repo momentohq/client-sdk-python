@@ -7,10 +7,10 @@ from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
 from momento.errors import InvalidArgumentException, convert_error
 from momento.internal._utilities import _validate_index_name, _validate_num_dimensions
+from momento.internal.services import Service
 from momento.internal.synchronous._vector_index_grpc_manager import (
     _VectorIndexControlGrpcManager,
 )
-from momento.internal.services import Service
 from momento.requests.vector_index import SimilarityMetric
 from momento.responses.vector_index import (
     CreateIndex,

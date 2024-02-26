@@ -9,8 +9,8 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import convert_error
 from momento.internal._utilities import _validate_cache_name, _validate_ttl
-from momento.internal.synchronous._scs_grpc_manager import _ControlGrpcManager
 from momento.internal.services import Service
+from momento.internal.synchronous._scs_grpc_manager import _ControlGrpcManager
 from momento.responses import (
     CacheFlush,
     CacheFlushResponse,
