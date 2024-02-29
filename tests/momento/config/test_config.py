@@ -107,5 +107,13 @@ def test_laptop_config_enables_keepalive() -> None:
     config = Configurations.Laptop.latest()
     grpc_config = config.get_transport_strategy().get_grpc_configuration()
     assert grpc_config.get_keepalive_permit_without_calls() == 1
-    assert grpc_config.get_keepalive_time() == 5000  # milliseconds
-    assert grpc_config.get_keepalive_timeout() == 1000  # milliseconds
+
+    keepalive_time = grpc_config.get_keepalive_time()
+    assert keepalive_time is not None
+    if keepalive_time is not None:
+        assert keepalive_time.seconds == 5
+
+    keepalive_timeout = grpc_config.get_keepalive_timeout()
+    assert keepalive_timeout is not None
+    if keepalive_timeout is not None:
+        assert keepalive_timeout.seconds == 1

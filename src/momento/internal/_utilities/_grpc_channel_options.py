@@ -37,10 +37,10 @@ def grpc_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> grp
 
     keepalive_time = grpc_config.get_keepalive_time()
     if keepalive_time is not None:
-        channel_options.append(("grpc.keepalive_time_ms", keepalive_time))
+        channel_options.append(("grpc.keepalive_time_ms", keepalive_time.seconds * 1000))
 
     keepalive_timeout = grpc_config.get_keepalive_timeout()
     if keepalive_timeout is not None:
-        channel_options.append(("grpc.keepalive_timeout_ms", keepalive_timeout))
+        channel_options.append(("grpc.keepalive_timeout_ms", keepalive_timeout.seconds * 1000))
 
     return channel_options

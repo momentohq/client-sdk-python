@@ -86,19 +86,19 @@ class StaticGrpcConfiguration(GrpcConfiguration):
         return self._root_certificates_pem
 
     def get_max_send_message_length(self) -> Optional[int]:
-        return self._max_send_message_length if self._max_send_message_length is not None else None
+        return self._max_send_message_length
 
     def get_max_receive_message_length(self) -> Optional[int]:
-        return self._max_receive_message_length if self._max_receive_message_length is not None else None
+        return self._max_receive_message_length
 
     def get_keepalive_permit_without_calls(self) -> Optional[int]:
         return int(self._keepalive_permit_without_calls) if self._keepalive_permit_without_calls is not None else None
 
-    def get_keepalive_time(self) -> Optional[int]:
-        return self._keepalive_time.seconds * 1000 if self._keepalive_time is not None else None
+    def get_keepalive_time(self) -> Optional[timedelta]:
+        return self._keepalive_time
 
-    def get_keepalive_timeout(self) -> Optional[int]:
-        return self._keepalive_timeout.seconds * 1000 if self._keepalive_timeout is not None else None
+    def get_keepalive_timeout(self) -> Optional[timedelta]:
+        return self._keepalive_timeout
 
 
 class StaticTransportStrategy(TransportStrategy):

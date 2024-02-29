@@ -36,9 +36,9 @@ class GrpcConfiguration(ABC):
         pass
 
     @abstractmethod
-    def get_keepalive_time(self) -> Optional[int]:
+    def get_keepalive_time(self) -> Optional[timedelta]:
         pass
 
     @abstractmethod
-    def get_keepalive_timeout(self) -> Optional[int]:
+    def get_keepalive_timeout(self) -> Optional[timedelta]:
         pass
