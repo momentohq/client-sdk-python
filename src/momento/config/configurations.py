@@ -35,14 +35,7 @@ class Configurations:
             This configuration is guaranteed not to change in future releases of the Momento Python SDK.
             """
             return Configurations.Laptop(
-                StaticTransportStrategy(
-                    StaticGrpcConfiguration(
-                        deadline=timedelta(seconds=15),
-                        keepalive_permit_without_calls=True,
-                        keepalive_time=timedelta(milliseconds=5000),
-                        keepalive_timeout=timedelta(milliseconds=1000),
-                    )
-                ),
+                StaticTransportStrategy(StaticGrpcConfiguration(deadline=timedelta(seconds=15))),
                 FixedCountRetryStrategy(max_attempts=3),
             )
 
@@ -60,6 +53,8 @@ class Configurations:
                     StaticGrpcConfiguration(
                         deadline=timedelta(milliseconds=1100),
                         keepalive_permit_without_calls=False,
+                        keepalive_time=None,
+                        keepalive_timeout=None,
                     )
                 ),
                 FixedCountRetryStrategy(max_attempts=3),
@@ -93,14 +88,7 @@ class Configurations:
                 This configuration is guaranteed not to change in future releases of the Momento Python SDK.
                 """
                 return Configurations.InRegion.Default(
-                    StaticTransportStrategy(
-                        StaticGrpcConfiguration(
-                            deadline=timedelta(milliseconds=1100),
-                            keepalive_permit_without_calls=True,
-                            keepalive_time=timedelta(milliseconds=5000),
-                            keepalive_timeout=timedelta(milliseconds=1000),
-                        )
-                    ),
+                    StaticTransportStrategy(StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))),
                     FixedCountRetryStrategy(max_attempts=3),
                 )
 
@@ -127,13 +115,6 @@ class Configurations:
                 This configuration is guaranteed not to change in future releases of the Momento Python SDK.
                 """
                 return Configurations.InRegion.LowLatency(
-                    StaticTransportStrategy(
-                        StaticGrpcConfiguration(
-                            deadline=timedelta(milliseconds=500),
-                            keepalive_permit_without_calls=True,
-                            keepalive_time=timedelta(milliseconds=5000),
-                            keepalive_timeout=timedelta(milliseconds=1000),
-                        )
-                    ),
+                    StaticTransportStrategy(StaticGrpcConfiguration(deadline=timedelta(milliseconds=500))),
                     FixedCountRetryStrategy(max_attempts=3),
                 )

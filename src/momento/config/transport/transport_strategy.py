@@ -54,9 +54,9 @@ class StaticGrpcConfiguration(GrpcConfiguration):
         root_certificates_pem: Optional[bytes] = None,
         max_send_message_length: Optional[int] = None,
         max_receive_message_length: Optional[int] = None,
-        keepalive_permit_without_calls: Optional[bool] = None,
-        keepalive_time: Optional[timedelta] = None,
-        keepalive_timeout: Optional[timedelta] = None,
+        keepalive_permit_without_calls: Optional[bool] = True,
+        keepalive_time: Optional[timedelta] = timedelta(milliseconds=5000),
+        keepalive_timeout: Optional[timedelta] = timedelta(milliseconds=1000),
     ):
         self._deadline = deadline
         self._root_certificates_pem = root_certificates_pem

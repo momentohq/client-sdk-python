@@ -26,12 +26,5 @@ class VectorIndexConfigurations:
             """
             return VectorIndexConfigurations.Default(
                 # The deadline is high to account for time-intensive adds.
-                StaticTransportStrategy(
-                    StaticGrpcConfiguration(
-                        deadline=timedelta(seconds=120),
-                        keepalive_permit_without_calls=True,
-                        keepalive_time=timedelta(milliseconds=5000),
-                        keepalive_timeout=timedelta(milliseconds=1000),
-                    )
-                )
+                StaticTransportStrategy(StaticGrpcConfiguration(deadline=timedelta(seconds=120)))
             )
