@@ -34,13 +34,23 @@ class _ControlGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
+        # Copy over all grpc configs from the vector config, but disable keepalive settings
+        grpc_config = configuration.get_transport_strategy().get_grpc_configuration()
+        control_grpc_config = StaticGrpcConfiguration(
+            deadline=grpc_config.get_deadline(),
+            root_certificates_pem=grpc_config.get_root_certificates_pem(),
+            max_send_message_length=grpc_config.get_max_send_message_length(),
+            max_receive_message_length=grpc_config.get_max_receive_message_length(),
+            keepalive_permit_without_calls=None,
+            keepalive_time=None,
+            keepalive_timeout=None,
+        )
+
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
-            options=grpc_channel_options_from_grpc_config(
-                configuration.get_transport_strategy().get_grpc_configuration()
-            ),
+            options=grpc_channel_options_from_grpc_config(control_grpc_config),
         )
 
     async def close(self) -> None:
