@@ -4,7 +4,7 @@ import grpc
 
 from momento.config.transport.grpc_configuration import GrpcConfiguration
 
-DEFAULT_MAX_MESSAGE_SIZE = 5_243_000
+DEFAULT_MAX_MESSAGE_SIZE = 5_243_000  # bytes
 
 
 def grpc_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> grpc.aio.ChannelArgumentType:
