@@ -6,7 +6,6 @@ from momento_wire_types import vectorindex_pb2_grpc as vector_index_client
 
 from momento.auth import CredentialProvider
 from momento.config import VectorIndexConfiguration
-from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.internal._utilities import momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
@@ -22,23 +21,14 @@ class _VectorIndexControlGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: VectorIndexConfiguration, credential_provider: CredentialProvider):
-        # Copy over all grpc configs from the vector config, but disable keepalive settings
-        grpc_config = configuration.get_transport_strategy().get_grpc_configuration()
-        control_grpc_config = StaticGrpcConfiguration(
-            deadline=grpc_config.get_deadline(),
-            root_certificates_pem=grpc_config.get_root_certificates_pem(),
-            max_send_message_length=grpc_config.get_max_send_message_length(),
-            max_receive_message_length=grpc_config.get_max_receive_message_length(),
-            keepalive_permit_without_calls=None,
-            keepalive_time=None,
-            keepalive_timeout=None,
-        )
-
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token),
-            options=grpc_channel_options_from_grpc_config(control_grpc_config),
+            options=grpc_channel_options_from_grpc_config(
+                grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
+                is_control_client=True,
+            ),
         )
 
     async def close(self) -> None:

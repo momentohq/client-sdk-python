@@ -8,11 +8,14 @@ from momento.internal._utilities import _timedelta_to_ms
 DEFAULT_MAX_MESSAGE_SIZE = 5_243_000  # bytes
 
 
-def grpc_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> grpc.aio.ChannelArgumentType:
+def grpc_channel_options_from_grpc_config(
+    grpc_config: GrpcConfiguration, is_control_client: bool = False
+) -> grpc.aio.ChannelArgumentType:
     """Create gRPC channel options from a GrpcConfiguration.
 
     Args:
         grpc_config (GrpcConfiguration): the gRPC configuration.
+        is_control_client (bool, optional): whether the client is a control client, in which case we want to disable keepalives. Defaults to False.
 
     Returns:
         grpc.aio.ChannelArgumentType: a list of gRPC channel options as key-value tuples.
@@ -33,15 +36,15 @@ def grpc_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> grp
     )
 
     keepalive_permit = grpc_config.get_keepalive_permit_without_calls()
-    if keepalive_permit is not None:
+    if not is_control_client and keepalive_permit is not None:
         channel_options.append(("grpc.keepalive_permit_without_calls", keepalive_permit))
 
     keepalive_time = grpc_config.get_keepalive_time()
-    if keepalive_time is not None:
+    if not is_control_client and keepalive_time is not None:
         channel_options.append(("grpc.keepalive_time_ms", _timedelta_to_ms(keepalive_time)))
 
     keepalive_timeout = grpc_config.get_keepalive_timeout()
-    if keepalive_timeout is not None:
+    if not is_control_client and keepalive_timeout is not None:
         channel_options.append(("grpc.keepalive_timeout_ms", _timedelta_to_ms(keepalive_timeout)))
 
     return channel_options
