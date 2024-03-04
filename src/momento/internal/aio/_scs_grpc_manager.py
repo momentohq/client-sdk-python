@@ -34,7 +34,7 @@ class _ControlGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
-        # Copy over all grpc configs from the vector config, but disable keepalive settings
+        # Copy over all grpc configs from the cache config, but disable keepalive settings
         grpc_config = configuration.get_transport_strategy().get_grpc_configuration()
         control_grpc_config = StaticGrpcConfiguration(
             deadline=grpc_config.get_deadline(),
