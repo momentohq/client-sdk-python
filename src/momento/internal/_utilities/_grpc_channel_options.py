@@ -3,6 +3,7 @@ from __future__ import annotations
 import grpc
 
 from momento.config.transport.grpc_configuration import GrpcConfiguration
+from momento.internal._utilities import _timedelta_to_ms
 
 DEFAULT_MAX_MESSAGE_SIZE = 5_243_000  # bytes
 
@@ -37,10 +38,10 @@ def grpc_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> grp
 
     keepalive_time = grpc_config.get_keepalive_time()
     if keepalive_time is not None:
-        channel_options.append(("grpc.keepalive_time_ms", keepalive_time.seconds * 1000))
+        channel_options.append(("grpc.keepalive_time_ms", _timedelta_to_ms(keepalive_time)))
 
     keepalive_timeout = grpc_config.get_keepalive_timeout()
     if keepalive_timeout is not None:
-        channel_options.append(("grpc.keepalive_timeout_ms", keepalive_timeout.seconds * 1000))
+        channel_options.append(("grpc.keepalive_timeout_ms", _timedelta_to_ms(keepalive_timeout)))
 
     return channel_options
