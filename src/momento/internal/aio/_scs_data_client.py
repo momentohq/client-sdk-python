@@ -155,7 +155,7 @@ class _ScsDataClient:
         self._endpoint = endpoint
 
         default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
-        self._default_deadline_seconds = int(default_deadline.total_seconds())
+        self._default_deadline_seconds = default_deadline.total_seconds()
 
         self._grpc_manager = _DataGrpcManager(configuration, credential_provider)
         _validate_ttl(default_ttl)
