@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-import grpc
+from typing import Sequence, Tuple, Union
 
 from momento.config.transport.grpc_configuration import GrpcConfiguration
+from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.internal._utilities import _timedelta_to_ms
 
 DEFAULT_MAX_MESSAGE_SIZE = 5_243_000  # bytes
 
+ChannelArguments = Sequence[Tuple[str, Union[int, None]]]
 
-def grpc_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> grpc.aio.ChannelArgumentType:
+
+def grpc_data_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> ChannelArguments:
     """Create gRPC channel options from a GrpcConfiguration.
 
     Args:
@@ -45,3 +48,25 @@ def grpc_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> grp
         channel_options.append(("grpc.keepalive_timeout_ms", _timedelta_to_ms(keepalive_timeout)))
 
     return channel_options
+
+
+def grpc_control_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> ChannelArguments:
+    """Create gRPC channel options from a GrpcConfiguration, but disable keepalives.
+
+    Args:
+        grpc_config (GrpcConfiguration): the gRPC configuration.
+
+    Returns:
+        grpc.aio.ChannelArgumentType: a list of gRPC channel options as key-value tuples.
+    """
+    # Override the keepalive options to disable keepalives
+    control_grpc_config = StaticGrpcConfiguration(
+        deadline=grpc_config.get_deadline(),
+        root_certificates_pem=grpc_config.get_root_certificates_pem(),
+        max_send_message_length=grpc_config.get_max_send_message_length(),
+        max_receive_message_length=grpc_config.get_max_receive_message_length(),
+        keepalive_permit_without_calls=None,
+        keepalive_time=None,
+        keepalive_timeout=None,
+    )
+    return grpc_data_channel_options_from_grpc_config(control_grpc_config)
