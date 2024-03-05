@@ -17,7 +17,10 @@ from momento.internal._utilities import momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
 )
-from momento.internal._utilities._grpc_channel_options import grpc_channel_options_from_grpc_config
+from momento.internal._utilities._grpc_channel_options import (
+    grpc_control_channel_options_from_grpc_config,
+    grpc_data_channel_options_from_grpc_config,
+)
 from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     AddHeaderStreamingClientInterceptor,
@@ -36,9 +39,8 @@ class _ControlGrpcManager:
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.control_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
-            options=grpc_channel_options_from_grpc_config(
+            options=grpc_control_channel_options_from_grpc_config(
                 grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
-                is_control_client=True,
             ),
         )
         intercept_channel = grpc.intercept_channel(
@@ -63,7 +65,7 @@ class _DataGrpcManager:
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
-            options=grpc_channel_options_from_grpc_config(
+            options=grpc_data_channel_options_from_grpc_config(
                 configuration.get_transport_strategy().get_grpc_configuration()
             ),
         )
@@ -152,7 +154,7 @@ class _PubsubGrpcManager:
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            options=grpc_channel_options_from_grpc_config(grpc_config),
+            options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, None)
@@ -178,7 +180,7 @@ class _PubsubGrpcStreamManager:
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            options=grpc_channel_options_from_grpc_config(grpc_config),
+            options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_stream_interceptors(credential_provider.auth_token)

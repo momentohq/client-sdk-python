@@ -16,7 +16,10 @@ from momento.internal._utilities import momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
 )
-from momento.internal._utilities._grpc_channel_options import grpc_channel_options_from_grpc_config
+from momento.internal._utilities._grpc_channel_options import (
+    grpc_control_channel_options_from_grpc_config,
+    grpc_data_channel_options_from_grpc_config,
+)
 from momento.retry import RetryStrategy
 
 from ... import logs
@@ -38,9 +41,8 @@ class _ControlGrpcManager:
             target=credential_provider.control_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
-            options=grpc_channel_options_from_grpc_config(
+            options=grpc_control_channel_options_from_grpc_config(
                 grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
-                is_control_client=True,
             ),
         )
 
@@ -76,7 +78,7 @@ class _DataGrpcManager:
             #     ('grpc.use_local_subchannel_pool', 1),
             #     (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
             # ],
-            options=grpc_channel_options_from_grpc_config(
+            options=grpc_data_channel_options_from_grpc_config(
                 configuration.get_transport_strategy().get_grpc_configuration()
             ),
         )
@@ -134,7 +136,7 @@ class _PubsubGrpcManager:
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token, None),
-            options=grpc_channel_options_from_grpc_config(grpc_config),
+            options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
 
     async def close(self) -> None:
@@ -157,7 +159,7 @@ class _PubsubGrpcStreamManager:
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_stream_interceptors(credential_provider.auth_token),
-            options=grpc_channel_options_from_grpc_config(grpc_config),
+            options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
 
     async def close(self) -> None:
