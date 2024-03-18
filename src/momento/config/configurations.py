@@ -35,7 +35,7 @@ class Configurations:
             This configuration is guaranteed not to change in future releases of the Momento Python SDK.
             """
             return Configurations.Laptop(
-                StaticTransportStrategy(StaticGrpcConfiguration(timedelta(seconds=15))),
+                StaticTransportStrategy(StaticGrpcConfiguration(deadline=timedelta(seconds=15))),
                 FixedCountRetryStrategy(max_attempts=3),
             )
 
@@ -49,7 +49,14 @@ class Configurations:
             This configuration will be updated every time there is a new version of the Lambda configuration.
             """
             return Configurations.Lambda(
-                StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=1100))),
+                StaticTransportStrategy(
+                    StaticGrpcConfiguration(
+                        deadline=timedelta(milliseconds=1100),
+                        keepalive_permit_without_calls=False,
+                        keepalive_time=None,
+                        keepalive_timeout=None,
+                    )
+                ),
                 FixedCountRetryStrategy(max_attempts=3),
             )
 
@@ -81,7 +88,7 @@ class Configurations:
                 This configuration is guaranteed not to change in future releases of the Momento Python SDK.
                 """
                 return Configurations.InRegion.Default(
-                    StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=1100))),
+                    StaticTransportStrategy(StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))),
                     FixedCountRetryStrategy(max_attempts=3),
                 )
 
@@ -108,6 +115,6 @@ class Configurations:
                 This configuration is guaranteed not to change in future releases of the Momento Python SDK.
                 """
                 return Configurations.InRegion.LowLatency(
-                    StaticTransportStrategy(StaticGrpcConfiguration(timedelta(milliseconds=500))),
+                    StaticTransportStrategy(StaticGrpcConfiguration(deadline=timedelta(milliseconds=500))),
                     FixedCountRetryStrategy(max_attempts=3),
                 )

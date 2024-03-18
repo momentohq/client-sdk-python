@@ -93,3 +93,27 @@ async def test_bad_root_cert_async(configuration: Configuration, credential_prov
 #     get_response = await client.get(unique_test_cache_name(), "key")
 #     assert isinstance(get_response, CacheGet.Error)
 #     assert get_response.error_code == MomentoErrorCode.NOT_FOUND_ERROR
+
+
+def test_lambda_config_disables_keepalive() -> None:
+    config = Configurations.Lambda.latest()
+    grpc_config = config.get_transport_strategy().get_grpc_configuration()
+    assert grpc_config.get_keepalive_permit_without_calls() == 0
+    assert grpc_config.get_keepalive_time() is None
+    assert grpc_config.get_keepalive_timeout() is None
+
+
+def test_laptop_config_enables_keepalive() -> None:
+    config = Configurations.Laptop.latest()
+    grpc_config = config.get_transport_strategy().get_grpc_configuration()
+    assert grpc_config.get_keepalive_permit_without_calls() == 1
+
+    keepalive_time = grpc_config.get_keepalive_time()
+    assert keepalive_time is not None
+    if keepalive_time is not None:
+        assert keepalive_time.seconds == 5
+
+    keepalive_timeout = grpc_config.get_keepalive_timeout()
+    assert keepalive_timeout is not None
+    if keepalive_timeout is not None:
+        assert keepalive_timeout.seconds == 1

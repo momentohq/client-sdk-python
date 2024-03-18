@@ -16,6 +16,7 @@ from momento.internal._utilities import (
     _gen_dictionary_items_as_bytes,
     _gen_list_as_bytes,
     _gen_set_input_as_bytes,
+    _timedelta_to_ms,
     _validate_cache_name,
     _validate_dictionary_name,
     _validate_list_name,
@@ -154,7 +155,7 @@ class _ScsDataClient:
         self._endpoint = endpoint
 
         default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
-        self._default_deadline_seconds = int(default_deadline.total_seconds())
+        self._default_deadline_seconds = default_deadline.total_seconds()
 
         self._grpc_manager = _DataGrpcManager(configuration, credential_provider)
         _validate_ttl(default_ttl)
@@ -1105,7 +1106,7 @@ class _ScsDataClient:
         if ttl is not None:
             which_ttl = ttl
 
-        return int(which_ttl.total_seconds() * 1000)
+        return _timedelta_to_ms(which_ttl)
 
     def _build_stub(self) -> cache_grpc.ScsStub:
         return self._grpc_manager.stub()

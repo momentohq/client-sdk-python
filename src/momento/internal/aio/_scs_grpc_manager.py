@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import timedelta
 from typing import Optional
 
 import grpc
@@ -10,9 +11,14 @@ from momento_wire_types import controlclient_pb2_grpc as control_client
 
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
+from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.internal._utilities import momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
+)
+from momento.internal._utilities._grpc_channel_options import (
+    grpc_control_channel_options_from_grpc_config,
+    grpc_data_channel_options_from_grpc_config,
 )
 from momento.retry import RetryStrategy
 
@@ -35,6 +41,9 @@ class _ControlGrpcManager:
             target=credential_provider.control_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
             interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
+            options=grpc_control_channel_options_from_grpc_config(
+                grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
+            ),
         )
 
     async def close(self) -> None:
@@ -64,11 +73,14 @@ class _DataGrpcManager:
             # https://grpc.github.io/grpc/python/grpc.html
             # https://grpc.github.io/grpc/python/glossary.html#term-channel_arguments
             # https://github.com/grpc/grpc/blob/v1.46.x/include/grpc/impl/codegen/grpc_types.h#L140
-            options=[
-                # ('grpc.max_concurrent_streams', 1000),
-                # ('grpc.use_local_subchannel_pool', 1),
-                # (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
-            ],
+            # options=[
+            #     ('grpc.max_concurrent_streams', 1000),
+            #     ('grpc.use_local_subchannel_pool', 1),
+            #     (experimental.ChannelOptions.SingleThreadedUnaryStream, 1)
+            # ],
+            options=grpc_data_channel_options_from_grpc_config(
+                configuration.get_transport_strategy().get_grpc_configuration()
+            ),
         )
 
     async def eagerly_connect(self, timeout_seconds: float) -> None:
@@ -79,6 +91,9 @@ class _DataGrpcManager:
             await asyncio.wait_for(self.wait_for_ready(), timeout_seconds)
         except Exception as error:
             self._logger.debug(f"Failed to connect to the server within the given timeout. {error}")
+            raise RuntimeError(
+                f"Failed to connect to Momento's server within given eager connection timeout {error}"
+            ) from error
 
     async def wait_for_ready(self) -> None:
         latest_state = self._secure_channel.get_state(True)  # try_to_connect
@@ -117,10 +132,14 @@ class _PubsubGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
+        # NOTE: This is hard-coded for now but we may want to expose it via TopicConfiguration in the future, as we do with some of the other clients.
+        grpc_config = StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))
+
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token, None),
+            options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
 
     async def close(self) -> None:
@@ -136,10 +155,14 @@ class _PubsubGrpcStreamManager:
     version = momento_version
 
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
+        # NOTE: This is hard-coded for now but we may want to expose it via TopicConfiguration in the future, as we do with some of the other clients.
+        grpc_config = StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))
+
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_stream_interceptors(credential_provider.auth_token),
+            options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
 
     async def close(self) -> None:
