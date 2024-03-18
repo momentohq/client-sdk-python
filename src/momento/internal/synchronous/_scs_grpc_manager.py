@@ -97,6 +97,7 @@ class _DataGrpcManager:
             )
             # the subscription is no longer needed; it was only meant to watch if we could connect eagerly
             self._secure_channel.unsubscribe(on_state_change)
+            raise RuntimeError("Failed to connect to Momento's server within given eager connection timeout")
 
         """
         A callback that is triggered whenever a connection's state changes. We explicitly subscribe to

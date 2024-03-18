@@ -91,6 +91,9 @@ class _DataGrpcManager:
             await asyncio.wait_for(self.wait_for_ready(), timeout_seconds)
         except Exception as error:
             self._logger.debug(f"Failed to connect to the server within the given timeout. {error}")
+            raise RuntimeError(
+                f"Failed to connect to Momento's server within given eager connection timeout {error}"
+            ) from error
 
     async def wait_for_ready(self) -> None:
         latest_state = self._secure_channel.get_state(True)  # try_to_connect
