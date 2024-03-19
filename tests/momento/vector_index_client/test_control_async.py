@@ -152,7 +152,10 @@ async def test_create_index_throws_authentication_exception_for_bad_token(
         assert isinstance(response, CreateIndex.Error)
         assert response.error_code == MomentoErrorCode.AUTHENTICATION_ERROR
         assert response.inner_exception.message == "Could not validate authorization token"
-        assert response.message == "Invalid authentication credentials to connect to index service: Could not validate authorization token"
+        assert (
+            response.message
+            == "Invalid authentication credentials to connect to index service: Could not validate authorization token"
+        )
 
 
 # List indexes
