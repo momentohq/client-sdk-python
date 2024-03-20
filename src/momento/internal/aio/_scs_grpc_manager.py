@@ -12,6 +12,7 @@ from momento_wire_types import controlclient_pb2_grpc as control_client
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
+from momento.errors.exceptions import ConnectionException
 from momento.internal._utilities import momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
@@ -20,6 +21,7 @@ from momento.internal._utilities._grpc_channel_options import (
     grpc_control_channel_options_from_grpc_config,
     grpc_data_channel_options_from_grpc_config,
 )
+from momento.internal.services import Service
 from momento.retry import RetryStrategy
 
 from ... import logs
@@ -90,9 +92,11 @@ class _DataGrpcManager:
         try:
             await asyncio.wait_for(self.wait_for_ready(), timeout_seconds)
         except Exception as error:
+            self._secure_channel.close()
             self._logger.debug(f"Failed to connect to the server within the given timeout. {error}")
-            raise RuntimeError(
-                f"Failed to connect to Momento's server within given eager connection timeout {error}"
+            raise ConnectionException(
+                message=f"Failed to connect to Momento's server within given eager connection timeout: {error}",
+                service=Service.CACHE,
             ) from error
 
     async def wait_for_ready(self) -> None:
@@ -107,7 +111,7 @@ class _DataGrpcManager:
             elif latest_state == connecting:
                 self._logger.debug("State transitioned to CONNECTING; waiting to get READY")
             else:
-                self._logger.warn(f"Unexpected connection state: {latest_state}. while trying to eagerly connect")
+                self._logger.warn(f"Unexpected connection state while trying to eagerly connect: {latest_state}.")
                 break
 
             # This is a gRPC callback helper that prevents us from repeatedly polling on the state

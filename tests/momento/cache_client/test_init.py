@@ -6,6 +6,7 @@ from momento import CacheClient
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import InvalidArgumentException
+from momento.errors.exceptions import ConnectionException
 
 
 def test_init_throws_exception_when_client_uses_negative_default_ttl(
@@ -52,3 +53,14 @@ def test_init_eagerly_connecting_cache_client(
         configuration, credential_provider, default_ttl_seconds, eager_connection_timeout=timedelta(seconds=30)
     )
     assert client
+
+
+def test_init_cache_client_eager_connection_failure(
+    configuration: Configuration, credential_provider: CredentialProvider, default_ttl_seconds: timedelta
+) -> None:
+    with pytest.raises(
+        ConnectionException, match="Failed to connect to Momento's server within given eager connection timeout"
+    ):
+        CacheClient.create(
+            configuration, credential_provider, default_ttl_seconds, eager_connection_timeout=timedelta(milliseconds=1)
+        )
