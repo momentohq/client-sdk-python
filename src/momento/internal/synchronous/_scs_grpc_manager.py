@@ -13,6 +13,7 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
+from momento.errors.exceptions import ConnectionException
 from momento.internal._utilities import momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
@@ -21,6 +22,7 @@ from momento.internal._utilities._grpc_channel_options import (
     grpc_control_channel_options_from_grpc_config,
     grpc_data_channel_options_from_grpc_config,
 )
+from momento.internal.services import Service
 from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     AddHeaderStreamingClientInterceptor,
@@ -97,7 +99,11 @@ class _DataGrpcManager:
             )
             # the subscription is no longer needed; it was only meant to watch if we could connect eagerly
             self._secure_channel.unsubscribe(on_state_change)
-            raise RuntimeError("Failed to connect to Momento's server within given eager connection timeout")
+            self._secure_channel.close()
+            raise ConnectionException(
+                message="Failed to connect to Momento's server within given eager connection timeout",
+                service=Service.CACHE,
+            )
 
         """
         A callback that is triggered whenever a connection's state changes. We explicitly subscribe to
@@ -122,7 +128,7 @@ class _DataGrpcManager:
             elif state == connecting:
                 self._logger.debug("State transitioned to CONNECTING; waiting to get READY")
             else:
-                self._logger.warn(f"Unexpected connection state: {state}. while trying to eagerly connect")
+                self._logger.warn(f"Unexpected connection state while trying to eagerly connect: {state}")
                 # we could not connect within the timeout and we no longer need this subscription
                 self._secure_channel.unsubscribe(on_state_change)
                 connection_event.set()

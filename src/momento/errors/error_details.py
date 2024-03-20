@@ -42,6 +42,8 @@ class MomentoErrorCode(enum.Enum):
     """System is not in a state required for the operation's execution"""
     UNKNOWN_ERROR = 15
     """Unknown error has occurred"""
+    CONNECTION_ERROR = 16
+    """Connection to the Momento server failed"""
 
 
 @dataclass

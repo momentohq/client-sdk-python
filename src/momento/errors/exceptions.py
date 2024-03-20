@@ -123,6 +123,24 @@ class CancelledException(SdkException):
         )
 
 
+class ConnectionException(SdkException):
+    """Connection to the Momento server failed."""
+
+    def __init__(
+        self,
+        message: str,
+        service: Service,
+        transport_details: Optional[MomentoErrorTransportDetails] = None,
+    ):
+        super().__init__(
+            message,
+            MomentoErrorCode.CONNECTION_ERROR,
+            service,
+            transport_details,
+            message_wrapper="Connection to the Momento server failed; please contact us at support@momentohq.com",
+        )
+
+
 class FailedPreconditionException(SdkException):
     """The server did not meet the precondition to run a command.
 
