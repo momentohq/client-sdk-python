@@ -41,7 +41,6 @@ jobs:
     env:
       TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
-      TEST_VECTOR_INDEX_NAME: python-integration-test-vector-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v3
@@ -78,7 +77,7 @@ jobs:
         run: poetry run ruff format --diff src tests
 
       - name: Run tests
-        run: poetry run pytest -p no:sugar -q --ignore=tests/momento/vector_index_client
+        run: poetry run pytest -p no:sugar -q
 
   publish:
     runs-on: ubuntu-20.04

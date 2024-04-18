@@ -97,9 +97,6 @@ module = [
   "momento.internal.synchronous._scs_control_client",
   "momento.internal.synchronous._scs_data_client",
   "momento.internal.synchronous._scs_grpc_manager",
-  "momento.internal.synchronous._vector_index_control_client",
-  "momento.internal.synchronous._vector_index_data_client",
-  "momento.internal.synchronous._vector_index_grpc_manager",
   "momento.internal.synchronous._add_header_client_interceptor",
   "momento.internal.synchronous._retry_interceptor",
   "momento.internal.common._data_client_ops",
@@ -109,16 +106,8 @@ module = [
   "momento.internal.aio._scs_control_client",
   "momento.internal.aio._scs_data_client",
   "momento.internal.aio._scs_grpc_manager",
-  "momento.internal.aio._vector_index_control_client",
-  "momento.internal.aio._vector_index_data_client",
-  "momento.internal.aio._vector_index_grpc_manager",
   "momento.internal.aio._utilities",
   "momento.responses.control.signing_key.*",
-  "momento.responses.vector_index.data.get_item_batch",
-  "momento.responses.vector_index.data.get_item_metadata_batch",
-  "momento.responses.vector_index.data.search",
-  "momento.responses.vector_index.data.search_and_fetch_vectors",
-  "momento.responses.vector_index.data.utils",
 ]
 disallow_any_expr = false
 
@@ -164,8 +153,6 @@ fix = true
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
-"src/momento/common_data/vector_index/item.py" = ["E721"]
-"src/momento/requests/vector_index/filters.py" = ["E721"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import grpc
 
-from momento.config import Configuration, VectorIndexConfiguration
+from momento.config import Configuration
 
 
 def channel_credentials_from_root_certs_or_default(
-    config: Configuration | VectorIndexConfiguration,
+    config: Configuration,
 ) -> grpc.ChannelCredentials:
     """Create gRPC channel credentials from the root certificates or the default credentials.
 
