@@ -45,4 +45,3 @@ def sleep(seconds: int) -> None:
 
 async def sleep_async(seconds: int) -> None:
     await asyncio.sleep(seconds)
-
