@@ -44,14 +44,15 @@ The lambda does not set up a way to access itself externally, so to run it, you 
 
 The lambda is set up to make set and get calls for the key 'key' in the cache 'cache'. You can play around with the code by changing the `docker/lambda/index.py` file. Remember to update `docker/lambda/aws_requirements.txt` file if you add additional Python dependencies.
 
-## Deploying the Momento Python Lambda as a Zip File on AWS Lambda
+## Deploying the Momento Python Lambda as a Zip File on AWS Lambda with the AWS Management Console
 
 Alternatively, we can deploy the Momento Python Lambda as a Zip File on AWS Lambda. We can do this using the `zip` directory in this example.
 
 Follow these steps to create the zip and deploy it to AWS Lambda using the AWS Management Console:
 
 1. Run `make dist` in the `zip` directory to package the lambda for upload as `dist.zip`.
-   :tipp: Check out the Makefile for important build steps to package for AWS Lambda.
+
+> :bulb: **Tip**: Check out the Makefile for important build steps to package for AWS Lambda.
 
 2. Create a new Lambda function by selecting "Author from scratch".
 3. Set the function name to `momento-lambda-demo`.
