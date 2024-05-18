@@ -9,8 +9,16 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+         # TODO: one of the examples dependencies does not support 3.11
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         new-python-protobuf: ["true"]
+        include:
+          - python-version: "3.7"
+            new-python-protobuf: "false"
+          - python-version: "3.7"
+            package: prepy310
+          - python-version: "3.8"
+            package: prepy310
 
     env:
       TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
