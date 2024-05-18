@@ -6,19 +6,27 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
-         # TODO: one of the examples dependencies does not support 3.11
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        # TODO: one of the examples dependencies does not support 3.11
+        os: [ubuntu-24.04]
+        python-version: ["3.9", "3.10", "3.11"]
         new-python-protobuf: ["true"]
         include:
+          # 3.7 and 3.8 are no longer available on ubuntu-24.04
+          # We run on 20.04 which was the last version where this worked.
+          # If support for 20.04 becomes an issue, we can install 3.7 and 3.8
+          # with pyenv or manually.
+          - python-version: "3.7"
+            new-python-protobuf: "true"
+            os: ubuntu-20.04
           - python-version: "3.7"
             new-python-protobuf: "false"
-          - python-version: "3.7"
-            package: prepy310
+            os: ubuntu-20.04
           - python-version: "3.8"
-            package: prepy310
+            new-python-protobuf: "true"
+            os: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     env:
       TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
