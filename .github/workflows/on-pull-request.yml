@@ -44,7 +44,7 @@ jobs:
         uses: snok/install-poetry@v1
         with:
           version: 1.3.1
-          virtualenvs-in-project: false
+          virtualenvs-in-project: true
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -97,10 +97,18 @@ jobs:
       MOMENTO_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.3.1
+          virtualenvs-in-project: true
+
       - name: Python SDK sample
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: poetry
 
       - name: Verify README generation
         uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v2
@@ -113,13 +121,6 @@ jobs:
           dev_docs_slug: python
           template_file: ./README.template.md
           output_file: ./README.md
-
-      - name: Bootstrap poetry
-        run: |
-          curl -sL https://install.python-poetry.org | python - -y --version 1.3.1
-
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
 
       - name: Install dependencies
         working-directory: ./examples
