@@ -6,7 +6,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.release.outputs.release }}
     steps:
@@ -30,14 +30,30 @@ jobs:
         run: echo "::set-output name=release::${{ steps.semrel.outputs.version }}"
 
   test:
-    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        os: [ubuntu-20.04]
+        python-version: ["3.9", "3.10", "3.11"]
         new-python-protobuf: ["true"]
         include:
+          # 3.7 and 3.8 are no longer available on ubuntu-24.04
+          # We run on 20.04 which was the last version where this worked.
+          # If support for 20.04 becomes an issue, we can install 3.7 and 3.8
+          # with pyenv or manually.
+          - python-version: "3.7"
+            new-python-protobuf: "true"
+            os: ubuntu-20.04
           - python-version: "3.7"
             new-python-protobuf: "false"
+            os: ubuntu-20.04
+          - python-version: "3.8"
+            new-python-protobuf: "true"
+            os: ubuntu-20.04
+          - python-version: "3.8"
+            new-python-protobuf: "false"
+            os: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+
     env:
       TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
@@ -45,17 +61,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.3.1
+          virtualenvs-in-project: true
+
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Bootstrap poetry
-        run: |
-          curl -sL https://install.python-poetry.org | python - -y --version 1.3.1
-
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
 
       - name: Install dependencies
         run: poetry install
@@ -80,20 +95,22 @@ jobs:
         run: poetry run pytest -p no:sugar -q
 
   publish:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [release, test]
 
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.3.1
+          virtualenvs-in-project: true
+
       - name: Setup Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-
-      - name: Bootstrap poetry
-        run: |
-          curl -sL https://install.python-poetry.org | python - -y --version 1.3.1
 
       - name: Bump version
         run: poetry version ${{ needs.release.outputs.version }}
