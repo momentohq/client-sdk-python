@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from datetime import timedelta
 from threading import Event
 from typing import Optional
@@ -31,11 +30,6 @@ from momento.internal.synchronous._add_header_client_interceptor import (
 )
 from momento.internal.synchronous._retry_interceptor import RetryInterceptor
 from momento.retry import RetryStrategy
-
-python_runtime_version = (
-    f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} "
-    f"({sys.version_info.releaselevel} {sys.version_info.serial})"
-)
 
 
 class _ControlGrpcManager:
