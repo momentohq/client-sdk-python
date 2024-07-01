@@ -10,7 +10,7 @@ from momento.internal.services import Service
 
 
 class Header:
-    once_only_headers = ["agent"]
+    once_only_headers = ["agent", "runtime-version"]
 
     def __init__(self, name: str, value: str):
         self.name = name
