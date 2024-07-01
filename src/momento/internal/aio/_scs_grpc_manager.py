@@ -13,7 +13,7 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.exceptions import ConnectionException
-from momento.internal._utilities import momento_version
+from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType, momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
 )
@@ -42,7 +42,9 @@ class _ControlGrpcManager:
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
-            interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
+            interceptors=_interceptors(
+                credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+            ),
             options=grpc_control_channel_options_from_grpc_config(
                 grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
             ),
@@ -65,7 +67,9 @@ class _DataGrpcManager:
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=channel_credentials_from_root_certs_or_default(configuration),
-            interceptors=_interceptors(credential_provider.auth_token, configuration.get_retry_strategy()),
+            interceptors=_interceptors(
+                credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+            ),
             # Here is where you would pass override configuration to the underlying C gRPC layer.
             # However, I have tried several different tuning options here and did not see any
             # performance improvements, so sticking with the defaults for now.
@@ -142,7 +146,7 @@ class _PubsubGrpcManager:
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=_interceptors(credential_provider.auth_token, None),
+            interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, None),
             options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
 
@@ -165,7 +169,7 @@ class _PubsubGrpcStreamManager:
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=_stream_interceptors(credential_provider.auth_token),
+            interceptors=_stream_interceptors(credential_provider.auth_token, ClientType.TOPIC),
             options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
 
@@ -176,10 +180,13 @@ class _PubsubGrpcStreamManager:
         return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 
-def _interceptors(auth_token: str, retry_strategy: Optional[RetryStrategy] = None) -> list[grpc.aio.ClientInterceptor]:
+def _interceptors(
+    auth_token: str, client_type: ClientType, retry_strategy: Optional[RetryStrategy] = None
+) -> list[grpc.aio.ClientInterceptor]:
     headers = [
         Header("authorization", auth_token),
-        Header("agent", f"python:{_ControlGrpcManager.version}"),
+        Header("agent", f"python:{client_type.value}:{_ControlGrpcManager.version}"),
+        Header("runtime-version", f"python {PYTHON_RUNTIME_VERSION}"),
     ]
     return list(
         filter(
@@ -192,9 +199,10 @@ def _interceptors(auth_token: str, retry_strategy: Optional[RetryStrategy] = Non
     )
 
 
-def _stream_interceptors(auth_token: str) -> list[grpc.aio.UnaryStreamClientInterceptor]:
+def _stream_interceptors(auth_token: str, client_type: ClientType) -> list[grpc.aio.UnaryStreamClientInterceptor]:
     headers = [
         Header("authorization", auth_token),
-        Header("agent", f"python:{_PubsubGrpcStreamManager.version}"),
+        Header("agent", f"python:{client_type.value}:{_PubsubGrpcStreamManager.version}"),
+        Header("runtime-version", f"python {PYTHON_RUNTIME_VERSION}"),
     ]
     return [AddHeaderStreamingClientInterceptor(headers)]

@@ -14,7 +14,7 @@ from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.exceptions import ConnectionException
-from momento.internal._utilities import momento_version
+from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType, momento_version
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
 )
@@ -46,7 +46,8 @@ class _ControlGrpcManager:
             ),
         )
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
+            self._secure_channel,
+            *_interceptors(credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()),
         )
         self._stub = control_client.ScsControlStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -73,7 +74,8 @@ class _DataGrpcManager:
         )
 
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel, *_interceptors(credential_provider.auth_token, configuration.get_retry_strategy())
+            self._secure_channel,
+            *_interceptors(credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()),
         )
         self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -164,7 +166,7 @@ class _PubsubGrpcManager:
             options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel, *_interceptors(credential_provider.auth_token, None)
+            self._secure_channel, *_interceptors(credential_provider.auth_token, ClientType.TOPIC, None)
         )
         self._stub = pubsub_client.PubsubStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -190,7 +192,7 @@ class _PubsubGrpcStreamManager:
             options=grpc_data_channel_options_from_grpc_config(grpc_config),
         )
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel, *_stream_interceptors(credential_provider.auth_token)
+            self._secure_channel, *_stream_interceptors(credential_provider.auth_token, ClientType.TOPIC)
         )
         self._stub = pubsub_client.PubsubStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -202,9 +204,13 @@ class _PubsubGrpcStreamManager:
 
 
 def _interceptors(
-    auth_token: str, retry_strategy: Optional[RetryStrategy] = None
+    auth_token: str, client_type: ClientType, retry_strategy: Optional[RetryStrategy] = None
 ) -> list[grpc.UnaryUnaryClientInterceptor]:
-    headers = [Header("authorization", auth_token), Header("agent", f"python:{_ControlGrpcManager.version}")]
+    headers = [
+        Header("authorization", auth_token),
+        Header("agent", f"python:{client_type.value}:{_ControlGrpcManager.version}"),
+        Header("runtime-version", f"python {PYTHON_RUNTIME_VERSION}"),
+    ]
     return list(
         filter(
             None, [AddHeaderClientInterceptor(headers), RetryInterceptor(retry_strategy) if retry_strategy else None]
@@ -212,9 +218,10 @@ def _interceptors(
     )
 
 
-def _stream_interceptors(auth_token: str) -> list[grpc.UnaryStreamClientInterceptor]:
+def _stream_interceptors(auth_token: str, client_type: ClientType) -> list[grpc.UnaryStreamClientInterceptor]:
     headers = [
         Header("authorization", auth_token),
-        Header("agent", f"python:{_PubsubGrpcStreamManager.version}"),
+        Header("agent", f"python:{client_type.value}:{_PubsubGrpcStreamManager.version}"),
+        Header("runtime-version", f"python {PYTHON_RUNTIME_VERSION}"),
     ]
     return [AddHeaderStreamingClientInterceptor(headers)]
