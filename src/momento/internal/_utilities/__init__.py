@@ -1,3 +1,4 @@
+from ._client_type import ClientType
 from ._data_validation import (
     _as_bytes,
     _gen_dictionary_fields_as_bytes,
@@ -14,9 +15,5 @@ from ._data_validation import (
     _validate_ttl,
 )
 from ._momento_version import momento_version
+from ._python_runtime_version import PYTHON_RUNTIME_VERSION
 from ._time import _timedelta_to_ms
-from ._vector_index_validation import (
-    _validate_index_name,
-    _validate_num_dimensions,
-    _validate_top_k,
-)

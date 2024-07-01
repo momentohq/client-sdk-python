@@ -19,7 +19,7 @@ The primary use is to provide a base for testing Momento in an AWS lambda enviro
 - Node version 14 or higher is required (for deploying the Cloudformation stack containing the Lambda)
 - To get started with Momento you will need a Momento Auth Token. You can get one from the [Momento Console](https://console.gomomento.com). Check out the [getting started](https://docs.momentohq.com/getting-started) guide for more information on obtaining an auth token.
 
-## Deploying the Momento Python Lambda
+## Deploying the Momento Python Lambda with Docker and AWS CDK
 
 The source code for the CDK application lives in the `infrastructure` directory.
 To build and deploy it you will first need to install the dependencies:
@@ -43,3 +43,24 @@ npm run cdk deploy
 The lambda does not set up a way to access itself externally, so to run it, you will have to go to `MomentoDockerLambda` in AWS Lambda and run a test.
 
 The lambda is set up to make set and get calls for the key 'key' in the cache 'cache'. You can play around with the code by changing the `docker/lambda/index.py` file. Remember to update `docker/lambda/aws_requirements.txt` file if you add additional Python dependencies.
+
+## Deploying the Momento Python Lambda as a Zip File on AWS Lambda with the AWS Management Console
+
+Alternatively, we can deploy the Momento Python Lambda as a Zip File on AWS Lambda. We can do this using the `zip` directory in this example.
+
+Follow these steps to create the zip and deploy it to AWS Lambda using the AWS Management Console:
+
+1. Run `make dist` in the `zip` directory to package the lambda for upload as `dist.zip`.
+
+> :bulb: **Tip**: Check out the Makefile for important build steps to package for AWS Lambda.
+
+2. Create a new Lambda function by selecting "Author from scratch".
+3. Set the function name to `momento-lambda-demo`.
+4. Choose the runtime as `Python 3.8` (you can adjust this as desired).
+5. Select the architecture as `x86_64`.
+6. Click on "Create function" to create the Lambda function.
+7. In the "Code" tab, choose "Upload from the zip" as the code source.
+8. Under "Runtime settings", set the Handler to index.handler.
+9. Switch to the "Configuration" tab.
+10. Set the environment variable `MOMENTO_API_KEY` to your API key.
+11. Finally, go to the "Test" tab to test your Lambda function.
