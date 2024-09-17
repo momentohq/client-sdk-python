@@ -53,6 +53,9 @@ _CACHE_NAME = "cache"
 _ORDER_TOPIC = "order_updates"
 
 
+##################################
+# Custom Cache Client with Publish
+##################################
 class CacheSetAndPublishResponse(CacheResponse):
     """Parent response type for a `set_and_publish` request.
 
@@ -141,6 +144,11 @@ async def setup_cache(client: CacheWithPublishClientAsync, cache_name: str) -> N
         case CreateCache.Error():
             _logger.error(f"Failed to create cache: {response.message}")
             raise response.inner_exception
+
+
+##################################
+# Actors in the Order System
+##################################
 
 
 class Kitchen:
