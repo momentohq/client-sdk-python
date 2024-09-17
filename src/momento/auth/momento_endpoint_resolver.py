@@ -11,6 +11,7 @@ from momento.internal.services import Service
 
 _MOMENTO_CONTROL_ENDPOINT_PREFIX = "control."
 _MOMENTO_CACHE_ENDPOINT_PREFIX = "cache."
+_MOMENTO_TOKEN_ENDPOINT_PREFIX = "token."
 _CONTROL_ENDPOINT_CLAIM_ID = "cp"
 _CACHE_ENDPOINT_CLAIM_ID = "c"
 
@@ -19,6 +20,7 @@ _CACHE_ENDPOINT_CLAIM_ID = "c"
 class _TokenAndEndpoints:
     control_endpoint: str
     cache_endpoint: str
+    token_endpoint: str
     auth_token: str
 
 
@@ -38,6 +40,7 @@ def resolve(auth_token: str) -> _TokenAndEndpoints:
         return _TokenAndEndpoints(
             control_endpoint=_MOMENTO_CONTROL_ENDPOINT_PREFIX + info["endpoint"],  # type: ignore[misc]
             cache_endpoint=_MOMENTO_CACHE_ENDPOINT_PREFIX + info["endpoint"],  # type: ignore[misc]
+            token_endpoint=_MOMENTO_TOKEN_ENDPOINT_PREFIX + info["endpoint"],  # type: ignore[misc]
             auth_token=info["api_key"],  # type: ignore[misc]
         )
     else:
@@ -50,6 +53,7 @@ def _get_endpoint_from_token(auth_token: str) -> _TokenAndEndpoints:
         return _TokenAndEndpoints(
             control_endpoint=claims[_CONTROL_ENDPOINT_CLAIM_ID],  # type: ignore[misc]
             cache_endpoint=claims[_CACHE_ENDPOINT_CLAIM_ID],  # type: ignore[misc]
+            token_endpoint=_MOMENTO_TOKEN_ENDPOINT_PREFIX + claims[_CACHE_ENDPOINT_CLAIM_ID],  # type: ignore[misc]
             auth_token=auth_token,
         )
     except (DecodeError, KeyError) as e:
