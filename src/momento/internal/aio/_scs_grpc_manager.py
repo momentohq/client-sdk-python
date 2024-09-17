@@ -8,9 +8,11 @@ import grpc
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_client
 from momento_wire_types import controlclient_pb2_grpc as control_client
+from momento_wire_types import token_pb2_grpc as token_client
 
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
+from momento.config.auth_configuration import AuthConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.exceptions import ConnectionException
 from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType, momento_version
@@ -178,6 +180,30 @@ class _PubsubGrpcStreamManager:
 
     def async_stub(self) -> pubsub_client.PubsubStub:
         return pubsub_client.PubsubStub(self._secure_channel)  # type: ignore[no-untyped-call]
+
+
+class _TokenGrpcManager:
+    """Internal gRPC token manager."""
+
+    version = momento_version
+
+    def __init__(self, configuration: AuthConfiguration, credential_provider: CredentialProvider):
+        self._secure_channel = grpc.aio.secure_channel(
+            target=credential_provider.token_endpoint,
+            credentials=grpc.ssl_channel_credentials(),
+            interceptors=_interceptors(
+                credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()
+            ),
+            options=grpc_control_channel_options_from_grpc_config(
+                grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
+            ),
+        )
+
+    async def close(self) -> None:
+        await self._secure_channel.close()
+
+    def async_stub(self) -> token_client.TokenStub:
+        return token_client.TokenStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 
 def _interceptors(
