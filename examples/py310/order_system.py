@@ -1,6 +1,7 @@
 """
 This program simulates a restaurant order system using asynchronous caching and topic-based notifications.
-This enables smooth communication between the kitchen and the waiter, allowing the waiter to receive real-time updates on order status.
+It includes a custom `CacheWithPublishClientAsync` class that wraps the standard cache client to automatically 
+publish updates to a topic whenever an order status is set.
 
 Actors:
 - Kitchen: The kitchen updates the status of orders (e.g., "Preparing", "Ready to Serve") and stores the current order status in a cache.
@@ -9,20 +10,23 @@ Actors:
     The waiter then processes the update and notifies the customer accordingly.
 
 Flow:
-1. The kitchen updates the order status and stores it in a cache (using the `set` method).
-2. After storing the order status, the kitchen publishes the update to an order topic, which triggers notifications for all subscribers.
+1. The kitchen updates the order status and stores it in the cache using the `set_and_publish` method of `CacheWithPublishClientAsync`.
+2. After storing the order status, `CacheWithPublishClientAsync` automatically publishes the update to a topic, notifying all subscribers.
 3. The waiter subscribes to this topic and listens for updates. When a new status is published, the waiter receives the notification and informs the customer.
 4. The kitchen can update the status multiple times, and the waiter will receive each update in real-time.
 
 Key Components:
+- CacheWithPublishClientAsync: A wrapper around the cache client that automatically publishes to a topic when `set_and_publish` is called.
+- CacheSetAndPublishResponse: A response class with two subtypes (`Success` and `Error`) using Python's `@dataclass` decorator to handle cache set and publish operations.
 - Cache: Stores the latest state of each order (e.g., order number and status) for quick retrieval.
 - Topic: Publishes notifications to inform subscribers about updates to the order's status.
 """
 
-
 import asyncio
 import logging
+from abc import ABC
 from datetime import timedelta
+from typing import Optional
 
 from momento import (
     CacheClientAsync,
@@ -31,7 +35,11 @@ from momento import (
     TopicClientAsync,
     TopicConfigurations,
 )
-from momento.responses import CacheSet, CreateCache, TopicPublish, TopicSubscribe, TopicSubscriptionItem
+from momento.config import Configuration
+from momento.errors import UnknownException
+from momento.internal.services import Service
+from momento.responses import CacheResponse, CacheSet, CreateCache, TopicPublish, TopicSubscribe, TopicSubscriptionItem
+from momento.responses.mixins import ErrorResponseMixin
 
 from example_utils.example_logging import initialize_logging
 
@@ -45,7 +53,77 @@ _CACHE_NAME = "cache"
 _ORDER_TOPIC = "order_updates"
 
 
-async def setup_cache(client: CacheClientAsync, cache_name: str) -> None:
+class CacheSetAndPublishResponse(CacheResponse):
+    """Parent response type for a `set_and_publish` request.
+
+    Its subtypes are:
+    - `CacheSetAndPublish.Success`
+    - `CacheSetAndPublish.Error`
+
+    See `CacheClient` for how to work with responses.
+    """
+
+
+class CacheSetAndPublish(ABC):
+    """Groups all `CacheSetAndPublish` derived types under a common namespace."""
+
+    class Success(CacheSetAndPublishResponse):
+        """Indicates the set succeeded and the publish succeeded."""
+
+    class Error(CacheSetAndPublishResponse, ErrorResponseMixin):
+        """Contains information about an error returned from a request.
+
+        This includes:
+        - `error_code`: `MomentoErrorCode` value for the error.
+        - `messsage`: a detailed error message.
+        """
+
+
+class CacheWithPublishClientAsync(CacheClientAsync):
+    """Wrapper around `CacheClientAsync` that adds a `set_and_publish` method."""
+
+    def __init__(
+        self,
+        configuration: Configuration,
+        credential_provider: CredentialProvider,
+        default_ttl: timedelta,
+        topic_client: TopicClientAsync,
+    ):
+        super().__init__(configuration, credential_provider, default_ttl)
+        self.topic_client = topic_client
+
+    async def set_and_publish(
+        self,
+        cache_name: str,
+        topic_name: str,
+        key: str,
+        value: str,
+        ttl: Optional[timedelta] = None,
+    ) -> CacheSetAndPublishResponse:
+        set_response = await self.set(cache_name, key, value, ttl)
+        match set_response:
+            case CacheSet.Success():
+                pass
+            case CacheSet.Error() as cache_error:
+                return CacheSetAndPublish.Error(cache_error._error)
+            case _:
+                return CacheSetAndPublish.Error(
+                    UnknownException(f"Unknown response type: {set_response}", service=Service.CACHE)
+                )
+
+        publish_response = await self.topic_client.publish(cache_name, topic_name, value)
+        match publish_response:
+            case TopicPublish.Success():
+                return CacheSetAndPublish.Success()
+            case TopicPublish.Error() as topic_error:
+                return CacheSetAndPublish.Error(topic_error._error)
+            case _:
+                return CacheSetAndPublish.Error(
+                    UnknownException(f"Unknown response type: {publish_response}", service=Service.TOPICS)
+                )
+
+
+async def setup_cache(client: CacheWithPublishClientAsync, cache_name: str) -> None:
     """Ensures that the example cache exists.
 
     Args:
@@ -68,36 +146,29 @@ async def setup_cache(client: CacheClientAsync, cache_name: str) -> None:
 class Kitchen:
     """Class for the kitchen to update the order status."""
 
-    def __init__(
-        self, cache_client: CacheClientAsync, topic_client: TopicClientAsync, cache_name: str, order_topic: str
-    ):
-        self.cache_client = cache_client
-        self.topic_client = topic_client
+    def __init__(self, cache_with_publish_client: CacheWithPublishClientAsync, cache_name: str, topic_name: str):
+        self.cache_with_publish_client = cache_with_publish_client
         self.cache_name = cache_name
-        self.order_topic = order_topic
+        self.topic_name = topic_name
 
     async def update_order_status(self, order_number: int, status: str):
         """Method for the kitchen to update the order status."""
         order_message = f"Order {order_number}: {status}"
         _logger.info(f"Kitchen updating order {order_number} with status: {status}")
 
-        set_response = await self.cache_client.set(self.cache_name, f"order_{order_number}", order_message)
-        match set_response:
-            case CacheSet.Success():
-                _logger.info(f"Updated order status: {order_message}")
-            case CacheSet.Error():
-                _logger.error(f"Failed to update order status: {set_response.message}")
+        set_and_publish_response = await self.cache_with_publish_client.set_and_publish(
+            self.cache_name, self.topic_name, f"order_{order_number}", order_message
+        )
+
+        match set_and_publish_response:
+            case CacheSetAndPublish.Success():
+                _logger.info(f"Updated and published order status: {order_message}")
+            case CacheSetAndPublish.Error() as error:
+                _logger.error(f"Failed to update or publish order status: {error.message}")
                 return
             case _:
-                _logger.error(f"Unexpected response: {set_response}")
+                _logger.error(f"Unexpected response: {set_and_publish_response}")
                 return
-
-        publish_response = await self.topic_client.publish(_CACHE_NAME, _ORDER_TOPIC, order_message)
-        match publish_response:
-            case TopicPublish.Success():
-                _logger.info(f"Published order status: {order_message}")
-            case TopicPublish.Error():
-                _logger.error(f"Failed to publish order status: {publish_response.message}")
 
 
 class Waiter:
@@ -138,11 +209,13 @@ class Waiter:
 async def main() -> None:
     initialize_logging()
 
-    async with CacheClientAsync(
-        Configurations.Laptop.latest(), _AUTH_PROVIDER, timedelta(seconds=60)
-    ) as cache_client, TopicClientAsync(TopicConfigurations.Default.latest(), _AUTH_PROVIDER) as topic_client:
-        await setup_cache(cache_client, _CACHE_NAME)
-        kitchen = Kitchen(cache_client, topic_client, _CACHE_NAME, _ORDER_TOPIC)
+    async with TopicClientAsync(
+        TopicConfigurations.Default.latest(), _AUTH_PROVIDER
+    ) as topic_client, CacheWithPublishClientAsync(
+        Configurations.Laptop.latest(), _AUTH_PROVIDER, timedelta(seconds=60), topic_client
+    ) as cache_with_publish_client:
+        await setup_cache(cache_with_publish_client, _CACHE_NAME)
+        kitchen = Kitchen(cache_with_publish_client, _CACHE_NAME, _ORDER_TOPIC)
         waiter = Waiter(topic_client, _CACHE_NAME, _ORDER_TOPIC)
 
         waiter_task = asyncio.create_task(waiter.poll_order_updates())
