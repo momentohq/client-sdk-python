@@ -6,20 +6,25 @@ from typing import List, Union
 class AllCaches:
     pass
 
+
 class AllTopics:
     pass
 
+
 class PredefinedScope:
     pass
+
 
 class CacheRole(Enum):
     READ_WRITE = "read_write"
     READ_ONLY = "read_only"
     WRITE_ONLY = "write_only"
 
+
 @dataclass
 class CacheName:
     name: str
+
 
 @dataclass
 class CacheSelector:
@@ -31,19 +36,23 @@ class CacheSelector:
     def is_all_caches(self) -> bool:
         return isinstance(self.cache, AllCaches)
 
+
 @dataclass
 class CachePermission:
     cache_selector: CacheSelector
     role: CacheRole
+
 
 class TopicRole(Enum):
     PUBLISH_SUBSCRIBE = "publish_subscribe"
     SUBSCRIBE_ONLY = "subscribe_only"
     PUBLISH_ONLY = "publish_only"
 
+
 @dataclass
 class TopicName:
     name: str
+
 
 @dataclass
 class TopicSelector:
@@ -55,31 +64,33 @@ class TopicSelector:
     def is_all_topics(self) -> bool:
         return isinstance(self.topic_selector, AllTopics)
 
+
 @dataclass
 class TopicPermission:
     role: TopicRole
     cache_selector: CacheSelector
     topic_selector: TopicSelector
 
+
 Permission = Union[CachePermission, TopicPermission]
+
 
 @dataclass
 class Permissions:
     permissions: List[Permission]
 
+
 ALL_DATA_READ_WRITE = Permissions(
     permissions=[
-        CachePermission(
-            role=CacheRole.READ_WRITE,
-            cache_selector=CacheSelector(cache=AllCaches())
-        ),
+        CachePermission(role=CacheRole.READ_WRITE, cache_selector=CacheSelector(cache=AllCaches())),
         TopicPermission(
             role=TopicRole.PUBLISH_SUBSCRIBE,
             cache_selector=CacheSelector(cache=AllCaches()),
-            topic_selector=TopicSelector(topic=AllTopics())
+            topic_selector=TopicSelector(topic=AllTopics()),
         ),
     ]
 )
+
 
 @dataclass
 class PermissionScope:

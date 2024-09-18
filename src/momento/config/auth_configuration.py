@@ -91,4 +91,3 @@ class AuthConfiguration(AuthConfigurationBase):
             AuthConfiguration: the new AuthConfiguration.
         """
         return AuthConfiguration(self._transport_strategy.with_client_timeout(client_timeout), self._retry_strategy)
-

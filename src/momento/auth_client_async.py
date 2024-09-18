@@ -70,10 +70,7 @@ class AuthClientAsync:
         await self._token_client.close()
 
     async def generate_disposable_token(
-            self,
-            scope: DisposableTokenScope,
-            expiresIn: ExpiresIn,
-            disposable_token_props: Optional[DisposableTokenProps]
+        self, scope: DisposableTokenScope, expiresIn: ExpiresIn, disposable_token_props: Optional[DisposableTokenProps]
     ) -> GenerateDisposableTokenResponse:
         """Generate a disposable auth token.
 

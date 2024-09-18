@@ -30,7 +30,12 @@ class _ScsTokenClient:
     def endpoint(self) -> str:
         return self._endpoint
 
-    async def generate_disposable_token(self, permission_scope: DisposableTokenScope, expiresIn: ExpiresIn, disposable_token_props: Optional[DisposableTokenProps]) -> GenerateDisposableTokenResponse:
+    async def generate_disposable_token(
+        self,
+        permission_scope: DisposableTokenScope,
+        expiresIn: ExpiresIn,
+        disposable_token_props: Optional[DisposableTokenProps],
+    ) -> GenerateDisposableTokenResponse:
         try:
             validate_disposable_token_expiry(expiresIn)
             self._logger.info("Creating disposable token")
@@ -44,8 +49,8 @@ class _ScsTokenClient:
                 permissions=permissions,
                 token_id=token_id,
             )
-            response = await self._build_stub().GenerateDisposableToken(request) # type: ignore[misc]
-            return GenerateDisposableToken.Success.from_grpc_response(response) # type: ignore[misc]
+            response = await self._build_stub().GenerateDisposableToken(request)  # type: ignore[misc]
+            return GenerateDisposableToken.Success.from_grpc_response(response)  # type: ignore[misc]
         except Exception as e:
             self._logger.debug("Failed to generate disposable token with exception: %s", e)
             return GenerateDisposableToken.Error(convert_error(e, Service.AUTH))

@@ -61,7 +61,9 @@ class GenerateDisposableToken(ABC):
             self.expiresAt = expiresAt
 
         @staticmethod
-        def from_grpc_response(grpc_response: token_pb._GenerateDisposableTokenResponse) -> GenerateDisposableToken.Success:
+        def from_grpc_response(
+            grpc_response: token_pb._GenerateDisposableTokenResponse,
+        ) -> GenerateDisposableToken.Success:
             """Initializes GenerateDisposableTokenResponse to handle generate disposable token response.
 
             Args:

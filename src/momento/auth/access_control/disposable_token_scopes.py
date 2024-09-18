@@ -17,6 +17,7 @@ def cache_key_read_write(cache_selector: CacheSelector, key: CacheItemKey) -> Di
     )
     return DisposableTokenScope(permission_scope=DisposableTokenCachePermissions([permissions]))
 
+
 def cache_key_prefix_read_write(cache_selector: CacheSelector, key_prefix: CacheItemKeyPrefix) -> DisposableTokenScope:
     permissions = DisposableTokenCachePermission(
         item=CacheItemSelector(key_prefix),
@@ -24,6 +25,7 @@ def cache_key_prefix_read_write(cache_selector: CacheSelector, key_prefix: Cache
         role=CacheRole.READ_WRITE,
     )
     return DisposableTokenScope(permission_scope=DisposableTokenCachePermissions([permissions]))
+
 
 def cache_key_read_only(cache_selector: CacheSelector, key: str) -> DisposableTokenScope:
     permissions = DisposableTokenCachePermission(
@@ -33,6 +35,7 @@ def cache_key_read_only(cache_selector: CacheSelector, key: str) -> DisposableTo
     )
     return DisposableTokenScope(permission_scope=DisposableTokenCachePermissions([permissions]))
 
+
 def cache_key_prefix_read_only(cache_selector: CacheSelector, key_prefix: str) -> DisposableTokenScope:
     permissions = DisposableTokenCachePermission(
         item=CacheItemSelector(key_prefix),
@@ -41,6 +44,7 @@ def cache_key_prefix_read_only(cache_selector: CacheSelector, key_prefix: str) -
     )
     return DisposableTokenScope(permission_scope=DisposableTokenCachePermissions([permissions]))
 
+
 def cache_key_write_only(cache_selector: CacheSelector, key: str) -> DisposableTokenScope:
     permissions = DisposableTokenCachePermission(
         item=CacheItemSelector(key),
@@ -48,6 +52,7 @@ def cache_key_write_only(cache_selector: CacheSelector, key: str) -> DisposableT
         role=CacheRole.WRITE_ONLY,
     )
     return DisposableTokenScope(permission_scope=DisposableTokenCachePermissions([permissions]))
+
 
 def cache_key_prefix_write_only(cache_selector: CacheSelector, key_prefix: str) -> DisposableTokenScope:
     permissions = DisposableTokenCachePermission(

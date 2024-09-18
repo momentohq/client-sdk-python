@@ -17,6 +17,7 @@ def cache_read_write(cache_selector: CacheSelector) -> PermissionScope:
     )
     return PermissionScope(permission_scope=Permissions([permissions]))
 
+
 def cache_read_only(cache_selector: CacheSelector) -> PermissionScope:
     permissions = CachePermission(
         cache_selector=cache_selector,
@@ -24,12 +25,14 @@ def cache_read_only(cache_selector: CacheSelector) -> PermissionScope:
     )
     return PermissionScope(permission_scope=Permissions([permissions]))
 
+
 def cache_write_only(cache_selector: CacheSelector) -> PermissionScope:
     permissions = CachePermission(
         cache_selector=cache_selector,
         role=CacheRole.WRITE_ONLY,
     )
     return PermissionScope(permission_scope=Permissions([permissions]))
+
 
 def topic_publish_subscribe(cache_selector: CacheSelector, topic_selector: TopicSelector) -> PermissionScope:
     permissions = TopicPermission(
@@ -39,6 +42,7 @@ def topic_publish_subscribe(cache_selector: CacheSelector, topic_selector: Topic
     )
     return PermissionScope(permission_scope=Permissions([permissions]))
 
+
 def topic_subscribe_only(cache_selector: CacheSelector, topic_selector: TopicSelector) -> PermissionScope:
     permissions = TopicPermission(
         cache_selector=cache_selector,
@@ -46,6 +50,7 @@ def topic_subscribe_only(cache_selector: CacheSelector, topic_selector: TopicSel
         topic_selector=topic_selector,
     )
     return PermissionScope(permission_scope=Permissions([permissions]))
+
 
 def topic_publish_only(cache_selector: CacheSelector, topic_selector: TopicSelector) -> PermissionScope:
     permissions = TopicPermission(

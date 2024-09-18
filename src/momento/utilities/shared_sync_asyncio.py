@@ -11,10 +11,11 @@ def validate_eager_connection_timeout(timeout: timedelta) -> None:
     if timeout.total_seconds() < 0:
         raise ValueError("The eager connection timeout must be greater than or equal to 0 seconds.")
 
+
 def validate_disposable_token_expiry(expiresIn: ExpiresIn) -> None:
     if not expiresIn.does_expire():
         raise ValueError("Disposable tokens must have an expiry")
     if expiresIn.valid_for_seconds() < 0:
         raise ValueError("Disposable token expiry must be positive")
-    if expiresIn.valid_for_seconds() > 60*60:
+    if expiresIn.valid_for_seconds() > 60 * 60:
         raise ValueError("Disposable tokens must expire within 1 hour")
