@@ -222,10 +222,10 @@ class _TokenGrpcManager:
             ),
         )
 
-    async def close(self) -> None:
-        await self._secure_channel.close()
+    def close(self) -> None:
+        self._secure_channel.close()
 
-    def async_stub(self) -> token_client.TokenStub:
+    def stub(self) -> token_client.TokenStub:
         return token_client.TokenStub(self._secure_channel)  # type: ignore[no-untyped-call]
 
 

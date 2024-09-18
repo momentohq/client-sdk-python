@@ -10,6 +10,8 @@ import logging
 from momento import logs
 
 from .auth import CredentialProvider
+from .auth_client import AuthClient
+from .auth_client_async import AuthClientAsync
 from .cache_client import CacheClient
 from .cache_client_async import CacheClientAsync
 from .config import Configurations, TopicConfigurations
@@ -27,4 +29,6 @@ __all__ = [
     "CacheClientAsync",
     "TopicClient",
     "TopicClientAsync",
+    "AuthClient",
+    "AuthClientAsync",
 ]

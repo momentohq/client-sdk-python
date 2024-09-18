@@ -5,7 +5,7 @@ from abc import ABC
 from momento_wire_types import token_pb2 as token_pb
 
 from momento.responses.response import AuthResponse
-from momento.utilities.shared_sync_asyncio import ExpiresAt
+from momento.utilities.expiration import ExpiresAt
 
 from ..mixins import ErrorResponseMixin
 
@@ -43,17 +43,22 @@ class GenerateDisposableTokenResponse(AuthResponse):
 class GenerateDisposableToken(ABC):
     """Groups all `GenerateDisposableTokenResponse` derived types under a common namespace."""
 
-    authToken: str
-    """The generated disposable token."""
-
-    endpoint: str
-    """The endpoint the Momento client should use when making requests."""
-
-    expiresAt: ExpiresAt
-    """The time at which the disposable token will expire."""
-
     class Success(GenerateDisposableTokenResponse):
         """Indicates the request was successful."""
+
+        authToken: str
+        """The generated disposable token."""
+
+        endpoint: str
+        """The endpoint the Momento client should use when making requests."""
+
+        expiresAt: ExpiresAt
+        """The time at which the disposable token will expire."""
+
+        def __init__(self, authToken: str, endpoint: str, expiresAt: ExpiresAt):
+            self.authToken = authToken
+            self.endpoint = endpoint
+            self.expiresAt = expiresAt
 
         @staticmethod
         def from_grpc_response(grpc_response: token_pb._GenerateDisposableTokenResponse) -> GenerateDisposableToken.Success:
@@ -62,7 +67,9 @@ class GenerateDisposableToken(ABC):
             Args:
                 grpc_response: Protobuf based response returned by token service.
             """
-            return GenerateDisposableToken.Success(authToken=grpc_response.authToken, endpoint=grpc_response.endpoint, expiresAt=ExpiresAt(grpc_response.valid_until))
+            return GenerateDisposableToken.Success(
+                grpc_response.authToken, grpc_response.endpoint, ExpiresAt(grpc_response.valid_until)
+            )
 
     class Error(GenerateDisposableTokenResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
