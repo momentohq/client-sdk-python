@@ -9,7 +9,9 @@ from momento.auth.access_control.disposable_token_scope import (
 from momento.auth.access_control.permission_scope import AllCaches, CacheName, CacheRole, CacheSelector
 
 
-def cache_key_read_write(cache: Union[AllCaches, CacheName, str], key: Union[CacheItemKey, str]) -> DisposableTokenCachePermission:
+def cache_key_read_write(
+    cache: Union[AllCaches, CacheName, str], key: Union[CacheItemKey, str]
+) -> DisposableTokenCachePermission:
     _key = key if isinstance(key, CacheItemKey) else CacheItemKey(key)
     return DisposableTokenCachePermission(
         item=CacheItemSelector(cache_item=_key),
@@ -18,7 +20,9 @@ def cache_key_read_write(cache: Union[AllCaches, CacheName, str], key: Union[Cac
     )
 
 
-def cache_key_prefix_read_write(cache: Union[AllCaches, CacheName, str], key_prefix: Union[CacheItemKeyPrefix, str]) -> DisposableTokenCachePermission:
+def cache_key_prefix_read_write(
+    cache: Union[AllCaches, CacheName, str], key_prefix: Union[CacheItemKeyPrefix, str]
+) -> DisposableTokenCachePermission:
     _prefix = key_prefix if isinstance(key_prefix, CacheItemKeyPrefix) else CacheItemKeyPrefix(key_prefix)
     return DisposableTokenCachePermission(
         item=CacheItemSelector(cache_item=_prefix),
@@ -27,7 +31,9 @@ def cache_key_prefix_read_write(cache: Union[AllCaches, CacheName, str], key_pre
     )
 
 
-def cache_key_read_only(cache: Union[AllCaches, CacheName, str], key: Union[CacheItemKey, str]) -> DisposableTokenCachePermission:
+def cache_key_read_only(
+    cache: Union[AllCaches, CacheName, str], key: Union[CacheItemKey, str]
+) -> DisposableTokenCachePermission:
     _key = key if isinstance(key, CacheItemKey) else CacheItemKey(key)
     return DisposableTokenCachePermission(
         item=CacheItemSelector(cache_item=_key),
@@ -36,7 +42,9 @@ def cache_key_read_only(cache: Union[AllCaches, CacheName, str], key: Union[Cach
     )
 
 
-def cache_key_prefix_read_only(cache: Union[AllCaches, CacheName, str], key_prefix: Union[CacheItemKeyPrefix, str]) -> DisposableTokenCachePermission:
+def cache_key_prefix_read_only(
+    cache: Union[AllCaches, CacheName, str], key_prefix: Union[CacheItemKeyPrefix, str]
+) -> DisposableTokenCachePermission:
     _prefix = key_prefix if isinstance(key_prefix, CacheItemKeyPrefix) else CacheItemKeyPrefix(key_prefix)
     return DisposableTokenCachePermission(
         item=CacheItemSelector(cache_item=_prefix),
@@ -45,7 +53,9 @@ def cache_key_prefix_read_only(cache: Union[AllCaches, CacheName, str], key_pref
     )
 
 
-def cache_key_write_only(cache: Union[AllCaches, CacheName, str], key: Union[CacheItemKey, str]) -> DisposableTokenCachePermission:
+def cache_key_write_only(
+    cache: Union[AllCaches, CacheName, str], key: Union[CacheItemKey, str]
+) -> DisposableTokenCachePermission:
     _key = key if isinstance(key, CacheItemKey) else CacheItemKey(key)
     return DisposableTokenCachePermission(
         item=CacheItemSelector(cache_item=_key),
@@ -54,7 +64,9 @@ def cache_key_write_only(cache: Union[AllCaches, CacheName, str], key: Union[Cac
     )
 
 
-def cache_key_prefix_write_only(cache: Union[AllCaches, CacheName, str], key_prefix: Union[CacheItemKeyPrefix, str]) -> DisposableTokenCachePermission:
+def cache_key_prefix_write_only(
+    cache: Union[AllCaches, CacheName, str], key_prefix: Union[CacheItemKeyPrefix, str]
+) -> DisposableTokenCachePermission:
     _prefix = key_prefix if isinstance(key_prefix, CacheItemKeyPrefix) else CacheItemKeyPrefix(key_prefix)
     return DisposableTokenCachePermission(
         item=CacheItemSelector(cache_item=_prefix),

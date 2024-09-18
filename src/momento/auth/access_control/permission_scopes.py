@@ -37,8 +37,7 @@ def cache_write_only(cache: Union[AllCaches, CacheName, str]) -> Permission:
 
 
 def topic_publish_subscribe(
-    cache: Union[AllCaches, CacheName, str],
-    topic: Union[TopicName, AllTopics, str]
+    cache: Union[AllCaches, CacheName, str], topic: Union[TopicName, AllTopics, str]
 ) -> Permission:
     return TopicPermission(
         cache_selector=CacheSelector(cache=cache),
@@ -48,8 +47,7 @@ def topic_publish_subscribe(
 
 
 def topic_subscribe_only(
-    cache: Union[AllCaches, CacheName, str],
-    topic: Union[TopicName, AllTopics, str]
+    cache: Union[AllCaches, CacheName, str], topic: Union[TopicName, AllTopics, str]
 ) -> Permission:
     return TopicPermission(
         cache_selector=CacheSelector(cache=cache),
@@ -58,10 +56,7 @@ def topic_subscribe_only(
     )
 
 
-def topic_publish_only(
-    cache: Union[AllCaches, CacheName, str],
-    topic: Union[TopicName, AllTopics, str]
-) -> Permission:
+def topic_publish_only(cache: Union[AllCaches, CacheName, str], topic: Union[TopicName, AllTopics, str]) -> Permission:
     return TopicPermission(
         cache_selector=CacheSelector(cache=cache),
         role=TopicRole.PUBLISH_ONLY,
