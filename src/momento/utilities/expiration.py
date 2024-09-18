@@ -22,12 +22,13 @@ class Expiration(ABC):
 class ExpiresIn(Expiration):
     """Represents an expiration time for a token that expires in a certain amount of time."""
 
-    validFor: int
+    # Must be a float in order to use math.inf to indicate non-expiration
+    validFor: float
 
-    def __init__(self, validFor: Optional[int] = int(math.inf)) -> None:
-        super().__init__(validFor != int(math.inf))
+    def __init__(self, validFor: Optional[float] = math.inf) -> None:
+        super().__init__(validFor != math.inf)
         if validFor is None:
-            self.validFor = int(math.inf)
+            self.validFor = math.inf
         else:
             self.validFor = validFor
 
@@ -35,11 +36,11 @@ class ExpiresIn(Expiration):
         return self._does_expire
 
     def valid_for_seconds(self) -> int:
-        return self.validFor
+        return int(self.validFor)
 
     @staticmethod
     def never() -> ExpiresIn:
-        return ExpiresIn(int(math.inf))
+        return ExpiresIn(math.inf)
 
     @staticmethod
     def seconds(validForSeconds: int) -> ExpiresIn:
@@ -72,21 +73,22 @@ class ExpiresIn(Expiration):
 class ExpiresAt(Expiration):
     """Represents an expiration time for a token that expires at a certain UNIX epoch timestamp."""
 
-    expiresAt: int
+    # Must be a float in order to use math.inf to indicate non-expiration
+    expiresAt: float
 
     def does_expire(self) -> bool:
         return self._does_expire
 
-    def __init__(self, epochTimestamp: Optional[int] = None) -> None:
+    def __init__(self, epochTimestamp: Optional[float] = None) -> None:
         super().__init__(epochTimestamp is not None and epochTimestamp != 0)
         if self._does_expire and epochTimestamp is not None:
             self.expiresAt = epochTimestamp
         else:
-            self.expiresAt = int(math.inf)
+            self.expiresAt = math.inf
 
     def epoch(self) -> int:
         """Returns epoch timestamp of when api token expires."""
-        return self.expiresAt
+        return int(self.expiresAt)
 
     @staticmethod
     def from_epoch(epoch: Optional[int] = None) -> ExpiresAt:

@@ -39,7 +39,7 @@ class DisposableTokenCachePermission(CachePermission):
 
     def __init__(self, item: CacheItemSelector, cache: CacheSelector, role: CacheRole):
         super().__init__(cache, role)
-        self.item = item
+        self.cache_item_selector = item
 
 
 @dataclass

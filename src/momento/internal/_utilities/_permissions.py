@@ -29,18 +29,17 @@ class SuperuserPermissions(PredefinedScope):
 
 
 def permissions_from_permission_scope(scope: PermissionScope) -> permissions_pb.Permissions:
-    result = permissions_pb.Permissions()
     if isinstance(scope.permission_scope, SuperuserPermissions):
-        result.super_user = permissions_pb.SuperUserPermissions()
-        return result
+        return permissions_pb.Permissions(super_user=permissions_pb.SuperUserPermissions.SuperUser)
     elif isinstance(scope.permission_scope, Permissions) and not isinstance(scope.permission_scope, PredefinedScope):
         converted_perms = [
             token_permission_to_grpc_permission(permission) for permission in scope.permission_scope.permissions
         ]
-        result.explicit = permissions_pb.ExplicitPermissions(permissions=converted_perms)
-        return result
+        if len(converted_perms) == 0:
+            raise ValueError("Permissions must have at least one permission")
+        return permissions_pb.Permissions(explicit=permissions_pb.ExplicitPermissions(permissions=converted_perms))
     else:
-        raise ValueError("Unrecognized permission scope")
+        raise ValueError("Unrecognized permission scope:", scope)
 
 
 def token_permission_to_grpc_permission(permission: Permission) -> permissions_pb.PermissionsType:
@@ -53,149 +52,188 @@ def token_permission_to_grpc_permission(permission: Permission) -> permissions_p
 
 
 def cache_permission_to_grpc_permission(permission: CachePermission) -> permissions_pb.PermissionsType.CachePermissions:
-    grpc_permission = permissions_pb.PermissionsType.CachePermissions()
-    grpc_permission = assign_cache_role(permission, grpc_permission)
-    grpc_permission = assign_cache_selector_for_cache_permission(permission, grpc_permission)
-    return grpc_permission
-
-
-def assign_cache_role(
-    permission: CachePermission, grpc_permission: permissions_pb.PermissionsType.CachePermissions
-) -> permissions_pb.PermissionsType.CachePermissions:
-    if permission.role == CacheRole.READ_WRITE:
-        grpc_permission.role = permissions_pb.CacheReadWrite
-    elif permission.role == CacheRole.READ_ONLY:
-        grpc_permission.role = permissions_pb.CacheReadOnly
-    elif permission.role == CacheRole.WRITE_ONLY:
-        grpc_permission.role = permissions_pb.CacheWriteOnly
-    else:
-        raise ValueError("Unrecognized cache role")
-    return grpc_permission
-
-
-def assign_cache_selector_for_cache_permission(
-    permission: Union[DisposableTokenCachePermission, CachePermission],
-    grpc_permission: permissions_pb.PermissionsType.CachePermissions,
-) -> permissions_pb.PermissionsType.CachePermissions:
+    role = assign_cache_role(permission)
     if permission.cache_selector.is_all_caches():
-        grpc_permission.all_caches = permissions_pb.PermissionsType.All()
+        return permissions_pb.PermissionsType.CachePermissions(
+            all_caches=permissions_pb.PermissionsType.All(),
+            role=role,
+        )
     elif isinstance(permission.cache_selector.cache, str):
-        grpc_permission.cache_selector = permissions_pb.PermissionsType.CacheSelector(
-            cache_name=permission.cache_selector.cache
+        return permissions_pb.PermissionsType.CachePermissions(
+            cache_selector=assign_cache_selector(permission),
+            role=role,
         )
     elif isinstance(permission.cache_selector.cache, CacheName):
-        grpc_permission.cache_selector = permissions_pb.PermissionsType.CacheSelector(
-            cache_name=permission.cache_selector.cache.name
+        return permissions_pb.PermissionsType.CachePermissions(
+            cache_selector=assign_cache_selector(permission),
+            role=role,
         )
     else:
-        raise ValueError("Unrecognized cache selector")
-    return grpc_permission
+        raise ValueError("Unrecognized cache permission:", permission)
+
+
+def assign_cache_role(permission: CachePermission) -> permissions_pb.CacheRole:
+    if permission.role == CacheRole.READ_WRITE:
+        return permissions_pb.CacheReadWrite
+    elif permission.role == CacheRole.READ_ONLY:
+        return permissions_pb.CacheReadOnly
+    elif permission.role == CacheRole.WRITE_ONLY:
+        return permissions_pb.CacheWriteOnly
+    else:
+        raise ValueError("Unrecognized cache role:", permission.role)
 
 
 def topic_permission_to_grpc_permission(permission: TopicPermission) -> permissions_pb.PermissionsType.TopicPermissions:
-    result = permissions_pb.PermissionsType.TopicPermissions()
-    result = assign_topic_role(permission, result)
-    result = assign_topic_selector(permission, result)
-    result = assign_cache_selector_for_topic_permission(permission, result)
-    return result
+    role = assign_topic_role(permission)
 
-
-def assign_topic_role(
-    permission: TopicPermission, grpc_permission: permissions_pb.PermissionsType.TopicPermissions
-) -> permissions_pb.PermissionsType.TopicPermissions:
-    if permission.role == TopicRole.PUBLISH_SUBSCRIBE:
-        grpc_permission.role = permissions_pb.TopicReadWrite
-    elif permission.role == TopicRole.SUBSCRIBE_ONLY:
-        grpc_permission.role = permissions_pb.TopicReadOnly
-    elif permission.role == TopicRole.PUBLISH_ONLY:
-        grpc_permission.role = permissions_pb.TopicWriteOnly
+    # Cannot assign to all_topics or all_caches after creating TopicPermissions,
+    # so we need to assign it at creation instead.
+    if permission.topic_selector.is_all_topics() and permission.cache_selector.is_all_caches():
+        return permissions_pb.PermissionsType.TopicPermissions(
+            all_topics=permissions_pb.PermissionsType.All(),
+            all_caches=permissions_pb.PermissionsType.All(),
+            role=role,
+        )
+    elif permission.topic_selector.is_all_topics():
+        return permissions_pb.PermissionsType.TopicPermissions(
+            all_topics=permissions_pb.PermissionsType.All(),
+            cache_selector=assign_cache_selector(permission),
+            role=role,
+        )
+    elif permission.cache_selector.is_all_caches():
+        return permissions_pb.PermissionsType.TopicPermissions(
+            topic_selector=assign_topic_selector(permission),
+            all_caches=permissions_pb.PermissionsType.All(),
+            role=role,
+        )
     else:
-        raise ValueError("Unrecognized topic role")
-    return grpc_permission
+        return permissions_pb.PermissionsType.TopicPermissions(
+            topic_selector=assign_topic_selector(permission),
+            cache_selector=assign_cache_selector(permission),
+            role=role,
+        )
+
+
+def assign_topic_role(permission: TopicPermission) -> permissions_pb.TopicRole:
+    if permission.role == TopicRole.PUBLISH_SUBSCRIBE:
+        return permissions_pb.TopicReadWrite
+    elif permission.role == TopicRole.SUBSCRIBE_ONLY:
+        return permissions_pb.TopicReadOnly
+    elif permission.role == TopicRole.PUBLISH_ONLY:
+        return permissions_pb.TopicWriteOnly
+    else:
+        raise ValueError("Unrecognized topic role:", permission.role)
 
 
 def assign_topic_selector(
-    permission: TopicPermission, grpc_permission: permissions_pb.PermissionsType.TopicPermissions
-) -> permissions_pb.PermissionsType.TopicPermissions:
-    if permission.topic_selector.is_all_topics():
-        grpc_permission.all_topics = permissions_pb.PermissionsType.All()
-    elif isinstance(permission.topic_selector.topic, str):
-        grpc_permission.topic_selector = permissions_pb.PermissionsType.TopicSelector(
+    permission: TopicPermission
+) -> permissions_pb.PermissionsType.TopicSelector:
+    if isinstance(permission.topic_selector.topic, str):
+        return permissions_pb.PermissionsType.TopicSelector(
             topic_name=permission.topic_selector.topic
         )
     elif isinstance(permission.topic_selector.topic, TopicName):
-        grpc_permission.topic_selector = permissions_pb.PermissionsType.TopicSelector(
+        return permissions_pb.PermissionsType.TopicSelector(
             topic_name=permission.topic_selector.topic.name
         )
     else:
-        raise ValueError("Unrecognized topic selector")
-    return grpc_permission
+        raise ValueError("Unrecognized topic selector:", permission.topic_selector)
 
 
-def assign_cache_selector_for_topic_permission(
-    permission: TopicPermission, grpc_permission: permissions_pb.PermissionsType.TopicPermissions
-) -> permissions_pb.PermissionsType.TopicPermissions:
-    if permission.cache_selector.is_all_caches():
-        grpc_permission.all_caches = permissions_pb.PermissionsType.All()
-    elif isinstance(permission.cache_selector.cache, str):
-        grpc_permission.cache_selector = permissions_pb.PermissionsType.CacheSelector(
-            cache_name=permission.cache_selector.cache
-        )
+def assign_cache_selector(
+    permission: Union[CachePermission, TopicPermission, DisposableTokenCachePermission]
+) -> permissions_pb.PermissionsType.CacheSelector:
+    if isinstance(permission.cache_selector.cache, str):
+        return permissions_pb.PermissionsType.CacheSelector(
+                cache_name=permission.cache_selector.cache
+            )
     elif isinstance(permission.cache_selector.cache, CacheName):
-        grpc_permission.cache_selector = permissions_pb.PermissionsType.CacheSelector(
-            cache_name=permission.cache_selector.cache.name
-        )
+        return permissions_pb.PermissionsType.CacheSelector(
+                cache_name=permission.cache_selector.cache.name
+            )
     else:
-        raise ValueError("Unrecognized cache selector")
-    return grpc_permission
+        raise ValueError("Unrecognized cache selector:", permission.cache_selector)
 
 
 def permissions_from_disposable_token_scope(scope: DisposableTokenScope) -> permissions_pb.Permissions:
-    result = permissions_pb.Permissions()
     if isinstance(scope.disposable_token_scope, DisposableTokenCachePermissions):
         converted_perms = [
             disposable_token_permission_to_grpc_permission(permission)
             for permission in scope.disposable_token_scope.disposable_token_permissions
         ]
-        result.explicit = permissions_pb.ExplicitPermissions(permissions=converted_perms)
-        return result
+        if len(converted_perms) == 0:
+            raise ValueError("Permissions must have at least one permission")
+        return permissions_pb.Permissions(
+            explicit=permissions_pb.ExplicitPermissions(permissions=converted_perms)
+        )
     elif isinstance(scope.disposable_token_scope, Permissions):
         converted_perms = [
             token_permission_to_grpc_permission(permission) for permission in scope.disposable_token_scope.permissions
         ]
-        result.explicit = permissions_pb.ExplicitPermissions(permissions=converted_perms)
-        return result
+        if len(converted_perms) == 0:
+            raise ValueError("Permissions must have at least one permission")
+        return permissions_pb.Permissions(
+            explicit=permissions_pb.ExplicitPermissions(permissions=converted_perms)
+        )
     else:
-        raise ValueError("Unrecognized disposable token permission scope")
+        raise ValueError("Unrecognized disposable token permission scope:", scope)
 
 
 def disposable_token_permission_to_grpc_permission(
     permission: DisposableTokenCachePermission,
-) -> permissions_pb.PermissionsType.CachePermissions:
-    grpc_permission = permissions_pb.PermissionsType.CachePermissions()
-    grpc_permission = assign_cache_role(permission, grpc_permission)
-    grpc_permission = assign_cache_selector_for_cache_permission(permission, grpc_permission)
-    grpc_permission = assign_cache_item_selector(permission, grpc_permission)
-    return grpc_permission
+) -> permissions_pb.PermissionsType:
+    role = assign_cache_role(permission)
+
+    # Cannot assign to all_items or all_caches after creating CachePermissions,
+    # so we need to assign it at creation instead.
+    if permission.cache_item_selector.is_all_cache_items() and permission.cache_selector.is_all_caches():
+        return permissions_pb.PermissionsType(
+            cache_permissions=permissions_pb.PermissionsType.CachePermissions(
+                all_items=permissions_pb.PermissionsType.All(),
+                all_caches=permissions_pb.PermissionsType.All(),
+                role=role,
+            )
+        )
+    elif permission.cache_item_selector.is_all_cache_items():
+        return permissions_pb.PermissionsType(
+            cache_permissions=permissions_pb.PermissionsType.CachePermissions(
+                all_items=permissions_pb.PermissionsType.All(),
+                cache_selector=assign_cache_selector(permission),
+                role=role,
+            )
+        )
+    elif permission.cache_selector.is_all_caches():
+        return permissions_pb.PermissionsType(
+            cache_permissions=permissions_pb.PermissionsType.CachePermissions(
+                item_selector=assign_cache_item_selector(permission),
+                all_caches=permissions_pb.PermissionsType.All(),
+                role=role,
+            )
+        )
+    else:
+        return permissions_pb.PermissionsType(
+            cache_permissions=permissions_pb.PermissionsType.CachePermissions(
+                item_selector=assign_cache_item_selector(permission),
+                cache_selector=assign_cache_selector(permission),
+                role=role,
+            )
+        )
 
 
 def assign_cache_item_selector(
-    permission: DisposableTokenCachePermission, grpc_permission: permissions_pb.PermissionsType.CachePermissions
-) -> permissions_pb.PermissionsType.CachePermissions:
-    if permission.cache_item_selector.is_all_cache_items():
-        grpc_permission.all_items = permissions_pb.PermissionsType.All()
-    elif isinstance(permission.cache_item_selector.cache_item, str):
-        grpc_permission.item_selector = permissions_pb.PermissionsType.CacheItemSelector(
-            key=str_to_bytes(permission.cache_item_selector.cache_item)
-        )
-    elif isinstance(permission.cache_item_selector.cache_item, CacheItemKey):
-        grpc_permission.item_selector = permissions_pb.PermissionsType.CacheItemSelector(
+    permission: DisposableTokenCachePermission
+) -> permissions_pb.PermissionsType.CacheItemSelector:
+    if isinstance(permission.cache_item_selector.cache_item, CacheItemKey):
+        return permissions_pb.PermissionsType.CacheItemSelector(
             key=str_to_bytes(permission.cache_item_selector.cache_item.key)
         )
     elif isinstance(permission.cache_item_selector.cache_item, CacheItemKeyPrefix):
-        grpc_permission.item_selector = permissions_pb.PermissionsType.CacheItemSelector(
+        return permissions_pb.PermissionsType.CacheItemSelector(
             key_prefix=str_to_bytes(permission.cache_item_selector.cache_item.key_prefix)
         )
+    elif isinstance(permission.cache_item_selector.cache_item, str):
+        return permissions_pb.PermissionsType.CacheItemSelector(
+            key=str_to_bytes(permission.cache_item_selector.cache_item)
+        )
     else:
-        raise ValueError("Unrecognized cache item selector")
-    return grpc_permission
+        raise ValueError("Unrecognized cache item selector:", permission.cache_item_selector)

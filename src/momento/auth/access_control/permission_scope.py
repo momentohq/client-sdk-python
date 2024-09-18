@@ -59,10 +59,10 @@ class TopicSelector:
     topic: Union[TopicName, AllTopics, str]
 
     def __init__(self, topic: Union[TopicName, AllTopics, str]):
-        self.topic_selector = topic
+        self.topic = topic
 
     def is_all_topics(self) -> bool:
-        return isinstance(self.topic_selector, AllTopics)
+        return isinstance(self.topic, AllTopics)
 
 
 @dataclass
@@ -98,3 +98,12 @@ class PermissionScope:
 
     def is_all_data_read_write(self) -> bool:
         return self.permission_scope == ALL_DATA_READ_WRITE
+
+    def __init__(self, permission_scope: Union[Permissions, PredefinedScope]):
+        self.permission_scope = permission_scope
+
+    def get_list_of_permissions(self) -> List[Permission]:
+        if isinstance(self.permission_scope, Permissions):
+            return self.permission_scope.permissions
+        else:
+            raise ValueError("PermissionScope does not contain list of Permission objects")
