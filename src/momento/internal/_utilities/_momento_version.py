@@ -11,7 +11,7 @@ try:
     import importlib_metadata
 
     momento_version = importlib_metadata.Distribution.from_name("momento").version  # type: ignore[no-untyped-call,misc]
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     # For python >= 3.8
     from importlib.metadata import version  # type: ignore[import]
 
