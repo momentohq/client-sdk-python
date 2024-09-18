@@ -13,12 +13,16 @@ from momento.responses import (
 
 database: dict[str, str] = {}
 database["test-key"] = "test-value"
+
+
 async def example_patterns_WriteThroughCaching(cache_client: CacheClientAsync):
     database.set("test-key", "test-value")
     set_response = await cache_client.set("test-cache", "test-key", "test-value")
     return
 
+
 # end example
+
 
 async def example_patterns_ReadAsideCaching(cache_client: CacheClientAsync):
     get_response = await cache_client.get("test-cache", "test-key")
@@ -31,7 +35,9 @@ async def example_patterns_ReadAsideCaching(cache_client: CacheClientAsync):
     await cache_client.set("test-cache", "test-key", actual_value)
     return
 
+
 # end example
+
 
 async def main():
     example_API_CredentialProviderFromEnvVar()
