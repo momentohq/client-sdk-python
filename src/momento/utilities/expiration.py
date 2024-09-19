@@ -9,8 +9,6 @@ from typing import Optional
 class Expiration(ABC):
     """Represents an expiration time for a token."""
 
-    _does_expire: bool
-
     def __init__(self, does_expire: bool) -> None:
         self._does_expire = does_expire
 
