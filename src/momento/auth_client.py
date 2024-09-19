@@ -13,7 +13,7 @@ from momento.utilities.expiration import ExpiresIn
 
 
 class AuthClient:
-    """Auth Client.
+    """Synchronous Auth Client.
 
     Auth methods return a response object unique to each request.
     The response object is resolved to a type-safe object of one of several
@@ -22,7 +22,7 @@ class AuthClient:
     Pattern matching can be used to operate on the appropriate subtype.
     For example, in python 3.10+ if you're generating a disposable auth token:
 
-        response = await client.generateDisposableToken(...)
+        response = client.generateDisposableToken(...)
         match response:
             case GenerateDisposableToken.Success():
                 ...the disposable auth token was generated...
@@ -31,7 +31,7 @@ class AuthClient:
 
     or equivalently in earlier versions of python::
 
-        response = await client.generateDisposableToken(...)
+        response = client.generateDisposableToken(...)
         if isinstance(response, GenerateDisposableToken.Success):
             ...
         elif isinstance(response, GenerateDisposableToken.Error):
@@ -48,11 +48,11 @@ class AuthClient:
             credential_provider (CredentialProvider): An object holding the auth token and endpoint information.
 
         Example::
-            from momento import AuthConfigurations, CredentialProvider, AuthClientAsync
+            from momento import AuthConfigurations, CredentialProvider, AuthClient
 
             configuration = AuthConfigurations.Laptop.latest()
             credential_provider = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
-            client = AuthClientAsync(configuration, credential_provider)
+            client = AuthClient(configuration, credential_provider)
         """
         self._logger = logs.logger
         self._token_client = _ScsTokenClient(configuration, credential_provider)
@@ -70,7 +70,10 @@ class AuthClient:
         self._token_client.close()
 
     def generate_disposable_token(
-        self, scope: DisposableTokenScope, expires_in: ExpiresIn, disposable_token_props: Optional[DisposableTokenProps]
+        self,
+        scope: DisposableTokenScope,
+        expires_in: ExpiresIn,
+        disposable_token_props: Optional[DisposableTokenProps] = None,
     ) -> GenerateDisposableTokenResponse:
         """Generate a disposable auth token.
 
@@ -82,4 +85,4 @@ class AuthClient:
         )
 
     def close(self) -> None:
-        self.close()
+        self._token_client.close()

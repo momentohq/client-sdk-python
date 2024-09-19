@@ -4,10 +4,10 @@ from momento_wire_types import token_pb2 as token_pb
 from momento_wire_types import token_pb2_grpc as token_grpc
 
 from momento import logs
-from momento.auth import CredentialProvider
 from momento.auth.access_control.disposable_token_scope import DisposableTokenProps, DisposableTokenScope
+from momento.auth.credential_provider import CredentialProvider
 from momento.config.auth_configuration import AuthConfiguration
-from momento.errors import convert_error
+from momento.errors.error_converter import convert_error
 from momento.internal._utilities._permissions import permissions_from_disposable_token_scope
 from momento.internal.services import Service
 from momento.internal.synchronous._scs_grpc_manager import _TokenGrpcManager
@@ -22,7 +22,7 @@ class _ScsTokenClient:
     def __init__(self, configuration: AuthConfiguration, credential_provider: CredentialProvider):
         endpoint = credential_provider.token_endpoint
         self._logger = logs.logger
-        self._logger.debug("Simple token client instantiated with endpoint: %s", endpoint)
+        self._logger.debug("Token client instantiated with endpoint: %s", endpoint)
         self._grpc_manager = _TokenGrpcManager(configuration, credential_provider)
         self._endpoint = endpoint
 
@@ -35,14 +35,14 @@ class _ScsTokenClient:
         permission_scope: DisposableTokenScope,
         expires_in: ExpiresIn,
         credentialProvider: CredentialProvider,
-        disposable_token_props: Optional[DisposableTokenProps],
+        disposable_token_props: Optional[DisposableTokenProps] = None,
     ) -> GenerateDisposableTokenResponse:
         try:
             validate_disposable_token_expiry(expires_in)
             self._logger.info("Creating disposable token")
 
             token_id = disposable_token_props.token_id if disposable_token_props else None
-            expires = token_pb._GenerateDisposableTokenRequest.Expires(expires_in.valid_for_seconds())
+            expires = token_pb._GenerateDisposableTokenRequest.Expires(valid_for_seconds=expires_in.valid_for_seconds())
             permissions = permissions_from_disposable_token_scope(permission_scope)
 
             request = token_pb._GenerateDisposableTokenRequest(
