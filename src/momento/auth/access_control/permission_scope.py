@@ -4,13 +4,16 @@ from typing import List, Union
 
 # from momento.auth.access_control.disposable_token_scope import DisposableTokenScope
 
+
 @dataclass
 class AllCaches:
     pass
 
+
 @dataclass
 class AllTopics:
     pass
+
 
 @dataclass
 class PredefinedScope:
