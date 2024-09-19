@@ -17,6 +17,7 @@ class Expiration():
         return self._does_expire
 
 
+@dataclass
 class ExpiresIn(Expiration):
     """Represents an expiration time for a token that expires in a certain amount of time."""
 
@@ -65,6 +66,7 @@ class ExpiresIn(Expiration):
         return ExpiresIn(seconds_until_epoch)
 
 
+@dataclass
 class ExpiresAt(Expiration):
     """Represents an expiration time for a token that expires at a certain UNIX epoch timestamp."""
 
