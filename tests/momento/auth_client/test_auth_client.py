@@ -3,7 +3,7 @@ from datetime import timedelta
 from momento import errors
 from momento.auth.access_control.disposable_token_scope import DisposableTokenScope
 from momento.auth.access_control.disposable_token_scopes import DisposableTokenScopes
-from momento.auth.access_control.permission_scope import AllCaches
+from momento.auth.access_control.permission_scope import AllCaches, AllTopics
 from momento.auth.credential_provider import CredentialProvider
 from momento.auth_client import AuthClient
 from momento.cache_client import CacheClient
@@ -135,88 +135,392 @@ def test_generate_disposable_token_read_only_specific_cache(
 
 
 def test_generate_disposable_token_read_only_specific_key_specific_cache(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    key = uuid_str()
+    key2 = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_key_read_only(cache_name, key)
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed only for the specified cache and key
+    assert_get_success(cc, cache_name, key)
+    assert_get_failure(cc, cache_name, key2)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should fail regardless of cache
+    assert_set_failure(cc, cache_name, key, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 def test_generate_disposable_token_read_only_key_prefix_specific_cache(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    key = "a-prefix-" + uuid_str()
+    key2 = "a-prefix-" + uuid_str()
+    key3 = "another-prefix-" + uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_key_prefix_read_only(cache_name, "a-prefix-")
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed only for the specified cache and key prefix
+    assert_get_success(cc, cache_name, key)
+    assert_get_success(cc, cache_name, key2)
+    assert_get_failure(cc, cache_name, key3)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should fail regardless of cache
+    assert_set_failure(cc, cache_name, key, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
-def test_generate_disposable_token_write_only_all_caches(auth_client: AuthClient) -> None:
-    assert True
+def test_generate_disposable_token_write_only_all_caches(
+    client: CacheClient,  # need this to create the test caches
+    auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
+) -> None:
+    key = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_write_only(AllCaches())
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should fail regardless of cache
+    assert_get_failure(cc, cache_name, key)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should succeed regardless of cache
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_success(cc, alternate_cache_name, key, value)
 
 
-def test_generate_disposable_token_write_only_specific_cache(auth_client: AuthClient) -> None:
-    assert True
+def test_generate_disposable_token_write_only_specific_cache(
+    client: CacheClient,  # need this to create the test caches
+    auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
+) -> None:
+    key = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_write_only(cache_name)
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should fail regardless of cache
+    assert_get_failure(cc, cache_name, key)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should succeed only for the specified cache
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 def test_generate_disposable_token_write_only_specific_key_specific_cache(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    key = uuid_str()
+    key2 = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_key_write_only(cache_name, key)
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should fail regardless of cache
+    assert_get_failure(cc, cache_name, key)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should succeed only for the specified cache and key
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_failure(cc, cache_name, key2, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 def test_generate_disposable_token_write_only_key_prefix_specific_cache(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    key = "a-prefix-" + uuid_str()
+    key2 = "a-prefix-" + uuid_str()
+    key3 = "another-prefix-" + uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_key_prefix_write_only(cache_name, "a-prefix-")
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should fail regardless of cache
+    assert_get_failure(cc, cache_name, key)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should succeed only for the specified cache and key prefix
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_success(cc, cache_name, key2, value)
+    assert_set_failure(cc, cache_name, key3, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
-def test_generate_disposable_token_read_write_all_caches(auth_client: AuthClient) -> None:
-    assert True
+def test_generate_disposable_token_read_write_all_caches(
+    client: CacheClient,  # need this to create the test caches
+    auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
+) -> None:
+    key = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_read_write(AllCaches())
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed regardless of cache
+    assert_get_success(cc, cache_name, key)
+    assert_get_success(cc, alternate_cache_name, key)
+
+    # Sets should succeed regardless of cache
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_success(cc, alternate_cache_name, key, value)
 
 
-def test_generate_disposable_token_read_write_specific_cache(auth_client: AuthClient) -> None:
-    assert True
+def test_generate_disposable_token_read_write_specific_cache(
+    client: CacheClient,  # need this to create the test caches
+    auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
+) -> None:
+    key = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_read_write(cache_name)
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed only for the specified cache
+    assert_get_success(cc, cache_name, key)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should succeed only for the specified cache
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 def test_generate_disposable_token_read_write_specific_key_specific_cache(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    key = uuid_str()
+    key2 = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_key_read_write(cache_name, key)
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed only for the specified cache and key
+    assert_get_success(cc, cache_name, key)
+    assert_get_failure(cc, cache_name, key2)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should succeed only for the specified cache and key
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_failure(cc, cache_name, key2, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 def test_generate_disposable_token_read_write_key_prefix_specific_cache(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    key = "a-prefix-" + uuid_str()
+    key2 = "a-prefix-" + uuid_str()
+    key3 = "another-prefix-" + uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_key_prefix_read_write(cache_name, "a-prefix-")
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed only for the specified cache and key prefix
+    assert_get_success(cc, cache_name, key)
+    assert_get_success(cc, cache_name, key2)
+    assert_get_failure(cc, cache_name, key3)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should succeed only for the specified cache and key prefix
+    assert_set_success(cc, cache_name, key, value)
+    assert_set_success(cc, cache_name, key2, value)
+    assert_set_failure(cc, cache_name, key3, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 def test_generate_disposable_token_topic_publish_only_specific_cache_specific_topic(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    topic_name = uuid_str()
+    topic_name2 = uuid_str()
+
+    scope = DisposableTokenScopes.topic_publish_only(cache_name, topic_name)
+    token = generate_disposable_token_success(auth_client, scope)
+    tc = topic_client_from_disposable_token(token)
+
+    # Publishes should succeed only for the specified cache and topic
+    assert_publish_success(tc, cache_name, topic_name)
+    assert_publish_failure(tc, cache_name, topic_name2)
+    assert_publish_failure(tc, alternate_cache_name, topic_name)
+    assert_publish_failure(tc, alternate_cache_name, topic_name2)
+
+    # Subscribes should fail regardless of cache
+    assert_subscribe_failure(tc, cache_name, topic_name)
+    assert_subscribe_failure(tc, alternate_cache_name, topic_name)
 
 
 def test_generate_disposable_token_topic_publish_only_all_caches_all_topics(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    topic_name = uuid_str()
+    topic_name2 = uuid_str()
+
+    scope = DisposableTokenScopes.topic_publish_only(AllCaches(), AllTopics())
+    token = generate_disposable_token_success(auth_client, scope)
+    tc = topic_client_from_disposable_token(token)
+
+    # Publishes should succeed regardless of cache and topic
+    assert_publish_success(tc, cache_name, topic_name)
+    assert_publish_success(tc, cache_name, topic_name2)
+    assert_publish_success(tc, alternate_cache_name, topic_name)
+    assert_publish_success(tc, alternate_cache_name, topic_name2)
+
+    # Subscribes should fail regardless of cache
+    assert_subscribe_failure(tc, cache_name, topic_name)
+    assert_subscribe_failure(tc, alternate_cache_name, topic_name)
 
 
 def test_generate_disposable_token_topic_subscribe_only_specific_cache_specific_topic(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    topic_name = uuid_str()
+    topic_name2 = uuid_str()
+
+    scope = DisposableTokenScopes.topic_subscribe_only(cache_name, topic_name)
+    token = generate_disposable_token_success(auth_client, scope)
+    tc = topic_client_from_disposable_token(token)
+
+    # Publishes should fail regardless of cache and topic
+    assert_publish_failure(tc, cache_name, topic_name)
+    assert_publish_failure(tc, cache_name, topic_name2)
+    assert_publish_failure(tc, alternate_cache_name, topic_name)
+    assert_publish_failure(tc, alternate_cache_name, topic_name2)
+
+    # Subscribes should succeed only for the specified cache and topic
+    assert_subscribe_success(tc, cache_name, topic_name)
+    assert_subscribe_failure(tc, cache_name, topic_name2)
+    assert_subscribe_failure(tc, alternate_cache_name, topic_name)
 
 
 def test_generate_disposable_token_topic_subscribe_only_all_caches_all_topics(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    topic_name = uuid_str()
+    topic_name2 = uuid_str()
+
+    scope = DisposableTokenScopes.topic_subscribe_only(AllCaches(), AllTopics())
+    token = generate_disposable_token_success(auth_client, scope)
+    tc = topic_client_from_disposable_token(token)
+
+    # Publishes should fail regardless of cache and topic
+    assert_publish_failure(tc, cache_name, topic_name)
+    assert_publish_failure(tc, cache_name, topic_name2)
+    assert_publish_failure(tc, alternate_cache_name, topic_name)
+    assert_publish_failure(tc, alternate_cache_name, topic_name2)
+
+    # Subscribes should succeed regardless of cache and topic
+    assert_subscribe_success(tc, cache_name, topic_name)
+    assert_subscribe_success(tc, cache_name, topic_name2)
+    assert_subscribe_success(tc, alternate_cache_name, topic_name)
+    assert_subscribe_success(tc, alternate_cache_name, topic_name2)
 
 
 def test_generate_disposable_token_topic_publish_subscribe_specific_cache_specific_topic(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    topic_name = uuid_str()
+    topic_name2 = uuid_str()
+
+    scope = DisposableTokenScopes.topic_publish_subscribe(cache_name, topic_name)
+    token = generate_disposable_token_success(auth_client, scope)
+    tc = topic_client_from_disposable_token(token)
+
+    # Publishes should succeed only for the specified cache and topic
+    assert_publish_success(tc, cache_name, topic_name)
+    assert_publish_failure(tc, cache_name, topic_name2)
+    assert_publish_failure(tc, alternate_cache_name, topic_name)
+    assert_publish_failure(tc, alternate_cache_name, topic_name2)
+
+    # Subscribes should succeed only for the specified cache and topic
+    assert_subscribe_success(tc, cache_name, topic_name)
+    assert_subscribe_failure(tc, cache_name, topic_name2)
+    assert_subscribe_failure(tc, alternate_cache_name, topic_name)
+    assert_subscribe_failure(tc, alternate_cache_name, topic_name)
 
 
 def test_generate_disposable_token_topic_publish_subscribe_all_caches_all_topics(
+    client: CacheClient,  # need this to create the test caches
     auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
 ) -> None:
-    assert True
+    topic_name = uuid_str()
+    topic_name2 = uuid_str()
+
+    scope = DisposableTokenScopes.topic_publish_subscribe(AllCaches(), AllTopics())
+    token = generate_disposable_token_success(auth_client, scope)
+    tc = topic_client_from_disposable_token(token)
+
+    # Publishes should succeed regardless of cache and topic
+    assert_publish_success(tc, cache_name, topic_name)
+    assert_publish_success(tc, cache_name, topic_name2)
+    assert_publish_success(tc, alternate_cache_name, topic_name)
+    assert_publish_success(tc, alternate_cache_name, topic_name2)
+
+    # Subscribes should succeed regardless of cache and topic
+    assert_subscribe_success(tc, cache_name, topic_name)
+    assert_subscribe_success(tc, cache_name, topic_name2)
+    assert_subscribe_success(tc, alternate_cache_name, topic_name)
+    assert_subscribe_success(tc, alternate_cache_name, topic_name)
