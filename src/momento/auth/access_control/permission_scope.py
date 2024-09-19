@@ -35,9 +35,6 @@ class CacheName:
 class CacheSelector:
     cache: Union[CacheName, AllCaches, str]
 
-    def __init__(self, cache: Union[CacheName, AllCaches, str]):
-        self.cache = cache
-
     def is_all_caches(self) -> bool:
         return isinstance(self.cache, AllCaches)
 
@@ -63,9 +60,6 @@ class TopicName:
 class TopicSelector:
     topic: Union[TopicName, AllTopics, str]
 
-    def __init__(self, topic: Union[TopicName, AllTopics, str]):
-        self.topic = topic
-
     def is_all_topics(self) -> bool:
         return isinstance(self.topic, AllTopics)
 
@@ -87,11 +81,11 @@ class Permissions:
 
 ALL_DATA_READ_WRITE = Permissions(
     permissions=[
-        CachePermission(role=CacheRole.READ_WRITE, cache_selector=CacheSelector(cache=AllCaches())),
+        CachePermission(CacheSelector(AllCaches()), CacheRole.READ_WRITE),
         TopicPermission(
-            role=TopicRole.PUBLISH_SUBSCRIBE,
-            cache_selector=CacheSelector(cache=AllCaches()),
-            topic_selector=TopicSelector(topic=AllTopics()),
+            TopicRole.PUBLISH_SUBSCRIBE,
+            CacheSelector(AllCaches()),
+            TopicSelector(AllTopics()),
         ),
     ]
 )
@@ -103,9 +97,6 @@ class PermissionScope:
 
     def is_all_data_read_write(self) -> bool:
         return self.permission_scope == ALL_DATA_READ_WRITE
-
-    def __init__(self, permission_scope: Union[Permissions, PredefinedScope]):
-        self.permission_scope = permission_scope
 
     def get_permissions_objects(self) -> Permissions:
         if isinstance(self.permission_scope, PredefinedScope):

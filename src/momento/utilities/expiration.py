@@ -22,17 +22,15 @@ class ExpiresIn(Expiration):
     """Represents an expiration time for a token that expires in a certain amount of time."""
 
     # Must be a float in order to use math.inf to indicate non-expiration
-    valid_for: float
-
     def __init__(self, valid_for: Optional[float] = math.inf) -> None:
         super().__init__(valid_for != math.inf)
         if valid_for is None:
-            self.valid_for = math.inf
+            self._valid_for = math.inf
         else:
-            self.valid_for = valid_for
+            self._valid_for = valid_for
 
     def valid_for_seconds(self) -> int:
-        return int(self.valid_for)
+        return int(self._valid_for)
 
     @staticmethod
     def never() -> ExpiresIn:
@@ -71,18 +69,16 @@ class ExpiresAt(Expiration):
     """Represents an expiration time for a token that expires at a certain UNIX epoch timestamp."""
 
     # Must be a float in order to use math.inf to indicate non-expiration
-    expires_at: float
-
     def __init__(self, epoch_timestamp: Optional[float] = None) -> None:
         super().__init__(epoch_timestamp is not None and epoch_timestamp != 0)
         if self._does_expire and epoch_timestamp is not None:
-            self.expires_at = epoch_timestamp
+            self._expires_at = epoch_timestamp
         else:
-            self.expires_at = math.inf
+            self._expires_at = math.inf
 
     def epoch(self) -> int:
         """Returns epoch timestamp of when api token expires."""
-        return int(self.expires_at)
+        return int(self._expires_at)
 
     @staticmethod
     def from_epoch(epoch: Optional[int] = None) -> ExpiresAt:
