@@ -1,3 +1,7 @@
+"""Permission Scopes.
+
+Convenience methods for creating permission scopes.
+"""
 from typing import Union
 
 from momento.auth.access_control.permission_scope import (

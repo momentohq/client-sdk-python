@@ -1,3 +1,7 @@
+"""Permissions conversion functions.
+
+Used to convert from the SDK permissions data classes to the protobuf permissions objects.
+"""
 from typing import Union
 
 from momento_wire_types import permissionmessages_pb2 as permissions_pb

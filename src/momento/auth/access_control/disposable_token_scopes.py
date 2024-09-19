@@ -1,3 +1,7 @@
+"""Disposable Token Scopes.
+
+Convenience methods for creating disposable token scopes.
+"""
 from typing import Union
 
 from momento.auth.access_control.disposable_token_scope import (

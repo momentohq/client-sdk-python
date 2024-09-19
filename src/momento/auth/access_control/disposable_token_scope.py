@@ -1,3 +1,7 @@
+"""Disposable Token Scope.
+
+Defines the data classes for specifying the permission scope of a disposable token.
+"""
 from dataclasses import dataclass
 from typing import List, Optional, Union
 

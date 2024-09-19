@@ -1,8 +1,10 @@
+"""Permission Scope.
+
+Defines the data classes for specifying the permission scope of a generated token.
+"""
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Union
-
-# from momento.auth.access_control.disposable_token_scope import DisposableTokenScope
 
 
 @dataclass
