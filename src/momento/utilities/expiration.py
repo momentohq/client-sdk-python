@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import math
-from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
 
-class Expiration(ABC):
+@dataclass
+class Expiration():
     """Represents an expiration time for a token."""
 
     def __init__(self, does_expire: bool) -> None:
         self._does_expire = does_expire
 
-    @abstractmethod
     def does_expire(self) -> bool:
-        pass
+        return self._does_expire
 
 
 class ExpiresIn(Expiration):
@@ -29,9 +29,6 @@ class ExpiresIn(Expiration):
             self.validFor = math.inf
         else:
             self.validFor = validFor
-
-    def does_expire(self) -> bool:
-        return self._does_expire
 
     def valid_for_seconds(self) -> int:
         return int(self.validFor)
@@ -73,9 +70,6 @@ class ExpiresAt(Expiration):
 
     # Must be a float in order to use math.inf to indicate non-expiration
     expires_at: float
-
-    def does_expire(self) -> bool:
-        return self._does_expire
 
     def __init__(self, epochTimestamp: Optional[float] = None) -> None:
         super().__init__(epochTimestamp is not None and epochTimestamp != 0)
