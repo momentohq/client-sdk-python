@@ -22,47 +22,47 @@ class ExpiresIn(Expiration):
     """Represents an expiration time for a token that expires in a certain amount of time."""
 
     # Must be a float in order to use math.inf to indicate non-expiration
-    validFor: float
+    valid_for: float
 
-    def __init__(self, validFor: Optional[float] = math.inf) -> None:
-        super().__init__(validFor != math.inf)
-        if validFor is None:
-            self.validFor = math.inf
+    def __init__(self, valid_for: Optional[float] = math.inf) -> None:
+        super().__init__(valid_for != math.inf)
+        if valid_for is None:
+            self.valid_for = math.inf
         else:
-            self.validFor = validFor
+            self.valid_for = valid_for
 
     def valid_for_seconds(self) -> int:
-        return int(self.validFor)
+        return int(self.valid_for)
 
     @staticmethod
     def never() -> ExpiresIn:
         return ExpiresIn(math.inf)
 
     @staticmethod
-    def seconds(validForSeconds: int) -> ExpiresIn:
-        """Constructs a ExpiresIn with a specified validFor period in seconds. If seconds are undefined, or null, then token never expires."""
-        return ExpiresIn(validForSeconds)
+    def seconds(valid_for_seconds: int) -> ExpiresIn:
+        """Constructs a ExpiresIn with a specified valid_for period in seconds. If seconds are undefined, or null, then token never expires."""
+        return ExpiresIn(valid_for_seconds)
 
     @staticmethod
-    def minutes(validForMinutes: int) -> ExpiresIn:
-        """Constructs a ExpiresIn with a specified validFor period in minutes."""
-        return ExpiresIn(validForMinutes * 60)
+    def minutes(valid_for_minutes: int) -> ExpiresIn:
+        """Constructs a ExpiresIn with a specified valid_for period in minutes."""
+        return ExpiresIn(valid_for_minutes * 60)
 
     @staticmethod
-    def hours(validForHours: int) -> ExpiresIn:
-        """Constructs a ExpiresIn with a specified validFor period in hours."""
-        return ExpiresIn(validForHours * 3600)
+    def hours(valid_for_hours: int) -> ExpiresIn:
+        """Constructs a ExpiresIn with a specified valid_for period in hours."""
+        return ExpiresIn(valid_for_hours * 3600)
 
     @staticmethod
-    def days(validForDays: int) -> ExpiresIn:
-        """Constructs an ExpiresIn with a specified validFor period in days."""
-        return ExpiresIn(validForDays * 86400)
+    def days(valid_for_days: int) -> ExpiresIn:
+        """Constructs an ExpiresIn with a specified valid_for period in days."""
+        return ExpiresIn(valid_for_days * 86400)
 
     @staticmethod
-    def epoch(expiresBy: int) -> ExpiresIn:
-        """Constructs an ExpiresIn with a specified expiresBy period in epoch format."""
+    def epoch(expires_by: int) -> ExpiresIn:
+        """Constructs an ExpiresIn with a specified expires_by period in epoch format."""
         current_epoch = int(datetime.now().timestamp())
-        seconds_until_epoch = expiresBy - current_epoch
+        seconds_until_epoch = expires_by - current_epoch
         return ExpiresIn(seconds_until_epoch)
 
 
@@ -73,10 +73,10 @@ class ExpiresAt(Expiration):
     # Must be a float in order to use math.inf to indicate non-expiration
     expires_at: float
 
-    def __init__(self, epochTimestamp: Optional[float] = None) -> None:
-        super().__init__(epochTimestamp is not None and epochTimestamp != 0)
-        if self._does_expire and epochTimestamp is not None:
-            self.expires_at = epochTimestamp
+    def __init__(self, epoch_timestamp: Optional[float] = None) -> None:
+        super().__init__(epoch_timestamp is not None and epoch_timestamp != 0)
+        if self._does_expire and epoch_timestamp is not None:
+            self.expires_at = epoch_timestamp
         else:
             self.expires_at = math.inf
 
