@@ -211,22 +211,24 @@ class _TokenGrpcManager:
     version = momento_version
 
     def __init__(self, configuration: AuthConfiguration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.aio.secure_channel(
+        self._secure_channel = grpc.secure_channel(
             target=credential_provider.token_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            interceptors=_interceptors(
-                credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()
-            ),
             options=grpc_control_channel_options_from_grpc_config(
                 grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
             ),
         )
+        intercept_channel = grpc.intercept_channel(
+            self._secure_channel,
+            *_interceptors(credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()),
+        )
+        self._stub = token_client.TokenStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
         self._secure_channel.close()
 
     def stub(self) -> token_client.TokenStub:
-        return token_client.TokenStub(self._secure_channel)  # type: ignore[no-untyped-call]
+        return self._stub
 
 
 def _interceptors(

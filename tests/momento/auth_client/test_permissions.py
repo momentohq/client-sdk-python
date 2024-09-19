@@ -46,8 +46,8 @@ def test_creates_expected_grpc_permissions_for_all_data_read_write() -> None:
         all_caches=permissions_pb.PermissionsType.All(),
     )
     expected_permission = permissions_pb.Permissions(
-        explicit=permissions_pb.ExplicitPermissions(permissions=
-            [
+        explicit=permissions_pb.ExplicitPermissions(
+            permissions=[
                 permissions_pb.PermissionsType(cache_permissions=expected_cache_permission),
                 permissions_pb.PermissionsType(topic_permissions=expected_topic_permission),
             ]
@@ -87,8 +87,8 @@ def test_creates_expected_grpc_permissions_for_cache_and_topic_specific_permissi
         cache_selector=permissions_pb.PermissionsType.CacheSelector(cache_name="dog"),
     )
     expected_permissions = permissions_pb.Permissions(
-        explicit=permissions_pb.ExplicitPermissions(permissions=
-            [
+        explicit=permissions_pb.ExplicitPermissions(
+            permissions=[
                 permissions_pb.PermissionsType(cache_permissions=grpc_read_any_cache),
                 permissions_pb.PermissionsType(cache_permissions=grpc_write_cache_foo),
                 permissions_pb.PermissionsType(topic_permissions=grpc_read_any_topic),
@@ -158,8 +158,8 @@ def test_creates_expected_grpc_permissions_for_write_only_cache_and_topic_permis
         cache_selector=permissions_pb.PermissionsType.CacheSelector(cache_name="dog"),
     )
     expected_permissions = permissions_pb.Permissions(
-        explicit=permissions_pb.ExplicitPermissions(permissions=
-            [
+        explicit=permissions_pb.ExplicitPermissions(
+            permissions=[
                 permissions_pb.PermissionsType(cache_permissions=grpc_write_only_all_caches),
                 permissions_pb.PermissionsType(cache_permissions=grpc_write_only_cache_foo),
                 permissions_pb.PermissionsType(topic_permissions=grpc_publish_only_all_topics_cache_foo),
@@ -210,8 +210,8 @@ def test_creates_expected_grpc_permissions_for_key_specific_write_only_cache_and
         item_selector=permissions_pb.PermissionsType.CacheItemSelector(key_prefix=str_to_bytes("specific_key_prefix")),
     )
     expected_permissions = permissions_pb.Permissions(
-        explicit=permissions_pb.ExplicitPermissions(permissions=
-            [
+        explicit=permissions_pb.ExplicitPermissions(
+            permissions=[
                 permissions_pb.PermissionsType(cache_permissions=grpc_write_only_all_caches_specific_key),
                 permissions_pb.PermissionsType(cache_permissions=grpc_write_only_cache_foo_specific_key_prefix),
             ]
@@ -252,8 +252,8 @@ def test_creates_expected_grpc_permissions_for_key_specific_read_only_cache_and_
         item_selector=permissions_pb.PermissionsType.CacheItemSelector(key_prefix=str_to_bytes("specific_key_prefix")),
     )
     expected_permissions = permissions_pb.Permissions(
-        explicit=permissions_pb.ExplicitPermissions(permissions=
-            [
+        explicit=permissions_pb.ExplicitPermissions(
+            permissions=[
                 permissions_pb.PermissionsType(cache_permissions=grpc_read_only_all_caches_specific_key),
                 permissions_pb.PermissionsType(cache_permissions=grpc_read_only_cache_foo_specific_key_prefix),
             ]
@@ -294,8 +294,8 @@ def test_creates_expected_grpc_permissions_for_key_specific_read_write_cache_and
         item_selector=permissions_pb.PermissionsType.CacheItemSelector(key_prefix=str_to_bytes("specific_key_prefix")),
     )
     expected_permissions = permissions_pb.Permissions(
-        explicit=permissions_pb.ExplicitPermissions(permissions=
-            [
+        explicit=permissions_pb.ExplicitPermissions(
+            permissions=[
                 permissions_pb.PermissionsType(cache_permissions=grpc_read_write_all_caches_specific_key),
                 permissions_pb.PermissionsType(cache_permissions=grpc_read_write_cache_foo_specific_key_prefix),
             ]
