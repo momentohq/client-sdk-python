@@ -7,7 +7,7 @@ from typing import Optional
 
 
 @dataclass
-class Expiration():
+class Expiration:
     """Represents an expiration time for a token."""
 
     def __init__(self, does_expire: bool) -> None:
