@@ -2,8 +2,8 @@ from datetime import timedelta
 
 from momento import errors
 from momento.auth.access_control.disposable_token_scope import DisposableTokenScope
+from momento.auth.access_control.disposable_token_scopes import DisposableTokenScopes
 from momento.auth.access_control.permission_scope import AllCaches
-from momento.auth.access_control.permission_scopes import cache_read_only
 from momento.auth.credential_provider import CredentialProvider
 from momento.auth_client_async import AuthClientAsync
 from momento.cache_client_async import CacheClientAsync
@@ -99,21 +99,39 @@ async def test_generate_disposable_token_read_only_all_caches(
     key = uuid_str()
     value = uuid_str()
 
-    scope = DisposableTokenScope(permission_scope=cache_read_only(AllCaches()).get_permissions_objects())
+    scope = DisposableTokenScopes.cache_read_only(AllCaches())
     token = await generate_disposable_token_success(auth_client_async, scope)
     cc = cache_client_from_disposable_token(token)
 
     # Gets should succeed regardless of cache
     await assert_get_success(cc, cache_name, key)
     await assert_get_success(cc, alternate_cache_name, key)
+
     # Sets should fail regardless of cache
     await assert_set_failure(cc, cache_name, key, value)
     await assert_set_failure(cc, alternate_cache_name, key, value)
-    assert True
 
 
-async def test_generate_disposable_token_read_only_specific_cache(auth_client_async: AuthClientAsync) -> None:
-    assert True
+async def test_generate_disposable_token_read_only_specific_cache(
+    client_async: CacheClientAsync,  # need this to create the test caches
+    auth_client_async: AuthClientAsync,
+    cache_name: str,
+    alternate_cache_name: str,
+) -> None:
+    key = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_read_only(cache_name)
+    token = await generate_disposable_token_success(auth_client_async, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed only for the specified cache
+    await assert_get_success(cc, cache_name, key)
+    await assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should fail regardless of cache
+    await assert_set_failure(cc, cache_name, key, value)
+    await assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 async def test_generate_disposable_token_read_only_specific_key_specific_cache(

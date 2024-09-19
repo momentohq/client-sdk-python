@@ -2,8 +2,8 @@ from datetime import timedelta
 
 from momento import errors
 from momento.auth.access_control.disposable_token_scope import DisposableTokenScope
+from momento.auth.access_control.disposable_token_scopes import DisposableTokenScopes
 from momento.auth.access_control.permission_scope import AllCaches
-from momento.auth.access_control.permission_scopes import cache_read_only
 from momento.auth.credential_provider import CredentialProvider
 from momento.auth_client import AuthClient
 from momento.cache_client import CacheClient
@@ -99,21 +99,39 @@ def test_generate_disposable_token_read_only_all_caches(
     key = uuid_str()
     value = uuid_str()
 
-    scope = DisposableTokenScope(permission_scope=cache_read_only(AllCaches()).get_permissions_objects())
+    scope = DisposableTokenScopes.cache_read_only(AllCaches())
     token = generate_disposable_token_success(auth_client, scope)
     cc = cache_client_from_disposable_token(token)
 
     # Gets should succeed regardless of cache
     assert_get_success(cc, cache_name, key)
     assert_get_success(cc, alternate_cache_name, key)
+
     # Sets should fail regardless of cache
     assert_set_failure(cc, cache_name, key, value)
     assert_set_failure(cc, alternate_cache_name, key, value)
-    assert True
 
 
-def test_generate_disposable_token_read_only_specific_cache(auth_client: AuthClient) -> None:
-    assert True
+def test_generate_disposable_token_read_only_specific_cache(
+    client: CacheClient,  # need this to create the test caches
+    auth_client: AuthClient,
+    cache_name: str,
+    alternate_cache_name: str,
+) -> None:
+    key = uuid_str()
+    value = uuid_str()
+
+    scope = DisposableTokenScopes.cache_read_only(cache_name)
+    token = generate_disposable_token_success(auth_client, scope)
+    cc = cache_client_from_disposable_token(token)
+
+    # Gets should succeed only for the specified cache
+    assert_get_success(cc, cache_name, key)
+    assert_get_failure(cc, alternate_cache_name, key)
+
+    # Sets should fail regardless of cache
+    assert_set_failure(cc, cache_name, key, value)
+    assert_set_failure(cc, alternate_cache_name, key, value)
 
 
 def test_generate_disposable_token_read_only_specific_key_specific_cache(
