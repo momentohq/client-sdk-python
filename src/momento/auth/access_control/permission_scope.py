@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Union
 
+# from momento.auth.access_control.disposable_token_scope import DisposableTokenScope
+
 
 class AllCaches:
     pass
@@ -102,8 +104,7 @@ class PermissionScope:
     def __init__(self, permission_scope: Union[Permissions, PredefinedScope]):
         self.permission_scope = permission_scope
 
-    def get_list_of_permissions(self) -> List[Permission]:
-        if isinstance(self.permission_scope, Permissions):
-            return self.permission_scope.permissions
-        else:
-            raise ValueError("PermissionScope does not contain list of Permission objects")
+    def get_permissions_objects(self) -> Permissions:
+        if isinstance(self.permission_scope, PredefinedScope):
+            raise ValueError("PredefinedScope cannot be converted to a Permissions object")
+        return self.permission_scope

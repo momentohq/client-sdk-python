@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 from abc import ABC
 
 from momento_wire_types import token_pb2 as token_pb
@@ -46,19 +48,19 @@ class GenerateDisposableToken(ABC):
     class Success(GenerateDisposableTokenResponse):
         """Indicates the request was successful."""
 
-        authToken: str
+        auth_token: str
         """The generated disposable token."""
 
         endpoint: str
         """The endpoint the Momento client should use when making requests."""
 
-        expiresAt: ExpiresAt
+        expires_at: ExpiresAt
         """The time at which the disposable token will expire."""
 
-        def __init__(self, authToken: str, endpoint: str, expiresAt: ExpiresAt):
-            self.authToken = authToken
+        def __init__(self, auth_token: str, endpoint: str, expires_at: ExpiresAt):
+            self.auth_token = auth_token
             self.endpoint = endpoint
-            self.expiresAt = expiresAt
+            self.expires_at = expires_at
 
         @staticmethod
         def from_grpc_response(
@@ -69,8 +71,11 @@ class GenerateDisposableToken(ABC):
             Args:
                 grpc_response: Protobuf based response returned by token service.
             """
+            to_b64_encode = {"endpoint": grpc_response.endpoint, "api_key": grpc_response.api_key}
+            byte_string = json.dumps(to_b64_encode).encode("utf-8")
+            auth_token = base64.b64encode(byte_string).decode("utf-8")
             return GenerateDisposableToken.Success(
-                grpc_response.authToken, grpc_response.endpoint, ExpiresAt(grpc_response.valid_until)
+                auth_token, grpc_response.endpoint, ExpiresAt(grpc_response.valid_until)
             )
 
     class Error(GenerateDisposableTokenResponse, ErrorResponseMixin):

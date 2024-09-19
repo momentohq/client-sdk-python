@@ -74,7 +74,7 @@ class ExpiresAt(Expiration):
     """Represents an expiration time for a token that expires at a certain UNIX epoch timestamp."""
 
     # Must be a float in order to use math.inf to indicate non-expiration
-    expiresAt: float
+    expires_at: float
 
     def does_expire(self) -> bool:
         return self._does_expire
@@ -82,13 +82,13 @@ class ExpiresAt(Expiration):
     def __init__(self, epochTimestamp: Optional[float] = None) -> None:
         super().__init__(epochTimestamp is not None and epochTimestamp != 0)
         if self._does_expire and epochTimestamp is not None:
-            self.expiresAt = epochTimestamp
+            self.expires_at = epochTimestamp
         else:
-            self.expiresAt = math.inf
+            self.expires_at = math.inf
 
     def epoch(self) -> int:
         """Returns epoch timestamp of when api token expires."""
-        return int(self.expiresAt)
+        return int(self.expires_at)
 
     @staticmethod
     def from_epoch(epoch: Optional[int] = None) -> ExpiresAt:

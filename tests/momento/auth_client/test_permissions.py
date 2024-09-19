@@ -1,26 +1,23 @@
-from momento.auth.access_control.disposable_token_scope import DisposableTokenCachePermissions, DisposableTokenScope
-from momento.auth.access_control.disposable_token_scopes import (
-    cache_key_prefix_read_only,
-    cache_key_prefix_read_write,
-    cache_key_prefix_write_only,
-    cache_key_read_only,
-    cache_key_read_write,
-    cache_key_write_only,
+from momento.auth.access_control.disposable_token_scope import (
+    CacheItemKey,
+    CacheItemKeyPrefix,
+    CacheItemSelector,
+    DisposableTokenCachePermission,
+    DisposableTokenCachePermissions,
+    DisposableTokenScope,
 )
 from momento.auth.access_control.permission_scope import (
     ALL_DATA_READ_WRITE,
     AllCaches,
     AllTopics,
+    CachePermission,
+    CacheRole,
+    CacheSelector,
     Permissions,
     PermissionScope,
-)
-from momento.auth.access_control.permission_scopes import (
-    cache_read_only,
-    cache_read_write,
-    cache_write_only,
-    topic_publish_only,
-    topic_publish_subscribe,
-    topic_subscribe_only,
+    TopicPermission,
+    TopicRole,
+    TopicSelector,
 )
 from momento.internal._utilities._permissions import (
     SuperuserPermissions,
@@ -106,12 +103,28 @@ def test_creates_expected_grpc_permissions_for_cache_and_topic_specific_permissi
         PermissionScope(
             permission_scope=Permissions(
                 permissions=[
-                    cache_read_only(AllCaches()),
-                    cache_read_write(cache="foo"),
-                    topic_subscribe_only(cache=AllCaches(), topic=AllTopics()),
-                    topic_publish_subscribe(cache="foo", topic=AllTopics()),
-                    topic_publish_subscribe(cache=AllCaches(), topic="bar"),
-                    topic_publish_subscribe(cache="dog", topic="cat"),
+                    CachePermission(role=CacheRole.READ_ONLY, cache_selector=CacheSelector(AllCaches())),
+                    CachePermission(role=CacheRole.READ_WRITE, cache_selector=CacheSelector("foo")),
+                    TopicPermission(
+                        role=TopicRole.SUBSCRIBE_ONLY,
+                        cache_selector=CacheSelector(AllCaches()),
+                        topic_selector=TopicSelector(AllTopics()),
+                    ),
+                    TopicPermission(
+                        role=TopicRole.PUBLISH_SUBSCRIBE,
+                        cache_selector=CacheSelector("foo"),
+                        topic_selector=TopicSelector(AllTopics()),
+                    ),
+                    TopicPermission(
+                        role=TopicRole.PUBLISH_SUBSCRIBE,
+                        cache_selector=CacheSelector(AllCaches()),
+                        topic_selector=TopicSelector("bar"),
+                    ),
+                    TopicPermission(
+                        role=TopicRole.PUBLISH_SUBSCRIBE,
+                        cache_selector=CacheSelector("dog"),
+                        topic_selector=TopicSelector("cat"),
+                    ),
                 ]
             )
         )
@@ -160,11 +173,23 @@ def test_creates_expected_grpc_permissions_for_write_only_cache_and_topic_permis
         PermissionScope(
             permission_scope=Permissions(
                 permissions=[
-                    cache_write_only(AllCaches()),
-                    cache_write_only(cache="foo"),
-                    topic_publish_only(cache="foo", topic=AllTopics()),
-                    topic_publish_only(cache=AllCaches(), topic="bar"),
-                    topic_publish_only(cache="dog", topic="cat"),
+                    CachePermission(role=CacheRole.WRITE_ONLY, cache_selector=CacheSelector(AllCaches())),
+                    CachePermission(role=CacheRole.WRITE_ONLY, cache_selector=CacheSelector("foo")),
+                    TopicPermission(
+                        role=TopicRole.PUBLISH_ONLY,
+                        cache_selector=CacheSelector("foo"),
+                        topic_selector=TopicSelector(AllTopics()),
+                    ),
+                    TopicPermission(
+                        role=TopicRole.PUBLISH_ONLY,
+                        cache_selector=CacheSelector(AllCaches()),
+                        topic_selector=TopicSelector("bar"),
+                    ),
+                    TopicPermission(
+                        role=TopicRole.PUBLISH_ONLY,
+                        cache_selector=CacheSelector("dog"),
+                        topic_selector=TopicSelector("cat"),
+                    ),
                 ]
             )
         )
@@ -197,8 +222,16 @@ def test_creates_expected_grpc_permissions_for_key_specific_write_only_cache_and
         DisposableTokenScope(
             permission_scope=DisposableTokenCachePermissions(
                 permissions=[
-                    cache_key_write_only(cache=AllCaches(), key="specific_key"),
-                    cache_key_prefix_write_only(cache="foo", key_prefix="specific_key_prefix"),
+                    DisposableTokenCachePermission(
+                        role=CacheRole.WRITE_ONLY,
+                        cache=CacheSelector(AllCaches()),
+                        item=CacheItemSelector(CacheItemKey("specific_key")),
+                    ),
+                    DisposableTokenCachePermission(
+                        role=CacheRole.WRITE_ONLY,
+                        cache=CacheSelector("foo"),
+                        item=CacheItemSelector(CacheItemKeyPrefix("specific_key_prefix")),
+                    ),
                 ]
             )
         )
@@ -231,8 +264,16 @@ def test_creates_expected_grpc_permissions_for_key_specific_read_only_cache_and_
         DisposableTokenScope(
             permission_scope=DisposableTokenCachePermissions(
                 permissions=[
-                    cache_key_read_only(cache=AllCaches(), key="specific_key"),
-                    cache_key_prefix_read_only(cache="foo", key_prefix="specific_key_prefix"),
+                    DisposableTokenCachePermission(
+                        role=CacheRole.READ_ONLY,
+                        cache=CacheSelector(AllCaches()),
+                        item=CacheItemSelector(CacheItemKey("specific_key")),
+                    ),
+                    DisposableTokenCachePermission(
+                        role=CacheRole.READ_ONLY,
+                        cache=CacheSelector("foo"),
+                        item=CacheItemSelector(CacheItemKeyPrefix("specific_key_prefix")),
+                    ),
                 ]
             )
         )
@@ -265,8 +306,16 @@ def test_creates_expected_grpc_permissions_for_key_specific_read_write_cache_and
         DisposableTokenScope(
             permission_scope=DisposableTokenCachePermissions(
                 permissions=[
-                    cache_key_read_write(cache=AllCaches(), key="specific_key"),
-                    cache_key_prefix_read_write(cache="foo", key_prefix="specific_key_prefix"),
+                    DisposableTokenCachePermission(
+                        role=CacheRole.READ_WRITE,
+                        cache=CacheSelector(AllCaches()),
+                        item=CacheItemSelector(CacheItemKey("specific_key")),
+                    ),
+                    DisposableTokenCachePermission(
+                        role=CacheRole.READ_WRITE,
+                        cache=CacheSelector("foo"),
+                        item=CacheItemSelector(CacheItemKeyPrefix("specific_key_prefix")),
+                    ),
                 ]
             )
         )

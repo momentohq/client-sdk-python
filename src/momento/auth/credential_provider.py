@@ -82,3 +82,6 @@ class CredentialProvider:
 
     def _obscure(self, value: str) -> str:
         return f"{value[:10]}...{value[-10:]}"
+
+    def get_auth_token(self) -> str:
+        return self.auth_token

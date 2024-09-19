@@ -56,7 +56,7 @@ class AuthClientAsync:
         """
         self._logger = logs.logger
         self._token_client = _ScsTokenClient(configuration, credential_provider)
-        self._token_endpoint = credential_provider.token_endpoint
+        self._credential_provider = credential_provider
 
     async def __aenter__(self) -> AuthClientAsync:
         return self
@@ -70,14 +70,19 @@ class AuthClientAsync:
         await self._token_client.close()
 
     async def generate_disposable_token(
-        self, scope: DisposableTokenScope, expiresIn: ExpiresIn, disposable_token_props: Optional[DisposableTokenProps]
+        self,
+        scope: DisposableTokenScope,
+        expires_in: ExpiresIn,
+        disposable_token_props: Optional[DisposableTokenProps] = None,
     ) -> GenerateDisposableTokenResponse:
         """Generate a disposable auth token.
 
         Returns:
             GenerateDisposableTokenResponse
         """
-        return await self._token_client.generate_disposable_token(scope, expiresIn, disposable_token_props)
+        return await self._token_client.generate_disposable_token(
+            scope, expires_in, self._credential_provider, disposable_token_props
+        )
 
     async def close(self) -> None:
         await self._token_client.close()

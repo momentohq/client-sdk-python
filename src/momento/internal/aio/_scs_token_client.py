@@ -33,18 +33,20 @@ class _ScsTokenClient:
     async def generate_disposable_token(
         self,
         permission_scope: DisposableTokenScope,
-        expiresIn: ExpiresIn,
-        disposable_token_props: Optional[DisposableTokenProps],
+        expires_in: ExpiresIn,
+        credentialProvider: CredentialProvider,
+        disposable_token_props: Optional[DisposableTokenProps] = None,
     ) -> GenerateDisposableTokenResponse:
         try:
-            validate_disposable_token_expiry(expiresIn)
+            validate_disposable_token_expiry(expires_in)
             self._logger.info("Creating disposable token")
 
             token_id = disposable_token_props.token_id if disposable_token_props else None
-            expires = token_pb._GenerateDisposableTokenRequest.Expires(expiresIn.valid_for_seconds())
+            expires = token_pb._GenerateDisposableTokenRequest.Expires(valid_for_seconds=expires_in.valid_for_seconds())
             permissions = permissions_from_disposable_token_scope(permission_scope)
 
             request = token_pb._GenerateDisposableTokenRequest(
+                auth_token=credentialProvider.get_auth_token(),
                 expires=expires,
                 permissions=permissions,
                 token_id=token_id,
