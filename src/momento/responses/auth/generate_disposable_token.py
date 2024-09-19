@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 from abc import ABC
+from dataclasses import dataclass
 
 from momento_wire_types import token_pb2 as token_pb
 
@@ -45,6 +46,7 @@ class GenerateDisposableTokenResponse(AuthResponse):
 class GenerateDisposableToken(ABC):
     """Groups all `GenerateDisposableTokenResponse` derived types under a common namespace."""
 
+    @dataclass
     class Success(GenerateDisposableTokenResponse):
         """Indicates the request was successful."""
 
