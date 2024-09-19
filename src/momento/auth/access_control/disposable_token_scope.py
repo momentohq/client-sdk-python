@@ -44,11 +44,6 @@ class DisposableTokenCachePermissions:
 class DisposableTokenScope:
     disposable_token_scope: Union[Permissions, DisposableTokenCachePermissions]
 
-    def get_permissions_objects(self) -> Permissions:
-        if isinstance(self.disposable_token_scope, DisposableTokenCachePermissions):
-            raise ValueError("Cannot get Permissions from DisposableTokenCachePermissions")
-        return self.disposable_token_scope
-
 
 @dataclass
 class DisposableTokenProps:

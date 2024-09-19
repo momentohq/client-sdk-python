@@ -97,8 +97,3 @@ class PermissionScope:
 
     def is_all_data_read_write(self) -> bool:
         return self.permission_scope == ALL_DATA_READ_WRITE
-
-    def get_permissions_objects(self) -> Permissions:
-        if isinstance(self.permission_scope, PredefinedScope):
-            raise ValueError("PredefinedScope cannot be converted to a Permissions object")
-        return self.permission_scope
