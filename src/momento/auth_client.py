@@ -77,6 +77,11 @@ class AuthClient:
     ) -> GenerateDisposableTokenResponse:
         """Generate a disposable auth token.
 
+        Args:
+            scope (DisposableTokenScope): The permissions to grant to the new disposable token. Convenient factory methods are provided under the DisposableTokenScopes class.
+            expires_in (ExpiresIn): The time until the token expires.
+            disposable_token_props (Optional[DisposableTokenProps], optional): Additional properties for the disposable token, such as token_id. Defaults to None.
+
         Returns:
             GenerateDisposableTokenResponse
         """
