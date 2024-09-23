@@ -8,7 +8,7 @@ from momento.auth.access_control.disposable_token_scope import DisposableTokenPr
 from momento.auth.credential_provider import CredentialProvider
 from momento.config.auth_configuration import AuthConfiguration
 from momento.errors.error_converter import convert_error
-from momento.internal._utilities._data_validation import validate_disposable_token_expiry
+from momento.internal._utilities._data_validation import _validate_disposable_token_expiry
 from momento.internal._utilities._permissions import permissions_from_disposable_token_scope
 from momento.internal.services import Service
 from momento.internal.synchronous._scs_grpc_manager import _TokenGrpcManager
@@ -38,7 +38,7 @@ class _ScsTokenClient:
         disposable_token_props: Optional[DisposableTokenProps] = None,
     ) -> GenerateDisposableTokenResponse:
         try:
-            validate_disposable_token_expiry(expires_in)
+            _validate_disposable_token_expiry(expires_in)
             self._logger.info("Creating disposable token")
 
             token_id = disposable_token_props.token_id if disposable_token_props else None

@@ -140,12 +140,12 @@ def _validate_request_timeout(request_timeout: Optional[timedelta]) -> None:
     _validate_timedelta_ttl(ttl=request_timeout, field_name="Request timeout")
 
 
-def validate_eager_connection_timeout(timeout: timedelta) -> None:
+def _validate_eager_connection_timeout(timeout: timedelta) -> None:
     if timeout.total_seconds() < 0:
         raise ValueError("The eager connection timeout must be greater than or equal to 0 seconds.")
 
 
-def validate_disposable_token_expiry(expires_in: ExpiresIn) -> None:
+def _validate_disposable_token_expiry(expires_in: ExpiresIn) -> None:
     if not expires_in.does_expire():
         raise ValueError("Disposable tokens must have an expiry")
     if expires_in.valid_for_seconds() < 0:
