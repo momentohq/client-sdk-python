@@ -19,3 +19,15 @@ def validate_disposable_token_expiry(expires_in: ExpiresIn) -> None:
         raise ValueError("Disposable token expiry must be positive")
     if expires_in.valid_for_seconds() > 60 * 60:
         raise ValueError("Disposable tokens must expire within 1 hour")
+
+
+def str_to_bytes(string: str) -> bytes:
+    """Convert a string to bytes.
+
+    Args:
+        string (str): The string to convert.
+
+    Returns:
+        bytes: A UTF-8 byte representation of the string.
+    """
+    return string.encode("utf-8")
