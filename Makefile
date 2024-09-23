@@ -25,6 +25,7 @@ lint:
 
 .PHONY: do-gen-sync
 do-gen-sync:
+# cache client
 	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_scs_control_client.py src/momento/internal/synchronous/_scs_control_client.py
 	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_scs_data_client.py src/momento/internal/synchronous/_scs_data_client.py
 	@poetry run python src/momento/internal/codegen.py src/momento/cache_client_async.py src/momento/cache_client.py
@@ -37,6 +38,10 @@ do-gen-sync:
 	@poetry run python src/momento/internal/codegen.py tests/momento/cache_client/test_set_async.py tests/momento/cache_client/test_set.py
 	@poetry run python src/momento/internal/codegen.py tests/momento/cache_client/test_sorted_set_async.py tests/momento/cache_client/test_sorted_set.py
 	@poetry run python src/momento/internal/codegen.py tests/momento/cache_client/test_sorted_set_simple_async.py tests/momento/cache_client/test_sorted_set_simple.py
+# auth client
+	@poetry run python src/momento/internal/codegen.py src/momento/internal/aio/_scs_token_client.py src/momento/internal/synchronous/_scs_token_client.py
+	@poetry run python src/momento/internal/codegen.py src/momento/auth_client_async.py src/momento/auth_client.py
+	@poetry run python src/momento/internal/codegen.py tests/momento/auth_client/test_auth_client_async.py tests/momento/auth_client/test_auth_client.py
 
 .PHONY: gen-sync
 ## Generate synchronous code and tests from asynchronous code.

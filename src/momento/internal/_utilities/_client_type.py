@@ -11,3 +11,4 @@ class ClientType(Enum):
 
     CACHE = "cache"
     TOPIC = "topic"
+    TOKEN = "token"

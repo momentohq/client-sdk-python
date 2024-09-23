@@ -13,6 +13,7 @@ you can access the concrete types in the namespace of the name, eg:
 
 from momento.responses.control.cache.flush import CacheFlush, CacheFlushResponse
 
+from .auth.generate_disposable_token import GenerateDisposableTokenResponse
 from .control.cache.create import CreateCache, CreateCacheResponse
 from .control.cache.delete import DeleteCache, DeleteCacheResponse
 from .control.cache.list import ListCaches, ListCachesResponse
@@ -125,7 +126,7 @@ from .pubsub.subscription_item import (
     TopicSubscriptionItem,
     TopicSubscriptionItemResponse,
 )
-from .response import CacheResponse, ControlResponse, PubsubResponse
+from .response import AuthResponse, CacheResponse, ControlResponse, PubsubResponse
 
 __all__ = [
     "CreateCache",
@@ -224,4 +225,6 @@ __all__ = [
     "CacheResponse",
     "ControlResponse",
     "PubsubResponse",
+    "AuthResponse",
+    "GenerateDisposableTokenResponse",
 ]

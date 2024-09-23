@@ -130,3 +130,7 @@ class ControlResponse(Response):
 
 class PubsubResponse(Response):
     ...
+
+
+class AuthResponse(Response):
+    ...
