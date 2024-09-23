@@ -15,6 +15,7 @@ from momento.typing import (
     TSortedSetElements,
     TSortedSetValues,
 )
+from momento.utilities.expiration import ExpiresIn
 
 DEFAULT_BYTES_CONVERSION_ERROR = "Could not convert the given type to bytes: "
 DEFAULT_LIST_CONVERSION_ERROR = "The given type is not list[str | bytes]: "
@@ -137,3 +138,17 @@ def _validate_request_timeout(request_timeout: Optional[timedelta]) -> None:
     if request_timeout is None:
         return
     _validate_timedelta_ttl(ttl=request_timeout, field_name="Request timeout")
+
+
+def validate_eager_connection_timeout(timeout: timedelta) -> None:
+    if timeout.total_seconds() < 0:
+        raise ValueError("The eager connection timeout must be greater than or equal to 0 seconds.")
+
+
+def validate_disposable_token_expiry(expires_in: ExpiresIn) -> None:
+    if not expires_in.does_expire():
+        raise ValueError("Disposable tokens must have an expiry")
+    if expires_in.valid_for_seconds() < 0:
+        raise ValueError("Disposable token expiry must be positive")
+    if expires_in.valid_for_seconds() > 60 * 60:
+        raise ValueError("Disposable tokens must expire within 1 hour")

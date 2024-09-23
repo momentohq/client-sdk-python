@@ -8,12 +8,12 @@ from momento.auth.access_control.disposable_token_scope import DisposableTokenPr
 from momento.auth.credential_provider import CredentialProvider
 from momento.config.auth_configuration import AuthConfiguration
 from momento.errors.error_converter import convert_error
+from momento.internal._utilities._data_validation import validate_disposable_token_expiry
 from momento.internal._utilities._permissions import permissions_from_disposable_token_scope
 from momento.internal.aio._scs_grpc_manager import _TokenGrpcManager
 from momento.internal.services import Service
 from momento.responses.auth.generate_disposable_token import GenerateDisposableToken, GenerateDisposableTokenResponse
 from momento.utilities.expiration import ExpiresIn
-from momento.utilities.shared_sync_asyncio import validate_disposable_token_expiry
 
 
 class _ScsTokenClient:
