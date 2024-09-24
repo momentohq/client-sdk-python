@@ -15,7 +15,7 @@ from momento.responses.data.scalar.set import CacheSet
 from momento.responses.pubsub.publish import TopicPublish
 from momento.responses.pubsub.subscribe import TopicSubscribe
 from momento.topic_client_async import TopicClientAsync
-from momento.utilities.expiration import ExpiresIn
+from momento.utilities import ExpiresIn
 
 from tests.utils import uuid_str
 
