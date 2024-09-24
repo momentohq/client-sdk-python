@@ -9,7 +9,7 @@ from momento.auth.credential_provider import CredentialProvider
 from momento.config.auth_configuration import AuthConfiguration
 from momento.internal.synchronous._scs_token_client import _ScsTokenClient
 from momento.responses.auth.generate_disposable_token import GenerateDisposableTokenResponse
-from momento.utilities.expiration import ExpiresIn
+from momento.utilities import ExpiresIn
 
 
 class AuthClient:

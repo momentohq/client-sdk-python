@@ -13,7 +13,7 @@ from momento.internal._utilities._permissions import permissions_from_disposable
 from momento.internal.services import Service
 from momento.internal.synchronous._scs_grpc_manager import _TokenGrpcManager
 from momento.responses.auth.generate_disposable_token import GenerateDisposableToken, GenerateDisposableTokenResponse
-from momento.utilities.expiration import ExpiresIn
+from momento.utilities import ExpiresIn
 
 
 class _ScsTokenClient:

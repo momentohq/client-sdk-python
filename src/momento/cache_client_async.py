@@ -8,7 +8,7 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration
 from momento.errors import UnknownException
-from momento.internal._utilities._data_validation import _validate_eager_connection_timeout
+from momento.internal._utilities import _validate_eager_connection_timeout
 from momento.requests import CollectionTtl, SortOrder
 from momento.utilities.shared_sync_asyncio import (
     DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS,

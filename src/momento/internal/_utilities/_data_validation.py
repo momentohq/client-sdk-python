@@ -15,7 +15,7 @@ from momento.typing import (
     TSortedSetElements,
     TSortedSetValues,
 )
-from momento.utilities.expiration import ExpiresIn
+from momento.utilities import ExpiresIn
 
 DEFAULT_BYTES_CONVERSION_ERROR = "Could not convert the given type to bytes: "
 DEFAULT_LIST_CONVERSION_ERROR = "The given type is not list[str | bytes]: "
