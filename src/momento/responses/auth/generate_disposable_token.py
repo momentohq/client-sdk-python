@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from momento_wire_types import token_pb2 as token_pb
 
 from momento.responses.response import AuthResponse
-from momento.utilities.expiration import ExpiresAt
+from momento.utilities import ExpiresAt
 
 from ..mixins import ErrorResponseMixin
 

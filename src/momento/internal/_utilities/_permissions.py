@@ -25,7 +25,7 @@ from momento.auth.access_control.permission_scope import (
     TopicPermission,
     TopicRole,
 )
-from tests.utils import str_to_bytes
+from momento.utilities.shared_sync_asyncio import str_to_bytes
 
 
 class SuperuserPermissions(PredefinedScope):
