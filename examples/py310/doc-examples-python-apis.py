@@ -21,8 +21,8 @@ from momento.responses import (
     TopicPublish,
     TopicSubscribe,
     TopicSubscriptionItem,
+    GenerateDisposableToken,
 )
-from momento.responses.auth.generate_disposable_token import GenerateDisposableToken
 from momento.utilities import ExpiresIn
 
 

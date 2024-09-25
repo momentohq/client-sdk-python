@@ -194,13 +194,13 @@ testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pyfakefs
 
 [[package]]
 name = "momento"
-version = "1.23.1"
+version = "1.23.3"
 description = "SDK for Momento"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "momento-1.23.1-py3-none-any.whl", hash = "sha256:0d3c6cf1d385b1dc39fdc681b17f89940ea2ad9cb664ed43eda20ef1d8c08586"},
-    {file = "momento-1.23.1.tar.gz", hash = "sha256:cd21ab24701e39a1b566fbb338a72dd12fefd1113cbbc90a1817323f30d74653"},
+    {file = "momento-1.23.3-py3-none-any.whl", hash = "sha256:887c4f3b2f2ee865e36217628df02a6645a6acccf8e708ff3f10878bba03bc6e"},
+    {file = "momento-1.23.3.tar.gz", hash = "sha256:6ce839256066ab95e9ec393d97b05bdf60de028b788c0b8a9215615f056662c9"},
 ]
 
 [package.dependencies]
@@ -447,4 +447,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<3.12"
-content-hash = "47976d25cb6984b34d497b4f44a518172008d3067f46882099b680e670257f55"
+content-hash = "49fd442057f6a9b8412fe38a3dc3c900f54a5326f794c8bf8cbaf721fed051b0"
