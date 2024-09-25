@@ -23,7 +23,7 @@ from momento.responses import (
     TopicSubscriptionItem,
 )
 from momento.responses.auth.generate_disposable_token import GenerateDisposableToken
-from momento.utilities.expiration import ExpiresIn
+from momento.utilities import ExpiresIn
 
 
 def example_API_CredentialProviderFromEnvVar():
