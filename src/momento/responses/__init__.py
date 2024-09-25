@@ -227,4 +227,5 @@ __all__ = [
     "PubsubResponse",
     "AuthResponse",
     "GenerateDisposableTokenResponse",
+    "GenerateDisposableToken",
 ]
