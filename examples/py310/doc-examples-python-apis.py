@@ -8,6 +8,9 @@ from momento import (
     TopicClientAsync,
     TopicConfigurations,
 )
+from momento.auth.access_control.disposable_token_scope import DisposableTokenProps
+from momento.auth.access_control.disposable_token_scopes import DisposableTokenScopes
+from momento.auth_client_async import AuthClientAsync
 from momento.responses import (
     CacheDelete,
     CacheGet,
@@ -19,6 +22,8 @@ from momento.responses import (
     TopicSubscribe,
     TopicSubscriptionItem,
 )
+from momento.responses.auth.generate_disposable_token import GenerateDisposableToken
+from momento.utilities import ExpiresIn
 
 
 def example_API_CredentialProviderFromEnvVar():
@@ -167,6 +172,32 @@ async def example_API_TopicPublish(topic_client: TopicClientAsync):
 # end example
 
 
+async def example_API_InstantiateAuthClient():
+    AuthClientAsync(
+        Configurations.Laptop.latest(),
+        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+    )
+
+
+# end example
+
+
+async def example_API_GenerateDisposableToken(auth_client: AuthClientAsync):
+    response = await auth_client.generate_disposable_token(
+        DisposableTokenScopes.topic_publish_subscribe("a-cache", "a-topic"),
+        ExpiresIn.minutes(5),
+        DisposableTokenProps(token_id="a-token-id"),
+    )
+    match response:
+        case GenerateDisposableToken.Success():
+            print("Successfully generated a disposable token")
+        case GenerateDisposableToken.Error() as error:
+            print(f"Error generating a disposable token: {error.message}")
+
+
+# end example
+
+
 async def main():
     example_API_CredentialProviderFromEnvVar()
 
@@ -196,6 +227,13 @@ async def main():
     await example_API_TopicSubscribe(topic_client)
     await topic_client.close()
 
+    auth_client = AuthClientAsync(
+        Configurations.Laptop.latest(),
+        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+    )
+    await example_API_InstantiateAuthClient()
+    await example_API_GenerateDisposableToken(auth_client)
+    await auth_client.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
