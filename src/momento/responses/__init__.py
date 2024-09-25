@@ -13,7 +13,7 @@ you can access the concrete types in the namespace of the name, eg:
 
 from momento.responses.control.cache.flush import CacheFlush, CacheFlushResponse
 
-from .auth.generate_disposable_token import GenerateDisposableTokenResponse
+from .auth.generate_disposable_token import GenerateDisposableToken, GenerateDisposableTokenResponse
 from .control.cache.create import CreateCache, CreateCacheResponse
 from .control.cache.delete import DeleteCache, DeleteCacheResponse
 from .control.cache.list import ListCaches, ListCachesResponse
