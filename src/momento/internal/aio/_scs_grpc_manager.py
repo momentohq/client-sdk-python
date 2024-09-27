@@ -15,7 +15,7 @@ from momento.config import Configuration, TopicConfiguration
 from momento.config.auth_configuration import AuthConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.exceptions import ConnectionException
-from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType, momento_version
+from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
 )
@@ -38,8 +38,6 @@ from ._retry_interceptor import RetryInterceptor
 class _ControlGrpcManager:
     """Internal gRPC control manager."""
 
-    version = momento_version
-
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.control_endpoint,
@@ -61,8 +59,6 @@ class _ControlGrpcManager:
 
 class _DataGrpcManager:
     """Internal gRPC data manager."""
-
-    version = momento_version
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._logger = logs.logger
@@ -139,8 +135,6 @@ class _DataGrpcManager:
 class _PubsubGrpcManager:
     """Internal gRPC pubsub manager."""
 
-    version = momento_version
-
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         # NOTE: This is hard-coded for now but we may want to expose it via TopicConfiguration in the future, as we do with some of the other clients.
         grpc_config = StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))
@@ -162,8 +156,6 @@ class _PubsubGrpcManager:
 class _PubsubGrpcStreamManager:
     """Internal gRPC pubsub stream manager."""
 
-    version = momento_version
-
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         # NOTE: This is hard-coded for now but we may want to expose it via TopicConfiguration in the future, as we do with some of the other clients.
         grpc_config = StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))
@@ -184,8 +176,6 @@ class _PubsubGrpcStreamManager:
 
 class _TokenGrpcManager:
     """Internal gRPC token manager."""
-
-    version = momento_version
 
     def __init__(self, configuration: AuthConfiguration, credential_provider: CredentialProvider):
         self._secure_channel = grpc.aio.secure_channel(
@@ -209,9 +199,11 @@ class _TokenGrpcManager:
 def _interceptors(
     auth_token: str, client_type: ClientType, retry_strategy: Optional[RetryStrategy] = None
 ) -> list[grpc.aio.ClientInterceptor]:
+    from momento import __version__ as momento_version
+
     headers = [
         Header("authorization", auth_token),
-        Header("agent", f"python:{client_type.value}:{_ControlGrpcManager.version}"),
+        Header("agent", f"python:{client_type.value}:{momento_version}"),
         Header("runtime-version", f"python {PYTHON_RUNTIME_VERSION}"),
     ]
     return list(
@@ -226,9 +218,12 @@ def _interceptors(
 
 
 def _stream_interceptors(auth_token: str, client_type: ClientType) -> list[grpc.aio.UnaryStreamClientInterceptor]:
+    # This is a workaround to avoid circular imports.
+    from momento import __version__ as momento_version
+
     headers = [
         Header("authorization", auth_token),
-        Header("agent", f"python:{client_type.value}:{_PubsubGrpcStreamManager.version}"),
+        Header("agent", f"python:{client_type.value}:{momento_version}"),
         Header("runtime-version", f"python {PYTHON_RUNTIME_VERSION}"),
     ]
     return [AddHeaderStreamingClientInterceptor(headers)]
