@@ -16,5 +16,6 @@
       "hidden": false
     }
   ],
-  "extra-files": ["src/momento/__init__.py"]
+  "extra-files": ["src/momento/__init__.py"],
+  ".": "1.23.3"
 }
