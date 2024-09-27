@@ -30,7 +30,7 @@ from tests.utils import str_to_bytes
 
 
 def test_creates_expected_grpc_permissions_for_internal_superuser_permissions() -> None:
-    expected_permission = permissions_pb.Permissions(super_user=permissions_pb.SuperUserPermissions.SuperUser)
+    expected_permission = permissions_pb.Permissions(super_user=permissions_pb.SuperUserPermissions.SuperUser)  # type: ignore[attr-defined]
     constructed_permission = permissions_from_permission_scope(PermissionScope(SuperuserPermissions()))
     assert expected_permission == constructed_permission
 

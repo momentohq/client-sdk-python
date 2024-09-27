@@ -34,7 +34,7 @@ class SuperuserPermissions(PredefinedScope):
 
 def permissions_from_permission_scope(scope: PermissionScope) -> permissions_pb.Permissions:
     if isinstance(scope.permission_scope, SuperuserPermissions):
-        return permissions_pb.Permissions(super_user=permissions_pb.SuperUserPermissions.SuperUser)
+        return permissions_pb.Permissions(super_user=permissions_pb.SuperUserPermissions.SuperUser)  # type: ignore[attr-defined,misc]
     elif isinstance(scope.permission_scope, Permissions) and not isinstance(scope.permission_scope, PredefinedScope):
         converted_perms = [
             token_permission_to_grpc_permission(permission) for permission in scope.permission_scope.permissions
