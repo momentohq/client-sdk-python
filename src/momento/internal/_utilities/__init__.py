@@ -16,6 +16,5 @@ from ._data_validation import (
     _validate_topic_name,
     _validate_ttl,
 )
-from ._momento_version import momento_version
 from ._python_runtime_version import PYTHON_RUNTIME_VERSION
 from ._time import _timedelta_to_ms

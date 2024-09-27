@@ -1,4 +1,4 @@
-from momento.internal._utilities import momento_version
+from momento import __version__ as momento_version
 
 
 def test_momento_version() -> None:

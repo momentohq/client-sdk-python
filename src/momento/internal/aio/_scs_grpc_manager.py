@@ -10,12 +10,13 @@ from momento_wire_types import cachepubsub_pb2_grpc as pubsub_client
 from momento_wire_types import controlclient_pb2_grpc as control_client
 from momento_wire_types import token_pb2_grpc as token_client
 
+from momento import __version__ as momento_version
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.auth_configuration import AuthConfiguration
 from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.exceptions import ConnectionException
-from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType, momento_version
+from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
 )
