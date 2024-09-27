@@ -117,11 +117,19 @@ module = "momento.internal._utilities._momento_version"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
+# reading an enum in a protobuf generated class
+module = "momento.internal._utilities._permissions"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
 module = "tests.*"
 disallow_any_expr = false
 disallow_any_decorated = false
 disallow_untyped_decorators = false
 
+[[tool.mypy.overrides]]
+module = "tests.momento.auth_client.test_permissions"
+ignore_errors = true
 
 [tool.ruff]
 select = [
