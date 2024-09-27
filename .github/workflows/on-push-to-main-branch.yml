@@ -42,7 +42,7 @@ jobs:
           token: ${{ secrets.MOMENTO_MACHINE_USER_GITHUB_TOKEN }}
           release-type: python
 
-  publish-python:
+  publish:
     needs: [release-please]
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-24.04
@@ -53,13 +53,29 @@ jobs:
       - name: Setup repo
         uses: actions/checkout@v4
 
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.3.1
+          virtualenvs-in-project: true
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Build package
+        run: poetry build
+
       - name: Publish package
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYTHON_CUSTOMER_SDK_PYPI_TOKEN }}
         run: |
-          set -e
-          set -x
           if [ -z "$VERSION" ]
           then
             echo "Unable to determine SDK version!  Exiting!"
             exit 1
           fi
+
           echo "Going to publish version=$VERSION"
+          poetry publish
