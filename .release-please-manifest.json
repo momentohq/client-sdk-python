@@ -19,5 +19,5 @@
   "extra-files": [
     "src/momento/__init__.py"
   ],
-  ".": "1.23.5"
+  ".": "1.24.0"
 }
