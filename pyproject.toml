@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "momento"
-version = "0.0.0"
+version = "1.23.5"
 
 authors = ["Momento <hello@momentohq.com>"]
 description = "SDK for Momento"
