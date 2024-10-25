@@ -1,22 +1,22 @@
 <head>
-  <meta name="Momento Python Client Library Documentation" content="Python client software development kit for Momento Cache">
+  <meta name="Momento Client Library Documentation for Python" content="Momento client software development kit for Python">
 </head>
 <img src="https://docs.momentohq.com/img/momento-logo-forest.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 [![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-stable.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 
-# Momento Python Client Library
+# Momento Client Library for Python
 
 Momento Cache is a fast, simple, pay-as-you-go caching solution without any of the operational overhead
-required by traditional caching solutions.  This repo contains the source code for the Momento Python client library.
+required by traditional caching solutions.  This repo contains the source code for the Momento client library for Python.
 
 To get started with Momento you will need a Momento Auth Token. You can get one from the [Momento Console](https://console.gomomento.com).
 
 * Website: [https://www.gomomento.com/](https://www.gomomento.com/)
 * Momento Documentation: [https://docs.momentohq.com/](https://docs.momentohq.com/)
 * Getting Started: [https://docs.momentohq.com/getting-started](https://docs.momentohq.com/getting-started)
-* Python SDK Documentation: [https://docs.momentohq.com/sdks/python](https://docs.momentohq.com/sdks/python)
+* Momento SDK Documentation for Python: [https://docs.momentohq.com/sdks/python](https://docs.momentohq.com/sdks/python)
 * Discuss: [Momento Discord](https://discord.gg/3HkAKjUZGq)
 
 ## Packages
