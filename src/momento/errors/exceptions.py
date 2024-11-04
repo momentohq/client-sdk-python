@@ -1,4 +1,5 @@
-from typing import Optional
+from enum import Enum
+from typing import Optional, Union
 
 from momento.errors import MomentoErrorCode, MomentoErrorTransportDetails
 from momento.internal.services import Service
@@ -213,8 +214,63 @@ class LimitExceededException(SdkException):
             MomentoErrorCode.LIMIT_EXCEEDED_ERROR,
             service,
             transport_details,
-            message_wrapper="Request rate, bandwidth, or object size exceeded the limits for this account. To resolve this error, reduce your usage as appropriate or contact us at support@momentohq.com to request a limit increase",  # noqa: E501
+            message_wrapper=determineLimitExceededMessageWrapper(transport_details),  # noqa: E501
         )
+
+
+class LimitExceededMessageWrapper(Enum):
+    TOPIC_SUBSCRIPTIONS_LIMIT_EXCEEDED = "Topic subscriptions limit exceeded for this account"
+    OPERATIONS_RATE_LIMIT_EXCEEDED = "Request rate limit exceeded for this account"
+    THROUGHPUT_LIMIT_EXCEEDED = "Bandwidth limit exceeded for this account"
+    REQUEST_SIZE_LIMIT_EXCEEDED = "Request size limit exceeded for this account"
+    ITEM_SIZE_LIMIT_EXCEEDED = "Item size limit exceeded for this account"
+    ELEMENTS_SIZE_LIMIT_EXCEEDED = "Element size limit exceeded for this account"
+    UNKNOWN_LIMIT_EXCEEDED = "Limit exceeded for this account"
+
+
+def determineLimitExceededMessageWrapper(transport_details: Optional[MomentoErrorTransportDetails] = None) -> str:
+    # If provided, use the `err` metadata to determine the specific message wrapper to return.
+    if transport_details is not None and transport_details.grpc.metadata is not None:  # type: ignore[misc]
+        # Note: the async client returns trailers as `grpc.aio._metadata.Metadata` while the sync client
+        # returns trailers as a tuple, so we use a for...in loop to retrieve `err` in both cases.
+        err_cause: Union[str, None] = None
+        for key, value in transport_details.grpc.metadata:  # type: ignore[misc]
+            if key == "err":  # type: ignore[misc]
+                err_cause = value
+                break
+
+        if err_cause is not None:
+            if err_cause == "topic_subscriptions_limit_exceeded":
+                return LimitExceededMessageWrapper.TOPIC_SUBSCRIPTIONS_LIMIT_EXCEEDED.value
+            if err_cause == "operations_rate_limit_exceeded":
+                return LimitExceededMessageWrapper.OPERATIONS_RATE_LIMIT_EXCEEDED.value
+            if err_cause == "throughput_rate_limit_exceeded":
+                return LimitExceededMessageWrapper.THROUGHPUT_LIMIT_EXCEEDED.value
+            if err_cause == "request_size_limit_exceeded":
+                return LimitExceededMessageWrapper.REQUEST_SIZE_LIMIT_EXCEEDED.value
+            if err_cause == "item_size_limit_exceeded":
+                return LimitExceededMessageWrapper.ITEM_SIZE_LIMIT_EXCEEDED.value
+            if err_cause == "element_size_limit_exceeded":
+                return LimitExceededMessageWrapper.ELEMENTS_SIZE_LIMIT_EXCEEDED.value
+
+    # If `err` metadata is unavailable, try to use the error details field to return
+    # an appropriate message wrapper.
+    if transport_details is not None and transport_details.grpc.details is not None:
+        lower_cased_message = transport_details.grpc.details.lower()
+        if "subscribe" in lower_cased_message:
+            return LimitExceededMessageWrapper.TOPIC_SUBSCRIPTIONS_LIMIT_EXCEEDED.value
+        elif "operations" in lower_cased_message:
+            return LimitExceededMessageWrapper.OPERATIONS_RATE_LIMIT_EXCEEDED.value
+        elif "throughput" in lower_cased_message:
+            return LimitExceededMessageWrapper.THROUGHPUT_LIMIT_EXCEEDED.value
+        elif "request limit" in lower_cased_message:
+            return LimitExceededMessageWrapper.REQUEST_SIZE_LIMIT_EXCEEDED.value
+        elif "item size" in lower_cased_message:
+            return LimitExceededMessageWrapper.ITEM_SIZE_LIMIT_EXCEEDED.value
+        elif "element size" in lower_cased_message:
+            return LimitExceededMessageWrapper.ELEMENTS_SIZE_LIMIT_EXCEEDED.value
+
+    return LimitExceededMessageWrapper.UNKNOWN_LIMIT_EXCEEDED.value
 
 
 class NotFoundException(SdkException):

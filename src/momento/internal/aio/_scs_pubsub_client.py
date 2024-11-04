@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 
+import grpc
 from momento_wire_types import cachepubsub_pb2 as pubsub_pb
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_grpc
 
@@ -72,6 +73,9 @@ class _ScsPubsubClient:
                 request,
             )
             return TopicPublish.Success()
+        except grpc.RpcError as rpc_error:  # type: ignore[misc]
+            self._log_request_error("publish", rpc_error)  # type: ignore[misc]
+            return TopicPublish.Error(convert_error(rpc_error, Service.TOPICS, rpc_error.trailing_metadata()))  # type: ignore[misc]
         except Exception as e:
             self._log_request_error("publish", e)
             return TopicPublish.Error(convert_error(e, Service.TOPICS))
@@ -101,6 +105,9 @@ class _ScsPubsubClient:
                 self._log_request_error("subscribe", err)
                 return TopicSubscribe.Error(convert_error(err, Service.TOPICS))
             return TopicSubscribe.SubscriptionAsync(cache_name, topic_name, client_stream=stream)  # type: ignore[misc]
+        except grpc.RpcError as rpc_error:  # type: ignore[misc]
+            self._log_request_error("subscribe", rpc_error)  # type: ignore[misc]
+            return TopicSubscribe.Error(convert_error(rpc_error, Service.TOPICS, rpc_error.trailing_metadata()))  # type: ignore[misc]
         except Exception as e:
             self._log_request_error("subscribe", e)
             return TopicSubscribe.Error(convert_error(e, Service.TOPICS))

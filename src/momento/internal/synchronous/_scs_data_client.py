@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Any, Optional
 
+import grpc
 from momento_wire_types import cacheclient_pb2 as cache_pb
 from momento_wire_types import cacheclient_pb2_grpc as cache_grpc
 
@@ -189,6 +190,9 @@ class _ScsDataClient:
             )
             self._log_received_response("Increment", {"key": str(key), "amount": str(amount)})
             return CacheIncrement.Success(response.value)
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("increment", rpc_error)
+            return CacheIncrement.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("increment", e)
             return CacheIncrement.Error(convert_error(e, Service.CACHE))
@@ -214,6 +218,9 @@ class _ScsDataClient:
 
             self._log_received_response("Set", {"key": str(key)})
             return CacheSet.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("set", rpc_error)
+            return CacheSet.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("set", e)
             return CacheSet.Error(convert_error(e, Service.CACHE))
@@ -245,6 +252,9 @@ class _ScsDataClient:
                 return CacheSetIfNotExists.NotStored()
             else:
                 raise UnknownException("SetIfNotExists responded with an unknown result")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("set_if_not_exists", rpc_error)
+            return CacheSetIfNotExists.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("set_if_not_exists", e)
             return CacheSetIfNotExists.Error(convert_error(e, Service.CACHE))
@@ -268,6 +278,9 @@ class _ScsDataClient:
                 return CacheGet.Miss()
             else:
                 raise UnknownException("Get responded with an unknown result")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("get", rpc_error)
+            return CacheGet.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("get", e)
             return CacheGet.Error(convert_error(e, Service.CACHE))
@@ -284,6 +297,9 @@ class _ScsDataClient:
 
             self._log_received_response("Delete", {"key": str(key)})
             return CacheDelete.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("delete", rpc_error)
+            return CacheDelete.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("delete", e)
             return CacheDelete.Error(convert_error(e, Service.CACHE))
@@ -326,6 +342,11 @@ class _ScsDataClient:
                 return CacheDictionaryGetFields.Miss()
             else:
                 raise UnknownException("Unknown dictionary field")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("dictionary_get_fields", rpc_error)
+            return CacheDictionaryGetFields.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("dictionary_get_fields", e)
             return CacheDictionaryGetFields.Error(convert_error(e, Service.CACHE))
@@ -354,6 +375,9 @@ class _ScsDataClient:
                 return CacheDictionaryFetch.Hit({item.field: item.value for item in response.found.items})
             else:
                 raise UnknownException("Unknown dictionary field")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("dictionary_fetch", rpc_error)
+            return CacheDictionaryFetch.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("dictionary_fetch", e)
             return CacheDictionaryFetch.Error(convert_error(e, Service.CACHE))
@@ -385,6 +409,11 @@ class _ScsDataClient:
             )
             self._log_received_response("DictionaryIncrement", {"dictionary_name": dictionary_name})
             return CacheDictionaryIncrement.Success(response.value)
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("dictionary_increment", rpc_error)
+            return CacheDictionaryIncrement.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("dictionary_increment", e)
             return CacheDictionaryIncrement.Error(convert_error(e, Service.CACHE))
@@ -414,6 +443,11 @@ class _ScsDataClient:
             )
             self._log_received_response("DictionaryDelete", {"dictionary_name": dictionary_name})
             return CacheDictionaryRemoveFields.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("dictionary_remove_fields", rpc_error)
+            return CacheDictionaryRemoveFields.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("dictionary_remove_fields", e)
             return CacheDictionaryRemoveFields.Error(convert_error(e, Service.CACHE))
@@ -448,6 +482,11 @@ class _ScsDataClient:
             )
             self._log_received_response("DictionarySet", {"dictionary_name": dictionary_name})
             return CacheDictionarySetFields.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("dictionary_set_fields", rpc_error)
+            return CacheDictionarySetFields.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("dictionary_set_fields", e)
             return CacheDictionarySetFields.Error(convert_error(e, Service.CACHE))
@@ -480,6 +519,11 @@ class _ScsDataClient:
             )
             self._log_received_response("ListConcatenateBack", {"list_name": str(request.list_name)})
             return CacheListConcatenateBack.Success(response.list_length)
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_concatenate_back", rpc_error)
+            return CacheListConcatenateBack.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("list_concatenate_back", e)
             return CacheListConcatenateBack.Error(convert_error(e, Service.CACHE))
@@ -511,6 +555,11 @@ class _ScsDataClient:
             )
             self._log_received_response("ListConcatenateFront", {"list_name": str(request.list_name)})
             return CacheListConcatenateFront.Success(response.list_length)
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_concatenate_front", rpc_error)
+            return CacheListConcatenateFront.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("list_concatenate_front", e)
             return CacheListConcatenateFront.Error(convert_error(e, Service.CACHE))
@@ -535,6 +584,9 @@ class _ScsDataClient:
                 return CacheListFetch.Hit(list(response.found.values))
             else:
                 raise UnknownException("Unknown list field")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_fetch", rpc_error)
+            return CacheListFetch.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("list_fetch", e)
             return CacheListFetch.Error(convert_error(e, Service.CACHE))
@@ -559,6 +611,9 @@ class _ScsDataClient:
                 return CacheListLength.Hit(response.found.length)
             else:
                 raise UnknownException("Unknown list field")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_length", rpc_error)
+            return CacheListLength.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("list_length", e)
             return CacheListLength.Error(convert_error(e, Service.CACHE))
@@ -585,6 +640,9 @@ class _ScsDataClient:
                 return CacheListPopBack.Hit(response.found.back)
             else:
                 raise UnknownException("Unknown list field")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_pop_back", rpc_error)
+            return CacheListPopBack.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("list_pop_back", e)
             return CacheListPopBack.Error(convert_error(e, Service.CACHE))
@@ -611,6 +669,9 @@ class _ScsDataClient:
                 return CacheListPopFront.Hit(response.found.front)
             else:
                 raise UnknownException("Unknown list field")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_pop_front", rpc_error)
+            return CacheListPopFront.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("list_pop_front", e)
             return CacheListPopFront.Error(convert_error(e, Service.CACHE))
@@ -642,6 +703,9 @@ class _ScsDataClient:
             )
             self._log_received_response("ListPushBack", {"list_name": str(request.list_name)})
             return CacheListPushBack.Success(response.list_length)
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_push_back", rpc_error)
+            return CacheListPushBack.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("list_push_back", e)
             return CacheListPushBack.Error(convert_error(e, Service.CACHE))
@@ -673,6 +737,9 @@ class _ScsDataClient:
             )
             self._log_received_response("ListPushFront", {"list_name": str(request.list_name)})
             return CacheListPushFront.Success(response.list_length)
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_push_front", rpc_error)
+            return CacheListPushFront.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("list_push_front", e)
             return CacheListPushFront.Error(convert_error(e, Service.CACHE))
@@ -700,6 +767,9 @@ class _ScsDataClient:
             )
             self._log_received_response("ListRemoveValue", {"list_name": str(request.list_name)})
             return CacheListRemoveValue.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("list_remove_value", rpc_error)
+            return CacheListRemoveValue.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("list_remove_value", e)
             return CacheListRemoveValue.Error(convert_error(e, Service.CACHE))
@@ -730,6 +800,9 @@ class _ScsDataClient:
             )
             self._log_received_response("SetAddElements", {"set_name": str(request.set_name)})
             return CacheSetAddElements.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("set_add_elements", rpc_error)
+            return CacheSetAddElements.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("set_add_elements", e)
             return CacheSetAddElements.Error(convert_error(e, Service.CACHE))
@@ -759,6 +832,9 @@ class _ScsDataClient:
                 return CacheSetFetch.Hit(set(response.found.elements))
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("set_fetch", rpc_error)
+            return CacheSetFetch.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("set_fetch", e)
             return CacheSetFetch.Error(convert_error(e, Service.CACHE))
@@ -787,6 +863,9 @@ class _ScsDataClient:
             )
             self._log_received_response("SetRemoveElements", {"set_name": str(request.set_name)})
             return CacheSetRemoveElements.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("set_remove_elements", rpc_error)
+            return CacheSetRemoveElements.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("set_remove_elements", e)
             return CacheSetRemoveElements.Error(convert_error(e, Service.CACHE))
@@ -820,6 +899,11 @@ class _ScsDataClient:
             )
             self._log_received_response("SortedSetPutElements", {"sorted_set_name": str(request.set_name)})
             return CacheSortedSetPutElements.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("sorted_set_put_elements", rpc_error)
+            return CacheSortedSetPutElements.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("sorted_set_put_elements", e)
             return CacheSortedSetPutElements.Error(convert_error(e, Service.CACHE))
@@ -882,6 +966,9 @@ class _ScsDataClient:
                 return CacheSortedSetFetch.Hit([(e.value, e.score) for e in response.found.values_with_scores.elements])
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("sorted_set_fetch_by_score", rpc_error)
+            return CacheSortedSetFetch.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("sorted_set_fetch_by_score", e)
             return CacheSortedSetFetch.Error(convert_error(e, Service.CACHE))
@@ -932,6 +1019,9 @@ class _ScsDataClient:
                 return CacheSortedSetFetch.Hit([(e.value, e.score) for e in response.found.values_with_scores.elements])
             else:
                 raise UnknownException(f"Unknown set field in response: {type}")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("sorted_set_fetch_by_rank", rpc_error)
+            return CacheSortedSetFetch.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("sorted_set_fetch_by_rank", e)
             return CacheSortedSetFetch.Error(convert_error(e, Service.CACHE))
@@ -969,6 +1059,9 @@ class _ScsDataClient:
                 return CacheSortedSetGetScores.Miss()
             else:
                 raise UnknownException(f"Unknown field in response: {type}")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("sorted_set_get_scores", rpc_error)
+            return CacheSortedSetGetScores.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("sorted_set_get_scores", e)
             return CacheSortedSetGetScores.Error(convert_error(e, Service.CACHE))
@@ -1008,6 +1101,9 @@ class _ScsDataClient:
                 return CacheSortedSetGetRank.Miss()
             else:
                 raise UnknownException(f"Unknown field in response: {type}")
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("sorted_set_get_rank", rpc_error)
+            return CacheSortedSetGetRank.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._log_request_error("sorted_set_get_rank", e)
             return CacheSortedSetGetRank.Error(convert_error(e, Service.CACHE))
@@ -1038,6 +1134,11 @@ class _ScsDataClient:
             self._log_received_response("SortedSetRemoveElements", {"sorted_set_name": str(request.set_name)})
 
             return CacheSortedSetRemoveElements.Success()
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("sorted_set_remove_elements", rpc_error)
+            return CacheSortedSetRemoveElements.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("sorted_set_remove_elements", e)
             return CacheSortedSetRemoveElements.Error(convert_error(e, Service.CACHE))
@@ -1071,6 +1172,11 @@ class _ScsDataClient:
             self._log_received_response("SortedSetIncrement", {"sorted_set_name": str(request.set_name)})
 
             return CacheSortedSetIncrementScore.Success(response.score)
+        except grpc.RpcError as rpc_error:
+            self._log_request_error("sorted_set_increment_score", rpc_error)
+            return CacheSortedSetIncrementScore.Error(
+                convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata())
+            )
         except Exception as e:
             self._log_request_error("sorted_set_increment_score", e)
             return CacheSortedSetIncrementScore.Error(convert_error(e, Service.CACHE))

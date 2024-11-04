@@ -1,5 +1,6 @@
 from typing import Optional
 
+import grpc
 from momento_wire_types import token_pb2 as token_pb
 from momento_wire_types import token_pb2_grpc as token_grpc
 
@@ -53,6 +54,9 @@ class _ScsTokenClient:
             )
             response = self._build_stub().GenerateDisposableToken(request)  # type: ignore[misc]
             return GenerateDisposableToken.Success.from_grpc_response(response)  # type: ignore[misc]
+        except grpc.RpcError as rpc_error:  # type: ignore[misc]
+            self._logger.debug("Failed to generate disposable token with rpc error: %s", rpc_error)  # type: ignore[misc]
+            return GenerateDisposableToken.Error(convert_error(rpc_error, Service.AUTH, rpc_error.trailing_metadata()))  # type: ignore[misc]
         except Exception as e:
             self._logger.debug("Failed to generate disposable token with exception: %s", e)
             return GenerateDisposableToken.Error(convert_error(e, Service.AUTH))
