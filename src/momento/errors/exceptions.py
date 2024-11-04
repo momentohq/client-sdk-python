@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
 from momento.errors import MomentoErrorCode, MomentoErrorTransportDetails
 from momento.internal.services import Service
@@ -228,30 +228,29 @@ class LimitExceededMessageWrapper(Enum):
     UNKNOWN_LIMIT_EXCEEDED = "Limit exceeded for this account"
 
 
+LIMIT_EXCEEDED_ERROR_TO_MESSAGE_WRAPPER = {
+    "topic_subscriptions_limit_exceeded": LimitExceededMessageWrapper.TOPIC_SUBSCRIPTIONS_LIMIT_EXCEEDED.value,
+    "operations_rate_limit_exceeded": LimitExceededMessageWrapper.OPERATIONS_RATE_LIMIT_EXCEEDED.value,
+    "throughput_rate_limit_exceeded": LimitExceededMessageWrapper.THROUGHPUT_LIMIT_EXCEEDED.value,
+    "request_size_limit_exceeded": LimitExceededMessageWrapper.REQUEST_SIZE_LIMIT_EXCEEDED.value,
+    "item_size_limit_exceeded": LimitExceededMessageWrapper.ITEM_SIZE_LIMIT_EXCEEDED.value,
+    "element_size_limit_exceeded": LimitExceededMessageWrapper.ELEMENTS_SIZE_LIMIT_EXCEEDED.value,
+}
+
+
 def determineLimitExceededMessageWrapper(transport_details: Optional[MomentoErrorTransportDetails] = None) -> str:
     # If provided, use the `err` metadata to determine the specific message wrapper to return.
     if transport_details is not None and transport_details.grpc.metadata is not None:  # type: ignore[misc]
         # Note: the async client returns trailers as `grpc.aio._metadata.Metadata` while the sync client
         # returns trailers as a tuple, so we use a for...in loop to retrieve `err` in both cases.
-        err_cause: Union[str, None] = None
+        err_cause: Optional[str] = None
         for key, value in transport_details.grpc.metadata:  # type: ignore[misc]
             if key == "err":  # type: ignore[misc]
                 err_cause = value
                 break
 
         if err_cause is not None:
-            if err_cause == "topic_subscriptions_limit_exceeded":
-                return LimitExceededMessageWrapper.TOPIC_SUBSCRIPTIONS_LIMIT_EXCEEDED.value
-            if err_cause == "operations_rate_limit_exceeded":
-                return LimitExceededMessageWrapper.OPERATIONS_RATE_LIMIT_EXCEEDED.value
-            if err_cause == "throughput_rate_limit_exceeded":
-                return LimitExceededMessageWrapper.THROUGHPUT_LIMIT_EXCEEDED.value
-            if err_cause == "request_size_limit_exceeded":
-                return LimitExceededMessageWrapper.REQUEST_SIZE_LIMIT_EXCEEDED.value
-            if err_cause == "item_size_limit_exceeded":
-                return LimitExceededMessageWrapper.ITEM_SIZE_LIMIT_EXCEEDED.value
-            if err_cause == "element_size_limit_exceeded":
-                return LimitExceededMessageWrapper.ELEMENTS_SIZE_LIMIT_EXCEEDED.value
+            return LIMIT_EXCEEDED_ERROR_TO_MESSAGE_WRAPPER[err_cause]
 
     # If `err` metadata is unavailable, try to use the error details field to return
     # an appropriate message wrapper.
