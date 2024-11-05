@@ -78,6 +78,13 @@ def convert_error(
     if isinstance(exception, grpc.RpcError):
         status_code: grpc.StatusCode = exception.code()
         details = exception.details()
+
+        # `err` metadata can be found only in the trailers of the grpc.RpcError type
+        trailers = exception.trailing_metadata()
+        if isinstance(trailers, list) or isinstance(trailers, tuple):
+            trailers = _synchronous_metadata_to_metadata(exception.trailing_metadata())
+        transport_metadata = _combine_metadata_with_trailers(transport_metadata, trailers)
+
         transport_details = MomentoErrorTransportDetails(
             MomentoGrpcErrorDetails(status_code, details, transport_metadata)
         )
@@ -106,3 +113,22 @@ def _synchronous_metadata_to_metadata(metadata: list[Tuple[str, str]]) -> Metada
     for key, value in metadata:
         new_metadata.add(key, value)
     return new_metadata
+
+
+def _combine_metadata_with_trailers(metadata: Optional[Metadata], trailers: Metadata) -> Metadata:
+    """Combine two metadata objects into a single metadata object.
+
+    Args:
+        metadata (Optional[Metadata]): The first metadata object.
+        trailers (Metadata): The second metadata object.
+
+    Returns:
+        Metadata: The combined metadata object.
+    """
+    combined_metadata = Metadata()
+    if metadata is not None:
+        for key, value in metadata:
+            combined_metadata.add(key, value)
+    for key, value in trailers:
+        combined_metadata.add(key, value)
+    return combined_metadata

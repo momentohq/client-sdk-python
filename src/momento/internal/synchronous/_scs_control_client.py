@@ -51,11 +51,6 @@ class _ScsControlClient:
             _validate_cache_name(cache_name)
             request = ctrl_pb._CreateCacheRequest(cache_name=cache_name)
             self._build_stub().CreateCache(request, timeout=_DEADLINE_SECONDS)
-        except grpc.RpcError as rpc_error:
-            self._logger.debug("Failed to create cache: %s with rpc error: %s", cache_name, rpc_error)
-            if rpc_error.code() == grpc.StatusCode.ALREADY_EXISTS:
-                return CreateCache.CacheAlreadyExists()
-            return CreateCache.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._logger.debug("Failed to create cache: %s with exception: %s", cache_name, e)
             if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.ALREADY_EXISTS:
@@ -69,9 +64,6 @@ class _ScsControlClient:
             _validate_cache_name(cache_name)
             request = ctrl_pb._DeleteCacheRequest(cache_name=cache_name)
             self._build_stub().DeleteCache(request, timeout=_DEADLINE_SECONDS)
-        except grpc.RpcError as rpc_error:
-            self._logger.debug("Failed to delete cache: %s with rpc error: %s", cache_name, rpc_error)
-            return DeleteCache.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             self._logger.debug("Failed to delete cache: %s with exception: %s", cache_name, e)
             return DeleteCache.Error(convert_error(e, Service.CACHE))
@@ -82,8 +74,6 @@ class _ScsControlClient:
             list_caches_request = ctrl_pb._ListCachesRequest(next_token="")
             response = self._build_stub().ListCaches(list_caches_request, timeout=_DEADLINE_SECONDS)
             return ListCaches.Success.from_grpc_response(response)
-        except grpc.RpcError as rpc_error:
-            return ListCaches.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             return ListCaches.Error(convert_error(e, Service.CACHE))
 
@@ -93,8 +83,6 @@ class _ScsControlClient:
             request = ctrl_pb._FlushCacheRequest(cache_name=cache_name)
             self._build_stub().FlushCache(request, timeout=_DEADLINE_SECONDS)
             return CacheFlush.Success()
-        except grpc.RpcError as rpc_error:
-            return CacheFlush.Error(convert_error(rpc_error, Service.CACHE, rpc_error.trailing_metadata()))
         except Exception as e:
             return CacheFlush.Error(convert_error(e, Service.CACHE))
 
@@ -107,9 +95,6 @@ class _ScsControlClient:
             create_signing_key_request = ctrl_pb._CreateSigningKeyRequest(ttl_minutes=ttl_minutes)
             response = self._build_stub().CreateSigningKey(create_signing_key_request, timeout=_DEADLINE_SECONDS)
             return CreateSigningKey.Success.from_grpc_response(response, endpoint)
-        except grpc.RpcError as rpc_error:
-            self._logger.warning(f"Failed to create signing key with rpc error: {rpc_error}")
-            return CreateSigningKey.Error(convert_error(rpc_error, Service.AUTH, rpc_error.trailing_metadata()))
         except Exception as e:
             self._logger.warning(f"Failed to create signing key with exception: {e}")
             return CreateSigningKey.Error(convert_error(e, Service.AUTH))
@@ -120,9 +105,6 @@ class _ScsControlClient:
             request = ctrl_pb._RevokeSigningKeyRequest(key_id=key_id)
             self._build_stub().RevokeSigningKey(request, timeout=_DEADLINE_SECONDS)
             return RevokeSigningKey.Success()
-        except grpc.RpcError as rpc_error:
-            self._logger.warning(f"Failed to revoke signing key with key_id {key_id} rpc error: {rpc_error}")
-            return RevokeSigningKey.Error(convert_error(rpc_error, Service.AUTH, rpc_error.trailing_metadata()))
         except Exception as e:
             self._logger.warning(f"Failed to revoke signing key with key_id {key_id} exception: {e}")
             return RevokeSigningKey.Error(convert_error(e, Service.AUTH))
@@ -136,9 +118,6 @@ class _ScsControlClient:
                 response,
                 endpoint,
             )
-        except grpc.RpcError as rpc_error:
-            self._logger.warning(f"Failed to list signing keys with rpc error: {rpc_error}")
-            return ListSigningKeys.Error(convert_error(rpc_error, Service.AUTH, rpc_error.trailing_metadata()))
         except Exception as e:
             self._logger.warning(f"Failed to list signing keys with exception: {e}")
             return ListSigningKeys.Error(convert_error(e, Service.AUTH))

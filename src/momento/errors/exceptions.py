@@ -241,14 +241,7 @@ LIMIT_EXCEEDED_ERROR_TO_MESSAGE_WRAPPER = {
 def determineLimitExceededMessageWrapper(transport_details: Optional[MomentoErrorTransportDetails] = None) -> str:
     # If provided, use the `err` metadata to determine the specific message wrapper to return.
     if transport_details is not None and transport_details.grpc.metadata is not None:  # type: ignore[misc]
-        # Note: the async client returns trailers as `grpc.aio._metadata.Metadata` while the sync client
-        # returns trailers as a tuple, so we use a for...in loop to retrieve `err` in both cases.
-        err_cause: Optional[str] = None
-        for key, value in transport_details.grpc.metadata:  # type: ignore[misc]
-            if key == "err":  # type: ignore[misc]
-                err_cause = value
-                break
-
+        err_cause: Optional[str] = transport_details.grpc.metadata.get("err")  # type: ignore[misc]
         if err_cause is not None:
             return LIMIT_EXCEEDED_ERROR_TO_MESSAGE_WRAPPER[err_cause]
 
