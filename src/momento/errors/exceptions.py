@@ -242,7 +242,7 @@ def determineLimitExceededMessageWrapper(transport_details: Optional[MomentoErro
     # If provided, use the `err` metadata to determine the specific message wrapper to return.
     if transport_details is not None and transport_details.grpc.metadata is not None:  # type: ignore[misc]
         err_cause: Optional[str] = transport_details.grpc.metadata.get("err")  # type: ignore[misc]
-        if err_cause is not None:
+        if err_cause is not None and err_cause in LIMIT_EXCEEDED_ERROR_TO_MESSAGE_WRAPPER:
             return LIMIT_EXCEEDED_ERROR_TO_MESSAGE_WRAPPER[err_cause]
 
     # If `err` metadata is unavailable, try to use the error details field to return
