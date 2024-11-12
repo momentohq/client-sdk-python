@@ -1,4 +1,5 @@
 {
+  "release-type": "python",
   "changelog-sections": [
     {
       "type": "feat",
