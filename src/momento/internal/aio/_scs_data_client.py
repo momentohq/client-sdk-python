@@ -5,6 +5,7 @@ from typing import Any, Optional
 
 from momento_wire_types import cacheclient_pb2 as cache_pb
 from momento_wire_types import cacheclient_pb2_grpc as cache_grpc
+from momento_wire_types import common_pb2 as common_pb
 
 from momento import logs
 from momento.auth import CredentialProvider
@@ -848,12 +849,12 @@ class _ScsDataClient:
             if min_score is not None:
                 request.by_score.min_score.score = min_score
             else:
-                request.by_score.unbounded_min.CopyFrom(cache_pb._Unbounded())
+                request.by_score.unbounded_min.CopyFrom(common_pb._Unbounded())
 
             if max_score is not None:
                 request.by_score.max_score.score = max_score
             else:
-                request.by_score.unbounded_max.CopyFrom(cache_pb._Unbounded())
+                request.by_score.unbounded_max.CopyFrom(common_pb._Unbounded())
 
             if offset is not None:
                 request.by_score.offset = offset
@@ -908,12 +909,12 @@ class _ScsDataClient:
             if start_rank is not None:
                 request.by_index.inclusive_start_index = start_rank
             else:
-                request.by_index.unbounded_start.CopyFrom(cache_pb._Unbounded())
+                request.by_index.unbounded_start.CopyFrom(common_pb._Unbounded())
 
             if end_rank is not None:
                 request.by_index.exclusive_end_index = end_rank
             else:
-                request.by_index.unbounded_end.CopyFrom(cache_pb._Unbounded())
+                request.by_index.unbounded_end.CopyFrom(common_pb._Unbounded())
 
             if sort_order == SortOrder.ASCENDING:
                 request.order = cache_pb._SortedSetFetchRequest.ASCENDING
