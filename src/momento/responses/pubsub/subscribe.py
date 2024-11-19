@@ -37,11 +37,13 @@ class TopicSubscribe(ABC):
 
         _logger = logs.logger
         _last_known_sequence_number: Optional[int] = None
+        _last_known_sequence_page: Optional[int] = None
 
         def _process_result(self, result: cachepubsub_pb2._SubscriptionItem) -> Optional[TopicSubscriptionItemResponse]:
             msg_type: str = result.WhichOneof("kind")
             if msg_type == "item":
                 self._last_known_sequence_number = result.item.topic_sequence_number
+                self._last_known_sequence_page = result.item.sequence_page
                 value = result.item.value
                 value_type: str = value.WhichOneof("kind")
                 if value_type == "text":

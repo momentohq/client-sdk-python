@@ -76,7 +76,13 @@ class _ScsPubsubClient:
             self._log_request_error("publish", e)
             return TopicPublish.Error(convert_error(e, Service.TOPICS))
 
-    async def subscribe(self, cache_name: str, topic_name: str) -> TopicSubscribeResponse:
+    async def subscribe(
+        self,
+        cache_name: str,
+        topic_name: str,
+        resume_at_topic_sequence_number: int = 0,
+        resume_at_topic_sequence_page: int = 0,
+    ) -> TopicSubscribeResponse:
         try:
             _validate_cache_name(cache_name)
             _validate_topic_name(topic_name)
@@ -84,7 +90,8 @@ class _ScsPubsubClient:
             request = pubsub_pb._SubscriptionRequest(
                 cache_name=cache_name,
                 topic=topic_name,
-                # TODO: resume_at_topic_sequence_number
+                resume_at_topic_sequence_number=resume_at_topic_sequence_number,
+                sequence_page=resume_at_topic_sequence_page,
             )
             stream = self._get_stream_stub().Subscribe(  # type: ignore[misc]
                 request,
