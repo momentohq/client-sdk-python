@@ -85,17 +85,23 @@ class TopicClient:
         self,
         cache_name: str,
         topic_name: str,
+        resume_at_topic_sequence_number: int = 0,
+        resume_at_topic_sequence_page: int = 0,
     ) -> TopicSubscribeResponse:
         """Subscribes to a topic.
 
         Args:
             cache_name (str): The cache to subscribe to.
             topic_name (str): The topic to subscribe to.
+            resume_at_topic_sequence_number (int): The sequence number to resume at.
+            resume_at_topic_sequence_page (int): The page number to resume at.
 
         Returns:
             TopicSubscribeResponse
         """
-        return self._pubsub_client.subscribe(cache_name, topic_name)
+        return self._pubsub_client.subscribe(
+            cache_name, topic_name, resume_at_topic_sequence_number, resume_at_topic_sequence_page
+        )
 
     def close(self) -> None:
         self._pubsub_client.close()

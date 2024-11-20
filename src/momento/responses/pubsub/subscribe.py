@@ -47,9 +47,13 @@ class TopicSubscribe(ABC):
                 value = result.item.value
                 value_type: str = value.WhichOneof("kind")
                 if value_type == "text":
-                    return TopicSubscriptionItem.Text(value.text)
+                    return TopicSubscriptionItem.Text(
+                        value.text, self._last_known_sequence_number, self._last_known_sequence_page
+                    )
                 elif value_type == "binary":
-                    return TopicSubscriptionItem.Binary(value.binary)
+                    return TopicSubscriptionItem.Binary(
+                        value.binary, self._last_known_sequence_number, self._last_known_sequence_page
+                    )
                 else:
                     err = SdkException(
                         f"Could not find matching TopicSubscriptionItem response for type: {value_type}",

@@ -65,6 +65,44 @@ def describe_subscribe() -> None:
         assert isinstance(item_response, TopicSubscriptionItem.Text)
         assert item_response.value == value
 
+    async def subscribe_happy_path_string_resume_at_sequence(
+        client: CacheClientAsync, topic_client_async: TopicClientAsync, cache_name: str
+    ) -> None:
+        topic = uuid_str()
+        value = uuid_str()
+
+        _ = await topic_client_async.publish(cache_name, topic_name=topic, value="foo")
+        _ = await topic_client_async.publish(cache_name, topic_name=topic, value="bar")
+        _ = await topic_client_async.publish(cache_name, topic_name=topic, value=value)
+
+        subscribe_response = await topic_client_async.subscribe(
+            cache_name, topic_name=topic, resume_at_topic_sequence_number=3
+        )
+        assert isinstance(subscribe_response, TopicSubscribe.SubscriptionAsync)
+
+        item_task = subscribe_response.__anext__()
+        item_response = await item_task
+        assert isinstance(item_response, TopicSubscriptionItem.Text)
+        assert item_response.value == value
+
+    async def subscribe_happy_path_string_resume_at_invalid_sequence(
+        client: CacheClientAsync, topic_client_async: TopicClientAsync, cache_name: str
+    ) -> None:
+        topic = uuid_str()
+        value = uuid_str()
+
+        _ = await topic_client_async.publish(cache_name, topic_name=topic, value=value)
+
+        subscribe_response = await topic_client_async.subscribe(
+            cache_name, topic_name=topic, resume_at_topic_sequence_number=300, resume_at_topic_sequence_page=5435435
+        )
+        assert isinstance(subscribe_response, TopicSubscribe.SubscriptionAsync)
+
+        item_task = subscribe_response.__anext__()
+        item_response = await item_task
+        assert isinstance(item_response, TopicSubscriptionItem.Text)
+        assert item_response.value == value
+
     async def subscribe_happy_path_binary(
         client: CacheClientAsync, topic_client_async: TopicClientAsync, cache_name: str
     ) -> None:
