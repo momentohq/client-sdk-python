@@ -93,8 +93,10 @@ class TopicClient:
         Args:
             cache_name (str): The cache to subscribe to.
             topic_name (str): The topic to subscribe to.
-            resume_at_topic_sequence_number (int): The sequence number to resume at.
-            resume_at_topic_sequence_page (int): The page number to resume at.
+            resume_at_topic_sequence_number (int): The sequence number to resume at. Omit or use 0 to start at the
+                latest messages.
+            resume_at_topic_sequence_page (int): The page number to resume at. Omit or use 0 to start at the
+                latest messages.
 
         Returns:
             TopicSubscribeResponse
