@@ -29,7 +29,9 @@ def describe_publish() -> None:
         value = uuid_str()
         return partial(topic_client_async.publish, cache_name=cache_name, value=value)
 
-    async def publish_happy_path(topic_client_async: TopicClientAsync, cache_name: str) -> None:
+    async def publish_happy_path(
+        client: CacheClientAsync, topic_client_async: TopicClientAsync, cache_name: str
+    ) -> None:
         topic = uuid_str()
         value = uuid_str()
 

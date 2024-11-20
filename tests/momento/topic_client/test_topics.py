@@ -29,7 +29,7 @@ def describe_publish() -> None:
         value = uuid_str()
         return partial(topic_client.publish, cache_name=cache_name, value=value)
 
-    def publish_happy_path(topic_client: TopicClient, cache_name: str) -> None:
+    def publish_happy_path(client: CacheClient, topic_client: TopicClient, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_str()
 
