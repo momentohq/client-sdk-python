@@ -74,11 +74,11 @@ def describe_subscribe() -> None:
         value = uuid_str()
 
         _ = await topic_client_async.publish(cache_name, topic_name=topic, value="foo")
-        _ = await topic_client_async.publish(cache_name, topic_name=topic, value="bar")
         _ = await topic_client_async.publish(cache_name, topic_name=topic, value=value)
+        _ = await topic_client_async.publish(cache_name, topic_name=topic, value="bar")
 
         subscribe_response = await topic_client_async.subscribe(
-            cache_name, topic_name=topic, resume_at_topic_sequence_number=3
+            cache_name, topic_name=topic, resume_at_topic_sequence_number=2
         )
         assert isinstance(subscribe_response, TopicSubscribe.SubscriptionAsync)
 

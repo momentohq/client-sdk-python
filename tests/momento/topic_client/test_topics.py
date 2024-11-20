@@ -69,10 +69,10 @@ def describe_subscribe() -> None:
         value = uuid_str()
 
         _ = topic_client.publish(cache_name, topic_name=topic, value="foo")
-        _ = topic_client.publish(cache_name, topic_name=topic, value="bar")
         _ = topic_client.publish(cache_name, topic_name=topic, value=value)
+        _ = topic_client.publish(cache_name, topic_name=topic, value="bar")
 
-        subscribe_response = topic_client.subscribe(cache_name, topic_name=topic, resume_at_topic_sequence_number=3)
+        subscribe_response = topic_client.subscribe(cache_name, topic_name=topic, resume_at_topic_sequence_number=2)
         assert isinstance(subscribe_response, TopicSubscribe.Subscription)
 
         item_response = next(subscribe_response)
