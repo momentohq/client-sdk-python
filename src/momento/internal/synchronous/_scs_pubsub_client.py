@@ -76,6 +76,9 @@ class _ScsPubsubClient:
             self._log_request_error("publish", e)
             return TopicPublish.Error(convert_error(e, Service.TOPICS))
 
+    # TODO: when we support reconnecting to a subscription, we can make use of the resume_* parameters.
+    #  Also, if we expose discontinuities and heartbeats in this SDK, we can add these parameters
+    #  to the topic clients as well for the user to control.
     def subscribe(
         self,
         cache_name: str,
