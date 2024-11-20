@@ -1,6 +1,6 @@
 from functools import partial
 
-from momento import CacheClientAsync, TopicClientAsync
+from momento import TopicClientAsync
 from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from pytest import fixture
 from pytest_describe import behaves_like
@@ -29,9 +29,7 @@ def describe_publish() -> None:
         value = uuid_str()
         return partial(topic_client_async.publish, cache_name=cache_name, value=value)
 
-    async def publish_happy_path(
-        topic_client_async: TopicClientAsync, cache_name: str
-    ) -> None:
+    async def publish_happy_path(topic_client_async: TopicClientAsync, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_str()
 
@@ -51,9 +49,7 @@ def describe_subscribe() -> None:
         cache_name = uuid_str()
         return partial(topic_client_async.subscribe, cache_name=cache_name)
 
-    async def subscribe_happy_path_string(
-        topic_client_async: TopicClientAsync, cache_name: str
-    ) -> None:
+    async def subscribe_happy_path_string(topic_client_async: TopicClientAsync, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_str()
 
@@ -105,9 +101,7 @@ def describe_subscribe() -> None:
         assert isinstance(item_response, TopicSubscriptionItem.Text)
         assert item_response.value == value
 
-    async def subscribe_happy_path_binary(
-        topic_client_async: TopicClientAsync, cache_name: str
-    ) -> None:
+    async def subscribe_happy_path_binary(topic_client_async: TopicClientAsync, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_bytes()
 
@@ -122,9 +116,7 @@ def describe_subscribe() -> None:
         assert isinstance(item_response, TopicSubscriptionItem.Binary)
         assert item_response.value == value
 
-    async def succeeds_with_nonexistent_topic(
-        topic_client_async: TopicClientAsync, cache_name: str
-    ) -> None:
+    async def succeeds_with_nonexistent_topic(topic_client_async: TopicClientAsync, cache_name: str) -> None:
         topic = uuid_str()
 
         resp = await topic_client_async.subscribe(cache_name, topic)

@@ -1,6 +1,6 @@
 from functools import partial
 
-from momento import CacheClient, TopicClient
+from momento import TopicClient
 from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from pytest import fixture
 from pytest_describe import behaves_like
@@ -29,7 +29,7 @@ def describe_publish() -> None:
         value = uuid_str()
         return partial(topic_client.publish, cache_name=cache_name, value=value)
 
-    def publish_happy_path(client: CacheClient, topic_client: TopicClient, cache_name: str) -> None:
+    def publish_happy_path(topic_client: TopicClient, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_str()
 
@@ -63,9 +63,7 @@ def describe_subscribe() -> None:
         assert isinstance(item_response, TopicSubscriptionItem.Text)
         assert item_response.value == value
 
-    def subscribe_happy_path_string_with_nonzero_resume(
-        topic_client: TopicClient, cache_name: str
-    ) -> None:
+    def subscribe_happy_path_string_with_nonzero_resume(topic_client: TopicClient, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_str()
 
@@ -83,9 +81,7 @@ def describe_subscribe() -> None:
         assert isinstance(item_response, TopicSubscriptionItem.Text)
         assert item_response.value == value
 
-    def subscribe_happy_path_string_with_discontinuity(
-        topic_client: TopicClient, cache_name: str
-    ) -> None:
+    def subscribe_happy_path_string_with_discontinuity(topic_client: TopicClient, cache_name: str) -> None:
         topic = uuid_str()
         value = uuid_str()
 

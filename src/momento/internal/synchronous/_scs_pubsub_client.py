@@ -77,11 +77,11 @@ class _ScsPubsubClient:
             return TopicPublish.Error(convert_error(e, Service.TOPICS))
 
     def subscribe(
-            self,
-            cache_name: str,
-            topic_name: str,
-            resume_at_topic_sequence_number: int = 0,
-            resume_at_topic_sequence_page: int = 0,
+        self,
+        cache_name: str,
+        topic_name: str,
+        resume_at_topic_sequence_number: int = 0,
+        resume_at_topic_sequence_page: int = 0,
     ) -> TopicSubscribeResponse:
         try:
             _validate_cache_name(cache_name)

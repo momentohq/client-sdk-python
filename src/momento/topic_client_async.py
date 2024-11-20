@@ -101,7 +101,9 @@ class TopicClientAsync:
         Returns:
             TopicSubscribeResponse
         """
-        return await self._pubsub_client.subscribe(cache_name, topic_name, resume_at_topic_sequence_number, resume_at_topic_sequence_page)
+        return await self._pubsub_client.subscribe(
+            cache_name, topic_name, resume_at_topic_sequence_number, resume_at_topic_sequence_page
+        )
 
     async def close(self) -> None:
         await self._pubsub_client.close()
