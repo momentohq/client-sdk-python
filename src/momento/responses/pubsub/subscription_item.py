@@ -37,12 +37,16 @@ class TopicSubscriptionItem(ABC):
         """Indicates the request was successful and value will be returned as a string."""
 
         value: str
+        sequence_number: int
+        sequence_page: int
 
     @dataclass
     class Binary(TopicSubscriptionItemResponse):
         """Indicates the request was successful and value will be returned as bytes."""
 
         value: bytes
+        sequence_number: int
+        sequence_page: int
 
     class Error(TopicSubscriptionItemResponse, ErrorResponseMixin):
         """Contains information about an error returned from a request.
