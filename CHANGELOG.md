@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.1](https://github.com/momentohq/client-sdk-python/compare/v1.25.0...v1.25.1) (2024-12-06)
+
+
+### Miscellaneous
+
+* **deps:** bump momento from 1.23.3 to 1.25.0 in /examples ([#493](https://github.com/momentohq/client-sdk-python/issues/493)) ([3e1d086](https://github.com/momentohq/client-sdk-python/commit/3e1d08636d087e309089b6d91810505ff9bb6b33))
+* update list of retryable gRPC functions ([#495](https://github.com/momentohq/client-sdk-python/issues/495)) ([b8e527c](https://github.com/momentohq/client-sdk-python/commit/b8e527c8c3b6335ecf1966cc7cd63702088e3f99))
+
 ## [1.25.0](https://github.com/momentohq/client-sdk-python/compare/v1.24.0...v1.25.0) (2024-11-21)
 
 
