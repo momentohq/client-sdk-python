@@ -50,6 +50,7 @@ def grpc_topic_channel_options_from_grpc_config(grpc_config: TopicGrpcConfigurat
 
     return channel_options
 
+
 def grpc_data_channel_options_from_grpc_config(grpc_config: GrpcConfiguration) -> ChannelArguments:
     """Create gRPC channel options from a GrpcConfiguration.
 

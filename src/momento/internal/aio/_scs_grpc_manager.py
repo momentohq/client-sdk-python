@@ -139,7 +139,9 @@ class _PubsubGrpcManager:
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, None),
-            options=grpc_topic_channel_options_from_grpc_config(configuration.get_transport_strategy().get_grpc_configuration()),
+            options=grpc_topic_channel_options_from_grpc_config(
+                configuration.get_transport_strategy().get_grpc_configuration()
+            ),
         )
 
     async def close(self) -> None:
@@ -157,7 +159,9 @@ class _PubsubGrpcStreamManager:
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_stream_interceptors(credential_provider.auth_token, ClientType.TOPIC),
-            options=grpc_topic_channel_options_from_grpc_config(configuration.get_transport_strategy().get_grpc_configuration()),
+            options=grpc_topic_channel_options_from_grpc_config(
+                configuration.get_transport_strategy().get_grpc_configuration()
+            ),
         )
 
     async def close(self) -> None:

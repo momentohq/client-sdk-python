@@ -155,7 +155,9 @@ class _PubsubGrpcManager:
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            options=grpc_topic_channel_options_from_grpc_config(configuration.get_transport_strategy().get_grpc_configuration()),
+            options=grpc_topic_channel_options_from_grpc_config(
+                configuration.get_transport_strategy().get_grpc_configuration()
+            ),
         )
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_interceptors(credential_provider.auth_token, ClientType.TOPIC, None)
@@ -176,7 +178,9 @@ class _PubsubGrpcStreamManager:
         self._secure_channel = grpc.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
-            options=grpc_topic_channel_options_from_grpc_config(configuration.get_transport_strategy().get_grpc_configuration()),
+            options=grpc_topic_channel_options_from_grpc_config(
+                configuration.get_transport_strategy().get_grpc_configuration()
+            ),
         )
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_stream_interceptors(credential_provider.auth_token, ClientType.TOPIC)
