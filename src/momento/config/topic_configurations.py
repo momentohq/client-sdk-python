@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
+from momento.config.transport.topic_transport_strategy import StaticTopicGrpcConfiguration, StaticTopicTransportStrategy
+
 from .topic_configuration import TopicConfiguration
 
 
@@ -21,4 +25,7 @@ class TopicConfigurations:
 
             This configuration is guaranteed not to change in future releases of the Momento Python SDK.
             """
-            return TopicConfigurations.Default(max_subscriptions=0)
+            return TopicConfigurations.Default(
+                StaticTopicTransportStrategy(StaticTopicGrpcConfiguration(deadline=timedelta(seconds=5))),
+                max_subscriptions=0,
+            )

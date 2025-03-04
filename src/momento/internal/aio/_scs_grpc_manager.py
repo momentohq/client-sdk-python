@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import timedelta
 from typing import Optional
 
 import grpc
@@ -13,7 +12,6 @@ from momento_wire_types import token_pb2_grpc as token_client
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.auth_configuration import AuthConfiguration
-from momento.config.transport.transport_strategy import StaticGrpcConfiguration
 from momento.errors.exceptions import ConnectionException
 from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType
 from momento.internal._utilities._channel_credentials import (
@@ -22,6 +20,7 @@ from momento.internal._utilities._channel_credentials import (
 from momento.internal._utilities._grpc_channel_options import (
     grpc_control_channel_options_from_grpc_config,
     grpc_data_channel_options_from_grpc_config,
+    grpc_topic_channel_options_from_grpc_config,
 )
 from momento.internal.services import Service
 from momento.retry import RetryStrategy
@@ -136,14 +135,11 @@ class _PubsubGrpcManager:
     """Internal gRPC pubsub manager."""
 
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
-        # NOTE: This is hard-coded for now but we may want to expose it via TopicConfiguration in the future, as we do with some of the other clients.
-        grpc_config = StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))
-
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, None),
-            options=grpc_data_channel_options_from_grpc_config(grpc_config),
+            options=grpc_topic_channel_options_from_grpc_config(configuration.get_transport_strategy().get_grpc_configuration()),
         )
 
     async def close(self) -> None:
@@ -157,14 +153,11 @@ class _PubsubGrpcStreamManager:
     """Internal gRPC pubsub stream manager."""
 
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
-        # NOTE: This is hard-coded for now but we may want to expose it via TopicConfiguration in the future, as we do with some of the other clients.
-        grpc_config = StaticGrpcConfiguration(deadline=timedelta(milliseconds=1100))
-
         self._secure_channel = grpc.aio.secure_channel(
             target=credential_provider.cache_endpoint,
             credentials=grpc.ssl_channel_credentials(),
             interceptors=_stream_interceptors(credential_provider.auth_token, ClientType.TOPIC),
-            options=grpc_data_channel_options_from_grpc_config(grpc_config),
+            options=grpc_topic_channel_options_from_grpc_config(configuration.get_transport_strategy().get_grpc_configuration()),
         )
 
     async def close(self) -> None:
