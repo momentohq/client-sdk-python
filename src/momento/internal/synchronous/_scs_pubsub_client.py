@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from momento_wire_types import cachepubsub_pb2 as pubsub_pb
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_grpc
@@ -37,7 +37,6 @@ class _ScsPubsubClient:
 
         default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
         self._default_deadline_seconds = default_deadline.total_seconds()
-        print("sync deadline: ", self._default_deadline_seconds)
 
         num_subscriptions = configuration.get_max_subscriptions()
         # Default to a single channel and scale up if necessary. Each channel can support

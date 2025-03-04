@@ -37,7 +37,6 @@ class _ScsPubsubClient:
 
         default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
         self._default_deadline_seconds = default_deadline.total_seconds()
-        print("aio deadline: ", self._default_deadline_seconds)
 
         num_subscriptions = configuration.get_max_subscriptions()
         # Default to a single channel and scale up if necessary. Each channel can support
