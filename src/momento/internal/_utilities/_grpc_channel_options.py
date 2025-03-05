@@ -36,6 +36,8 @@ def grpc_topic_channel_options_from_grpc_config(grpc_config: TopicGrpcConfigurat
         )
     )
 
+    channel_options.append(("grpc.service_config_disable_resolution", 1))
+
     keepalive_permit = grpc_config.get_keepalive_permit_without_calls()
     if keepalive_permit is not None:
         channel_options.append(("grpc.keepalive_permit_without_calls", keepalive_permit))
