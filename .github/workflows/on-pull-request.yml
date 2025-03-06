@@ -72,6 +72,8 @@ jobs:
             package: py310
           - python-version: "3.11"
             package: py310
+          - python-version: "3.12"
+            package: py310
       # For simplicity, the examples use a cache called "test-cache"
       # Therefore we cannot run them in parallel or else we could prematurely delete
       # the cache for one job in another job.
