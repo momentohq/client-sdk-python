@@ -26,6 +26,6 @@ class TopicConfigurations:
             This configuration is guaranteed not to change in future releases of the Momento Python SDK.
             """
             return TopicConfigurations.Default(
-                StaticTopicTransportStrategy(StaticTopicGrpcConfiguration(deadline=timedelta(seconds=10))),
+                StaticTopicTransportStrategy(StaticTopicGrpcConfiguration(deadline=timedelta(seconds=5))),
                 max_subscriptions=0,
             )
