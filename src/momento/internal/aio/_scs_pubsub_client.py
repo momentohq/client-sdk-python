@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from datetime import timedelta
 
 from momento_wire_types import cachepubsub_pb2 as pubsub_pb
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_grpc
@@ -33,6 +34,9 @@ class _ScsPubsubClient:
         self._logger = logs.logger
         self._logger.debug("Pubsub client instantiated with endpoint: %s", endpoint)
         self._endpoint = endpoint
+
+        default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
+        self._default_deadline_seconds = default_deadline.total_seconds()
 
         num_subscriptions = configuration.get_max_subscriptions()
         # Default to a single channel and scale up if necessary. Each channel can support
@@ -70,6 +74,7 @@ class _ScsPubsubClient:
 
             await self._get_stub().Publish(  # type: ignore[misc]
                 request,
+                timeout=self._default_deadline_seconds,
             )
             return TopicPublish.Success()
         except Exception as e:

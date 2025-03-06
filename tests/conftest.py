@@ -52,7 +52,7 @@ from tests.utils import (
 #######################
 
 TEST_CONFIGURATION = Configurations.Laptop.latest()
-TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest()
+TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest().with_client_timeout(timedelta(seconds=10))
 TEST_AUTH_CONFIGURATION = AuthConfigurations.Laptop.latest()
 
 
