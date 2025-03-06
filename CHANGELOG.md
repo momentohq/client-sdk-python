@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.26.0](https://github.com/momentohq/client-sdk-python/compare/v1.25.0...v1.26.0) (2025-03-06)
+
+
+### Features
+
+* add topic grpc config and transport strategy and make sure publish deadline is set ([#496](https://github.com/momentohq/client-sdk-python/issues/496)) ([bfac90d](https://github.com/momentohq/client-sdk-python/commit/bfac90d0c235ef79272ddbb54ad80b3ae7d65c82))
+
+
+### Bug Fixes
+
+* disable dynamic DNS service config ([#497](https://github.com/momentohq/client-sdk-python/issues/497)) ([d677563](https://github.com/momentohq/client-sdk-python/commit/d677563afe032e83324c5aff8e64d20152f622a1))
+
+
+### Miscellaneous
+
+* **deps:** bump momento from 1.23.3 to 1.25.0 in /examples ([#493](https://github.com/momentohq/client-sdk-python/issues/493)) ([3e1d086](https://github.com/momentohq/client-sdk-python/commit/3e1d08636d087e309089b6d91810505ff9bb6b33))
+* update list of retryable gRPC functions ([#495](https://github.com/momentohq/client-sdk-python/issues/495)) ([b8e527c](https://github.com/momentohq/client-sdk-python/commit/b8e527c8c3b6335ecf1966cc7cd63702088e3f99))
+
 ## [1.25.0](https://github.com/momentohq/client-sdk-python/compare/v1.24.0...v1.25.0) (2024-11-21)
 
 
