@@ -9,9 +9,8 @@ jobs:
     strategy:
       matrix:
         # TODO: one of the examples dependencies does not support 3.11
-        # TODO: there are grpcio compatibility issues with 3.13
         os: [ubuntu-24.04]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         new-python-protobuf: ["true"]
     runs-on: ${{ matrix.os }}
 
