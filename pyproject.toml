@@ -31,7 +31,11 @@ exclude = ["src/momento/internal/codegen.py"]
 python = "^3.7"
 
 momento-wire-types = "^0.119.4"
-grpcio = "^1.46.0"
+grpcio = [
+  { version = "^1.46.0", python = "<3.13" },
+  # v1.66.2 is the minimum grpcio version that supports python 3.13
+  { version = "^1.66.2", python = ">=3.13" },
+]
 # note if you bump this presigned url test need be updated
 pyjwt = "^2.4.0"
 
