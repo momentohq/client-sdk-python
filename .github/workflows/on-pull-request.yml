@@ -10,22 +10,8 @@ jobs:
       matrix:
         # TODO: one of the examples dependencies does not support 3.11
         os: [ubuntu-24.04]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         new-python-protobuf: ["true"]
-        include:
-          # 3.7 and 3.8 are no longer available on ubuntu-24.04
-          # We run on 20.04 which was the last version where this worked.
-          # If support for 20.04 becomes an issue, we can install 3.7 and 3.8
-          # with pyenv or manually.
-          - python-version: "3.7"
-            new-python-protobuf: "true"
-            os: ubuntu-20.04
-          - python-version: "3.7"
-            new-python-protobuf: "false"
-            os: ubuntu-20.04
-          - python-version: "3.8"
-            new-python-protobuf: "true"
-            os: ubuntu-20.04
     runs-on: ${{ matrix.os }}
 
     env:
@@ -84,6 +70,8 @@ jobs:
           - python-version: "3.10"
             package: py310
           - python-version: "3.11"
+            package: py310
+          - python-version: "3.12"
             package: py310
       # For simplicity, the examples use a cache called "test-cache"
       # Therefore we cannot run them in parallel or else we could prematurely delete
