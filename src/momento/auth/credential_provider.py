@@ -16,6 +16,7 @@ class CredentialProvider:
     control_endpoint: str
     cache_endpoint: str
     token_endpoint: str
+    port: int
 
     @staticmethod
     def from_environment_variable(
@@ -72,7 +73,23 @@ class CredentialProvider:
         cache_endpoint = cache_endpoint or token_and_endpoints.cache_endpoint
         token_endpoint = token_endpoint or token_and_endpoints.token_endpoint
         auth_token = token_and_endpoints.auth_token
-        return CredentialProvider(auth_token, control_endpoint, cache_endpoint, token_endpoint)
+        return CredentialProvider(auth_token, control_endpoint, cache_endpoint, token_endpoint, 443)
+
+    @staticmethod
+    def for_momento_local(
+        host: str = "127.0.0.1",
+        port: int = 8080,
+    ) -> CredentialProvider:
+        """Creates a credential provider for use with Momento Local.
+
+        Args:
+            host (str): the Momento Local host.
+            port (int): the Momento Local port.
+
+        Returns:
+            CredentialProvider
+        """
+        return CredentialProvider("", host, host, host, port)
 
     def __repr__(self) -> str:
         attributes: Dict[str, str] = copy.copy(vars(self))  # type: ignore[misc]

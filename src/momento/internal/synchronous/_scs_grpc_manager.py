@@ -34,44 +34,60 @@ from momento.retry import RetryStrategy
 
 
 class _ControlGrpcManager:
-    """Internal gRPC control mananger."""
+    """Internal gRPC control manager."""
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.secure_channel(
-            target=credential_provider.control_endpoint,
-            credentials=channel_credentials_from_root_certs_or_default(configuration),
-            options=grpc_control_channel_options_from_grpc_config(
-                grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
-            ),
-        )
+        if credential_provider.port == 443:
+            self._channel = grpc.secure_channel(
+                target=credential_provider.control_endpoint,
+                credentials=channel_credentials_from_root_certs_or_default(configuration),
+                options=grpc_control_channel_options_from_grpc_config(
+                    grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
+                ),
+            )
+        else:
+            self._channel = grpc.insecure_channel(
+                target=f"{credential_provider.control_endpoint}:{credential_provider.port}",
+                options=grpc_control_channel_options_from_grpc_config(
+                    grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
+                ),
+            )
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel,
+            self._channel,
             *_interceptors(credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()),
         )
         self._stub = control_client.ScsControlStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
-        self._secure_channel.close()
+        self._channel.close()
 
     def stub(self) -> control_client.ScsControlStub:
         return self._stub
 
 
 class _DataGrpcManager:
-    """Internal gRPC data mananger."""
+    """Internal gRPC data manager."""
 
     def __init__(self, configuration: Configuration, credential_provider: CredentialProvider):
         self._logger = logs.logger
-        self._secure_channel = grpc.secure_channel(
-            target=credential_provider.cache_endpoint,
-            credentials=channel_credentials_from_root_certs_or_default(configuration),
-            options=grpc_data_channel_options_from_grpc_config(
-                configuration.get_transport_strategy().get_grpc_configuration()
-            ),
-        )
+        if credential_provider.port == 443:
+            self._channel = grpc.secure_channel(
+                target=credential_provider.cache_endpoint,
+                credentials=channel_credentials_from_root_certs_or_default(configuration),
+                options=grpc_data_channel_options_from_grpc_config(
+                    configuration.get_transport_strategy().get_grpc_configuration()
+                ),
+            )
+        else:
+            self._channel = grpc.insecure_channel(
+                target=f"{credential_provider.cache_endpoint}:{credential_provider.port}",
+                options=grpc_data_channel_options_from_grpc_config(
+                    configuration.get_transport_strategy().get_grpc_configuration()
+                ),
+            )
 
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel,
+            self._channel,
             *_interceptors(credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()),
         )
         self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
@@ -97,8 +113,8 @@ class _DataGrpcManager:
                 timeout_seconds,
             )
             # the subscription is no longer needed; it was only meant to watch if we could connect eagerly
-            self._secure_channel.unsubscribe(on_state_change)
-            self._secure_channel.close()
+            self._channel.unsubscribe(on_state_change)
+            self._channel.close()
             raise ConnectionException(
                 message="Failed to connect to Momento's server within given eager connection timeout",
                 service=Service.CACHE,
@@ -118,7 +134,7 @@ class _DataGrpcManager:
             if state == ready:
                 self._logger.debug("Connected to Momento's server! Happy Caching!")
                 # we successfully connected within the timeout and we no longer need this subscription
-                self._secure_channel.unsubscribe(on_state_change)
+                self._channel.unsubscribe(on_state_change)
                 # this indicates to the connection event that we were successful in establishing an eager connection
                 connection_event.set()
 
@@ -129,12 +145,12 @@ class _DataGrpcManager:
             else:
                 self._logger.warn(f"Unexpected connection state while trying to eagerly connect: {state}")
                 # we could not connect within the timeout and we no longer need this subscription
-                self._secure_channel.unsubscribe(on_state_change)
+                self._channel.unsubscribe(on_state_change)
                 connection_event.set()
 
         # we subscribe to the channel that notifies us of state transitions, and the connection event above will take
         # care of unsubscribing from the channel incase the timeout has elapsed.
-        self._secure_channel.subscribe(on_state_change, try_to_connect=True)
+        self._channel.subscribe(on_state_change, try_to_connect=True)
 
         connection_established = connection_event.wait(timeout_seconds)
         if not connection_established:
@@ -142,7 +158,7 @@ class _DataGrpcManager:
 
     def close(self) -> None:
         self._logger.debug("Closing and tearing down gRPC channel")
-        self._secure_channel.close()
+        self._channel.close()
 
     def stub(self) -> cache_client.ScsStub:
         return self._stub
@@ -152,20 +168,28 @@ class _PubsubGrpcManager:
     """Internal gRPC pubsub manager."""
 
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.secure_channel(
-            target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
-            options=grpc_topic_channel_options_from_grpc_config(
-                configuration.get_transport_strategy().get_grpc_configuration()
-            ),
-        )
+        if credential_provider.port == 443:
+            self._channel = grpc.secure_channel(
+                target=credential_provider.cache_endpoint,
+                credentials=grpc.ssl_channel_credentials(),
+                options=grpc_topic_channel_options_from_grpc_config(
+                    configuration.get_transport_strategy().get_grpc_configuration()
+                ),
+            )
+        else:
+            self._channel = grpc.insecure_channel(
+                target=f"{credential_provider.cache_endpoint}:{credential_provider.port}",
+                options=grpc_topic_channel_options_from_grpc_config(
+                    configuration.get_transport_strategy().get_grpc_configuration()
+                ),
+            )
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel, *_interceptors(credential_provider.auth_token, ClientType.TOPIC, None)
+            self._channel, *_interceptors(credential_provider.auth_token, ClientType.TOPIC, None)
         )
         self._stub = pubsub_client.PubsubStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
-        self._secure_channel.close()
+        self._channel.close()
 
     def stub(self) -> pubsub_client.PubsubStub:
         return self._stub
@@ -175,13 +199,21 @@ class _PubsubGrpcStreamManager:
     """Internal gRPC pubsub stream manager."""
 
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.secure_channel(
-            target=credential_provider.cache_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
-            options=grpc_topic_channel_options_from_grpc_config(
-                configuration.get_transport_strategy().get_grpc_configuration()
-            ),
-        )
+        if credential_provider.port == 443:
+            self._secure_channel = grpc.secure_channel(
+                target=credential_provider.cache_endpoint,
+                credentials=grpc.ssl_channel_credentials(),
+                options=grpc_topic_channel_options_from_grpc_config(
+                    configuration.get_transport_strategy().get_grpc_configuration()
+                ),
+            )
+        else:
+            self._secure_channel = grpc.insecure_channel(
+                target=f"{credential_provider.cache_endpoint}:{credential_provider.port}",
+                options=grpc_topic_channel_options_from_grpc_config(
+                    configuration.get_transport_strategy().get_grpc_configuration()
+                ),
+            )
         intercept_channel = grpc.intercept_channel(
             self._secure_channel, *_stream_interceptors(credential_provider.auth_token, ClientType.TOPIC)
         )
@@ -198,21 +230,29 @@ class _TokenGrpcManager:
     """Internal gRPC token manager."""
 
     def __init__(self, configuration: AuthConfiguration, credential_provider: CredentialProvider):
-        self._secure_channel = grpc.secure_channel(
-            target=credential_provider.token_endpoint,
-            credentials=grpc.ssl_channel_credentials(),
-            options=grpc_control_channel_options_from_grpc_config(
-                grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
-            ),
-        )
+        if credential_provider.port == 443:
+            self._channel = grpc.secure_channel(
+                target=credential_provider.token_endpoint,
+                credentials=grpc.ssl_channel_credentials(),
+                options=grpc_control_channel_options_from_grpc_config(
+                    grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
+                ),
+            )
+        else:
+            self._channel = grpc.insecure_channel(
+                target=f"{credential_provider.token_endpoint}:{credential_provider.port}",
+                options=grpc_control_channel_options_from_grpc_config(
+                    grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
+                ),
+            )
         intercept_channel = grpc.intercept_channel(
-            self._secure_channel,
+            self._channel,
             *_interceptors(credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()),
         )
         self._stub = token_client.TokenStub(intercept_channel)  # type: ignore[no-untyped-call]
 
     def close(self) -> None:
-        self._secure_channel.close()
+        self._channel.close()
 
     def stub(self) -> token_client.TokenStub:
         return self._stub
