@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.27.0](https://github.com/momentohq/client-sdk-python/compare/v1.26.0...v1.27.0) (2025-04-03)
+
+
+### Features
+
+* Add a credential provider for Momento Local ([#501](https://github.com/momentohq/client-sdk-python/issues/501)) ([9f809c8](https://github.com/momentohq/client-sdk-python/commit/9f809c84bfbf35ce8576da773f419b7df741da20))
+
+
+### Miscellaneous
+
+* **deps:** bump momento from 1.25.0 to 1.26.0 in /examples ([#499](https://github.com/momentohq/client-sdk-python/issues/499)) ([a0a1382](https://github.com/momentohq/client-sdk-python/commit/a0a1382a66aa751354d19fd0f59d15388501729e))
+
 ## [1.26.0](https://github.com/momentohq/client-sdk-python/compare/v1.25.0...v1.26.0) (2025-03-06)
 
 
