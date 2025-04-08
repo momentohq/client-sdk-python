@@ -1,7 +1,7 @@
 import abc
 
-from momento.config.middleware import MiddlewareMessage, MiddlewareRequestHandlerContext, MiddlewareStatus
 from momento.config.middleware.aio.middleware_metadata import MiddlewareMetadata
+from momento.config.middleware.models import MiddlewareMessage, MiddlewareRequestHandlerContext, MiddlewareStatus
 
 
 class MiddlewareRequestHandler(abc.ABC):
