@@ -293,8 +293,8 @@ def _interceptors(
             None,
             [
                 AddHeaderClientInterceptor(headers),
-                MiddlewareInterceptor(middleware, context) if middleware else None,
                 RetryInterceptor(retry_strategy) if retry_strategy else None,
+                MiddlewareInterceptor(middleware, context) if middleware else None,
             ],
         )
     )

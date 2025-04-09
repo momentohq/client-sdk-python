@@ -25,17 +25,22 @@ class _ProcessedResponseCall(UnaryUnaryCall):
     def __init__(
         self,
         call: UnaryUnaryCall,
-        processed_response: T,
-        initial_metadata: Optional[Metadata],
-        status_code: grpc.StatusCode,
+        status_code: grpc.StatusCode = None,
+        processed_response: Optional[T] = None,
+        initial_metadata: Optional[Metadata] = None,
+        error: Optional[grpc.RpcError] = None,
     ) -> None:
         self._call = call
         self._initial_metadata = initial_metadata
         self._status_code = status_code
+        self._error = error
 
         # Create a future for the processed response
         self._response_future = asyncio.get_event_loop().create_future()
-        self._response_future.set_result(processed_response)
+        if error is not None:
+            self._response_future.set_exception(error)
+        elif processed_response is not None:
+            self._response_future.set_result(processed_response)
 
     async def initial_metadata(self) -> Metadata:
         if self._initial_metadata is not None:
@@ -124,9 +129,8 @@ class MiddlewareInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             )
             request = middleware_message.get_message()
 
+        call = await continuation(new_client_call_details, request)
         try:
-            call = await continuation(new_client_call_details, request)
-
             initial_metadata = await call.initial_metadata()
             response_metadata = await self.apply_handler_methods(
                 [handler.on_response_metadata for handler in reversed_handlers], MiddlewareMetadata(initial_metadata)
@@ -150,9 +154,9 @@ class MiddlewareInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             )
             status_code = middleware_status.grpc_status
 
-            return _ProcessedResponseCall(call, response, initial_metadata, status_code)
+            return _ProcessedResponseCall(call, status_code, response, initial_metadata)
         except grpc.RpcError as e:
             status = MiddlewareStatus(e.code())
             await self.apply_handler_methods([handler.on_response_status for handler in reversed_handlers], status)
 
-            raise
+            return _ProcessedResponseCall(call, e.code(), error=e)
