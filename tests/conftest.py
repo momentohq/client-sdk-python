@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 import os
 import random
+from contextlib import asynccontextmanager, contextmanager
 from datetime import timedelta
-from typing import AsyncIterator, Callable, Iterator, List, Optional, Union, cast
+from typing import AsyncGenerator, AsyncIterator, Callable, Iterator, List, Optional, Union, cast
 
 import pytest
 import pytest_asyncio
@@ -41,6 +42,8 @@ from momento.typing import (
     TTopicName,
 )
 
+from tests.momento.local.momento_local_async_middleware import MomentoLocalAsyncMiddleware, MomentoLocalMiddlewareArgs
+from tests.momento.local.momento_local_middleware import MomentoLocalMiddleware
 from tests.utils import (
     unique_test_cache_name,
     uuid_bytes,
@@ -51,12 +54,16 @@ from tests.utils import (
 # Integration test data
 #######################
 
-TEST_CONFIGURATION = Configurations.Laptop.latest()
+TEST_CONFIGURATION: Configuration = Configurations.Laptop.latest()
 TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest().with_client_timeout(timedelta(seconds=10))
 TEST_AUTH_CONFIGURATION = AuthConfigurations.Laptop.latest()
 
 
 TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_API_KEY")
+
+MOMENTO_LOCAL_HOSTNAME = os.environ.get("MOMENTO_HOSTNAME", "127.0.0.1")
+MOMENTO_LOCAL_PORT = int(os.environ.get("MOMENTO_PORT", "8080"))
+TEST_LOCAL_AUTH_PROVIDER = CredentialProvider.for_momento_local(MOMENTO_LOCAL_HOSTNAME, MOMENTO_LOCAL_PORT)
 
 
 TEST_CACHE_NAME: Optional[str] = os.getenv("TEST_CACHE_NAME")
@@ -352,6 +359,48 @@ def auth_client() -> Iterator[AuthClient]:
 async def auth_client_async() -> AsyncIterator[AuthClientAsync]:
     async with AuthClientAsync(TEST_AUTH_CONFIGURATION, TEST_AUTH_PROVIDER) as _auth_client:
         yield _auth_client
+
+
+@asynccontextmanager
+async def client_async_local(
+    cache_name: str,
+    middleware_args: Optional[MomentoLocalMiddlewareArgs] = None,
+    config_fn: Optional[Callable[[Configuration], Configuration]] = None,
+) -> AsyncGenerator[CacheClientAsync, None]:
+    config = TEST_CONFIGURATION
+
+    if config_fn:
+        config = config_fn(config)
+
+    if middleware_args:
+        config = config.add_middleware(MomentoLocalAsyncMiddleware(middleware_args))
+
+    client = await CacheClientAsync.create(config, TEST_LOCAL_AUTH_PROVIDER, DEFAULT_TTL_SECONDS)
+
+    await client.create_cache(cache_name)
+
+    yield client
+
+
+@contextmanager
+def client_local(
+    cache_name: str,
+    middleware_args: Optional[MomentoLocalMiddlewareArgs] = None,
+    config_fn: Optional[Callable[[Configuration], Configuration]] = None,
+) -> Iterator[CacheClient]:
+    config = TEST_CONFIGURATION
+
+    if config_fn:
+        config = config_fn(config)
+
+    if middleware_args:
+        config = config.add_middleware(MomentoLocalMiddleware(middleware_args))
+
+    client = CacheClient.create(config, TEST_LOCAL_AUTH_PROVIDER, DEFAULT_TTL_SECONDS)
+
+    client.create_cache(cache_name)
+
+    yield client
 
 
 TUniqueCacheName = Callable[[CacheClient], str]
