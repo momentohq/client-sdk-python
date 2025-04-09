@@ -109,7 +109,13 @@ module = [
   "momento.internal.aio._scs_data_client",
   "momento.internal.aio._scs_grpc_manager",
   "momento.internal.aio._utilities",
+  "momento.internal.synchronous._utilities",
   "momento.responses.control.signing_key.*",
+  "momento.internal.aio._middleware_interceptor",
+  "momento.internal.synchronous._middleware_interceptor",
+  "momento.config.middleware.models",
+  "momento.config.middleware.aio.middleware_metadata",
+  "momento.config.middleware.synchronous.middleware_metadata",
 ]
 disallow_any_expr = false
 

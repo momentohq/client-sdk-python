@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Optional
+import uuid
+from typing import List, Optional
 
 import grpc
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
@@ -23,14 +24,18 @@ from momento.internal._utilities._grpc_channel_options import (
     grpc_topic_channel_options_from_grpc_config,
 )
 from momento.internal.services import Service
-from momento.retry import RetryStrategy
 
 from ... import logs
+from ...config.middleware import MiddlewareRequestHandlerContext
+from ...config.middleware.aio import Middleware
+from ...config.middleware.models import CONNECTION_ID_KEY
+from ...retry import RetryStrategy
 from ._add_header_client_interceptor import (
     AddHeaderClientInterceptor,
     AddHeaderStreamingClientInterceptor,
     Header,
 )
+from ._middleware_interceptor import MiddlewareInterceptor
 from ._retry_interceptor import RetryInterceptor
 
 
@@ -43,7 +48,10 @@ class _ControlGrpcManager:
                 target=credential_provider.control_endpoint,
                 credentials=channel_credentials_from_root_certs_or_default(configuration),
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_aio_middlewares(),
+                    configuration.get_retry_strategy(),
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -53,7 +61,10 @@ class _ControlGrpcManager:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.control_endpoint}:{credential_provider.port}",
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_aio_middlewares(),
+                    configuration.get_retry_strategy(),
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -77,7 +88,10 @@ class _DataGrpcManager:
                 target=credential_provider.cache_endpoint,
                 credentials=channel_credentials_from_root_certs_or_default(configuration),
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_aio_middlewares(),
+                    configuration.get_retry_strategy(),
                 ),
                 # Here is where you would pass override configuration to the underlying C gRPC layer.
                 # However, I have tried several different tuning options here and did not see any
@@ -101,7 +115,10 @@ class _DataGrpcManager:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.cache_endpoint}:{credential_provider.port}",
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_aio_middlewares(),
+                    configuration.get_retry_strategy(),
                 ),
                 options=grpc_data_channel_options_from_grpc_config(
                     configuration.get_transport_strategy().get_grpc_configuration()
@@ -115,7 +132,7 @@ class _DataGrpcManager:
         try:
             await asyncio.wait_for(self.wait_for_ready(), timeout_seconds)
         except Exception as error:
-            self._channel.close()
+            await self._channel.close()
             self._logger.debug(f"Failed to connect to the server within the given timeout. {error}")
             raise ConnectionException(
                 message=f"Failed to connect to Momento's server within given eager connection timeout: {error}",
@@ -161,7 +178,7 @@ class _PubsubGrpcManager:
             self._channel = grpc.aio.secure_channel(
                 target=credential_provider.cache_endpoint,
                 credentials=grpc.ssl_channel_credentials(),
-                interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, None),
+                interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, [], None),
                 options=grpc_topic_channel_options_from_grpc_config(
                     configuration.get_transport_strategy().get_grpc_configuration()
                 ),
@@ -169,7 +186,7 @@ class _PubsubGrpcManager:
         else:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.cache_endpoint}:{credential_provider.port}",
-                interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, None),
+                interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, [], None),
                 options=grpc_topic_channel_options_from_grpc_config(
                     configuration.get_transport_strategy().get_grpc_configuration()
                 ),
@@ -220,7 +237,7 @@ class _TokenGrpcManager:
                 target=credential_provider.token_endpoint,
                 credentials=grpc.ssl_channel_credentials(),
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()
+                    credential_provider.auth_token, ClientType.TOKEN, [], configuration.get_retry_strategy()
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -230,7 +247,7 @@ class _TokenGrpcManager:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.token_endpoint}:{credential_provider.port}",
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()
+                    credential_provider.auth_token, ClientType.TOKEN, [], configuration.get_retry_strategy()
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -245,9 +262,14 @@ class _TokenGrpcManager:
 
 
 def _interceptors(
-    auth_token: str, client_type: ClientType, retry_strategy: Optional[RetryStrategy] = None
+    auth_token: str,
+    client_type: ClientType,
+    middleware: List[Middleware],
+    retry_strategy: Optional[RetryStrategy] = None,
 ) -> list[grpc.aio.ClientInterceptor]:
     from momento import __version__ as momento_version
+
+    context = MiddlewareRequestHandlerContext({CONNECTION_ID_KEY: str(uuid.uuid4())})
 
     headers = [
         Header("authorization", auth_token),
@@ -260,6 +282,7 @@ def _interceptors(
             [
                 AddHeaderClientInterceptor(headers),
                 RetryInterceptor(retry_strategy) if retry_strategy else None,
+                MiddlewareInterceptor(middleware, context) if middleware else None,
             ],
         )
     )

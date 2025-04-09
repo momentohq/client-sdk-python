@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from threading import Event
-from typing import Optional
+from typing import List, Optional
 
 import grpc
 from momento_wire_types import cacheclient_pb2_grpc as cache_client
@@ -13,6 +14,9 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.auth_configuration import AuthConfiguration
+from momento.config.middleware import MiddlewareRequestHandlerContext
+from momento.config.middleware.models import CONNECTION_ID_KEY
+from momento.config.middleware.synchronous import Middleware
 from momento.errors.exceptions import ConnectionException
 from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType
 from momento.internal._utilities._channel_credentials import (
@@ -29,6 +33,7 @@ from momento.internal.synchronous._add_header_client_interceptor import (
     AddHeaderStreamingClientInterceptor,
     Header,
 )
+from momento.internal.synchronous._middleware_interceptor import MiddlewareInterceptor
 from momento.internal.synchronous._retry_interceptor import RetryInterceptor
 from momento.retry import RetryStrategy
 
@@ -54,7 +59,12 @@ class _ControlGrpcManager:
             )
         intercept_channel = grpc.intercept_channel(
             self._channel,
-            *_interceptors(credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()),
+            *_interceptors(
+                credential_provider.auth_token,
+                ClientType.CACHE,
+                configuration.get_sync_middlewares(),
+                configuration.get_retry_strategy(),
+            ),
         )
         self._stub = control_client.ScsControlStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -88,7 +98,12 @@ class _DataGrpcManager:
 
         intercept_channel = grpc.intercept_channel(
             self._channel,
-            *_interceptors(credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()),
+            *_interceptors(
+                credential_provider.auth_token,
+                ClientType.CACHE,
+                configuration.get_sync_middlewares(),
+                configuration.get_retry_strategy(),
+            ),
         )
         self._stub = cache_client.ScsStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -184,7 +199,7 @@ class _PubsubGrpcManager:
                 ),
             )
         intercept_channel = grpc.intercept_channel(
-            self._channel, *_interceptors(credential_provider.auth_token, ClientType.TOPIC, None)
+            self._channel, *_interceptors(credential_provider.auth_token, ClientType.TOPIC, [], None)
         )
         self._stub = pubsub_client.PubsubStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -247,7 +262,7 @@ class _TokenGrpcManager:
             )
         intercept_channel = grpc.intercept_channel(
             self._channel,
-            *_interceptors(credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()),
+            *_interceptors(credential_provider.auth_token, ClientType.TOKEN, [], configuration.get_retry_strategy()),
         )
         self._stub = token_client.TokenStub(intercept_channel)  # type: ignore[no-untyped-call]
 
@@ -259,9 +274,14 @@ class _TokenGrpcManager:
 
 
 def _interceptors(
-    auth_token: str, client_type: ClientType, retry_strategy: Optional[RetryStrategy] = None
+    auth_token: str,
+    client_type: ClientType,
+    middleware: List[Middleware],
+    retry_strategy: Optional[RetryStrategy] = None,
 ) -> list[grpc.UnaryUnaryClientInterceptor]:
     from momento import __version__ as momento_version
+
+    context = MiddlewareRequestHandlerContext({CONNECTION_ID_KEY: str(uuid.uuid4())})
 
     headers = [
         Header("authorization", auth_token),
@@ -270,7 +290,12 @@ def _interceptors(
     ]
     return list(
         filter(
-            None, [AddHeaderClientInterceptor(headers), RetryInterceptor(retry_strategy) if retry_strategy else None]
+            None,
+            [
+                AddHeaderClientInterceptor(headers),
+                RetryInterceptor(retry_strategy) if retry_strategy else None,
+                MiddlewareInterceptor(middleware, context) if middleware else None,
+            ],
         )
     )
 
