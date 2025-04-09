@@ -59,6 +59,9 @@ log_level = "ERROR"
 log_cli = true
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S.%f"
+markers = [
+  "local: tests that require Momento Local",
+]
 
 [tool.mypy]
 python_version = "3.7"

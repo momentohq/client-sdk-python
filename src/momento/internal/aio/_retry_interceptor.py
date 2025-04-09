@@ -6,6 +6,7 @@ from typing import Callable
 
 import grpc
 
+from momento.internal.aio._middleware_interceptor import _ProcessedResponseCall
 from momento.retry import RetryableProps, RetryStrategy
 
 # TODO: This is very duplicative of the synchronous retry interceptor; we need to
@@ -37,17 +38,19 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         attempt_number = 1
         while True:
             call = await continuation(client_call_details, request)
-            response_code = await call.code()
 
-            if response_code == grpc.StatusCode.OK:
+            try:
+                await call
                 return call
+            except grpc.RpcError as e:
+                response_code = e.code()
 
-            retryTime = self._retry_strategy.determine_when_to_retry(
-                RetryableProps(response_code, client_call_details.method.decode("utf-8"), attempt_number)
-            )
+                retryTime = self._retry_strategy.determine_when_to_retry(
+                    RetryableProps(response_code, client_call_details.method.decode("utf-8"), attempt_number)
+                )
 
-            if retryTime is None:
-                return call
+                if retryTime is None:
+                    return _ProcessedResponseCall(call, response_code, error=e)
 
-            attempt_number += 1
-            await asyncio.sleep(retryTime)
+                attempt_number += 1
+                await asyncio.sleep(retryTime)
