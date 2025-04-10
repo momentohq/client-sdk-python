@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import timedelta
 from typing import Optional
 
 import grpc
@@ -43,7 +44,10 @@ class _ControlGrpcManager:
                 target=credential_provider.control_endpoint,
                 credentials=channel_credentials_from_root_certs_or_default(configuration),
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),
+                    configuration.get_retry_strategy()
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -53,7 +57,10 @@ class _ControlGrpcManager:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.control_endpoint}:{credential_provider.port}",
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),
+                    configuration.get_retry_strategy()
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -77,7 +84,10 @@ class _DataGrpcManager:
                 target=credential_provider.cache_endpoint,
                 credentials=channel_credentials_from_root_certs_or_default(configuration),
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),
+                    configuration.get_retry_strategy()
                 ),
                 # Here is where you would pass override configuration to the underlying C gRPC layer.
                 # However, I have tried several different tuning options here and did not see any
@@ -101,7 +111,10 @@ class _DataGrpcManager:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.cache_endpoint}:{credential_provider.port}",
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.CACHE, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.CACHE,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),
+                    configuration.get_retry_strategy()
                 ),
                 options=grpc_data_channel_options_from_grpc_config(
                     configuration.get_transport_strategy().get_grpc_configuration()
@@ -161,7 +174,12 @@ class _PubsubGrpcManager:
             self._channel = grpc.aio.secure_channel(
                 target=credential_provider.cache_endpoint,
                 credentials=grpc.ssl_channel_credentials(),
-                interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, None),
+                interceptors=_interceptors(
+                    credential_provider.auth_token,
+                    ClientType.TOPIC,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),
+                    None
+                ),
                 options=grpc_topic_channel_options_from_grpc_config(
                     configuration.get_transport_strategy().get_grpc_configuration()
                 ),
@@ -169,7 +187,12 @@ class _PubsubGrpcManager:
         else:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.cache_endpoint}:{credential_provider.port}",
-                interceptors=_interceptors(credential_provider.auth_token, ClientType.TOPIC, None),
+                interceptors=_interceptors(
+                    credential_provider.auth_token,
+                    ClientType.TOPIC,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),
+                    None
+                ),
                 options=grpc_topic_channel_options_from_grpc_config(
                     configuration.get_transport_strategy().get_grpc_configuration()
                 ),
@@ -220,7 +243,10 @@ class _TokenGrpcManager:
                 target=credential_provider.token_endpoint,
                 credentials=grpc.ssl_channel_credentials(),
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.TOKEN,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),                    
+                    configuration.get_retry_strategy()
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -230,7 +256,10 @@ class _TokenGrpcManager:
             self._channel = grpc.aio.insecure_channel(
                 target=f"{credential_provider.token_endpoint}:{credential_provider.port}",
                 interceptors=_interceptors(
-                    credential_provider.auth_token, ClientType.TOKEN, configuration.get_retry_strategy()
+                    credential_provider.auth_token,
+                    ClientType.TOKEN,
+                    configuration.get_transport_strategy().get_grpc_configuration().get_deadline(),                    
+                    configuration.get_retry_strategy()
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
                     grpc_config=configuration.get_transport_strategy().get_grpc_configuration(),
@@ -245,7 +274,7 @@ class _TokenGrpcManager:
 
 
 def _interceptors(
-    auth_token: str, client_type: ClientType, retry_strategy: Optional[RetryStrategy] = None
+    auth_token: str, client_type: ClientType, overall_deadline: timedelta, retry_strategy: Optional[RetryStrategy] = None
 ) -> list[grpc.aio.ClientInterceptor]:
     from momento import __version__ as momento_version
 
@@ -259,7 +288,7 @@ def _interceptors(
             None,
             [
                 AddHeaderClientInterceptor(headers),
-                RetryInterceptor(retry_strategy) if retry_strategy else None,
+                RetryInterceptor(retry_strategy, overall_deadline) if retry_strategy else None,
             ],
         )
     )
