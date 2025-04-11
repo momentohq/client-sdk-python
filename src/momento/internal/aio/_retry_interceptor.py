@@ -24,9 +24,8 @@ logger = logging.getLogger("retry-interceptor")
 
 
 class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
-    def __init__(self, retry_strategy: RetryStrategy, client_timeout: timedelta):
+    def __init__(self, retry_strategy: RetryStrategy):
         self._retry_strategy = retry_strategy
-        self._client_timeout = client_timeout
 
     async def intercept_unary_unary(
         self,
@@ -38,13 +37,18 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         request: grpc.aio._typing.RequestType,
     ) -> grpc.aio._call.UnaryUnaryCall | grpc.aio._typing.ResponseType:
         attempt_number = 1
-        overall_deadline = datetime.now() + self._client_timeout
+        # the overall deadline is the timeout set on the client call details
+        overall_deadline = datetime.now() + timedelta(seconds=client_call_details.timeout)
+        # variable to capture the penultimate call to a deadline-aware retry strategy, which
+        # will hold the call object before a terminal DEADLINE_EXCEEDED response is returned
+        last_call = None
 
         while True:
             if attempt_number > 1:
                 retry_deadline = self._retry_strategy.calculate_retry_deadline(
                     overall_deadline
                 )
+                print("===> retry deadline", retry_deadline)
                 if retry_deadline is not None:
                     client_call_details = grpc.aio._interceptor.ClientCallDetails(
                         client_call_details.method,
@@ -53,6 +57,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                         client_call_details.credentials,
                         client_call_details.wait_for_ready
                     )
+                    last_call = call
 
             call = await continuation(client_call_details, request)
             response_code = await call.code()
@@ -67,7 +72,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             )
 
             if retryTime is None:
-                return call
+                return last_call or call
 
             attempt_number += 1
             await asyncio.sleep(retryTime)
