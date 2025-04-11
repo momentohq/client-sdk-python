@@ -39,7 +39,7 @@ class FixedTimeoutRetryStrategy(RetryStrategy):
         )
 
         # If a retry attempt's timeout has passed but the client's overall timeout has not yet passed,
-	    # we should reset the deadline and retry.
+        # we should reset the deadline and retry.
         if (
             props.attempt_number > 0 and 
             props.grpc_status == grpc.StatusCode.DEADLINE_EXCEEDED and 
@@ -89,4 +89,3 @@ class FixedTimeoutRetryStrategy(RetryStrategy):
         if datetime.now() + timedelta(milliseconds=self._retry_timeout_millis) > overall_deadline:
             return (overall_deadline - datetime.now()).total_seconds() * 1000
         return self._retry_timeout_millis
-    
