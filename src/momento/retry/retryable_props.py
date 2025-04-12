@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 import grpc
 
@@ -10,4 +11,4 @@ class RetryableProps:
     grpc_status: grpc.StatusCode
     grpc_method: str
     attempt_number: int
-    overall_deadline: datetime = None
+    overall_deadline: Optional[datetime] = None

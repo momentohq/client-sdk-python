@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import date, datetime, timedelta
-import time
+from datetime import datetime, timedelta
 from typing import Callable
+
 import grpc
 
 from momento.retry import RetryableProps, RetryStrategy
@@ -35,6 +35,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         client_call_details: grpc.aio._interceptor.ClientCallDetails,
         request: grpc.aio._typing.RequestType,
     ) -> grpc.aio._call.UnaryUnaryCall | grpc.aio._typing.ResponseType:
+        call = None
         attempt_number = 1
         # the overall deadline is calculated from the timeout set on the client call details
         overall_deadline = datetime.now() + timedelta(seconds=client_call_details.timeout or 0.0)
@@ -44,16 +45,14 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
 
         while True:
             if attempt_number > 1:
-                retry_deadline = self._retry_strategy.calculate_retry_deadline(
-                    overall_deadline
-                )
+                retry_deadline = self._retry_strategy.calculate_retry_deadline(overall_deadline)
                 if retry_deadline is not None:
                     client_call_details = grpc.aio._interceptor.ClientCallDetails(
                         client_call_details.method,
                         retry_deadline,
                         client_call_details.metadata,
                         client_call_details.credentials,
-                        client_call_details.wait_for_ready
+                        client_call_details.wait_for_ready,
                     )
                     last_call = call
 

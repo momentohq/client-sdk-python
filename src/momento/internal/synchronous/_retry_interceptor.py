@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 import logging
 import time
+from datetime import datetime, timedelta
 from typing import Callable, TypeVar
 
 import grpc
@@ -36,25 +36,24 @@ class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
         client_call_details: grpc.ClientCallDetails,
         request: RequestType,
     ) -> InterceptorCall | ResponseType:
+        call = None
         attempt_number = 1
         # the overall deadline is calculated from the timeout set on the client call details
         overall_deadline = datetime.now() + timedelta(seconds=client_call_details.timeout or 0.0)
         # variable to capture the penultimate call to a deadline-aware retry strategy, which
         # will hold the call object before a terminal DEADLINE_EXCEEDED response is returned
         last_call = None
-       
+
         while True:
             if attempt_number > 1:
-                retry_deadline = self._retry_strategy.calculate_retry_deadline(
-                    overall_deadline
-                )
+                retry_deadline = self._retry_strategy.calculate_retry_deadline(overall_deadline)
                 if retry_deadline is not None:
                     client_call_details = grpc.aio._interceptor.ClientCallDetails(
                         client_call_details.method,
                         retry_deadline,
                         client_call_details.metadata,
                         client_call_details.credentials,
-                        client_call_details.wait_for_ready
+                        client_call_details.wait_for_ready,
                     )
                     last_call = call
 
