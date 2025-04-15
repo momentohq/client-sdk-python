@@ -1,36 +1,13 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from datetime import timedelta
 
 from momento.config.transport.transport_strategy import TransportStrategy
 from momento.retry.retry_strategy import RetryStrategy
 
 
-class AuthConfigurationBase(ABC):
-    @abstractmethod
-    def get_retry_strategy(self) -> RetryStrategy:
-        pass
-
-    @abstractmethod
-    def with_retry_strategy(self, retry_strategy: RetryStrategy) -> AuthConfiguration:
-        pass
-
-    @abstractmethod
-    def get_transport_strategy(self) -> TransportStrategy:
-        pass
-
-    @abstractmethod
-    def with_transport_strategy(self, transport_strategy: TransportStrategy) -> AuthConfiguration:
-        pass
-
-    @abstractmethod
-    def with_client_timeout(self, client_timeout: timedelta) -> AuthConfiguration:
-        pass
-
-
-class AuthConfiguration(AuthConfigurationBase):
-    """AuthConfiguration options for Momento Simple Cache Client."""
+class AuthConfiguration:
+    """AuthConfiguration options for Momento Auth Client."""
 
     def __init__(self, transport_strategy: TransportStrategy, retry_strategy: RetryStrategy):
         """Instantiate a AuthConfiguration.
