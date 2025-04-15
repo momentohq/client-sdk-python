@@ -50,7 +50,7 @@ class _ControlGrpcManager:
                 interceptors=_interceptors(
                     credential_provider.auth_token,
                     ClientType.CACHE,
-                    configuration.get_aio_middlewares(),
+                    configuration.get_async_middlewares(),
                     configuration.get_retry_strategy(),
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
@@ -63,7 +63,7 @@ class _ControlGrpcManager:
                 interceptors=_interceptors(
                     credential_provider.auth_token,
                     ClientType.CACHE,
-                    configuration.get_aio_middlewares(),
+                    configuration.get_async_middlewares(),
                     configuration.get_retry_strategy(),
                 ),
                 options=grpc_control_channel_options_from_grpc_config(
@@ -90,7 +90,7 @@ class _DataGrpcManager:
                 interceptors=_interceptors(
                     credential_provider.auth_token,
                     ClientType.CACHE,
-                    configuration.get_aio_middlewares(),
+                    configuration.get_async_middlewares(),
                     configuration.get_retry_strategy(),
                 ),
                 # Here is where you would pass override configuration to the underlying C gRPC layer.
@@ -117,7 +117,7 @@ class _DataGrpcManager:
                 interceptors=_interceptors(
                     credential_provider.auth_token,
                     ClientType.CACHE,
-                    configuration.get_aio_middlewares(),
+                    configuration.get_async_middlewares(),
                     configuration.get_retry_strategy(),
                 ),
                 options=grpc_data_channel_options_from_grpc_config(

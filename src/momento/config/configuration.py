@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from datetime import timedelta
 from pathlib import Path
 from typing import List, Optional
@@ -12,46 +11,8 @@ from .middleware import Middleware
 from .transport.transport_strategy import TransportStrategy
 
 
-class ConfigurationBase(ABC):
-    @abstractmethod
-    def get_retry_strategy(self) -> RetryStrategy:
-        pass
-
-    @abstractmethod
-    def with_retry_strategy(self, retry_strategy: RetryStrategy) -> Configuration:
-        pass
-
-    @abstractmethod
-    def get_transport_strategy(self) -> TransportStrategy:
-        pass
-
-    @abstractmethod
-    def with_transport_strategy(self, transport_strategy: TransportStrategy) -> Configuration:
-        pass
-
-    @abstractmethod
-    def with_client_timeout(self, client_timeout: timedelta) -> Configuration:
-        pass
-
-    @abstractmethod
-    def with_root_certificates_pem(self, root_certificate_path: Path) -> Configuration:
-        pass
-
-    @abstractmethod
-    def with_middlewares(self, middlewares: List[Middleware]) -> Configuration:
-        pass
-
-    @abstractmethod
-    def add_middleware(self, middleware: Middleware) -> Configuration:
-        pass
-
-    @abstractmethod
-    def get_middlewares(self) -> List[Middleware]:
-        pass
-
-
-class Configuration(ConfigurationBase):
-    """Configuration options for Momento Simple Cache Client."""
+class Configuration:
+    """Configuration options for Momento Cache Client."""
 
     def __init__(
         self,
@@ -140,24 +101,22 @@ class Configuration(ConfigurationBase):
         return self.with_transport_strategy(transport_strategy)
 
     def with_middlewares(self, middlewares: List[Middleware]) -> Configuration:
-        """Copies the Configuration and adds the new middlewares to the end of the list.
+        """Copies the Configuration and replaces the middleware with the given middleware list.
 
         Args:
-            middlewares: the middleware list to be appended to the Configuration's existing middleware. These can be
-            aio or synchronous middleware.
+            middlewares: the new middleware list. It can contain async or synchronous middleware.
 
         Returns:
             Configuration: the new Configuration.
         """
-        new_middlewares = self._middlewares.copy() + middlewares
-        return Configuration(self._transport_strategy, self._retry_strategy, new_middlewares)
+        return Configuration(self._transport_strategy, self._retry_strategy, middlewares)
 
     def add_middleware(self, middleware: Middleware) -> Configuration:
         """Copies the Configuration and adds the new middleware to the end of the list.
 
         Args:
-            middleware: the middleware to be appended to the Configuration's existing middleware. This can be aio or
-            synchronous middleware.
+            middleware: the middleware to be appended to the Configuration's existing middleware. This can be an async
+            or synchronous middleware.
 
         Returns:
             Configuration: the new Configuration.
@@ -173,11 +132,11 @@ class Configuration(ConfigurationBase):
         """
         return self._middlewares.copy()
 
-    def get_aio_middlewares(self) -> List[momento.config.middleware.aio.Middleware]:
-        """Access the aio middleware from the middleware list.
+    def get_async_middlewares(self) -> List[momento.config.middleware.aio.Middleware]:
+        """Access the async middleware from the middleware list.
 
         Returns:
-            the configuration's list of aio middleware.
+            the configuration's list of async middleware.
         """
         return [m for m in self._middlewares if isinstance(m, momento.config.middleware.aio.Middleware)]
 

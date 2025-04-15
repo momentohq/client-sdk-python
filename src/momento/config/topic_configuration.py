@@ -1,34 +1,11 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from datetime import timedelta
 
 from momento.config.transport.topic_transport_strategy import TopicTransportStrategy
 
 
-class TopicConfigurationBase(ABC):
-    @abstractmethod
-    def get_max_subscriptions(self) -> int:
-        pass
-
-    @abstractmethod
-    def with_max_subscriptions(self, max_subscriptions: int) -> TopicConfiguration:
-        pass
-
-    @abstractmethod
-    def get_transport_strategy(self) -> TopicTransportStrategy:
-        pass
-
-    @abstractmethod
-    def with_transport_strategy(self, transport_strategy: TopicTransportStrategy) -> TopicConfiguration:
-        pass
-
-    @abstractmethod
-    def with_client_timeout(self, client_timeout: timedelta) -> TopicConfiguration:
-        pass
-
-
-class TopicConfiguration(TopicConfigurationBase):
+class TopicConfiguration:
     """Configuration options for Momento topic client."""
 
     def __init__(self, transport_strategy: TopicTransportStrategy, max_subscriptions: int = 0):

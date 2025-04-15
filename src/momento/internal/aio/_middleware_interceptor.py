@@ -118,7 +118,7 @@ class MiddlewareInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         new_client_call_details = create_client_call_details(
             method=client_call_details.method,
             timeout=client_call_details.timeout,
-            metadata=metadata.get_grpc_metadata(),
+            metadata=metadata.grpc_metadata,
             credentials=client_call_details.credentials,
             wait_for_ready=client_call_details.wait_for_ready,
         )
@@ -127,7 +127,7 @@ class MiddlewareInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             middleware_message = await self.apply_handler_methods(
                 [handler.on_request_body for handler in handlers], MiddlewareMessage(request)
             )
-            request = middleware_message.get_message()
+            request = middleware_message.grpc_message
 
         call = await continuation(new_client_call_details, request)
         try:
@@ -135,7 +135,7 @@ class MiddlewareInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
             response_metadata = await self.apply_handler_methods(
                 [handler.on_response_metadata for handler in reversed_handlers], MiddlewareMetadata(initial_metadata)
             )
-            initial_metadata = response_metadata.get_grpc_metadata()
+            initial_metadata = response_metadata.grpc_metadata
 
             # if the call returns an error, awaiting it will raise an RpcError, which we handle below
             original_response = await call
@@ -144,7 +144,7 @@ class MiddlewareInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 middleware_response = await self.apply_handler_methods(
                     [handler.on_response_body for handler in reversed_handlers], MiddlewareMessage(original_response)
                 )
-                response = middleware_response.get_message()
+                response = middleware_response.grpc_message
             else:
                 response = original_response
 
