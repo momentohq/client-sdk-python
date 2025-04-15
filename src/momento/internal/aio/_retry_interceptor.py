@@ -63,6 +63,8 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 return call
 
             retryTime = self._retry_strategy.determine_when_to_retry(
+                # Note: the async interceptor gets `client_call_details.method` as a binary string that needs to be decoded
+                # but the sync interceptor gets it as a string.
                 RetryableProps(
                     response_code, client_call_details.method.decode("utf-8"), attempt_number, overall_deadline
                 )
