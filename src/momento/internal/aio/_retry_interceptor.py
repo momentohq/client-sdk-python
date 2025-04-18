@@ -37,7 +37,8 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
     ) -> grpc.aio._call.UnaryUnaryCall | grpc.aio._typing.ResponseType:
         call = None
         attempt_number = 1
-        # the overall deadline is calculated from the timeout set on the client call details
+        # The overall deadline is calculated from the timeout set on the client call details.
+        # That value is set in our gRPC configurations and, while typed as optional, will never be None here.
         overall_deadline = datetime.now() + timedelta(seconds=client_call_details.timeout or 0.0)
         # variable to capture the penultimate call to a deadline-aware retry strategy, which
         # will hold the call object before a terminal DEADLINE_EXCEEDED response is returned
