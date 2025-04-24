@@ -98,7 +98,7 @@ class MiddlewareInterceptor(grpc.UnaryUnaryClientInterceptor):
         new_client_call_details = _ClientCallDetails(
             method=client_call_details.method,
             timeout=client_call_details.timeout,
-            metadata=metadata.get_grpc_metadata(),
+            metadata=metadata.grpc_metadata,
             credentials=client_call_details.credentials,
         )
 
@@ -106,7 +106,7 @@ class MiddlewareInterceptor(grpc.UnaryUnaryClientInterceptor):
             middleware_message = self.apply_handler_methods(
                 [handler.on_request_body for handler in handlers], MiddlewareMessage(request)
             )
-            request = middleware_message.get_message()
+            request = middleware_message.grpc_message
 
         try:
             call = continuation(new_client_call_details, request)
@@ -115,7 +115,7 @@ class MiddlewareInterceptor(grpc.UnaryUnaryClientInterceptor):
             response_metadata = self.apply_handler_methods(
                 [handler.on_response_metadata for handler in reversed_handlers], MiddlewareMetadata(initial_metadata)
             )
-            initial_metadata = response_metadata.get_grpc_metadata()
+            initial_metadata = response_metadata.grpc_metadata
 
             # if the call returns an error, call.result() will raise an RpcError, which we handle below
             response_body = call.result()
@@ -123,7 +123,7 @@ class MiddlewareInterceptor(grpc.UnaryUnaryClientInterceptor):
                 middleware_message = self.apply_handler_methods(
                     [handler.on_response_body for handler in reversed_handlers], MiddlewareMessage(response_body)
                 )
-                response_body = middleware_message.get_message()
+                response_body = middleware_message.grpc_message
 
             status_code = call.code()
             middleware_status = self.apply_handler_methods(
