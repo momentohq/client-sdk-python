@@ -16,9 +16,8 @@ class Header:
 
 
 class AddHeaderStreamingClientInterceptor(grpc.aio.UnaryStreamClientInterceptor):
-    are_only_once_headers_sent = False
-
     def __init__(self, headers: list[Header]):
+        self.are_only_once_headers_sent = False
         self._headers_to_add_once: list[Header] = list(
             filter(lambda header: header.name in header.once_only_headers, headers)
         )
@@ -40,18 +39,17 @@ class AddHeaderStreamingClientInterceptor(grpc.aio.UnaryStreamClientInterceptor)
         for header in self.headers_to_add_every_time:
             new_client_call_details.metadata.add(header.name, header.value)
 
-        if not AddHeaderStreamingClientInterceptor.are_only_once_headers_sent:
+        if not self.are_only_once_headers_sent:
             for header in self._headers_to_add_once:
                 new_client_call_details.metadata.add(header.name, header.value)
-                AddHeaderStreamingClientInterceptor.are_only_once_headers_sent = True
+                self.are_only_once_headers_sent = True
 
         return await continuation(new_client_call_details, request)
 
 
 class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
-    are_only_once_headers_sent = False
-
     def __init__(self, headers: list[Header]):
+        self.are_only_once_headers_sent = False
         self._headers_to_add_once: list[Header] = list(
             filter(lambda header: header.name in header.once_only_headers, headers)
         )
@@ -73,9 +71,9 @@ class AddHeaderClientInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
         for header in self.headers_to_add_every_time:
             new_client_call_details.metadata.add(header.name, header.value)
 
-        if not AddHeaderClientInterceptor.are_only_once_headers_sent:
+        if not self.are_only_once_headers_sent:
             for header in self._headers_to_add_once:
                 new_client_call_details.metadata.add(header.name, header.value)
-                AddHeaderClientInterceptor.are_only_once_headers_sent = True
+                self.are_only_once_headers_sent = True
 
         return await continuation(new_client_call_details, request)

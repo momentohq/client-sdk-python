@@ -19,9 +19,8 @@ class Header:
 
 
 class AddHeaderStreamingClientInterceptor(grpc.UnaryStreamClientInterceptor):
-    are_only_once_headers_sent = False
-
     def __init__(self, headers: list[Header]):
+        self.are_only_once_headers_sent = False
         self._headers_to_add_once: list[Header] = list(
             filter(lambda header: header.name in header.once_only_headers, headers)
         )
@@ -43,17 +42,15 @@ class AddHeaderStreamingClientInterceptor(grpc.UnaryStreamClientInterceptor):
         for header in self.headers_to_add_every_time:
             new_client_call_details.metadata.append((header.name, header.value))
 
-        if not AddHeaderStreamingClientInterceptor.are_only_once_headers_sent:
+        if not self.are_only_once_headers_sent:
             for header in self._headers_to_add_once:
                 new_client_call_details.metadata.append((header.name, header.value))
-                AddHeaderStreamingClientInterceptor.are_only_once_headers_sent = True
+                self.are_only_once_headers_sent = True
 
         return continuation(new_client_call_details, request)
 
 
 class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
-    are_only_once_headers_sent = False
-
     @staticmethod
     def is_only_once_header(header: Header) -> bool:
         return header.name in header.once_only_headers
@@ -63,6 +60,7 @@ class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
         return header.name not in header.once_only_headers
 
     def __init__(self, headers: list[Header]):
+        self.are_only_once_headers_sent = False
         self._headers_to_add_once: list[Header] = list(filter(AddHeaderClientInterceptor.is_only_once_header, headers))
         self.headers_to_add_every_time = list(filter(AddHeaderClientInterceptor.is_not_only_once_header, headers))
 
@@ -77,9 +75,9 @@ class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
         for header in self.headers_to_add_every_time:
             new_client_call_details.metadata.append((header.name, header.value))
 
-        if not AddHeaderClientInterceptor.are_only_once_headers_sent:
+        if not self.are_only_once_headers_sent:
             for header in self._headers_to_add_once:
                 new_client_call_details.metadata.append((header.name, header.value))
-                AddHeaderClientInterceptor.are_only_once_headers_sent = True
+                self.are_only_once_headers_sent = True
 
         return continuation(new_client_call_details, request)
