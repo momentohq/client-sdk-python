@@ -4,6 +4,7 @@ from typing import Callable, TypeVar
 
 import grpc
 
+from momento.internal._utilities import ClientType
 from momento.internal.synchronous._utilities import sanitize_client_call_details
 
 RequestType = TypeVar("RequestType")
@@ -19,15 +20,16 @@ class Header:
 
 
 class AddHeaderStreamingClientInterceptor(grpc.UnaryStreamClientInterceptor):
-    are_only_once_headers_sent = False
+    client_types_that_sent_only_once_headers: set[ClientType] = set()
 
-    def __init__(self, headers: list[Header]):
+    def __init__(self, headers: list[Header], client_type: ClientType):
         self._headers_to_add_once: list[Header] = list(
             filter(lambda header: header.name in header.once_only_headers, headers)
         )
         self.headers_to_add_every_time = list(
             filter(lambda header: header.name not in header.once_only_headers, headers)
         )
+        self.client_type = client_type
 
     def intercept_unary_stream(
         self,
@@ -43,16 +45,16 @@ class AddHeaderStreamingClientInterceptor(grpc.UnaryStreamClientInterceptor):
         for header in self.headers_to_add_every_time:
             new_client_call_details.metadata.append((header.name, header.value))
 
-        if not AddHeaderStreamingClientInterceptor.are_only_once_headers_sent:
+        if self.client_type not in AddHeaderStreamingClientInterceptor.client_types_that_sent_only_once_headers:
             for header in self._headers_to_add_once:
                 new_client_call_details.metadata.append((header.name, header.value))
-                AddHeaderStreamingClientInterceptor.are_only_once_headers_sent = True
+            AddHeaderStreamingClientInterceptor.client_types_that_sent_only_once_headers.add(self.client_type)
 
         return continuation(new_client_call_details, request)
 
 
 class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
-    are_only_once_headers_sent = False
+    client_types_that_sent_only_once_headers: set[ClientType] = set()
 
     @staticmethod
     def is_only_once_header(header: Header) -> bool:
@@ -62,9 +64,10 @@ class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
     def is_not_only_once_header(header: Header) -> bool:
         return header.name not in header.once_only_headers
 
-    def __init__(self, headers: list[Header]):
+    def __init__(self, headers: list[Header], client_type: ClientType):
         self._headers_to_add_once: list[Header] = list(filter(AddHeaderClientInterceptor.is_only_once_header, headers))
         self.headers_to_add_every_time = list(filter(AddHeaderClientInterceptor.is_not_only_once_header, headers))
+        self.client_type = client_type
 
     def intercept_unary_unary(
         self,
@@ -77,9 +80,9 @@ class AddHeaderClientInterceptor(grpc.UnaryUnaryClientInterceptor):
         for header in self.headers_to_add_every_time:
             new_client_call_details.metadata.append((header.name, header.value))
 
-        if not AddHeaderClientInterceptor.are_only_once_headers_sent:
+        if self.client_type not in AddHeaderClientInterceptor.client_types_that_sent_only_once_headers:
             for header in self._headers_to_add_once:
                 new_client_call_details.metadata.append((header.name, header.value))
-                AddHeaderClientInterceptor.are_only_once_headers_sent = True
+            AddHeaderClientInterceptor.client_types_that_sent_only_once_headers.add(self.client_type)
 
         return continuation(new_client_call_details, request)

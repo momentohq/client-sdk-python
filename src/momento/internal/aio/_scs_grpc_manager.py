@@ -280,7 +280,7 @@ def _interceptors(
         filter(
             None,
             [
-                AddHeaderClientInterceptor(headers),
+                AddHeaderClientInterceptor(headers, client_type),
                 RetryInterceptor(retry_strategy) if retry_strategy else None,
                 MiddlewareInterceptor(middleware, context) if middleware else None,
             ],
@@ -297,4 +297,4 @@ def _stream_interceptors(auth_token: str, client_type: ClientType) -> list[grpc.
         Header("agent", f"python:{client_type.value}:{momento_version}"),
         Header("runtime-version", f"python {PYTHON_RUNTIME_VERSION}"),
     ]
-    return [AddHeaderStreamingClientInterceptor(headers)]
+    return [AddHeaderStreamingClientInterceptor(headers, client_type)]
