@@ -1,0 +1,41 @@
+name: Momento Local tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  local-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04]
+        python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
+
+    env:
+      TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.3.1
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Start Momento Local
+        run: |
+          docker run --cap-add=NET_ADMIN --rm -d -p 8080:8080 -p 9090:9090 gomomento/momento-local --enable-test-admin
+
+      - name: Run tests
+        run: poetry run pytest -p no:sugar -q -m local
