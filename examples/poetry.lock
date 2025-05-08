@@ -179,18 +179,18 @@ pbr = ">=1.4"
 
 [[package]]
 name = "momento"
-version = "1.26.0"
+version = "1.27.0"
 description = "SDK for Momento"
 optional = false
 python-versions = "<4.0,>=3.7"
 groups = ["main"]
 files = [
-    {file = "momento-1.26.0-py3-none-any.whl", hash = "sha256:b060e654dfaf5d756c9e0d53b6b550284d1e2819527634f1ff883d0d1aff5803"},
-    {file = "momento-1.26.0.tar.gz", hash = "sha256:35828887e89aa6f1e3335b6a28792f035369177fb6d42d2b22a74ec224f1f0bc"},
+    {file = "momento-1.27.0-py3-none-any.whl", hash = "sha256:1d9f04d7a0b484403fa8199f6ad65ed84ca70ec35093e81b4ebe791cae99d767"},
+    {file = "momento-1.27.0.tar.gz", hash = "sha256:3ff09ff7f889ba4ae374162aa92dd2d1a66d0dfe8af0908125dde0ed851015e4"},
 ]
 
 [package.dependencies]
-grpcio = ">=1.46.0,<2.0.0"
+grpcio = {version = ">=1.46.0,<2.0.0", markers = "python_version < \"3.13\""}
 momento-wire-types = ">=0.119.4,<0.120.0"
 pyjwt = ">=2.4.0,<3.0.0"
 
@@ -430,4 +430,4 @@ markers = {main = "python_version <= \"3.7\""}
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.7,<3.12"
-content-hash = "424340c71c694f4ff8ef4499338f38479f7064cee45a32d4aac84f6e9d8447b3"
+content-hash = "f54cedbfd0b27f15d813ca6b58594d1314ab3d58b94de482ffd53cdd5d93e484"
