@@ -99,7 +99,7 @@ class TopicSubscribe(ABC):
             if not self._decremented:
                 self._decrement_stream_count()
                 self._decremented = True
-            self._client_stream.cancel() # type: ignore[misc]
+            self._client_stream.cancel()  # type: ignore[misc]
 
         async def __anext__(self) -> TopicSubscriptionItemResponse:
             """Retrieves the next published item from the subscription.
@@ -182,7 +182,7 @@ class TopicSubscribe(ABC):
             if not self._decremented:
                 self._decrement_stream_count()
                 self._decremented = True
-            self._client_stream.cancel() # type: ignore[misc]
+            self._client_stream.cancel()  # type: ignore[misc]
 
         def __next__(self) -> TopicSubscriptionItemResponse:
             """Retrieves the next published item from the subscription.
