@@ -17,7 +17,7 @@ from momento.config.auth_configuration import AuthConfiguration
 from momento.config.middleware import MiddlewareRequestHandlerContext
 from momento.config.middleware.models import CONNECTION_ID_KEY
 from momento.config.middleware.synchronous import Middleware
-from momento.errors.exceptions import ConnectionException
+from momento.errors.exceptions import ClientResourceExhaustedException, ConnectionException
 from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
@@ -158,7 +158,7 @@ class _DataGrpcManager:
             elif state == connecting:
                 self._logger.debug("State transitioned to CONNECTING; waiting to get READY")
             else:
-                self._logger.warn(f"Unexpected connection state while trying to eagerly connect: {state}")
+                self._logger.warning(f"Unexpected connection state while trying to eagerly connect: {state}")
                 # we could not connect within the timeout and we no longer need this subscription
                 self._channel.unsubscribe(on_state_change)
                 connection_event.set()
@@ -233,12 +233,22 @@ class _PubsubGrpcStreamManager:
             self._secure_channel, *_stream_interceptors(credential_provider.auth_token, ClientType.TOPIC)
         )
         self._stub = pubsub_client.PubsubStub(intercept_channel)  # type: ignore[no-untyped-call]
+        self._active_streams_count = 0
 
     def close(self) -> None:
         self._secure_channel.close()
 
     def stub(self) -> pubsub_client.PubsubStub:
+        if self._active_streams_count >= 100:
+            raise ClientResourceExhaustedException(
+                message="Already at max number of concurrent streams",
+                service=Service.TOPICS,
+            )
+        self._active_streams_count += 1
         return self._stub
+
+    def decrement_stream_count(self) -> None:
+        self._active_streams_count -= 1
 
 
 class _TokenGrpcManager:

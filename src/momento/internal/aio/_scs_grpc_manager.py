@@ -13,7 +13,7 @@ from momento_wire_types import token_pb2_grpc as token_client
 from momento.auth import CredentialProvider
 from momento.config import Configuration, TopicConfiguration
 from momento.config.auth_configuration import AuthConfiguration
-from momento.errors.exceptions import ConnectionException
+from momento.errors.exceptions import ClientResourceExhaustedException, ConnectionException
 from momento.internal._utilities import PYTHON_RUNTIME_VERSION, ClientType
 from momento.internal._utilities._channel_credentials import (
     channel_credentials_from_root_certs_or_default,
@@ -220,12 +220,23 @@ class _PubsubGrpcStreamManager:
                     configuration.get_transport_strategy().get_grpc_configuration()
                 ),
             )
+        self._stub = pubsub_client.PubsubStub(self._channel)  # type: ignore[no-untyped-call]
+        self._active_streams_count = 0
 
     async def close(self) -> None:
         await self._channel.close()
 
     def async_stub(self) -> pubsub_client.PubsubStub:
-        return pubsub_client.PubsubStub(self._channel)  # type: ignore[no-untyped-call]
+        if self._active_streams_count >= 100:
+            raise ClientResourceExhaustedException(
+                message="Already at max number of concurrent streams",
+                service=Service.TOPICS,
+            )
+        self._active_streams_count += 1
+        return self._stub
+
+    def decrement_stream_count(self) -> None:
+        self._active_streams_count -= 1
 
 
 class _TokenGrpcManager:
