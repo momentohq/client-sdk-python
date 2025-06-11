@@ -57,6 +57,9 @@ test:
 test-local:
 	@poetry run pytest -m local
 
+test-subscription-initialization:
+	@poetry run pytest tests/momento/local/test_topic_subscribe.py
+
 .PHONY: precommit
 ## Run format, lint, and test as a step before committing.
 precommit: gen-sync format lint test
