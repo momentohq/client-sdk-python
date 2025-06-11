@@ -19,17 +19,19 @@ from tests.utils import uuid_str
 # 2, 10, and 20 connections to test with bursts of 200, 1000, and 2000
 # concurrent subscriptions, which would require higher momento subscriptions
 # limits that CI/CD does not currently support.
-SUBSCRIBE_TEST_CACHE: Optional[str] = os.getenv("SUBSCRIBE_TEST_CACHE")
-if not SUBSCRIBE_TEST_CACHE:
-    raise RuntimeError("Integration tests require SUBSCRIBE_TEST_CACHE env var; see README for more details.")
 
+def get_subscribe_test_cache() -> str:
+    SUBSCRIBE_TEST_CACHE: Optional[str] = os.getenv("SUBSCRIBE_TEST_CACHE")
+    if not SUBSCRIBE_TEST_CACHE:
+        raise RuntimeError("Integration tests require SUBSCRIBE_TEST_CACHE env var; see README for more details.")
+    return cast(str, SUBSCRIBE_TEST_CACHE)
 
 @pytest.mark.timeout(10)
 @pytest.mark.subscribe_initialization
 def test_should_not_silently_queue_subscribe_requests() -> None:
     with TopicClient(TEST_TOPIC_CONFIGURATION, TEST_AUTH_PROVIDER) as client:
         topic = uuid_str()
-        cache = cast(str, SUBSCRIBE_TEST_CACHE)
+        cache = get_subscribe_test_cache()
 
         # Subscribing 100 times on one channel should succeed
         subscriptions = []
@@ -61,7 +63,7 @@ def test_multiple_stream_channels_handles_subscribe_and_unsubscribe_requests(
     num_grpc_channels: int,
 ) -> None:
     topic = uuid_str()
-    cache = cast(str, SUBSCRIBE_TEST_CACHE)
+    cache = get_subscribe_test_cache()
     max_stream_capacity = num_grpc_channels * 100
 
     with TopicClient(
