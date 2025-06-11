@@ -62,6 +62,7 @@ log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S.%f"
 markers = [
   "local: tests that require Momento Local",
+  "subscription_initialization: tests that require higher subscriptions limit when testing against the live service",
 ]
 
 [tool.mypy]
