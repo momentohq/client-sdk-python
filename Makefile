@@ -50,7 +50,7 @@ gen-sync: do-gen-sync format lint
 .PHONY: test
 ## Run unit and integration tests with pytest
 test:
-	@poetry run pytest -m "not local"
+	@poetry run pytest -m "not local and not subscribe_initialization"
 
 .PHONY: test-local
 ## Run the integration tests that require Momento Local
@@ -58,7 +58,7 @@ test-local:
 	@poetry run pytest -m local
 
 test-subscription-initialization:
-	@poetry run pytest tests/momento/local/test_topic_subscribe.py
+	@poetry run pytest -m subscribe_initialization
 
 .PHONY: precommit
 ## Run format, lint, and test as a step before committing.

@@ -25,6 +25,7 @@ if not SUBSCRIBE_TEST_CACHE:
 
 
 @pytest.mark.timeout(10)
+@pytest.mark.subscribe_initialization
 def test_should_not_silently_queue_subscribe_requests() -> None:
     with TopicClient(TEST_TOPIC_CONFIGURATION, TEST_AUTH_PROVIDER) as client:
         topic = uuid_str()
@@ -48,6 +49,7 @@ def test_should_not_silently_queue_subscribe_requests() -> None:
 
 
 @pytest.mark.timeout(120)
+@pytest.mark.subscribe_initialization
 @pytest.mark.parametrize(
     "num_grpc_channels",
     [
