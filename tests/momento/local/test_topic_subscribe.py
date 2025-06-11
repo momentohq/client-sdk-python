@@ -1,6 +1,6 @@
 import os
 import time
-from typing import Optional, cast
+from typing import Optional
 
 import pytest
 from momento.errors.error_details import MomentoErrorCode
@@ -20,11 +20,13 @@ from tests.utils import uuid_str
 # concurrent subscriptions, which would require higher momento subscriptions
 # limits that CI/CD does not currently support.
 
+
 def get_subscribe_test_cache() -> str:
-    SUBSCRIBE_TEST_CACHE: Optional[str] = os.getenv("SUBSCRIBE_TEST_CACHE")
-    if not SUBSCRIBE_TEST_CACHE:
+    subscribe_test_cache: Optional[str] = os.getenv("SUBSCRIBE_TEST_CACHE")
+    if not subscribe_test_cache:
         raise RuntimeError("Integration tests require SUBSCRIBE_TEST_CACHE env var; see README for more details.")
-    return cast(str, SUBSCRIBE_TEST_CACHE)
+    return subscribe_test_cache
+
 
 @pytest.mark.timeout(10)
 @pytest.mark.subscribe_initialization
