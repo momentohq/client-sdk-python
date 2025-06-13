@@ -220,7 +220,6 @@ class _PubsubGrpcStreamManager:
                     configuration.get_transport_strategy().get_grpc_configuration()
                 ),
             )
-        self._stub = pubsub_client.PubsubStub(self._channel)  # type: ignore[no-untyped-call]
         self._active_streams_count = 0
 
     async def close(self) -> None:
@@ -233,7 +232,7 @@ class _PubsubGrpcStreamManager:
                 service=Service.TOPICS,
             )
         self._active_streams_count += 1
-        return self._stub
+        return pubsub_client.PubsubStub(self._channel)  # type: ignore[no-untyped-call]
 
     def decrement_stream_count(self) -> None:
         self._active_streams_count -= 1
