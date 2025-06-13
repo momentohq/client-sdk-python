@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from concurrent.futures._base import CancelledError
-from typing import Optional
+from typing import Callable, Optional
 
 from grpc._channel import _MultiThreadedRendezvous
 from grpc.aio._interceptor import InterceptedUnaryStreamCall
@@ -74,13 +74,32 @@ class TopicSubscribe(ABC):
     class SubscriptionAsync(SubscriptionBase):
         """Provides the async version of a topic subscription."""
 
-        def __init__(self, cache_name: str, topic_name: str, client_stream: InterceptedUnaryStreamCall):
+        def __init__(
+            self,
+            cache_name: str,
+            topic_name: str,
+            client_stream: InterceptedUnaryStreamCall,
+            decrement_stream_count_method: Callable[[], None],
+        ):
             self._cache_name = cache_name
             self._topic_name = topic_name
             self._client_stream = client_stream  # type: ignore[misc]
+            self._decrement_stream_count = decrement_stream_count_method
+            self._decremented = False
 
         def __aiter__(self) -> TopicSubscribe.SubscriptionAsync:
             return self
+
+        def __del__(self) -> None:
+            if not self._decremented:
+                self._decrement_stream_count()
+                self._decremented = True
+
+        def unsubscribe(self) -> None:
+            if not self._decremented:
+                self._decrement_stream_count()
+                self._decremented = True
+            self._client_stream.cancel()  # type: ignore[misc]
 
         async def __anext__(self) -> TopicSubscriptionItemResponse:
             """Retrieves the next published item from the subscription.
@@ -138,13 +157,32 @@ class TopicSubscribe(ABC):
     class Subscription(SubscriptionBase):
         """Provides the synchronous version of a topic subscription."""
 
-        def __init__(self, cache_name: str, topic_name: str, client_stream: _MultiThreadedRendezvous):
+        def __init__(
+            self,
+            cache_name: str,
+            topic_name: str,
+            client_stream: _MultiThreadedRendezvous,
+            decrement_stream_count_method: Callable[[], None],
+        ):
             self._cache_name = cache_name
             self._topic_name = topic_name
             self._client_stream = client_stream  # type: ignore[misc]
+            self._decrement_stream_count = decrement_stream_count_method
+            self._decremented = False
 
         def __iter__(self) -> TopicSubscribe.Subscription:
             return self
+
+        def __del__(self) -> None:
+            if not self._decremented:
+                self._decrement_stream_count()
+                self._decremented = True
+
+        def unsubscribe(self) -> None:
+            if not self._decremented:
+                self._decrement_stream_count()
+                self._decremented = True
+            self._client_stream.cancel()  # type: ignore[misc]
 
         def __next__(self) -> TopicSubscriptionItemResponse:
             """Retrieves the next published item from the subscription.

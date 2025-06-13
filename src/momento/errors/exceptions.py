@@ -371,3 +371,21 @@ class UnknownServiceException(SdkException):
             transport_details,
             message_wrapper="Service returned an unknown response; please contact us at support@momentohq.com",
         )
+
+
+class ClientResourceExhaustedException(SdkException):
+    """Client resource (such as memory or number of concurrent streams) exhausted."""
+
+    def __init__(
+        self,
+        message: str,
+        service: Service,
+        transport_details: Optional[MomentoErrorTransportDetails] = None,
+    ):
+        super().__init__(
+            message,
+            MomentoErrorCode.CLIENT_RESOURCE_EXHAUSTED,
+            service,
+            transport_details,
+            message_wrapper="Client resource (such as memory or number of concurrent streams) exhausted",
+        )
