@@ -29,9 +29,6 @@ from momento.responses import (
 class _ScsPubsubClient:
     """Internal pubsub client."""
 
-    stream_manager_count = 0
-    unary_manager_count = 0
-
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         endpoint = credential_provider.cache_endpoint
         self._logger = logs.logger
@@ -55,6 +52,8 @@ class _ScsPubsubClient:
 
         # Default to 4 unary pubsub channels. TODO: Make this configurable.
         self._unary_managers = [_PubsubGrpcManager(configuration, credential_provider) for i in range(0, 4)]
+        self._stream_manager_count = 0
+        self._unary_manager_count = 0
 
     @property
     def endpoint(self) -> str:
@@ -134,8 +133,8 @@ class _ScsPubsubClient:
         # Simply round-robin through the unary managers.
         # Unary requests will eventually complete (unlike long-lived subscriptions),
         # so we do not need the same bookkeeping logic here.
-        manager = self._unary_managers[self.unary_manager_count % len(self._unary_managers)]
-        self.unary_manager_count += 1
+        manager = self._unary_managers[self._unary_manager_count % len(self._unary_managers)]
+        self._unary_manager_count += 1
         return manager.async_stub()
 
     def _get_stream_stub(self) -> tuple[pubsub_grpc.PubsubStub, Callable[[], None]]:
@@ -143,8 +142,8 @@ class _ScsPubsubClient:
         # Allow up to 2 attempts to account for large bursts of requests.
         for _ in range(0, 2):
             try:
-                manager = self._stream_managers[self.stream_manager_count % len(self._stream_managers)]
-                self.stream_manager_count += 1
+                manager = self._stream_managers[self._stream_manager_count % len(self._stream_managers)]
+                self._stream_manager_count += 1
                 return manager.async_stub(), manager.decrement_stream_count
             except ClientResourceExhaustedException:
                 # If the stub is at capacity, continue to the next one.

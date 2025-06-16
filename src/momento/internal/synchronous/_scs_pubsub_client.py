@@ -29,9 +29,6 @@ from momento.responses import (
 class _ScsPubsubClient:
     """Internal pubsub client."""
 
-    # stream_manager_count = 0
-    # unary_manager_count = 0
-
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         endpoint = credential_provider.cache_endpoint
         self._logger = logs.logger
