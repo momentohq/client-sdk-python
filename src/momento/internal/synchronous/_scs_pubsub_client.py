@@ -139,8 +139,9 @@ class _ScsPubsubClient:
 
     def _get_stream_stub(self) -> tuple[pubsub_grpc.PubsubStub, Callable[[], None]]:
         # Try to get a client with capacity for another subscription by round-robining through the stubs.
-        # Allow up to 2 attempts to account for large bursts of requests.
-        for _ in range(0, 2):
+        # Allow up to max_stream_capacity attempts to account for large bursts of requests.
+        max_stream_capacity = len(self._stream_managers) * 100
+        for _ in range(0, max_stream_capacity):
             try:
                 manager = self._stream_managers[self._stream_manager_count % len(self._stream_managers)]
                 self._stream_manager_count += 1
