@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from datetime import timedelta
+from typing import Callable
 
 from momento_wire_types import cachepubsub_pb2 as pubsub_pb
 from momento_wire_types import cachepubsub_pb2_grpc as pubsub_grpc
@@ -10,6 +11,7 @@ from momento import logs
 from momento.auth import CredentialProvider
 from momento.config import TopicConfiguration
 from momento.errors import convert_error
+from momento.errors.exceptions import ClientResourceExhaustedException
 from momento.internal._utilities import _validate_cache_name, _validate_topic_name
 from momento.internal.services import Service
 from momento.internal.synchronous._scs_grpc_manager import (
@@ -27,8 +29,6 @@ from momento.responses import (
 class _ScsPubsubClient:
     """Internal pubsub client."""
 
-    stream_topic_manager_count = 0
-
     def __init__(self, configuration: TopicConfiguration, credential_provider: CredentialProvider):
         endpoint = credential_provider.cache_endpoint
         self._logger = logs.logger
@@ -38,19 +38,22 @@ class _ScsPubsubClient:
         default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
         self._default_deadline_seconds = default_deadline.total_seconds()
 
-        num_subscriptions = configuration.get_max_subscriptions()
         # Default to a single channel and scale up if necessary. Each channel can support
         # 100 subscriptions. Issuing more subscribe requests than you have channels to handle
-        # will cause the last request to hang indefinitely, so it's important to get this right.
+        # will cause a ClientResourceExhaustedException.
         num_channels = 1
+        num_subscriptions = configuration.get_max_subscriptions()
         if num_subscriptions > 0:
             num_channels = math.ceil(num_subscriptions / 100.0)
             self._logger.debug(f"creating {num_channels} subscription channels")
-
-        self._grpc_manager = _PubsubGrpcManager(configuration, credential_provider)
         self._stream_managers = [
             _PubsubGrpcStreamManager(configuration, credential_provider) for i in range(0, num_channels)
         ]
+
+        # Default to 4 unary pubsub channels. TODO: Make this configurable.
+        self._unary_managers = [_PubsubGrpcManager(configuration, credential_provider) for i in range(0, 4)]
+        self._stream_manager_count = 0
+        self._unary_manager_count = 0
 
     @property
     def endpoint(self) -> str:
@@ -72,7 +75,7 @@ class _ScsPubsubClient:
                 value=topic_value,
             )
 
-            self._get_stub().Publish(
+            self._get_unary_stub().Publish(
                 request,
                 timeout=self._default_deadline_seconds,
             )
@@ -98,7 +101,8 @@ class _ScsPubsubClient:
                 resume_at_topic_sequence_number=resume_at_topic_sequence_number,
                 sequence_page=resume_at_topic_sequence_page,
             )
-            stream = self._get_stream_stub().Subscribe(  # type: ignore[misc]
+            stub, decrement_stream_count = self._get_stream_stub()
+            stream = stub.Subscribe(  # type: ignore[misc]
                 request,
             )
 
@@ -112,7 +116,12 @@ class _ScsPubsubClient:
                 err = Exception(f"expected a heartbeat message but got '{msg_type}'")
                 self._log_request_error("subscribe", err)
                 return TopicSubscribe.Error(convert_error(err, Service.TOPICS))
-            return TopicSubscribe.Subscription(cache_name, topic_name, client_stream=stream)  # type: ignore[misc]
+            return TopicSubscribe.Subscription(
+                cache_name,
+                topic_name,
+                client_stream=stream,  # type: ignore[misc]
+                decrement_stream_count_method=decrement_stream_count,
+            )
         except Exception as e:
             self._log_request_error("subscribe", e)
             return TopicSubscribe.Error(convert_error(e, Service.TOPICS))
@@ -120,15 +129,35 @@ class _ScsPubsubClient:
     def _log_request_error(self, request_type: str, e: Exception) -> None:
         self._logger.warning(f"{request_type} failed with exception: {e}")
 
-    def _get_stub(self) -> pubsub_grpc.PubsubStub:
-        return self._grpc_manager.stub()
-
-    def _get_stream_stub(self) -> pubsub_grpc.PubsubStub:
-        stub = self._stream_managers[self.stream_topic_manager_count % len(self._stream_managers)].stub()
-        self.stream_topic_manager_count += 1
+    def _get_unary_stub(self) -> pubsub_grpc.PubsubStub:
+        # Simply round-robin through the unary managers.
+        # Unary requests will eventually complete (unlike long-lived subscriptions),
+        # so we do not need the same bookkeeping logic here.
+        stub = self._unary_managers[self._unary_manager_count % len(self._unary_managers)].stub()
+        self._unary_manager_count += 1
         return stub
 
+    def _get_stream_stub(self) -> tuple[pubsub_grpc.PubsubStub, Callable[[], None]]:
+        # Try to get a client with capacity for another subscription by round-robining through the stubs.
+        # Allow up to max_stream_capacity attempts to account for large bursts of requests.
+        max_stream_capacity = len(self._stream_managers) * 100
+        for _ in range(0, max_stream_capacity):
+            try:
+                manager = self._stream_managers[self._stream_manager_count % len(self._stream_managers)]
+                self._stream_manager_count += 1
+                return manager.stub(), manager.decrement_stream_count
+            except ClientResourceExhaustedException:
+                # If the stub is at capacity, continue to the next one.
+                continue
+
+        # Otherwise return an error if no stubs have capacity.
+        raise ClientResourceExhaustedException(
+            message="Maximum number of active subscriptions reached",
+            service=Service.TOPICS,
+        )
+
     def close(self) -> None:
-        self._grpc_manager.close()
+        for unary_manager in self._unary_managers:
+            unary_manager.close()
         for stream_client in self._stream_managers:
             stream_client.close()

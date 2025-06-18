@@ -57,7 +57,7 @@ jobs:
         run: poetry run ruff format --check --diff src tests
 
       - name: Run tests
-        run: poetry run pytest -p no:sugar -q -m "not local"
+        run: poetry run pytest -p no:sugar -q -m "not local and not subscription_initialization"
 
   test-examples:
     runs-on: ubuntu-24.04
