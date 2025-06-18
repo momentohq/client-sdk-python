@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.27.1](https://github.com/momentohq/client-sdk-python/compare/v1.27.0...v1.27.1) (2025-06-18)
+
+
+### Bug Fixes
+
+* subscriptions bookkeeping in pubsub clients ([#510](https://github.com/momentohq/client-sdk-python/issues/510)) ([0d5e514](https://github.com/momentohq/client-sdk-python/commit/0d5e5144a3ad953990d83a1f880a35028c2d4ffc))
+
+
+### Miscellaneous
+
+* **deps:** bump momento from 1.26.0 to 1.27.0 in /examples ([#508](https://github.com/momentohq/client-sdk-python/issues/508)) ([62ac4ae](https://github.com/momentohq/client-sdk-python/commit/62ac4ae93bbd62a3583b91a76df570ea414d6096))
+
 ## [1.27.0](https://github.com/momentohq/client-sdk-python/compare/v1.26.0...v1.27.0) (2025-05-07)
 
 
