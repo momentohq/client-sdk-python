@@ -104,6 +104,7 @@ class _ScsPubsubClient:
             stub, decrement_stream_count = self._get_stream_stub()
             stream = stub.Subscribe(  # type: ignore[misc]
                 request,
+                timeout=self._default_deadline_seconds,
             )
 
             # Ping the stream to provide a nice error message if the cache does not exist.
