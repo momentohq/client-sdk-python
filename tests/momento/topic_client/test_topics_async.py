@@ -1,10 +1,14 @@
+from datetime import timedelta
 from functools import partial
 
 from momento import CacheClientAsync, TopicClientAsync
+from momento.config.topic_configurations import TopicConfigurations
+from momento.errors.error_details import MomentoErrorCode
 from momento.responses import TopicPublish, TopicSubscribe, TopicSubscriptionItem
 from pytest import fixture
 from pytest_describe import behaves_like
 
+from tests.conftest import TEST_AUTH_PROVIDER
 from tests.utils import uuid_bytes, uuid_str
 
 from .shared_behaviors_async import (
@@ -129,3 +133,20 @@ def describe_subscribe() -> None:
 
         resp = await topic_client_async.subscribe(cache_name, topic)
         assert isinstance(resp, TopicSubscribe.SubscriptionAsync)
+
+    async def deadline_exceeded_when_timeout_is_shorter_than_subscribe_response(
+        client: CacheClientAsync, topic_client_async: TopicClientAsync, cache_name: str
+    ) -> None:
+        topic = uuid_str()
+
+        # Default config uses 5 second timeout, should succeed
+        resp = await topic_client_async.subscribe(cache_name, topic)
+        assert isinstance(resp, TopicSubscribe.SubscriptionAsync)
+
+        # Using a topic client configured with 1ms timeout should cause deadline exceeded error
+        async with TopicClientAsync(
+            TopicConfigurations.Default.latest().with_client_timeout(timedelta(milliseconds=1)), TEST_AUTH_PROVIDER
+        ) as short_timeout_client:
+            resp = await short_timeout_client.subscribe(cache_name, topic)
+            assert isinstance(resp, TopicSubscribe.Error)
+            assert resp.error_code == MomentoErrorCode.TIMEOUT_ERROR

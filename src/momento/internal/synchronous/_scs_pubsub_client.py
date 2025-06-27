@@ -36,7 +36,7 @@ class _ScsPubsubClient:
         self._endpoint = endpoint
 
         default_deadline: timedelta = configuration.get_transport_strategy().get_grpc_configuration().get_deadline()
-        self._default_deadline_seconds = default_deadline.total_seconds()
+        self._default_deadline_seconds = int(default_deadline.total_seconds())
 
         # Default to a single channel and scale up if necessary. Each channel can support
         # 100 subscriptions. Issuing more subscribe requests than you have channels to handle
@@ -104,6 +104,7 @@ class _ScsPubsubClient:
             stub, decrement_stream_count = self._get_stream_stub()
             stream = stub.Subscribe(  # type: ignore[misc]
                 request,
+                timeout=self._default_deadline_seconds,
             )
 
             # Ping the stream to provide a nice error message if the cache does not exist.
