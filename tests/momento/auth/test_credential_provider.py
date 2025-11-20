@@ -97,3 +97,84 @@ def test_endpoints(provider: CredentialProvider, auth_token: str, control_endpoi
 def test_env_token_raises_if_not_exists() -> None:
     with pytest.raises(RuntimeError, match=r"Missing required environment variable"):
         CredentialProvider.from_environment_variable(env_var_name=uuid_str())
+
+
+# Global API Key Tests
+test_global_api_key = "testToken"
+test_global_endpoint = "testEndpoint"
+test_global_env_var_name = "MOMENTO_TEST_GLOBAL_API_KEY"
+os.environ[test_global_env_var_name] = test_global_api_key
+
+
+@pytest.mark.parametrize(
+    "provider, expected_api_key, expected_control_endpoint, expected_cache_endpoint, expected_token_endpoint",
+    [
+        # global_key_from_string - basic usage
+        (
+            CredentialProvider.global_key_from_string(
+                api_key=test_global_api_key,
+                endpoint=test_global_endpoint,
+            ),
+            test_global_api_key,
+            f"control.{test_global_endpoint}",
+            f"cache.{test_global_endpoint}",
+            f"token.{test_global_endpoint}",
+        ),
+        # global_key_from_environment_variable - basic usage
+        (
+            CredentialProvider.global_key_from_environment_variable(
+                env_var_name=test_global_env_var_name,
+                endpoint=test_global_endpoint,
+            ),
+            test_global_api_key,
+            f"control.{test_global_endpoint}",
+            f"cache.{test_global_endpoint}",
+            f"token.{test_global_endpoint}",
+        ),
+    ],
+)
+def test_global_api_key_endpoints(
+    provider: CredentialProvider,
+    expected_api_key: str,
+    expected_control_endpoint: str,
+    expected_cache_endpoint: str,
+    expected_token_endpoint: str,
+) -> None:
+    assert provider.auth_token == expected_api_key
+    assert provider.control_endpoint == expected_control_endpoint
+    assert provider.cache_endpoint == expected_cache_endpoint
+    assert provider.token_endpoint == expected_token_endpoint
+
+
+def test_global_key_from_string_raises_if_api_key_empty() -> None:
+    with pytest.raises(RuntimeError, match=r"API key cannot be empty"):
+        CredentialProvider.global_key_from_string(api_key="", endpoint=test_global_endpoint)
+
+
+def test_global_key_from_string_raises_if_endpoint_empty() -> None:
+    with pytest.raises(RuntimeError, match=r"Endpoint cannot be empty"):
+        CredentialProvider.global_key_from_string(api_key=test_global_api_key, endpoint="")
+
+
+def test_global_key_from_env_raises_if_env_var_name_empty() -> None:
+    with pytest.raises(RuntimeError, match=r"Environment variable name cannot be empty"):
+        CredentialProvider.global_key_from_environment_variable(env_var_name="", endpoint=test_global_endpoint)
+
+
+def test_global_key_from_env_raises_if_env_var_missing() -> None:
+    with pytest.raises(RuntimeError, match=r"Missing required environment variable"):
+        CredentialProvider.global_key_from_environment_variable(env_var_name=uuid_str(), endpoint=test_global_endpoint)
+
+
+def test_global_key_from_env_raises_if_endpoint_empty() -> None:
+    with pytest.raises(RuntimeError, match=r"Endpoint cannot be empty"):
+        CredentialProvider.global_key_from_environment_variable(env_var_name=test_global_env_var_name, endpoint="")
+
+
+def test_global_key_from_env_raises_if_api_key_empty_string() -> None:
+    empty_api_key_env_var = uuid_str()
+    os.environ[empty_api_key_env_var] = ""
+    with pytest.raises(RuntimeError, match=r"Missing required environment variable"):
+        CredentialProvider.global_key_from_environment_variable(
+            env_var_name=empty_api_key_env_var, endpoint=test_global_endpoint
+        )

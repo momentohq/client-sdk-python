@@ -102,3 +102,44 @@ class CredentialProvider:
 
     def get_auth_token(self) -> str:
         return self.auth_token
+
+    @staticmethod
+    def global_key_from_string(api_key: str, endpoint: str) -> CredentialProvider:
+        """Creates a CredentialProvider from a global API key and endpoint.
+
+        Args:
+            api_key (str): The global API key.
+            endpoint (str): The Momento service endpoint.
+
+        Returns:
+            CredentialProvider
+        """
+        if len(api_key) == 0:
+            raise RuntimeError("API key cannot be empty.")
+        if len(endpoint) == 0:
+            raise RuntimeError("Endpoint cannot be empty.")
+        return CredentialProvider(
+            auth_token=api_key,
+            control_endpoint=momento_endpoint_resolver._MOMENTO_CONTROL_ENDPOINT_PREFIX + endpoint,
+            cache_endpoint=momento_endpoint_resolver._MOMENTO_CACHE_ENDPOINT_PREFIX + endpoint,
+            token_endpoint=momento_endpoint_resolver._MOMENTO_TOKEN_ENDPOINT_PREFIX + endpoint,
+            port=443,
+        )
+
+    @staticmethod
+    def global_key_from_environment_variable(env_var_name: str, endpoint: str) -> CredentialProvider:
+        """Creates a CredentialProvider from an endpoint and a global API key stored in an environment variable.
+
+        Args:
+            env_var_name (str): Name of the environment variable from which the global API key will be read.
+            endpoint (str): The Momento service endpoint.
+
+        Returns:
+            CredentialProvider
+        """
+        if len(env_var_name) == 0:
+            raise RuntimeError("Environment variable name cannot be empty.")
+        api_key = os.getenv(env_var_name)
+        if not api_key:
+            raise RuntimeError(f"Missing required environment variable {env_var_name}")
+        return CredentialProvider.global_key_from_string(api_key, endpoint)
