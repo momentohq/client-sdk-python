@@ -14,6 +14,8 @@ _MOMENTO_CACHE_ENDPOINT_PREFIX = "cache."
 _MOMENTO_TOKEN_ENDPOINT_PREFIX = "token."
 _CONTROL_ENDPOINT_CLAIM_ID = "cp"
 _CACHE_ENDPOINT_CLAIM_ID = "c"
+_API_KEY_TYPE_CLAIM_ID = "t"
+_GLOBAL_API_KEY_TYPE = "g"
 
 
 @dataclass
@@ -66,4 +68,12 @@ def _is_base64(value: Union[bytes, str]) -> bool:
             value = value.encode("utf-8")
         return base64.b64encode(base64.b64decode(value)) == value
     except Exception:
+        return False
+
+
+def _is_global_api_key(value: str) -> bool:
+    try:
+        claims = jwt.decode(value, options={"verify_signature": False})  # type: ignore[misc]
+        return _API_KEY_TYPE_CLAIM_ID in claims and claims[_API_KEY_TYPE_CLAIM_ID] == _GLOBAL_API_KEY_TYPE  # type: ignore[misc]
+    except DecodeError:
         return False

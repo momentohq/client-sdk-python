@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import re
 
 import jwt
 import pytest
@@ -22,6 +23,13 @@ test_encoded_v1_token = base64.b64encode(json.dumps(test_decoded_v1_token.__dict
 
 os.environ[test_env_var_name] = test_token
 os.environ[test_v1_env_var_name] = test_encoded_v1_token.decode("utf-8")
+
+# For global API key tests
+test_global_key_message = {"t": "g"}
+test_global_api_key = jwt.encode(test_global_key_message, "secret", algorithm="HS512")  # TODO: use ES256?
+test_global_endpoint = "testEndpoint"
+test_global_env_var_name = uuid_str()
+os.environ[test_global_env_var_name] = test_global_api_key
 
 
 @pytest.mark.parametrize(
@@ -99,13 +107,6 @@ def test_env_token_raises_if_not_exists() -> None:
         CredentialProvider.from_environment_variable(env_var_name=uuid_str())
 
 
-# Global API Key Tests
-test_global_api_key = "testToken"
-test_global_endpoint = "testEndpoint"
-test_global_env_var_name = "MOMENTO_TEST_GLOBAL_API_KEY"
-os.environ[test_global_env_var_name] = test_global_api_key
-
-
 @pytest.mark.parametrize(
     "provider, expected_api_key, expected_control_endpoint, expected_cache_endpoint, expected_token_endpoint",
     [
@@ -147,34 +148,80 @@ def test_global_api_key_endpoints(
 
 
 def test_global_key_from_string_raises_if_api_key_empty() -> None:
-    with pytest.raises(RuntimeError, match=r"API key cannot be empty"):
+    with pytest.raises(RuntimeError, match="API key cannot be empty"):
         CredentialProvider.global_key_from_string(api_key="", endpoint=test_global_endpoint)
 
 
 def test_global_key_from_string_raises_if_endpoint_empty() -> None:
-    with pytest.raises(RuntimeError, match=r"Endpoint cannot be empty"):
+    with pytest.raises(RuntimeError, match="Endpoint cannot be empty"):
         CredentialProvider.global_key_from_string(api_key=test_global_api_key, endpoint="")
 
 
 def test_global_key_from_env_raises_if_env_var_name_empty() -> None:
-    with pytest.raises(RuntimeError, match=r"Environment variable name cannot be empty"):
+    with pytest.raises(RuntimeError, match="Environment variable name cannot be empty"):
         CredentialProvider.global_key_from_environment_variable(env_var_name="", endpoint=test_global_endpoint)
 
 
 def test_global_key_from_env_raises_if_env_var_missing() -> None:
-    with pytest.raises(RuntimeError, match=r"Missing required environment variable"):
+    with pytest.raises(RuntimeError, match="Missing required environment variable"):
         CredentialProvider.global_key_from_environment_variable(env_var_name=uuid_str(), endpoint=test_global_endpoint)
 
 
 def test_global_key_from_env_raises_if_endpoint_empty() -> None:
-    with pytest.raises(RuntimeError, match=r"Endpoint cannot be empty"):
+    with pytest.raises(RuntimeError, match="Endpoint cannot be empty"):
         CredentialProvider.global_key_from_environment_variable(env_var_name=test_global_env_var_name, endpoint="")
 
 
 def test_global_key_from_env_raises_if_api_key_empty_string() -> None:
     empty_api_key_env_var = uuid_str()
     os.environ[empty_api_key_env_var] = ""
-    with pytest.raises(RuntimeError, match=r"Missing required environment variable"):
+    with pytest.raises(RuntimeError, match="Missing required environment variable"):
         CredentialProvider.global_key_from_environment_variable(
             env_var_name=empty_api_key_env_var, endpoint=test_global_endpoint
+        )
+
+
+def test_global_key_from_string_raises_if_base64_api_key() -> None:
+    with pytest.raises(
+        RuntimeError,
+        match=re.escape(
+            "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_string()` instead?"
+        ),
+    ):
+        CredentialProvider.global_key_from_string(
+            api_key=test_encoded_v1_token.decode("utf-8"), endpoint=test_global_endpoint
+        )
+
+
+def test_global_key_from_env_raises_if_base64_api_key() -> None:
+    with pytest.raises(
+        RuntimeError,
+        match=re.escape(
+            "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
+        ),
+    ):
+        CredentialProvider.global_key_from_environment_variable(
+            env_var_name=test_v1_env_var_name, endpoint=test_global_endpoint
+        )
+
+
+def test_global_key_from_string_raises_if_pre_v1_token() -> None:
+    with pytest.raises(
+        RuntimeError,
+        match=re.escape(
+            "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_string()` instead?"
+        ),
+    ):
+        CredentialProvider.global_key_from_string(api_key=test_token, endpoint=test_global_endpoint)
+
+
+def test_global_key_from_env_raises_if_pre_v1_token() -> None:
+    with pytest.raises(
+        RuntimeError,
+        match=re.escape(
+            "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
+        ),
+    ):
+        CredentialProvider.global_key_from_environment_variable(
+            env_var_name=test_env_var_name, endpoint=test_global_endpoint
         )

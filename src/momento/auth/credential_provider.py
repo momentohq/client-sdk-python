@@ -118,6 +118,14 @@ class CredentialProvider:
             raise RuntimeError("API key cannot be empty.")
         if len(endpoint) == 0:
             raise RuntimeError("Endpoint cannot be empty.")
+        if momento_endpoint_resolver._is_base64(api_key):
+            raise RuntimeError(
+                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_string()` instead?"
+            )
+        if not momento_endpoint_resolver._is_global_api_key(api_key):
+            raise RuntimeError(
+                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_string()` instead?"
+            )
         return CredentialProvider(
             auth_token=api_key,
             control_endpoint=momento_endpoint_resolver._MOMENTO_CONTROL_ENDPOINT_PREFIX + endpoint,
@@ -142,4 +150,12 @@ class CredentialProvider:
         api_key = os.getenv(env_var_name)
         if not api_key:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")
+        if momento_endpoint_resolver._is_base64(api_key):
+            raise RuntimeError(
+                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
+            )
+        if not momento_endpoint_resolver._is_global_api_key(api_key):
+            raise RuntimeError(
+                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
+            )
         return CredentialProvider.global_key_from_string(api_key, endpoint)
