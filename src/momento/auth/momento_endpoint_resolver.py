@@ -46,6 +46,11 @@ def resolve(auth_token: str) -> _TokenAndEndpoints:
             auth_token=info["api_key"],  # type: ignore[misc]
         )
     else:
+        if _is_global_api_key(auth_token):
+            raise InvalidArgumentException(
+                "Received a global API key. Are you using the correct key? Or did you mean to use `global_key_from_string()` or `global_key_from_environment_variable()` instead?",
+                Service.AUTH,
+            )
         return _get_endpoint_from_token(auth_token)
 
 

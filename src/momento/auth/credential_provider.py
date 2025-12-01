@@ -5,6 +5,9 @@ import os
 from dataclasses import dataclass
 from typing import Dict, Optional
 
+from momento.errors.exceptions import InvalidArgumentException
+from momento.internal.services import Service
+
 from . import momento_endpoint_resolver
 
 
@@ -115,16 +118,18 @@ class CredentialProvider:
             CredentialProvider
         """
         if len(api_key) == 0:
-            raise RuntimeError("API key cannot be empty.")
+            raise InvalidArgumentException("API key cannot be empty.", Service.AUTH)
         if len(endpoint) == 0:
-            raise RuntimeError("Endpoint cannot be empty.")
+            raise InvalidArgumentException("Endpoint cannot be empty.", Service.AUTH)
         if momento_endpoint_resolver._is_base64(api_key):
-            raise RuntimeError(
-                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_string()` instead?"
+            raise InvalidArgumentException(
+                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_string()` instead?",
+                Service.AUTH,
             )
         if not momento_endpoint_resolver._is_global_api_key(api_key):
-            raise RuntimeError(
-                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_string()` instead?"
+            raise InvalidArgumentException(
+                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_string()` instead?",
+                Service.AUTH,
             )
         return CredentialProvider(
             auth_token=api_key,
@@ -146,16 +151,18 @@ class CredentialProvider:
             CredentialProvider
         """
         if len(env_var_name) == 0:
-            raise RuntimeError("Environment variable name cannot be empty.")
+            raise InvalidArgumentException("Environment variable name cannot be empty.", Service.AUTH)
         api_key = os.getenv(env_var_name)
         if not api_key:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")
         if momento_endpoint_resolver._is_base64(api_key):
-            raise RuntimeError(
-                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
+            raise InvalidArgumentException(
+                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?",
+                Service.AUTH,
             )
         if not momento_endpoint_resolver._is_global_api_key(api_key):
-            raise RuntimeError(
-                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
+            raise InvalidArgumentException(
+                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?",
+                Service.AUTH,
             )
         return CredentialProvider.global_key_from_string(api_key, endpoint)

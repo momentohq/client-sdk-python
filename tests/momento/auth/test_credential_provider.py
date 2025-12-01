@@ -7,6 +7,7 @@ import jwt
 import pytest
 from momento.auth.credential_provider import CredentialProvider
 from momento.auth.momento_endpoint_resolver import _Base64DecodedV1Token
+from momento.errors.exceptions import InvalidArgumentException
 
 from tests.utils import uuid_str
 
@@ -148,17 +149,17 @@ def test_global_api_key_endpoints(
 
 
 def test_global_key_from_string_raises_if_api_key_empty() -> None:
-    with pytest.raises(RuntimeError, match="API key cannot be empty"):
+    with pytest.raises(InvalidArgumentException, match="API key cannot be empty"):
         CredentialProvider.global_key_from_string(api_key="", endpoint=test_global_endpoint)
 
 
 def test_global_key_from_string_raises_if_endpoint_empty() -> None:
-    with pytest.raises(RuntimeError, match="Endpoint cannot be empty"):
+    with pytest.raises(InvalidArgumentException, match="Endpoint cannot be empty"):
         CredentialProvider.global_key_from_string(api_key=test_global_api_key, endpoint="")
 
 
 def test_global_key_from_env_raises_if_env_var_name_empty() -> None:
-    with pytest.raises(RuntimeError, match="Environment variable name cannot be empty"):
+    with pytest.raises(InvalidArgumentException, match="Environment variable name cannot be empty"):
         CredentialProvider.global_key_from_environment_variable(env_var_name="", endpoint=test_global_endpoint)
 
 
@@ -168,7 +169,7 @@ def test_global_key_from_env_raises_if_env_var_missing() -> None:
 
 
 def test_global_key_from_env_raises_if_endpoint_empty() -> None:
-    with pytest.raises(RuntimeError, match="Endpoint cannot be empty"):
+    with pytest.raises(InvalidArgumentException, match="Endpoint cannot be empty"):
         CredentialProvider.global_key_from_environment_variable(env_var_name=test_global_env_var_name, endpoint="")
 
 
@@ -183,7 +184,7 @@ def test_global_key_from_env_raises_if_api_key_empty_string() -> None:
 
 def test_global_key_from_string_raises_if_base64_api_key() -> None:
     with pytest.raises(
-        RuntimeError,
+        InvalidArgumentException,
         match=re.escape(
             "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_string()` instead?"
         ),
@@ -195,7 +196,7 @@ def test_global_key_from_string_raises_if_base64_api_key() -> None:
 
 def test_global_key_from_env_raises_if_base64_api_key() -> None:
     with pytest.raises(
-        RuntimeError,
+        InvalidArgumentException,
         match=re.escape(
             "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
         ),
@@ -207,7 +208,7 @@ def test_global_key_from_env_raises_if_base64_api_key() -> None:
 
 def test_global_key_from_string_raises_if_pre_v1_token() -> None:
     with pytest.raises(
-        RuntimeError,
+        InvalidArgumentException,
         match=re.escape(
             "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_string()` instead?"
         ),
@@ -217,7 +218,7 @@ def test_global_key_from_string_raises_if_pre_v1_token() -> None:
 
 def test_global_key_from_env_raises_if_pre_v1_token() -> None:
     with pytest.raises(
-        RuntimeError,
+        InvalidArgumentException,
         match=re.escape(
             "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?"
         ),
@@ -225,3 +226,13 @@ def test_global_key_from_env_raises_if_pre_v1_token() -> None:
         CredentialProvider.global_key_from_environment_variable(
             env_var_name=test_env_var_name, endpoint=test_global_endpoint
         )
+
+
+def test_global_key_provided_to_from_string() -> None:
+    with pytest.raises(
+        InvalidArgumentException,
+        match=re.escape(
+            "Received a global API key. Are you using the correct key? Or did you mean to use `global_key_from_string()` or `global_key_from_environment_variable()` instead?"
+        ),
+    ):
+        CredentialProvider.from_string(auth_token=test_global_api_key)
