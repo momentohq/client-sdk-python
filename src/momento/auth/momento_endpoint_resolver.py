@@ -46,9 +46,9 @@ def resolve(auth_token: str) -> _TokenAndEndpoints:
             auth_token=info["api_key"],  # type: ignore[misc]
         )
     else:
-        if _is_global_api_key(auth_token):
+        if _is_v2_api_key(auth_token):
             raise InvalidArgumentException(
-                "Received a global API key. Are you using the correct key? Or did you mean to use `global_key_from_string()` or `global_key_from_environment_variable()` instead?",
+                "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_env_var_v2()` instead?",
                 Service.AUTH,
             )
         return _get_endpoint_from_token(auth_token)
@@ -76,9 +76,11 @@ def _is_base64(value: Union[bytes, str]) -> bool:
         return False
 
 
-def _is_global_api_key(value: str) -> bool:
+def _is_v2_api_key(key: str) -> bool:
+    if _is_base64(key):
+        return False
     try:
-        claims = jwt.decode(value, options={"verify_signature": False})  # type: ignore[misc]
+        claims = jwt.decode(key, options={"verify_signature": False})  # type: ignore[misc]
         return _API_KEY_TYPE_CLAIM_ID in claims and claims[_API_KEY_TYPE_CLAIM_ID] == _GLOBAL_API_KEY_TYPE  # type: ignore[misc]
     except DecodeError:
         return False

@@ -4,6 +4,7 @@ import copy
 import os
 from dataclasses import dataclass
 from typing import Dict, Optional
+from warnings import warn
 
 from momento.errors.exceptions import InvalidArgumentException
 from momento.internal.services import Service
@@ -45,6 +46,7 @@ class CredentialProvider:
         Returns:
             CredentialProvider
         """
+        warn("from_environment_variable is deprecated, use from_env_var_v2 instead", DeprecationWarning, stacklevel=2)
         api_key = os.getenv(env_var_name)
         if not api_key:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")
@@ -71,6 +73,11 @@ class CredentialProvider:
         Returns:
             CredentialProvider
         """
+        warn(
+            "from_string is deprecated, use from_api_key_v2 or from_disposable_token instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         token_and_endpoints = momento_endpoint_resolver.resolve(auth_token)
         control_endpoint = control_endpoint or token_and_endpoints.control_endpoint
         cache_endpoint = cache_endpoint or token_and_endpoints.cache_endpoint
@@ -107,7 +114,7 @@ class CredentialProvider:
         return self.auth_token
 
     @staticmethod
-    def global_key_from_string(api_key: str, endpoint: str) -> CredentialProvider:
+    def from_api_key_v2(api_key: str, endpoint: str) -> CredentialProvider:
         """Creates a CredentialProvider from a global API key and endpoint.
 
         Args:
@@ -121,14 +128,10 @@ class CredentialProvider:
             raise InvalidArgumentException("API key cannot be empty.", Service.AUTH)
         if len(endpoint) == 0:
             raise InvalidArgumentException("Endpoint cannot be empty.", Service.AUTH)
-        if momento_endpoint_resolver._is_base64(api_key):
+
+        if not momento_endpoint_resolver._is_v2_api_key(api_key):
             raise InvalidArgumentException(
-                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_string()` instead?",
-                Service.AUTH,
-            )
-        if not momento_endpoint_resolver._is_global_api_key(api_key):
-            raise InvalidArgumentException(
-                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_string()` instead?",
+                "Received an invalid v2 API key. Are you using the correct key? Or did you mean to use `from_string()` with a legacy key instead?",
                 Service.AUTH,
             )
         return CredentialProvider(
@@ -140,29 +143,53 @@ class CredentialProvider:
         )
 
     @staticmethod
-    def global_key_from_environment_variable(env_var_name: str, endpoint: str) -> CredentialProvider:
+    def from_env_var_v2(api_key_env_var: str, endpoint_env_var: str) -> CredentialProvider:
         """Creates a CredentialProvider from an endpoint and a global API key stored in an environment variable.
 
         Args:
-            env_var_name (str): Name of the environment variable from which the global API key will be read.
-            endpoint (str): The Momento service endpoint.
+            api_key_env_var (str): Name of the environment variable from which the global API key will be read.
+            endpoint_env_var (str): Name of the environment variable from which the Momento service endpoint will be read.
 
         Returns:
             CredentialProvider
         """
-        if len(env_var_name) == 0:
-            raise InvalidArgumentException("Environment variable name cannot be empty.", Service.AUTH)
-        api_key = os.getenv(env_var_name)
+        if len(api_key_env_var) == 0:
+            raise InvalidArgumentException("API key environment variable name cannot be empty.", Service.AUTH)
+        if len(endpoint_env_var) == 0:
+            raise InvalidArgumentException("Endpoint environment variable name cannot be empty.", Service.AUTH)
+
+        api_key = os.getenv(api_key_env_var)
         if not api_key:
-            raise RuntimeError(f"Missing required environment variable {env_var_name}")
-        if momento_endpoint_resolver._is_base64(api_key):
+            raise RuntimeError(f"Missing required environment variable {api_key_env_var}")
+        endpoint = os.getenv(endpoint_env_var)
+        if not endpoint:
+            raise RuntimeError(f"Missing required environment variable {endpoint_env_var}")
+
+        if not momento_endpoint_resolver._is_v2_api_key(api_key):
             raise InvalidArgumentException(
-                "Did not expect global API key to be base64 encoded. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?",
+                "Received an invalid v2 API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` with a legacy key instead?",
                 Service.AUTH,
             )
-        if not momento_endpoint_resolver._is_global_api_key(api_key):
-            raise InvalidArgumentException(
-                "Provided API key is not a valid global API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` instead?",
-                Service.AUTH,
-            )
-        return CredentialProvider.global_key_from_string(api_key, endpoint)
+        return CredentialProvider.from_api_key_v2(api_key, endpoint)
+
+    @staticmethod
+    def from_disposable_token(auth_token: str) -> CredentialProvider:
+        """Reads and parses a Momento disposable auth token.
+
+        Args:
+            auth_token (str): the Momento disposable auth token
+
+        Returns:
+            CredentialProvider
+        """
+        if len(auth_token) == 0:
+            raise InvalidArgumentException("Disposable token cannot be empty.", Service.AUTH)
+        token_and_endpoints = momento_endpoint_resolver.resolve(auth_token)
+        auth_token = token_and_endpoints.auth_token
+        return CredentialProvider(
+            auth_token,
+            token_and_endpoints.control_endpoint,
+            token_and_endpoints.cache_endpoint,
+            token_and_endpoints.token_endpoint,
+            443,
+        )
