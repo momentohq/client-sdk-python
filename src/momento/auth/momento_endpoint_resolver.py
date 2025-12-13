@@ -48,7 +48,7 @@ def resolve(auth_token: str) -> _TokenAndEndpoints:
     else:
         if _is_v2_api_key(auth_token):
             raise InvalidArgumentException(
-                "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_env_var_v2()` instead?",
+                "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_environment_variables_v2()` instead?",
                 Service.AUTH,
             )
         return _get_endpoint_from_token(auth_token)

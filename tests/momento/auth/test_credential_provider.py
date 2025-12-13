@@ -26,11 +26,11 @@ os.environ[test_env_var_name] = test_token
 os.environ[test_v1_env_var_name] = test_encoded_v1_token.decode("utf-8")
 
 # For v2 API key tests
-test_v2_key_message = {"t": "g", "id": "some-id"}
+test_v2_key_message = {"t": "g", "jti": "some-id"}
 test_v2_api_key = jwt.encode(test_v2_key_message, "secret", algorithm="HS512")
-test_v2_key_env_var_name = uuid_str()
+test_v2_key_env_var_name = "MOMENTO_API_KEY"
 test_v2_endpoint = "testEndpoint"
-test_v2_endpoint_env_var_name = uuid_str()
+test_v2_endpoint_env_var_name = "MOMENTO_ENDPOINT"
 os.environ[test_v2_key_env_var_name] = test_v2_api_key
 os.environ[test_v2_endpoint_env_var_name] = test_v2_endpoint
 
@@ -113,7 +113,6 @@ def test_env_token_raises_if_not_exists() -> None:
 @pytest.mark.parametrize(
     "provider, expected_api_key, expected_control_endpoint, expected_cache_endpoint, expected_token_endpoint",
     [
-        # v2_key_from_string - basic usage
         (
             CredentialProvider.from_api_key_v2(
                 api_key=test_v2_api_key,
@@ -124,12 +123,18 @@ def test_env_token_raises_if_not_exists() -> None:
             f"cache.{test_v2_endpoint}",
             f"token.{test_v2_endpoint}",
         ),
-        # v2_key_from_environment_variable - basic usage
         (
-            CredentialProvider.from_env_var_v2(
+            CredentialProvider.from_environment_variables_v2(
                 api_key_env_var=test_v2_key_env_var_name,
                 endpoint_env_var=test_v2_endpoint_env_var_name,
             ),
+            test_v2_api_key,
+            f"control.{test_v2_endpoint}",
+            f"cache.{test_v2_endpoint}",
+            f"token.{test_v2_endpoint}",
+        ),
+        (
+            CredentialProvider.from_environment_variables_v2(),
             test_v2_api_key,
             f"control.{test_v2_endpoint}",
             f"cache.{test_v2_endpoint}",
@@ -162,24 +167,28 @@ def test_v2_key_from_string_raises_if_endpoint_empty() -> None:
 
 def test_v2_key_from_env_raises_if_env_var_name_empty() -> None:
     with pytest.raises(InvalidArgumentException, match="API key environment variable name cannot be empty"):
-        CredentialProvider.from_env_var_v2(api_key_env_var="", endpoint_env_var=test_v2_endpoint_env_var_name)
+        CredentialProvider.from_environment_variables_v2(
+            api_key_env_var="", endpoint_env_var=test_v2_endpoint_env_var_name
+        )
 
 
 def test_v2_key_from_env_raises_if_env_var_missing() -> None:
     with pytest.raises(RuntimeError, match="Missing required environment variable"):
-        CredentialProvider.from_env_var_v2(api_key_env_var=uuid_str(), endpoint_env_var=test_v2_endpoint_env_var_name)
+        CredentialProvider.from_environment_variables_v2(
+            api_key_env_var=uuid_str(), endpoint_env_var=test_v2_endpoint_env_var_name
+        )
 
 
 def test_v2_key_from_env_raises_if_endpoint_empty() -> None:
     with pytest.raises(InvalidArgumentException, match="Endpoint environment variable name cannot be empty"):
-        CredentialProvider.from_env_var_v2(api_key_env_var=test_v2_key_env_var_name, endpoint_env_var="")
+        CredentialProvider.from_environment_variables_v2(api_key_env_var=test_v2_key_env_var_name, endpoint_env_var="")
 
 
 def test_v2_key_from_env_raises_if_api_key_empty_string() -> None:
     empty_api_key_env_var = uuid_str()
     os.environ[empty_api_key_env_var] = ""
     with pytest.raises(RuntimeError, match="Missing required environment variable"):
-        CredentialProvider.from_env_var_v2(
+        CredentialProvider.from_environment_variables_v2(
             api_key_env_var=empty_api_key_env_var, endpoint_env_var=test_v2_endpoint_env_var_name
         )
 
@@ -203,7 +212,7 @@ def test_v2_key_from_env_raises_if_base64_api_key() -> None:
             "Received an invalid v2 API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` with a legacy key instead?"
         ),
     ):
-        CredentialProvider.from_env_var_v2(
+        CredentialProvider.from_environment_variables_v2(
             api_key_env_var=test_v1_env_var_name, endpoint_env_var=test_v2_endpoint_env_var_name
         )
 
@@ -225,7 +234,7 @@ def test_v2_key_from_env_raises_if_pre_v1_token() -> None:
             "Received an invalid v2 API key. Are you using the correct key? Or did you mean to use `from_environment_variable()` with a legacy key instead?"
         ),
     ):
-        CredentialProvider.from_env_var_v2(
+        CredentialProvider.from_environment_variables_v2(
             api_key_env_var=test_env_var_name, endpoint_env_var=test_v2_endpoint_env_var_name
         )
 
@@ -234,7 +243,7 @@ def test_v2_key_provided_to_from_string() -> None:
     with pytest.raises(
         InvalidArgumentException,
         match=re.escape(
-            "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_env_var_v2()` instead?"
+            "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_environment_variables_v2()` instead?"
         ),
     ):
         CredentialProvider.from_string(auth_token=test_v2_api_key)
@@ -244,7 +253,7 @@ def test_v2_key_provided_to_from_disposable_token() -> None:
     with pytest.raises(
         InvalidArgumentException,
         match=re.escape(
-            "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_env_var_v2()` instead?"
+            "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_environment_variables_v2()` instead?"
         ),
     ):
         CredentialProvider.from_disposable_token(auth_token=test_v2_api_key)

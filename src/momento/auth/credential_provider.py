@@ -46,7 +46,11 @@ class CredentialProvider:
         Returns:
             CredentialProvider
         """
-        warn("from_environment_variable is deprecated, use from_env_var_v2 instead", DeprecationWarning, stacklevel=2)
+        warn(
+            "from_environment_variable is deprecated, use from_environment_variables_v2 instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         api_key = os.getenv(env_var_name)
         if not api_key:
             raise RuntimeError(f"Missing required environment variable {env_var_name}")
@@ -115,10 +119,10 @@ class CredentialProvider:
 
     @staticmethod
     def from_api_key_v2(api_key: str, endpoint: str) -> CredentialProvider:
-        """Creates a CredentialProvider from a global API key and endpoint.
+        """Creates a CredentialProvider from a v2 API key and endpoint.
 
         Args:
-            api_key (str): The global API key.
+            api_key (str): The v2 API key.
             endpoint (str): The Momento service endpoint.
 
         Returns:
@@ -143,12 +147,14 @@ class CredentialProvider:
         )
 
     @staticmethod
-    def from_env_var_v2(api_key_env_var: str, endpoint_env_var: str) -> CredentialProvider:
-        """Creates a CredentialProvider from an endpoint and a global API key stored in an environment variable.
+    def from_environment_variables_v2(
+        api_key_env_var: str = "MOMENTO_API_KEY", endpoint_env_var: str = "MOMENTO_ENDPOINT"
+    ) -> CredentialProvider:
+        """Creates a CredentialProvider from an endpoint and v2 API key stored in the environment variables MOMENTO_API_KEY and MOMENTO_ENDPOINT.
 
         Args:
-            api_key_env_var (str): Name of the environment variable from which the global API key will be read.
-            endpoint_env_var (str): Name of the environment variable from which the Momento service endpoint will be read.
+            api_key_env_var (str): Optionally provide an alternate environment variable name from which the v2 API key will be read.
+            endpoint_env_var (str): Optionally provide an alternate environment variable name from which the Momento service endpoint will be read.
 
         Returns:
             CredentialProvider
