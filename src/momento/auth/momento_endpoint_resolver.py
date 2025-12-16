@@ -33,6 +33,14 @@ class _Base64DecodedV1Token:
 
 
 def resolve(auth_token: str) -> _TokenAndEndpoints:
+    """Helper function used by from_string and from_disposable_token to parse legacy and v1 auth tokens.
+
+    Args:
+        auth_token (str): The auth token to be resolved.
+
+    Returns:
+        _TokenAndEndpoints
+    """
     if not auth_token:
         raise InvalidArgumentException("malformed auth token", Service.AUTH)
 
