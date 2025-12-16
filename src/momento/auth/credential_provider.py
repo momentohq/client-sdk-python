@@ -31,6 +31,8 @@ class CredentialProvider:
     ) -> CredentialProvider:
         """Reads and parses a Momento auth token stored as an environment variable.
 
+        Deprecated as of v1.28.0. Use from_environment_variables_v2 instead.
+
         Args:
             env_var_name (str): Name of the environment variable from which the API key will be read
             control_endpoint (Optional[str], optional): Optionally overrides the default control endpoint.
@@ -64,6 +66,8 @@ class CredentialProvider:
         token_endpoint: Optional[str] = None,
     ) -> CredentialProvider:
         """Reads and parses a Momento auth token.
+
+        Deprecated as of v1.28.0. Use from_api_key_v2 or from_disposable_token instead.
 
         Args:
             auth_token (str): the Momento API key (previously: auth token)
@@ -135,7 +139,7 @@ class CredentialProvider:
 
         if not momento_endpoint_resolver._is_v2_api_key(api_key):
             raise InvalidArgumentException(
-                "Received an invalid v2 API key. Are you using the correct key? Or did you mean to use `from_string()` with a legacy key instead?",
+                "Received an invalid v2 API key. Are you using the correct key and the correct CredentialProvider method?",
                 Service.AUTH,
             )
         return CredentialProvider(

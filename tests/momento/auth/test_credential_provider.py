@@ -197,7 +197,7 @@ def test_v2_key_from_string_raises_if_base64_api_key() -> None:
     with pytest.raises(
         InvalidArgumentException,
         match=re.escape(
-            "Received an invalid v2 API key. Are you using the correct key? Or did you mean to use `from_string()` with a legacy key instead?"
+            "Received an invalid v2 API key. Are you using the correct key and the correct CredentialProvider method?"
         ),
     ):
         CredentialProvider.from_api_key_v2(
@@ -221,7 +221,7 @@ def test_v2_key_from_string_raises_if_pre_v1_token() -> None:
     with pytest.raises(
         InvalidArgumentException,
         match=re.escape(
-            "Received an invalid v2 API key. Are you using the correct key? Or did you mean to use `from_string()` with a legacy key instead?"
+            "Received an invalid v2 API key. Are you using the correct key and the correct CredentialProvider method?"
         ),
     ):
         CredentialProvider.from_api_key_v2(api_key=test_token, endpoint=test_v2_endpoint_env_var_name)
@@ -243,7 +243,7 @@ def test_v2_key_provided_to_from_string() -> None:
     with pytest.raises(
         InvalidArgumentException,
         match=re.escape(
-            "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_environment_variables_v2()` instead?"
+            "Unexpectedly received a v2 API key. Are you using the correct key and the correct CredentialProvider method?"
         ),
     ):
         CredentialProvider.from_string(auth_token=test_v2_api_key)
@@ -253,7 +253,7 @@ def test_v2_key_provided_to_from_disposable_token() -> None:
     with pytest.raises(
         InvalidArgumentException,
         match=re.escape(
-            "Received a v2 API key. Are you using the correct key? Or did you mean to use `from_api_key_v2()` or `from_environment_variables_v2()` instead?"
+            "Unexpectedly received a v2 API key. Are you using the correct key and the correct CredentialProvider method?"
         ),
     ):
         CredentialProvider.from_disposable_token(auth_token=test_v2_api_key)
