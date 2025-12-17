@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.28.0](https://github.com/momentohq/client-sdk-python/compare/v1.27.0...v1.28.0) (2025-12-17)
+
+
+### Features
+
+* new credential provider methods for accepting global api keys ([#512](https://github.com/momentohq/client-sdk-python/issues/512)) ([6809b6e](https://github.com/momentohq/client-sdk-python/commit/6809b6e6903ec74b0607ad45a6853cc5e93914da))
+
+
+### Bug Fixes
+
+* subscriptions bookkeeping in pubsub clients ([#510](https://github.com/momentohq/client-sdk-python/issues/510)) ([0d5e514](https://github.com/momentohq/client-sdk-python/commit/0d5e5144a3ad953990d83a1f880a35028c2d4ffc))
+
+
+### Miscellaneous
+
+* add timeout to topic subscribe ([#511](https://github.com/momentohq/client-sdk-python/issues/511)) ([0169714](https://github.com/momentohq/client-sdk-python/commit/01697140e479b67825c4d86bbfba9eab38969369))
+* **deps:** bump momento from 1.26.0 to 1.27.0 in /examples ([#508](https://github.com/momentohq/client-sdk-python/issues/508)) ([62ac4ae](https://github.com/momentohq/client-sdk-python/commit/62ac4ae93bbd62a3583b91a76df570ea414d6096))
+
 ## [1.27.0](https://github.com/momentohq/client-sdk-python/compare/v1.26.0...v1.27.0) (2025-05-07)
 
 
