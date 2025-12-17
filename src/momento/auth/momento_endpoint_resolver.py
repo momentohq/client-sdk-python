@@ -14,6 +14,8 @@ _MOMENTO_CACHE_ENDPOINT_PREFIX = "cache."
 _MOMENTO_TOKEN_ENDPOINT_PREFIX = "token."
 _CONTROL_ENDPOINT_CLAIM_ID = "cp"
 _CACHE_ENDPOINT_CLAIM_ID = "c"
+_API_KEY_TYPE_CLAIM_ID = "t"
+_GLOBAL_API_KEY_TYPE = "g"
 
 
 @dataclass
@@ -31,6 +33,14 @@ class _Base64DecodedV1Token:
 
 
 def resolve(auth_token: str) -> _TokenAndEndpoints:
+    """Helper function used by from_string and from_disposable_token to parse legacy and v1 auth tokens.
+
+    Args:
+        auth_token (str): The auth token to be resolved.
+
+    Returns:
+        _TokenAndEndpoints
+    """
     if not auth_token:
         raise InvalidArgumentException("malformed auth token", Service.AUTH)
 
@@ -44,6 +54,11 @@ def resolve(auth_token: str) -> _TokenAndEndpoints:
             auth_token=info["api_key"],  # type: ignore[misc]
         )
     else:
+        if _is_v2_api_key(auth_token):
+            raise InvalidArgumentException(
+                "Unexpectedly received a v2 API key. Are you using the correct key and the correct CredentialProvider method?",
+                Service.AUTH,
+            )
         return _get_endpoint_from_token(auth_token)
 
 
@@ -66,4 +81,14 @@ def _is_base64(value: Union[bytes, str]) -> bool:
             value = value.encode("utf-8")
         return base64.b64encode(base64.b64decode(value)) == value
     except Exception:
+        return False
+
+
+def _is_v2_api_key(key: str) -> bool:
+    if _is_base64(key):
+        return False
+    try:
+        claims = jwt.decode(key, options={"verify_signature": False})  # type: ignore[misc]
+        return _API_KEY_TYPE_CLAIM_ID in claims and claims[_API_KEY_TYPE_CLAIM_ID] == _GLOBAL_API_KEY_TYPE  # type: ignore[misc]
+    except DecodeError:
         return False
