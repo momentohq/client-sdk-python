@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      MOMENTO_API_KEY: ${{ secrets.ALPHA_API_KEY_V2 }}
+      V1_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
 
     steps:
