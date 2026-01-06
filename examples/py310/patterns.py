@@ -8,16 +8,27 @@ from momento import (
 )
 from momento.responses import (
     CacheGet,
-    CacheSet,
 )
 
-database: dict[str, str] = {}
-database["test-key"] = "test-value"
+
+class Database:
+    def __init__(self):
+        self.db: dict[str, str] = {}
+
+    def get(self, key: str) -> str | None:
+        return self.db.get(key)
+
+    def set(self, key: str, value: str) -> None:
+        self.db[key] = value
+
+
+database = Database()
+database.set("test-key", "test-value")
 
 
 async def example_patterns_WriteThroughCaching(cache_client: CacheClientAsync):
     database.set("test-key", "test-value")
-    set_response = await cache_client.set("test-cache", "test-key", "test-value")
+    await cache_client.set("test-cache", "test-key", "test-value")
     return
 
 
@@ -40,12 +51,9 @@ async def example_patterns_ReadAsideCaching(cache_client: CacheClientAsync):
 
 
 async def main():
-    example_API_CredentialProviderFromEnvVar()
-
-    await example_API_InstantiateCacheClient()
     cache_client = await CacheClientAsync.create(
         Configurations.Laptop.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+        CredentialProvider.from_environment_variables_v2(),
         timedelta(seconds=60),
     )
 

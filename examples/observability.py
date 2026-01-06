@@ -8,7 +8,7 @@ from momento.responses import CacheGet, CacheSet, CreateCache
 
 example_observability_setup_tracing()
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+_AUTH_PROVIDER = CredentialProvider.from_environment_variables_v2()
 _ITEM_DEFAULT_TTL_SECONDS = timedelta(seconds=60)
 _CACHE_NAME = "test-cache"
 _KEY = "test-key"

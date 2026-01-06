@@ -206,7 +206,7 @@ def test_list_caches_throws_authentication_exception_for_bad_token(
 
 
 def test_list_caches_succeeds_even_if_cred_provider_has_been_printed() -> None:
-    creds_provider = CredentialProvider.from_environment_variable("TEST_API_KEY")
+    creds_provider = CredentialProvider.from_environment_variable("V1_API_KEY")
     print(f"Printing creds provider to ensure that it does not corrupt it :) : {creds_provider}")
     with CacheClient(Configurations.Laptop.v1(), creds_provider, timedelta(seconds=60)) as client:
         response = client.list_caches()

@@ -43,7 +43,7 @@ from momento.responses.mixins import ErrorResponseMixin
 
 from example_utils.example_logging import initialize_logging
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+_AUTH_PROVIDER = CredentialProvider.from_environment_variables_v2()
 _logger = logging.getLogger("order-system-example")
 
 # Constants
@@ -218,7 +218,7 @@ async def main() -> None:
     initialize_logging()
 
     async with TopicClientAsync(
-        TopicConfigurations.Default.latest(), _AUTH_PROVIDER
+        TopicConfigurations.Default.latest().with_client_timeout(timedelta(seconds=10)), _AUTH_PROVIDER
     ) as topic_client, CacheWithPublishClientAsync(
         Configurations.Laptop.latest(), _AUTH_PROVIDER, timedelta(seconds=60), topic_client
     ) as cache_with_publish_client:

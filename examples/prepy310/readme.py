@@ -5,7 +5,7 @@ from momento.responses import CacheGet
 
 cache_client = CacheClient(
     configuration=Configurations.Laptop.v1(),
-    credential_provider=CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+    credential_provider=CredentialProvider.from_environment_variables_v2(),
     default_ttl=timedelta(seconds=60),
 )
 cache_client.create_cache("cache")
