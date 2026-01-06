@@ -11,6 +11,10 @@ python = ">=3.7,<3.13"
 momento = "1.28.0"
 colorlog = "6.7.0"
 hdrhistogram = "^0.10.1"
+setuptools = [
+    {version = "^68.0.0", python = ">=3.7,<3.8"},
+    {version = "^70.0.0", python = ">=3.8,<3.13"}
+]
 
 [tool.poetry.group.lint.dependencies]
 mypy = "^0.971"
