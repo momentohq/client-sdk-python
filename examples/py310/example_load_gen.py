@@ -74,7 +74,7 @@ class BasicPythonLoadGen:
 
     def __init__(self, options: BasicPythonLoadGenOptions):
         self.logger = logging.getLogger("load-gen")
-        self.auth_provider = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+        self.auth_provider = CredentialProvider.from_environment_variables_v2()
         self.options = options
         self.cache_value = "x" * options.cache_item_payload_bytes
         self.request_interval_ms = options.number_of_concurrent_requests / options.max_requests_per_second * 1000

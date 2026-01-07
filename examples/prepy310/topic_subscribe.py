@@ -12,7 +12,7 @@ from momento.responses import CreateCache, TopicSubscribe, TopicSubscriptionItem
 
 from example_utils.example_logging import initialize_logging
 
-_AUTH_PROVIDER = CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+_AUTH_PROVIDER = CredentialProvider.from_environment_variables_v2()
 _CACHE_NAME = "cache"
 _logger = logging.getLogger("topic-subscribe-example")
 
@@ -28,7 +28,10 @@ def main() -> None:
     initialize_logging()
     setup_cache()
     _logger.info("hello")
-    with TopicClient(TopicConfigurations.Default.v1(), _AUTH_PROVIDER) as client:
+    # You may need to adjust the timeout to accommodate your network conditions, runtime, etc
+    with TopicClient(
+        TopicConfigurations.Default.v1().with_client_timeout(timedelta(seconds=10)), _AUTH_PROVIDER
+    ) as client:
         subscription = client.subscribe("cache", "my_topic")
         if isinstance(subscription, TopicSubscribe.Error):
             raise Exception("got subscription error: ", subscription.message)

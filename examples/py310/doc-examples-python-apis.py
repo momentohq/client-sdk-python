@@ -26,8 +26,42 @@ from momento.responses import (
 from momento.utilities import ExpiresIn
 
 
+def retrieve_api_key_from_your_secrets_manager() -> str:
+    # this is not a valid API key but conforms to the syntax requirements.
+    return "eyJhcGlfa2V5IjogImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSklVekkxTmlKOS5leUpwYzNNaU9pSlBibXhwYm1VZ1NsZFVJRUoxYVd4a1pYSWlMQ0pwWVhRaU9qRTJOemd6TURVNE1USXNJbVY0Y0NJNk5EZzJOVFV4TlRReE1pd2lZWFZrSWpvaUlpd2ljM1ZpSWpvaWFuSnZZMnRsZEVCbGVHRnRjR3hsTG1OdmJTSjkuOEl5OHE4NExzci1EM1lDb19IUDRkLXhqSGRUOFVDSXV2QVljeGhGTXl6OCIsICJlbmRwb2ludCI6ICJ0ZXN0Lm1vbWVudG9ocS5jb20ifQo="
+
+
+def retrieve_api_key_v2_from_your_secrets_manager() -> str:
+    # this is not a valid API key but conforms to the syntax requirements.
+    return "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyIsImp0aSI6InNvbWUtaWQifQ.GMr9nA6HE0ttB6llXct_2Sg5-fOKGFbJCdACZFgNbN1fhT6OPg_hVc8ThGzBrWC_RlsBpLA1nzqK3SOJDXYxAw"
+
+
 def example_API_CredentialProviderFromEnvVar():
-    CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+    CredentialProvider.from_environment_variable("V1_API_KEY")
+
+
+# end example
+
+
+def example_API_CredentialProviderFromEnvVarV2():
+    CredentialProvider.from_environment_variables_v2()
+
+
+# end example
+
+
+def example_API_CredentialProviderFromApiKeyV2():
+    api_key = retrieve_api_key_v2_from_your_secrets_manager()
+    endpoint = "cell-4-us-west-2-1.prod.a.momentohq.com"
+    CredentialProvider.from_api_key_v2(api_key, endpoint)
+
+
+# end example
+
+
+def example_API_CredentialProviderFromDisposableToken():
+    auth_token = retrieve_api_key_from_your_secrets_manager()
+    CredentialProvider.from_disposable_token(auth_token)
 
 
 # end example
@@ -36,7 +70,7 @@ def example_API_CredentialProviderFromEnvVar():
 async def example_API_InstantiateCacheClient():
     await CacheClientAsync.create(
         Configurations.Laptop.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+        CredentialProvider.from_environment_variables_v2(),
         timedelta(seconds=60),
     )
 
@@ -129,9 +163,7 @@ async def example_API_Delete(cache_client: CacheClientAsync):
 
 
 async def example_API_InstantiateTopicClient():
-    TopicClientAsync(
-        TopicConfigurations.Default.latest(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
-    )
+    TopicClientAsync(TopicConfigurations.Default.latest(), CredentialProvider.from_environment_variables_v2())
 
 
 # end example
@@ -175,7 +207,7 @@ async def example_API_TopicPublish(topic_client: TopicClientAsync):
 async def example_API_InstantiateAuthClient():
     AuthClientAsync(
         Configurations.Laptop.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+        CredentialProvider.from_environment_variable("V1_API_KEY"),
     )
 
 
@@ -200,11 +232,14 @@ async def example_API_GenerateDisposableToken(auth_client: AuthClientAsync):
 
 async def main():
     example_API_CredentialProviderFromEnvVar()
+    example_API_CredentialProviderFromEnvVarV2()
+    example_API_CredentialProviderFromApiKeyV2()
+    example_API_CredentialProviderFromDisposableToken()
 
     await example_API_InstantiateCacheClient()
     cache_client = await CacheClientAsync.create(
         Configurations.Laptop.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+        CredentialProvider.from_environment_variables_v2(),
         timedelta(seconds=60),
     )
 
@@ -220,7 +255,7 @@ async def main():
     await example_API_DeleteCache(cache_client)
 
     topic_client = TopicClientAsync(
-        TopicConfigurations.Default.latest(), CredentialProvider.from_environment_variable("MOMENTO_API_KEY")
+        TopicConfigurations.Default.latest(), CredentialProvider.from_environment_variables_v2()
     )
     await example_API_InstantiateTopicClient()
     await example_API_TopicPublish(topic_client)
@@ -229,11 +264,12 @@ async def main():
 
     auth_client = AuthClientAsync(
         Configurations.Laptop.latest(),
-        CredentialProvider.from_environment_variable("MOMENTO_API_KEY"),
+        CredentialProvider.from_environment_variable("V1_API_KEY"),
     )
     await example_API_InstantiateAuthClient()
     await example_API_GenerateDisposableToken(auth_client)
     await auth_client.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

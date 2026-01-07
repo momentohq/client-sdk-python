@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  V1_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+  MOMENTO_API_KEY: ${{ secrets.ALPHA_API_KEY_V2 }}
+  MOMENTO_ENDPOINT: "cell-alpha-dev.preprod.a.momentohq.com"
+
 jobs:
   test:
     strategy:
@@ -15,7 +20,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      TEST_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
       TEST_CACHE_NAME: python-integration-test-${{ matrix.python-version }}-${{ matrix.new-python-protobuf }}-${{ github.sha }}
 
     steps:
@@ -78,10 +82,6 @@ jobs:
       # the cache for one job in another job.
       max-parallel: 1
 
-    env:
-      # TODO: remove token stored as secret in favor of using a
-      # momento-local instance that can be spun up for testing
-      MOMENTO_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v3
 
@@ -139,6 +139,7 @@ jobs:
           poetry run python -m ${{ matrix.package }}.quickstart
           poetry run python -m ${{ matrix.package }}.example
           poetry run python -m ${{ matrix.package }}.example_async
+          poetry run python -m ${{ matrix.package }}.topic_publish
 
       - name: Run docs samples for python >= 3.10
         id: docs-ex-validation

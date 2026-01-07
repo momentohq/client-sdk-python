@@ -58,8 +58,10 @@ TEST_CONFIGURATION: Configuration = Configurations.Laptop.latest()
 TEST_TOPIC_CONFIGURATION = TopicConfigurations.Default.latest().with_client_timeout(timedelta(seconds=10))
 TEST_AUTH_CONFIGURATION = AuthConfigurations.Laptop.latest()
 
+TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("V1_API_KEY")
 
-TEST_AUTH_PROVIDER = CredentialProvider.from_environment_variable("TEST_API_KEY")
+# Looks for env vars MOMENTO_API_KEY and MOMENTO_ENDPOINT
+TEST_AUTH_PROVIDER_V2 = CredentialProvider.from_environment_variables_v2()
 
 MOMENTO_LOCAL_HOSTNAME = os.environ.get("MOMENTO_HOSTNAME", "127.0.0.1")
 MOMENTO_LOCAL_PORT = int(os.environ.get("MOMENTO_PORT", "8080"))
@@ -86,6 +88,11 @@ BAD_API_KEY: str = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29
 @pytest.fixture(scope="session")
 def credential_provider() -> CredentialProvider:
     return TEST_AUTH_PROVIDER
+
+
+@pytest.fixture(scope="session")
+def credential_provider_v2() -> CredentialProvider:
+    return TEST_AUTH_PROVIDER_V2
 
 
 @pytest.fixture(scope="session")
@@ -359,6 +366,45 @@ def auth_client() -> Iterator[AuthClient]:
 async def auth_client_async() -> AsyncIterator[AuthClientAsync]:
     async with AuthClientAsync(TEST_AUTH_CONFIGURATION, TEST_AUTH_PROVIDER) as _auth_client:
         yield _auth_client
+
+
+@pytest.fixture(scope="session")
+def client_v2() -> Iterator[CacheClient]:
+    with CacheClient(TEST_CONFIGURATION, TEST_AUTH_PROVIDER_V2, DEFAULT_TTL_SECONDS) as _client:
+        # Ensure test caches exists
+        _client.create_cache(cast(str, TEST_CACHE_NAME))
+        _client.create_cache(ALTERNATE_CACHE_NAME)
+        try:
+            yield _client
+        finally:
+            _client.delete_cache(cast(str, TEST_CACHE_NAME))
+            _client.delete_cache(ALTERNATE_CACHE_NAME)
+
+
+@pytest_asyncio.fixture(scope="session")
+async def client_async_v2() -> AsyncIterator[CacheClientAsync]:
+    async with CacheClientAsync(TEST_CONFIGURATION, TEST_AUTH_PROVIDER_V2, DEFAULT_TTL_SECONDS) as _client:
+        # Ensure test cache exists
+        # TODO consider deleting cache on when test runner shuts down
+        await _client.create_cache(cast(str, TEST_CACHE_NAME))
+        await _client.create_cache(ALTERNATE_CACHE_NAME)
+        try:
+            yield _client
+        finally:
+            await _client.delete_cache(cast(str, TEST_CACHE_NAME))
+            await _client.delete_cache(ALTERNATE_CACHE_NAME)
+
+
+@pytest.fixture(scope="session")
+def topic_client_v2() -> Iterator[TopicClient]:
+    with TopicClient(TEST_TOPIC_CONFIGURATION, TEST_AUTH_PROVIDER_V2) as _client:
+        yield _client
+
+
+@pytest.fixture(scope="session")
+async def topic_client_async_v2() -> AsyncIterator[TopicClientAsync]:
+    async with TopicClientAsync(TEST_TOPIC_CONFIGURATION, TEST_AUTH_PROVIDER_V2) as _topic_client:
+        yield _topic_client
 
 
 @asynccontextmanager
