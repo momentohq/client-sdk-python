@@ -31,6 +31,7 @@ async def main() -> None:
     initialize_logging()
     setup_cache()
     _logger.info("hello")
+    # You may need to adjust the timeout to accommodate your network conditions, runtime, etc
     async with TopicClientAsync(
         TopicConfigurations.Default.v1()
         .with_max_subscriptions(_NUM_SUBSCRIBERS)

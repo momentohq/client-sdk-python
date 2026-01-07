@@ -28,6 +28,7 @@ def main() -> None:
     initialize_logging()
     setup_cache()
     _logger.info("hello")
+    # You may need to adjust the timeout to accommodate your network conditions, runtime, etc
     with TopicClient(
         TopicConfigurations.Default.v1().with_client_timeout(timedelta(seconds=10)), _AUTH_PROVIDER
     ) as client:
