@@ -44,6 +44,15 @@ def example_API_CredentialProviderFromEnvVar():
 
 
 def example_API_CredentialProviderFromEnvVarV2():
+    CredentialProvider.from_environment_variables_v2(
+        api_key_env_var="MOMENTO_API_KEY", endpoint_env_var="MOMENTO_ENDPOINT"
+    )
+
+
+# end example
+
+
+def example_API_CredentialProviderFromEnvVarV2Default():
     CredentialProvider.from_environment_variables_v2()
 
 
@@ -233,6 +242,7 @@ async def example_API_GenerateDisposableToken(auth_client: AuthClientAsync):
 async def main():
     example_API_CredentialProviderFromEnvVar()
     example_API_CredentialProviderFromEnvVarV2()
+    example_API_CredentialProviderFromEnvVarV2Default()
     example_API_CredentialProviderFromApiKeyV2()
     example_API_CredentialProviderFromDisposableToken()
 

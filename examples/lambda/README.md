@@ -17,7 +17,8 @@ The primary use is to provide a base for testing Momento in an AWS lambda enviro
 ## Prerequisites
 
 - Node version 14 or higher is required (for deploying the Cloudformation stack containing the Lambda)
-- To get started with Momento you will need a Momento Auth Token. You can get one from the [Momento Console](https://console.gomomento.com). Check out the [getting started](https://docs.momentohq.com/getting-started) guide for more information on obtaining an auth token.
+- A Momento API key is required, you can generate one using the [Momento Console](https://console.gomomento.com/api-keys)
+- A Momento service endpoint is required. You can find a [list of them here](https://docs.momentohq.com/platform/regions)
 
 ## Deploying the Momento Python Lambda with Docker and AWS CDK
 
@@ -31,12 +32,11 @@ npm install
 
 To deploy the CDK app you will need to have [configured your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html#cli-chap-authentication-precedence).
 
-You will also need a superuser token generated from the [Momento Console](https://console.gomomento.com).
-
 Then run:
 
 ```
-export MOMENTO_API_KEY=<YOUR_MOMENTO_API_KEY>
+export MOMENTO_API_KEY=<your-api-key>
+export MOMENTO_ENDPOINT=<your-endpoint>
 npm run cdk deploy
 ```
 
@@ -63,4 +63,5 @@ Follow these steps to create the zip and deploy it to AWS Lambda using the AWS M
 8. Under "Runtime settings", set the Handler to index.handler.
 9. Switch to the "Configuration" tab.
 10. Set the environment variable `MOMENTO_API_KEY` to your API key.
-11. Finally, go to the "Test" tab to test your Lambda function.
+11. Set the environment variable `MOMENTO_ENDPOINT` to your chosen endpoint.
+12. Finally, go to the "Test" tab to test your Lambda function.

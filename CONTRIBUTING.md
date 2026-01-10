@@ -169,13 +169,18 @@ poetry run isort .
 
 ## Tests :zap:
 
-Integration tests require an api key for testing. Set the env vars `MOMENTO_API_KEY` and `MOMENTO_ENDPOINT` to
-provide it. The env `TEST_CACHE_NAME` is also required, but for now any string value works.
+Integration tests require the env vars `MOMENTO_API_KEY`, `MOMENTO_ENDPOINT`, and `V1_API_KEY`. 
+The env var `TEST_CACHE_NAME` is also required, but for now any string value works.
 
 Example of running tests against all python versions:
 
 ```
-MOMENTO_API_KEY=<api key> MOMENTO_ENDPOINT=<endpoint> TEST_CACHE_NAME=<cache name> poetry run pytest
+MOMENTO_API_KEY=<v2 api key> 
+MOMENTO_ENDPOINT=<endpoint> 
+V1_API_KEY=<v1 api key>
+TEST_CACHE_NAME=<cache name> 
+
+poetry run pytest
 ```
 
 ### For M1 Users
@@ -188,7 +193,7 @@ a github issue with us to let us know.  And in the meantime you can work around 
 issue by installing Rosetta 2 and re-running with:
 
 ```
-arch -x86_64 MOMENTO_API_KEY=<api key> MOMENTO_ENDPOINT=<endpoint>  TEST_CACHE_NAME=<cache name> poetry run pytest
+arch -x86_64 MOMENTO_API_KEY=<v2 api key> MOMENTO_ENDPOINT=<endpoint> V1_API_KEY=<v1 api key> TEST_CACHE_NAME=<cache name> poetry run pytest
 ```
 
 ### Developing new test cases?
