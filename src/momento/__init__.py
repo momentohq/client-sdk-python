@@ -18,7 +18,7 @@ from .config import Configurations, TopicConfigurations
 from .topic_client import TopicClient
 from .topic_client_async import TopicClientAsync
 
-__version__ = "1.28.0"  # x-release-please-version
+__version__ = "1.28.1"  # x-release-please-version
 
 logging.getLogger("momentosdk").addHandler(logging.NullHandler())
 logs.initialize_momento_logging()
