@@ -23,10 +23,12 @@ To get started with Momento you will need a Momento Auth Token. You can get one 
 
 The Momento Python SDK package is available on pypi: [momento](https://pypi.org/project/momento/).
 
-## Usage
+## Prerequisites
 
-The examples below require an environment variable named `MOMENTO_API_KEY` which must
-be set to a valid Momento API key. You can get one from the [Momento Console](https://console.gomomento.com).
+- A Momento API key is required, you can generate one using the [Momento Console](https://console.gomomento.com/api-keys)
+- A Momento service endpoint is required. You can find a [list of them here](https://docs.momentohq.com/platform/regions)
+
+## Usage
 
 Python 3.10 introduced the `match` statement, which allows for [structural pattern matching on objects](https://peps.python.org/pep-0636/#adding-a-ui-matching-objects).
 If you are running python 3.10 or greater, here is a quickstart you can use in your own project:
@@ -83,8 +85,8 @@ Documentation is available on the [Momento Docs website](https://docs.momentohq.
 Working example projects, with all required build configuration files, are available for both Python 3.10 and up
 and Python versions before 3.10:
 
-* [Python 3.10+ examples](./examples/py310)
-* [Pre-3.10 Python examples](./examples/prepy310)
+- [Python 3.10+ examples](./examples/py310)
+- [Pre-3.10 Python examples](./examples/prepy310)
 
 ## Developing
 
