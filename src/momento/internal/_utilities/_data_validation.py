@@ -150,5 +150,3 @@ def _validate_disposable_token_expiry(expires_in: ExpiresIn) -> None:
         raise ValueError("Disposable tokens must have an expiry")
     if expires_in.valid_for_seconds() < 0:
         raise ValueError("Disposable token expiry must be positive")
-    if expires_in.valid_for_seconds() > 60 * 60:
-        raise ValueError("Disposable tokens must expire within 1 hour")
