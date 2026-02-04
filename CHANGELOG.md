@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.28.1](https://github.com/momentohq/client-sdk-python/compare/v1.28.0...v1.28.1) (2026-02-04)
+
+
+### Bug Fixes
+
+* remove client-side expiry check on disposable tokens ([#518](https://github.com/momentohq/client-sdk-python/issues/518)) ([60fbb19](https://github.com/momentohq/client-sdk-python/commit/60fbb19a06813114dbacfb75c3681cd57331f3a4))
+
+
+### Miscellaneous
+
+* more examples and readme updates ([#517](https://github.com/momentohq/client-sdk-python/issues/517)) ([cc9378f](https://github.com/momentohq/client-sdk-python/commit/cc9378f439c4064ea6dcbba7801cf6736d33d99f))
+* update workflows, examples, tests, readmes for api keys v2 ([#514](https://github.com/momentohq/client-sdk-python/issues/514)) ([2c8738f](https://github.com/momentohq/client-sdk-python/commit/2c8738fed0ec142a9a8b1ffe0c712547c7b04585))
+
 ## [1.28.0](https://github.com/momentohq/client-sdk-python/compare/v1.27.0...v1.28.0) (2025-12-17)
 
 
