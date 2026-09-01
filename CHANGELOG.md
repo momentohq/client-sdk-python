@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0](https://github.com/momentohq/client-sdk-python/compare/v1.28.1...v2.0.0) (2026-09-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* requires momento-wire-types >=0.135.0 and protobuf >=7.35.1,<8, and raises the minimum Python to 3.10. Support for protobuf 3 and 4 is removed.
+
+### Features
+
+* require protobuf 7 via momento-wire-types 0.135 ([#523](https://github.com/momentohq/client-sdk-python/issues/523)) ([49a7b36](https://github.com/momentohq/client-sdk-python/commit/49a7b367284318c53ee3ba50c7b6c3a20f861080))
+
+
+### Miscellaneous
+
+* retire the machine-user release token ([#520](https://github.com/momentohq/client-sdk-python/issues/520)) ([3b6a220](https://github.com/momentohq/client-sdk-python/commit/3b6a2205eb61958093627f22d07712d7df47b9a5))
+
 ## [1.28.1](https://github.com/momentohq/client-sdk-python/compare/v1.28.0...v1.28.1) (2026-02-04)
 
 
