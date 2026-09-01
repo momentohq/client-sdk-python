@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0](https://github.com/momentohq/client-sdk-python/compare/v1.28.1...v2.0.0) (2026-09-01)
+## [1.29.0](https://github.com/momentohq/client-sdk-python/compare/v1.28.1...v1.29.0) (2026-09-01)
 
 
 ### ⚠ BREAKING CHANGES
