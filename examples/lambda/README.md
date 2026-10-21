@@ -56,7 +56,7 @@ Follow these steps to create the zip and deploy it to AWS Lambda using the AWS M
 
 2. Create a new Lambda function by selecting "Author from scratch".
 3. Set the function name to `momento-lambda-demo`.
-4. Choose the runtime as `Python 3.8` (you can adjust this as desired).
+4. Choose the runtime as `Python 3.12` (you can adjust this as desired).
 5. Select the architecture as `x86_64`.
 6. Click on "Create function" to create the Lambda function.
 7. In the "Code" tab, choose "Upload from the zip" as the code source.

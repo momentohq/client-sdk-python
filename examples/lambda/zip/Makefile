@@ -11,7 +11,7 @@ dist:
 # 1. The `--platform` option is used to specify the target platform. In this case, we are targeting the manylinux2014_x86_64 platform for AWS Lambda.
 # 2. The `--target` option is used to specify the target directory where the dependencies will be installed.
 # 3. The `--implementation` option is used to specify the Python implementation. In this case, we are using the CPython implementation.
-# 4. The `--python-version` option is used to specify the Python version. In this case, we are using Python 3.8. You can change this to match the Python version used by AWS Lambda.
+# 4. The `--python-version` option is used to specify the Python version. In this case, we are using Python 3.12. You can change this to match the Python version used by AWS Lambda.
 # 5. The `--only-binary` option is used to specify that only binary distributions should be used. This is important because AWS Lambda does not support building from source.
 # 6. The `--upgrade` option is used to ensure that the dependencies are up-to-date.
 # 7. The `-r requirements.txt` option is used to specify the requirements file that contains the dependencies to install.
@@ -19,7 +19,7 @@ dist:
 		--platform manylinux2014_x86_64 \
 		--target=dist \
 		--implementation cp \
-		--python-version 3.8 \
+		--python-version 3.12 \
 		--only-binary=:all: \
 		--upgrade \
 		-r requirements.txt
