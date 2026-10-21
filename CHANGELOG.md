@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.29.1](https://github.com/momentohq/client-sdk-python/compare/v1.29.0...v1.29.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* require grpcio&gt;=1.83.1 to match momento-wire-types 0.135 ([#532](https://github.com/momentohq/client-sdk-python/issues/532)) ([0a511cf](https://github.com/momentohq/client-sdk-python/commit/0a511cf1b5a489d6b75283b49c04980aaa9d0c8f))
+
+
+### Miscellaneous
+
+* bump examples to momento 1.29.0 and require python 3.10 ([#531](https://github.com/momentohq/client-sdk-python/issues/531)) ([1d1067e](https://github.com/momentohq/client-sdk-python/commit/1d1067ef4f6d120066612f118f1196c6cc0d17df))
+* bump pyjwt and pytest lockfiles to resolve dependabot alerts ([#529](https://github.com/momentohq/client-sdk-python/issues/529)) ([83317ee](https://github.com/momentohq/client-sdk-python/commit/83317ee9a93dd238b933d840f47db38aeea90d65))
+* run lambda examples on python 3.12 with momento 1.29.0 ([#534](https://github.com/momentohq/client-sdk-python/issues/534)) ([592974e](https://github.com/momentohq/client-sdk-python/commit/592974e93088cbc863418bb838065f710a8e7187))
+* upgrade lambda example to aws-cdk-lib 2.274 and typescript 5.9 ([#533](https://github.com/momentohq/client-sdk-python/issues/533)) ([e19cfe3](https://github.com/momentohq/client-sdk-python/commit/e19cfe3aebf0d1331f6c581a1a00add866994388))
+
 ## [1.29.0](https://github.com/momentohq/client-sdk-python/compare/v2.0.0...v1.29.0) (2026-09-01)
 
 
