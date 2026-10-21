@@ -7,7 +7,7 @@ _Read this in other languages_: [日本語](README.ja.md)
 
 ## Prereqs
 
-- [Python 3.7 or above is required](https://www.python.org/downloads/)
+- [Python 3.10 or above is required](https://www.python.org/downloads/)
 - To get started with Momento you will need a Momento API key. You can get one from the [Momento Console](https://console.gomomento.com).
 - A Momento service endpoint is required. You can find a [list of them here](https://docs.momentohq.com/platform/regions)
 - Developer libraries (gcc/python dev headers) installed on machine you intend to run on
