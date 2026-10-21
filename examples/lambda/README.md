@@ -16,7 +16,7 @@ The primary use is to provide a base for testing Momento in an AWS lambda enviro
 
 ## Prerequisites
 
-- Node version 14 or higher is required (for deploying the Cloudformation stack containing the Lambda)
+- Node version 20 or higher is required (for deploying the Cloudformation stack containing the Lambda)
 - A Momento API key is required, you can generate one using the [Momento Console](https://console.gomomento.com/api-keys)
 - A Momento service endpoint is required. You can find a [list of them here](https://docs.momentohq.com/platform/regions)
 
