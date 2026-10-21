@@ -6,7 +6,7 @@ _他言語バージョンもあります_：[English](README.md)
 
 ## SDK コード例を実行する
 
-- [Python 3.7 もしくはそれ以上が必要です。](https://www.python.org/downloads/)
+- [Python 3.10 もしくはそれ以上が必要です。](https://www.python.org/downloads/)
 - Momento オーストークンが必要です。トークン発行は[Momento CLI](https://github.com/momentohq/momento-cli)から行えます。
 
 ```bash
