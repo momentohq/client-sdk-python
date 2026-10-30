@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/momentohq/client-sdk-python/compare/v1.29.1...v1.30.0) (2026-10-30)
+
+
+### Features
+
+* expose cache id on CacheInfo ([#536](https://github.com/momentohq/client-sdk-python/issues/536)) ([a69cba1](https://github.com/momentohq/client-sdk-python/commit/a69cba125e34a17b202198610a27481df17412fc))
+
 ## [1.29.1](https://github.com/momentohq/client-sdk-python/compare/v1.29.0...v1.29.1) (2026-10-21)
 
 
