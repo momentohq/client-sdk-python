@@ -30,7 +30,7 @@ exclude = ["src/momento/internal/codegen.py"]
 [tool.poetry.dependencies]
 python = "^3.10"
 
-momento-wire-types = "^0.135.0"
+momento-wire-types = "^0.139.0"
 # momento-wire-types 0.135's generated stubs refuse to import on grpcio < 1.83.1
 grpcio = "^1.83.1"
 # note if you bump this presigned url test need be updated
