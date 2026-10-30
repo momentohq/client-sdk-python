@@ -43,10 +43,13 @@ class ListCachesResponse(ControlResponse):
 
 @dataclass
 class CacheInfo:
-    """Contains a Momento cache's name."""
+    """Contains a Momento cache's name and id."""
 
     name: str
     """Holds the name of the cache."""
+
+    id: str = ""
+    """Holds the id of the cache. Empty if the server does not report one."""
 
 
 class ListCaches(ABC):
@@ -66,7 +69,7 @@ class ListCaches(ABC):
             Args:
                 grpc_list_cache_response: Protobuf based response returned by Scs.
             """
-            caches = [CacheInfo(cache.cache_name) for cache in grpc_list_cache_response.cache]  # type: ignore[misc]
+            caches = [CacheInfo(cache.cache_name, cache.cache_id) for cache in grpc_list_cache_response.cache]  # type: ignore[misc]
             return ListCaches.Success(caches=caches)
 
     class Error(ListCachesResponse, ErrorResponseMixin):
